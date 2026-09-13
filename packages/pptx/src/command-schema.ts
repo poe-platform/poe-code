@@ -252,6 +252,64 @@ const creationLength = {
     unit: { enum: ["emu", "in", "cm", "mm", "pt"] }
   }
 };
+
+const settingsValues = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "width",
+    "height",
+    "orientation",
+    "notesWidth",
+    "notesHeight",
+    "notesOrientation",
+    "slideNumberStart",
+    "loop",
+    "showType"
+  ],
+  properties: {
+    width: { type: ["integer", "null"], minimum: -9007199254740991, maximum: 9007199254740991 },
+    height: { type: ["integer", "null"], minimum: -9007199254740991, maximum: 9007199254740991 },
+    notesWidth: {
+      type: ["integer", "null"],
+      minimum: -9007199254740991,
+      maximum: 9007199254740991
+    },
+    notesHeight: {
+      type: ["integer", "null"],
+      minimum: -9007199254740991,
+      maximum: 9007199254740991
+    },
+    orientation: { enum: ["portrait", "landscape", null] },
+    notesOrientation: { enum: ["portrait", "landscape", null] },
+    slideNumberStart: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
+    loop: { type: "boolean" },
+    showType: { enum: ["speaker", "window", "kiosk"] }
+  }
+};
+const settingsOptions = {
+  width: creationLength,
+  height: creationLength,
+  notesWidth: {
+    ...creationLength,
+    properties: { ...creationLength.properties, value: { type: "number", minimum: 0 } }
+  },
+  notesHeight: {
+    ...creationLength,
+    properties: { ...creationLength.properties, value: { type: "number", minimum: 0 } }
+  },
+  orientation: { enum: ["portrait", "landscape"] },
+  notesOrientation: { enum: ["portrait", "landscape"] },
+  slideNumberStart: settingsValues.properties.slideNumberStart,
+  loop: { type: "boolean" },
+  showType: settingsValues.properties.showType,
+  scaleContent: {
+    type: "boolean",
+    default: false,
+    description:
+      "Canvas-only by default. Explicit content scaling rejects unsupported transforms without publishing."
+  }
+};
 export const createSchema = {
   description:
     "Original Transitional macro-free presentation, template or show. Empty slide list by default. Template inputs and Strict creation are explicitly unsupported.",
@@ -391,6 +449,110 @@ export const createSchema = {
     }
   }
 };
+
+export const settingsSchemas = Object.fromEntries(
+  ["list", "get", "set"].map((action) => {
+    const mutation = action === "set";
+    return [
+      `settings.${action}`,
+      {
+        description:
+          "Presentation settings. Dimensions are canvas-only by default; notes dimensions are independent. Unrequested grid, view, print and vendor settings are preserved.",
+        input: inspectSchema.input,
+        options: {
+          $schema: "https://json-schema.org/draft/2020-12/schema",
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            json: { type: "boolean", default: false },
+            limit: xmlSelection.limit,
+            ...(mutation
+              ? {
+                  ...settingsOptions,
+                  output: { type: "string", minLength: 1 },
+                  inPlace: { type: "boolean", default: false },
+                  force: { type: "boolean", default: false },
+                  dryRun: { type: "boolean", default: false }
+                }
+              : {})
+          },
+          ...(mutation
+            ? {
+                allOf: [
+                  ...xmlSetSchema.options.allOf.slice(xmlSelectionRules.length),
+                  {
+                    anyOf: Object.keys(settingsOptions)
+                      .filter((key) => key !== "scaleContent")
+                      .map((key) => ({ required: [key] }))
+                  },
+                  {
+                    if: {
+                      required: ["scaleContent"],
+                      properties: { scaleContent: { const: true } }
+                    },
+                    then: {
+                      anyOf: ["width", "height", "orientation"].map((key) => ({ required: [key] }))
+                    }
+                  }
+                ]
+              }
+            : {})
+        },
+        result: {
+          ...inspectSchema.result,
+          properties: {
+            ...inspectSchema.result.properties,
+            operation: { const: `settings.${action}` },
+            affected: mutation ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 },
+            data: {
+              oneOf: [
+                { type: "null" },
+                mutation
+                  ? {
+                      ...createSchema.result.properties.data.oneOf[1],
+                      properties: {
+                        ...createSchema.result.properties.data.oneOf[1]!.properties,
+                        effects: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            additionalProperties: false,
+                            required: ["location", "action", "feature"],
+                            properties: {
+                              location: { $ref: "#/$defs/location" },
+                              action: { const: "update" },
+                              feature: { const: "F10" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  : {
+                      type: "object",
+                      additionalProperties: false,
+                      required: ["fingerprint", action === "list" ? "records" : "settings"],
+                      properties: {
+                        fingerprint: { type: "string" },
+                        ...(action === "list"
+                          ? {
+                              records: {
+                                type: "array",
+                                minItems: 1,
+                                maxItems: 1,
+                                items: settingsValues
+                              }
+                            }
+                          : { settings: settingsValues })
+                      }
+                    }
+              ]
+            }
+          }
+        }
+      }
+    ];
+  })
+);
 
 export const slidesAddSchema = {
   description:

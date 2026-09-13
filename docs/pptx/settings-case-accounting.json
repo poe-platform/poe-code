@@ -1,0 +1,2154 @@
+{
+  "schema_version": 1,
+  "scope": "Presentation slide and notes dimensions, orientation, first slide number and supported show settings; F10 and notes-page subset of F49",
+  "authorities": [
+    "../specs/pptx.md",
+    "../specs/office-cli.md",
+    "../specs/office-sdk.md",
+    "upstream-test-audit.md",
+    "upstream-test-inventory.json",
+    "upstream-api-audit.md",
+    "upstream-api-inventory.json",
+    "public-api-map.json"
+  ],
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "notice": "upstream-license-notice.txt",
+  "scope_method": "Select every width/height unit variant and expanded presentation-dimensions BDD scenario. Include adjacent notes creation, owner/publication and all length constructor/conversion variants separately; retain every Presentation and unit-value public/inherited member as an explicit API row. Other slide graph cases stay in existing task receipts. No notes-size, orientation, first-number or slideshow-edit public member or direct case exists in the pinned source inventory; those are additive format requirements.",
+  "counts": {
+    "direct_unit_cases": 8,
+    "direct_bdd_cases": 2,
+    "adjacent_unit_cases": 20,
+    "adjacent_bdd_cases": 2,
+    "api_records": 71
+  },
+  "mapping_decisions": {
+    "J01": "Retain slide_width and slide_height for model property assignment. Operation fields width/height and notesWidth/notesHeight are camelCase schema arguments, not model aliases.",
+    "J02": "Missing sldSz reads null. Operation inspection must not create missing notes masters, presentation dimensions or property parts. The live model and its owner identity remain pending.",
+    "J03": "Settings are a singleton; no ordinal or opaque selector is accepted. Unrelated sequence/keyed-collection semantics are not changed.",
+    "J05": "Operation lengths become safe integer EMUs once using nearest rounding, halfway away from zero, at 914400/in, 360000/cm, 36000/mm and 12700/pt. Numeric value objects/accessors remain unimplemented unless separately evidenced. Missing is null, explicit false is retained, undefined is omission; no implicit coercion.",
+    "J06": "All input admission and mutation serialization are asynchronous through explicit byte/VFS capabilities. No ambient host I/O or native runtime. Byte results never imply a live model save method.",
+    "J07": "No ambient timestamps, identity, font discovery or default vendor templates. New XML is original and only requested structures may be created.",
+    "J08": "Typed operation schema errors map to CLI status 2, unsupported/document/value failures to 1, capability I/O to 3, limits to 4 and cancellation to 130. Neutral model error classes remain separately tracked.",
+    "J09": "Independent ZIP/XML assertions verify only owned requested attributes changed. Public element/part model views remain security-mapped obligations, not excluded by inherited/private-looking names.",
+    "J10": "settings.list/get/set use shared envelopes and schemas. Resize defaults to canvas-only. Explicit scaleContent must transform supported groups coherently or reject unsupported transforms before publication."
+  },
+  "documentation_drift": [
+    {
+      "finding": "Format settings register permitted safe-integer firstSlideNum while the OOXML field is signed xsd:int.",
+      "resolution": "Use inclusive -2147483648..2147483647; parent integration owns format-spec correction.",
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.presentation.presentation.firstslidenum?view=openxml-3.0.1"
+    },
+    {
+      "finding": "Format settings register omitted notes dimensions, notes orientation and explicit scale-content.",
+      "resolution": "Add operation fields notesWidth, notesHeight, notesOrientation and scaleContent in the same shared schema; notes-size support does not promise notes-master model API."
+    },
+    {
+      "finding": "The canonical API map retains typed batch getter/setter operation designs; operation-level settings routes do not implement those model receiver APIs.",
+      "resolution": "Keep live slide_width/slide_height and every other selected model row pending; no complete SDK or published API claim."
+    }
+  ],
+  "unit_cases": [
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2214",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_knows_the_height_of_its_slides[sld_height_get_fixture0]",
+      "canonical_case_id": "presentation-unit-ad74ea305cf9",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_knows_the_height_of_its_slides[sld_height_get_fixture0]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_knows_the_height_of_its_slides",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "sld_height_get_fixture": "('p:presentation', None)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 20,
+            "expression": "prs.slide_height == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.sld_height_get_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "direct_dimensions",
+      "disposition": "operation_evidence_verified_model_pending",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": ["reads absent height without creating a size element"],
+      "equivalence": "Original byte SDK test preserves this observable dimension branch; model property/value-object parity is still pending.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2215",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_knows_the_height_of_its_slides[sld_height_get_fixture1]",
+      "canonical_case_id": "presentation-unit-4ed964c110c3",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_knows_the_height_of_its_slides[sld_height_get_fixture1]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_knows_the_height_of_its_slides",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "sld_height_get_fixture": "('p:presentation/p:sldSz{cy=42}', 42)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 20,
+            "expression": "prs.slide_height == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.sld_height_get_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "direct_dimensions",
+      "disposition": "operation_evidence_verified_model_pending",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": ["reads a present height independently of writing bounds"],
+      "equivalence": "Original byte SDK test preserves this observable dimension branch; model property/value-object parity is still pending.",
+      "numeric_edge_receipt": "Original authored packages retain the read value 42.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2216",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_can_change_the_height_of_its_slides[sld_height_set_fixture0]",
+      "canonical_case_id": "presentation-unit-85dfaf911377",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_can_change_the_height_of_its_slides[sld_height_set_fixture0]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_can_change_the_height_of_its_slides",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "sld_height_set_fixture": "('p:presentation', 'p:presentation/p:sldSz{cy=914400}')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 25,
+            "expression": "prs._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.sld_height_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "direct_dimensions",
+      "disposition": "deliberate_package_admission_difference",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": ["requires the companion dimension to create an absent height"],
+      "equivalence": "Source model permits creating an axis-only sldSz. Package operation rejects absent companion dimension and creates a complete pair only when both supplied; this is not equivalent model setter support.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2217",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_can_change_the_height_of_its_slides[sld_height_set_fixture1]",
+      "canonical_case_id": "presentation-unit-585922422e21",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_can_change_the_height_of_its_slides[sld_height_set_fixture1]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_can_change_the_height_of_its_slides",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "sld_height_set_fixture": "('p:presentation/p:sldSz{cy=424242}', 'p:presentation/p:sldSz{cy=914400}')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 25,
+            "expression": "prs._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.sld_height_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "direct_dimensions",
+      "disposition": "deliberate_package_admission_difference",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": [
+        "requires a complete pair when replacing an axis-only stored height",
+        "rejects partial height repairs that leave an invalid companion dimension",
+        "sets an existing height and preserves the other axis"
+      ],
+      "equivalence": "Source writes one axis even if its companion is absent or outside package write bounds. The package operation inspects source 424242 but rejects incomplete/invalid resulting dimensions; both axes can be repaired explicitly. This is a deliberate admission difference, not live-model setter equivalence.",
+      "numeric_edge_receipt": "Original tests retain exact source 424242 and write request914400, cover axis-only absence and invalid companions, and verify explicit paired repair.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2218",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_knows_the_width_of_its_slides[sld_width_get_fixture0]",
+      "canonical_case_id": "presentation-unit-8a5c0eac9e9c",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_knows_the_width_of_its_slides[sld_width_get_fixture0]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_knows_the_width_of_its_slides",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "sld_width_get_fixture": "('p:presentation', None)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 29,
+            "expression": "prs.slide_width == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.sld_width_get_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "direct_dimensions",
+      "disposition": "operation_evidence_verified_model_pending",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": ["reads absent width without creating a size element"],
+      "equivalence": "Original byte SDK test preserves this observable dimension branch; model property/value-object parity is still pending.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2219",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_knows_the_width_of_its_slides[sld_width_get_fixture1]",
+      "canonical_case_id": "presentation-unit-093879245b65",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_knows_the_width_of_its_slides[sld_width_get_fixture1]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_knows_the_width_of_its_slides",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "sld_width_get_fixture": "('p:presentation/p:sldSz{cx=42}', 42)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 29,
+            "expression": "prs.slide_width == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.sld_width_get_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "direct_dimensions",
+      "disposition": "operation_evidence_verified_model_pending",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": ["reads a present width independently of writing bounds"],
+      "equivalence": "Original byte SDK test preserves this observable dimension branch; model property/value-object parity is still pending.",
+      "numeric_edge_receipt": "Original authored packages retain the read value 42.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2220",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_can_change_the_width_of_its_slides[sld_width_set_fixture0]",
+      "canonical_case_id": "presentation-unit-6b89554377c2",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_can_change_the_width_of_its_slides[sld_width_set_fixture0]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_can_change_the_width_of_its_slides",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "sld_width_set_fixture": "('p:presentation', 'p:presentation/p:sldSz{cx=914400}')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 34,
+            "expression": "prs._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.sld_width_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "direct_dimensions",
+      "disposition": "deliberate_package_admission_difference",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": ["requires the companion dimension to create an absent width"],
+      "equivalence": "Source model permits creating an axis-only sldSz. Package operation rejects absent companion dimension and creates a complete pair only when both supplied; this is not equivalent model setter support.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2221",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_can_change_the_width_of_its_slides[sld_width_set_fixture1]",
+      "canonical_case_id": "presentation-unit-fb03c291dd38",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_can_change_the_width_of_its_slides[sld_width_set_fixture1]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_can_change_the_width_of_its_slides",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "sld_width_set_fixture": "('p:presentation/p:sldSz{cx=424242}', 'p:presentation/p:sldSz{cx=914400}')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 34,
+            "expression": "prs._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.sld_width_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "direct_dimensions",
+      "disposition": "deliberate_package_admission_difference",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": [
+        "requires a complete pair when replacing an axis-only stored width",
+        "rejects partial width repairs that leave an invalid companion dimension",
+        "sets an existing width and preserves the other axis"
+      ],
+      "equivalence": "Source writes one axis even if its companion is absent or outside package write bounds. The package operation inspects source 424242 but rejects incomplete/invalid resulting dimensions; both axes can be repaired explicitly. This is a deliberate admission difference, not live-model setter equivalence.",
+      "numeric_edge_receipt": "Original tests retain exact source 424242 and write request914400, cover axis-only absence and invalid companions, and verify explicit paired repair.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/1621",
+      "source_identity": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_an_existing_notes_master_part",
+      "canonical_case_id": "presentation-unit-81efac6ef0c5",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_presentation.py::DescribePresentationPart::it_provides_access_to_an_existing_notes_master_part",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.it_provides_access_to_an_existing_notes_master_part",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 56,
+            "expression": "notes_master_part is notes_master_part_"
+          }
+        ],
+        "mock_expectations": [
+          {
+            "line": 55,
+            "expression": "prs_part.part_related_by.assert_called_once_with(prs_part, RT.NOTES_MASTER)"
+          }
+        ],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.notes_master_part_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.part_related_by_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/1622",
+      "source_identity": "tests/parts/test_presentation.py::DescribePresentationPart::but_it_adds_a_notes_master_part_when_needed",
+      "canonical_case_id": "presentation-unit-3ce31620a403",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_presentation.py::DescribePresentationPart::but_it_adds_a_notes_master_part_when_needed",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.but_it_adds_a_notes_master_part_when_needed",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 74,
+            "expression": "notes_master_part is notes_master_part_"
+          }
+        ],
+        "mock_expectations": [
+          {
+            "line": 72,
+            "expression": "NotesMasterPart_.create_default.assert_called_once_with(package_)"
+          },
+          {
+            "line": 73,
+            "expression": "relate_to_.assert_called_once_with(prs_part, notes_master_part_, RT.NOTES_MASTER)"
+          }
+        ],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.package_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.notes_master_part_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.part_related_by_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.relate_to_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/1623",
+      "source_identity": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_its_notes_master",
+      "canonical_case_id": "presentation-unit-1ca4cdf5f8ef",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_presentation.py::DescribePresentationPart::it_provides_access_to_its_notes_master",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.it_provides_access_to_its_notes_master",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 87,
+            "expression": "prs_part.notes_master is notes_master_"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.notes_master_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/1627",
+      "source_identity": "tests/parts/test_presentation.py::DescribePresentationPart::it_can_save_the_package_to_a_file",
+      "canonical_case_id": "presentation-unit-a939022147c2",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_presentation.py::DescribePresentationPart::it_can_save_the_package_to_a_file",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.it_can_save_the_package_to_a_file",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [],
+        "mock_expectations": [
+          {
+            "line": 124,
+            "expression": "package_.save.assert_called_once_with('prs.pptx')"
+          }
+        ],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.package_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2222",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_knows_its_part",
+      "canonical_case_id": "presentation-unit-67ad14d2b4ba",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_knows_its_part",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_knows_its_part",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 38,
+            "expression": "prs.part is prs_part_"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.part_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.prs_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2224",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_notes_master",
+      "canonical_case_id": "presentation-unit-d10e82c7d676",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_provides_access_to_its_notes_master",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_provides_access_to_its_notes_master",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 46,
+            "expression": "prs.notes_master is notes_master_"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.notes_master_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.prs_part_",
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.notes_master_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2232",
+      "source_identity": "tests/test_presentation.py::DescribePresentation::it_can_save_the_presentation_to_a_file",
+      "canonical_case_id": "presentation-unit-bdd14d3414cf",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_presentation.py::DescribePresentation::it_can_save_the_presentation_to_a_file",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.it_can_save_the_presentation_to_a_file",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [],
+        "mock_expectations": [
+          {
+            "line": 77,
+            "expression": "prs_part_.save.assert_called_once_with(file_)"
+          }
+        ],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.save_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_presentation.py::DescribePresentation.prs_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2438",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture0]",
+      "canonical_case_id": "presentation-unit-03cc27099cc4",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture0]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_construct_from_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "construct_fixture": "(Length, 914400, 914400)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 14,
+            "expression": "isinstance(length, Length)"
+          },
+          {
+            "line": 15,
+            "expression": "length == emu"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.construct_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2439",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture1]",
+      "canonical_case_id": "presentation-unit-c8b872b45035",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture1]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_construct_from_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "construct_fixture": "(Inches, 1.1, 1005840)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 14,
+            "expression": "isinstance(length, Length)"
+          },
+          {
+            "line": 15,
+            "expression": "length == emu"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.construct_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2440",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture2]",
+      "canonical_case_id": "presentation-unit-a81a3540fcfb",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture2]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_construct_from_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 2,
+            "bindings": {
+              "construct_fixture": "(Centipoints, 12.5, 1587)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 14,
+            "expression": "isinstance(length, Length)"
+          },
+          {
+            "line": 15,
+            "expression": "length == emu"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.construct_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2441",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture3]",
+      "canonical_case_id": "presentation-unit-0ba8c811bada",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture3]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_construct_from_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 3,
+            "bindings": {
+              "construct_fixture": "(Cm, 2.53, 910799)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 14,
+            "expression": "isinstance(length, Length)"
+          },
+          {
+            "line": 15,
+            "expression": "length == emu"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.construct_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2442",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture4]",
+      "canonical_case_id": "presentation-unit-34bb05798648",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture4]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_construct_from_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 4,
+            "bindings": {
+              "construct_fixture": "(Emu, 9144.9, 9144)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 14,
+            "expression": "isinstance(length, Length)"
+          },
+          {
+            "line": 15,
+            "expression": "length == emu"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.construct_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2443",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture5]",
+      "canonical_case_id": "presentation-unit-ba0ca7f019cc",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture5]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_construct_from_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 5,
+            "bindings": {
+              "construct_fixture": "(Mm, 13.8, 496800)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 14,
+            "expression": "isinstance(length, Length)"
+          },
+          {
+            "line": 15,
+            "expression": "length == emu"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.construct_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2444",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture6]",
+      "canonical_case_id": "presentation-unit-05fcea00c564",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_construct_from_convenient_units[construct_fixture6]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_construct_from_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 6,
+            "bindings": {
+              "construct_fixture": "(Pt, 24.5, 311150)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 14,
+            "expression": "isinstance(length, Length)"
+          },
+          {
+            "line": 15,
+            "expression": "length == emu"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.construct_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2445",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture0]",
+      "canonical_case_id": "presentation-unit-3727203aa60b",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture0]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_self_convert_to_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "units_fixture": "(914400, 'inches', 1.0)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 21,
+            "expression": "length_in_units == expected_length_in_units"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.units_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2446",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture1]",
+      "canonical_case_id": "presentation-unit-b7f1dd7a95e0",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture1]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_self_convert_to_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "units_fixture": "(914400, 'centipoints', 7200.0)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 21,
+            "expression": "length_in_units == expected_length_in_units"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.units_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2447",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture2]",
+      "canonical_case_id": "presentation-unit-133c3a3875ed",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture2]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_self_convert_to_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 2,
+            "bindings": {
+              "units_fixture": "(914400, 'cm', 2.54)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 21,
+            "expression": "length_in_units == expected_length_in_units"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.units_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2448",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture3]",
+      "canonical_case_id": "presentation-unit-21db63d43d43",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture3]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_self_convert_to_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 3,
+            "bindings": {
+              "units_fixture": "(914400, 'emu', 914400)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 21,
+            "expression": "length_in_units == expected_length_in_units"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.units_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2449",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture4]",
+      "canonical_case_id": "presentation-unit-0a7401f3f74e",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture4]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_self_convert_to_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 4,
+            "bindings": {
+              "units_fixture": "(914400, 'mm', 25.4)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 21,
+            "expression": "length_in_units == expected_length_in_units"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.units_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/unit_cases/2450",
+      "source_identity": "tests/test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture5]",
+      "canonical_case_id": "presentation-unit-d1ba2ef025ea",
+      "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_util.py::DescribeLength::it_can_self_convert_to_convenient_units[units_fixture5]",
+      "original_behavior": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.it_can_self_convert_to_convenient_units",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 5,
+            "bindings": {
+              "units_fixture": "(914400, 'pt', 72.0)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 21,
+            "expression": "length_in_units == expected_length_in_units"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_util.py::DescribeLength.units_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    }
+  ],
+  "bdd_cases": [
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/540",
+      "source_identity": "features/prs-presentation-props.feature:7:Get Presentation.slide_width, .slide_height",
+      "canonical_case_id": "presentation-bdd-812fa98bd1af",
+      "behavior": null,
+      "original_behavior": {
+        "expanded_scenario": [
+          {
+            "line": 8,
+            "text": "Given a presentation"
+          },
+          {
+            "line": 9,
+            "text": "Then its slide width matches its known value"
+          },
+          {
+            "line": 10,
+            "text": "And its slide height matches its known value"
+          }
+        ],
+        "example": null
+      },
+      "scope": "direct_dimensions",
+      "disposition": "operation_evidence_verified_model_pending",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": [
+        "reads singleton settings and edits canvas, notes, numbering and show options"
+      ],
+      "equivalence": "Both axes are inspected/set together through original authored package SDK/CLI tests. This establishes paired byte-operation behavior, not live model interface or source asset reuse.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/541",
+      "source_identity": "features/prs-presentation-props.feature:13:Set Presentation.slide_width, .slide_height",
+      "canonical_case_id": "presentation-bdd-9dd5a03b8025",
+      "behavior": null,
+      "original_behavior": {
+        "expanded_scenario": [
+          {
+            "line": 14,
+            "text": "Given a presentation"
+          },
+          {
+            "line": 15,
+            "text": "When I change the slide width and height"
+          },
+          {
+            "line": 16,
+            "text": "Then the slide width matches the new value"
+          },
+          {
+            "line": 17,
+            "text": "And the slide height matches the new value"
+          }
+        ],
+        "example": null
+      },
+      "scope": "direct_dimensions",
+      "disposition": "operation_evidence_verified_model_pending",
+      "target_test_files": [
+        "packages/pptx/src/presentation-settings.test.ts",
+        "packages/pptx/src/command-settings.test.ts"
+      ],
+      "remaining": "Retained live model assignment/value-object behavior remains pending; passing byte SDK and direct CLI evidence does not claim full public API parity.",
+      "target_cases": [
+        "reads singleton settings and edits canvas, notes, numbering and show options"
+      ],
+      "equivalence": "Both axes are inspected/set together through original authored package SDK/CLI tests. This establishes paired byte-operation behavior, not live model interface or source asset reuse.",
+      "verification": "Maintained pptx suite passed 1013 tests in 36 files; final focused settings suite passes 32 tests including two additional exact axis-only variants; paired Shell suite passed 24 tests."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/542",
+      "source_identity": "features/prs-presentation-props.feature:27:Presentation.notes_master -- @1.1 Notes master states",
+      "canonical_case_id": "presentation-bdd-fe8fbcf145b4",
+      "behavior": null,
+      "original_behavior": {
+        "expanded_scenario": [
+          {
+            "line": 21,
+            "text": "Given a presentation having a notes master"
+          },
+          {
+            "line": 22,
+            "text": "Then prs.notes_master is a NotesMaster object"
+          },
+          {
+            "line": 23,
+            "text": "And len(notes_master.shapes) is 7"
+          }
+        ],
+        "example": {
+          "a-or-no": "a",
+          "shape-count": "7"
+        }
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    },
+    {
+      "inventory": "upstream-test-inventory.json#/bdd_cases/543",
+      "source_identity": "features/prs-presentation-props.feature:28:Presentation.notes_master -- @1.2 Notes master states",
+      "canonical_case_id": "presentation-bdd-b389c0cd4513",
+      "behavior": null,
+      "original_behavior": {
+        "expanded_scenario": [
+          {
+            "line": 21,
+            "text": "Given a presentation having no notes master"
+          },
+          {
+            "line": 22,
+            "text": "Then prs.notes_master is a NotesMaster object"
+          },
+          {
+            "line": 23,
+            "text": "And len(notes_master.shapes) is 6"
+          }
+        ],
+        "example": {
+          "a-or-no": "no",
+          "shape-count": "6"
+        }
+      },
+      "scope": "adjacent_model_or_value_api",
+      "disposition": "model_api_pending",
+      "target_test_files": [],
+      "remaining": "Retained obligation in canonical API/case register. No model parity credit from settings operations."
+    }
+  ],
+  "api_records": [
+    {
+      "inventory": "upstream-api-inventory.json#/objects/0",
+      "source_id": "pptx.Presentation",
+      "target_signature": "Presentation(input?: BinaryInput | null, context?: OfficeContext): Promise<Presentation>",
+      "source_evidence": {
+        "file": "src/pptx/api.py",
+        "line": 21,
+        "end_line": 37
+      },
+      "mappings": ["J01", "J06", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1545",
+      "source_id": "pptx.presentation.Presentation",
+      "target_signature": "interface Presentation",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 18,
+        "end_line": 113
+      },
+      "mappings": ["J01", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1546",
+      "source_id": "pptx.presentation.Presentation.__eq__",
+      "target_signature": "equals(other: ModelComparable): boolean",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 24,
+        "end_line": 33
+      },
+      "mappings": ["J01", "J03", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1547",
+      "source_id": "pptx.presentation.Presentation.__init__",
+      "target_signature": "type Acquired = Presentation",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 18,
+        "end_line": 113
+      },
+      "mappings": ["J01", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1548",
+      "source_id": "pptx.presentation.Presentation.core_properties",
+      "target_signature": "get core_properties(): CoreProperties",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 29,
+        "end_line": 34
+      },
+      "mappings": ["J01", "J02", "J07", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1549",
+      "source_id": "pptx.presentation.Presentation.element",
+      "target_signature": "get element(): XmlElementView",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 41,
+        "end_line": 43
+      },
+      "mappings": ["J01", "J02", "J09", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1550",
+      "source_id": "pptx.presentation.Presentation.notes_master",
+      "target_signature": "get notes_master(): NotesMaster",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 37,
+        "end_line": 43
+      },
+      "mappings": ["J01", "J02", "J07", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1551",
+      "source_id": "pptx.presentation.Presentation.part",
+      "target_signature": "get part(): PartView",
+      "source_evidence": {
+        "file": "src/pptx/shared.py",
+        "line": 80,
+        "end_line": 82
+      },
+      "mappings": ["J01", "J02", "J09", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1552",
+      "source_id": "pptx.presentation.Presentation.save",
+      "target_signature": "save(file: BinaryOutput): Promise<void>",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 45,
+        "end_line": 50
+      },
+      "mappings": ["J01", "J06", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1553",
+      "source_id": "pptx.presentation.Presentation.slide_height",
+      "target_signature": "get slide_height(): Length | null; set slide_height(value: Length)",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 53,
+        "end_line": 66
+      },
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1554",
+      "source_id": "pptx.presentation.Presentation.slide_layouts",
+      "target_signature": "get slide_layouts(): SlideLayouts",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 69,
+        "end_line": 76
+      },
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1555",
+      "source_id": "pptx.presentation.Presentation.slide_master",
+      "target_signature": "get slide_master(): SlideMaster",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 79,
+        "end_line": 85
+      },
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1556",
+      "source_id": "pptx.presentation.Presentation.slide_masters",
+      "target_signature": "get slide_masters(): SlideMasters",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 88,
+        "end_line": 90
+      },
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1557",
+      "source_id": "pptx.presentation.Presentation.slide_width",
+      "target_signature": "get slide_width(): Length | null; set slide_width(value: Length)",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 93,
+        "end_line": 106
+      },
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/1558",
+      "source_id": "pptx.presentation.Presentation.slides",
+      "target_signature": "get slides(): Slides",
+      "source_evidence": {
+        "file": "src/pptx/presentation.py",
+        "line": 109,
+        "end_line": 113
+      },
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2351",
+      "source_id": "pptx.util.Centipoints",
+      "target_signature": "new (centipoints: number): Centipoints",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 66,
+        "end_line": 71
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2352",
+      "source_id": "pptx.util.Centipoints.__new__",
+      "target_signature": "new (centipoints: number): Centipoints",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 66,
+        "end_line": 71
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2353",
+      "source_id": "pptx.util.Centipoints.centipoints",
+      "target_signature": "get centipoints(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 30,
+        "end_line": 35
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2354",
+      "source_id": "pptx.util.Centipoints.cm",
+      "target_signature": "get cm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 38,
+        "end_line": 40
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2355",
+      "source_id": "pptx.util.Centipoints.emu",
+      "target_signature": "get emu(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 43,
+        "end_line": 45
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2356",
+      "source_id": "pptx.util.Centipoints.inches",
+      "target_signature": "get inches(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 25,
+        "end_line": 27
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2357",
+      "source_id": "pptx.util.Centipoints.mm",
+      "target_signature": "get mm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 48,
+        "end_line": 50
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2358",
+      "source_id": "pptx.util.Centipoints.pt",
+      "target_signature": "get pt(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 53,
+        "end_line": 55
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2359",
+      "source_id": "pptx.util.Cm",
+      "target_signature": "new (cm: number): Cm",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 74,
+        "end_line": 79
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2360",
+      "source_id": "pptx.util.Cm.__new__",
+      "target_signature": "new (cm: number): Cm",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 74,
+        "end_line": 79
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2361",
+      "source_id": "pptx.util.Cm.centipoints",
+      "target_signature": "get centipoints(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 30,
+        "end_line": 35
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2362",
+      "source_id": "pptx.util.Cm.cm",
+      "target_signature": "get cm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 38,
+        "end_line": 40
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2363",
+      "source_id": "pptx.util.Cm.emu",
+      "target_signature": "get emu(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 43,
+        "end_line": 45
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2364",
+      "source_id": "pptx.util.Cm.inches",
+      "target_signature": "get inches(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 25,
+        "end_line": 27
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2365",
+      "source_id": "pptx.util.Cm.mm",
+      "target_signature": "get mm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 48,
+        "end_line": 50
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2366",
+      "source_id": "pptx.util.Cm.pt",
+      "target_signature": "get pt(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 53,
+        "end_line": 55
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2367",
+      "source_id": "pptx.util.Emu",
+      "target_signature": "new (emu: number): Emu",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 82,
+        "end_line": 86
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2368",
+      "source_id": "pptx.util.Emu.__new__",
+      "target_signature": "new (emu: number): Emu",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 82,
+        "end_line": 86
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2369",
+      "source_id": "pptx.util.Emu.centipoints",
+      "target_signature": "get centipoints(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 30,
+        "end_line": 35
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2370",
+      "source_id": "pptx.util.Emu.cm",
+      "target_signature": "get cm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 38,
+        "end_line": 40
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2371",
+      "source_id": "pptx.util.Emu.emu",
+      "target_signature": "get emu(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 43,
+        "end_line": 45
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2372",
+      "source_id": "pptx.util.Emu.inches",
+      "target_signature": "get inches(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 25,
+        "end_line": 27
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2373",
+      "source_id": "pptx.util.Emu.mm",
+      "target_signature": "get mm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 48,
+        "end_line": 50
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2374",
+      "source_id": "pptx.util.Emu.pt",
+      "target_signature": "get pt(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 53,
+        "end_line": 55
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2375",
+      "source_id": "pptx.util.Inches",
+      "target_signature": "new (inches: number): Inches",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 58,
+        "end_line": 63
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2376",
+      "source_id": "pptx.util.Inches.__new__",
+      "target_signature": "new (inches: number): Inches",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 58,
+        "end_line": 63
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2377",
+      "source_id": "pptx.util.Inches.centipoints",
+      "target_signature": "get centipoints(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 30,
+        "end_line": 35
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2378",
+      "source_id": "pptx.util.Inches.cm",
+      "target_signature": "get cm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 38,
+        "end_line": 40
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2379",
+      "source_id": "pptx.util.Inches.emu",
+      "target_signature": "get emu(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 43,
+        "end_line": 45
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2380",
+      "source_id": "pptx.util.Inches.inches",
+      "target_signature": "get inches(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 25,
+        "end_line": 27
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2381",
+      "source_id": "pptx.util.Inches.mm",
+      "target_signature": "get mm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 48,
+        "end_line": 50
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2382",
+      "source_id": "pptx.util.Inches.pt",
+      "target_signature": "get pt(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 53,
+        "end_line": 55
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2383",
+      "source_id": "pptx.util.Length",
+      "target_signature": "new (emu: number): Length",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 9,
+        "end_line": 55
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2384",
+      "source_id": "pptx.util.Length.__new__",
+      "target_signature": "new (emu: number): Length",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 9,
+        "end_line": 55
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2385",
+      "source_id": "pptx.util.Length.centipoints",
+      "target_signature": "get centipoints(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 30,
+        "end_line": 35
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2386",
+      "source_id": "pptx.util.Length.cm",
+      "target_signature": "get cm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 38,
+        "end_line": 40
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2387",
+      "source_id": "pptx.util.Length.emu",
+      "target_signature": "get emu(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 43,
+        "end_line": 45
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2388",
+      "source_id": "pptx.util.Length.inches",
+      "target_signature": "get inches(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 25,
+        "end_line": 27
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2389",
+      "source_id": "pptx.util.Length.mm",
+      "target_signature": "get mm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 48,
+        "end_line": 50
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2390",
+      "source_id": "pptx.util.Length.pt",
+      "target_signature": "get pt(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 53,
+        "end_line": 55
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2391",
+      "source_id": "pptx.util.Mm",
+      "target_signature": "new (mm: number): Mm",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 89,
+        "end_line": 94
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2392",
+      "source_id": "pptx.util.Mm.__new__",
+      "target_signature": "new (mm: number): Mm",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 89,
+        "end_line": 94
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2393",
+      "source_id": "pptx.util.Mm.centipoints",
+      "target_signature": "get centipoints(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 30,
+        "end_line": 35
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2394",
+      "source_id": "pptx.util.Mm.cm",
+      "target_signature": "get cm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 38,
+        "end_line": 40
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2395",
+      "source_id": "pptx.util.Mm.emu",
+      "target_signature": "get emu(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 43,
+        "end_line": 45
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2396",
+      "source_id": "pptx.util.Mm.inches",
+      "target_signature": "get inches(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 25,
+        "end_line": 27
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2397",
+      "source_id": "pptx.util.Mm.mm",
+      "target_signature": "get mm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 48,
+        "end_line": 50
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2398",
+      "source_id": "pptx.util.Mm.pt",
+      "target_signature": "get pt(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 53,
+        "end_line": 55
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2399",
+      "source_id": "pptx.util.Pt",
+      "target_signature": "new (points: number): Pt",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 97,
+        "end_line": 102
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2400",
+      "source_id": "pptx.util.Pt.__new__",
+      "target_signature": "new (points: number): Pt",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 97,
+        "end_line": 102
+      },
+      "mappings": ["J01", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2401",
+      "source_id": "pptx.util.Pt.centipoints",
+      "target_signature": "get centipoints(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 30,
+        "end_line": 35
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2402",
+      "source_id": "pptx.util.Pt.cm",
+      "target_signature": "get cm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 38,
+        "end_line": 40
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2403",
+      "source_id": "pptx.util.Pt.emu",
+      "target_signature": "get emu(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 43,
+        "end_line": 45
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2404",
+      "source_id": "pptx.util.Pt.inches",
+      "target_signature": "get inches(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 25,
+        "end_line": 27
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2405",
+      "source_id": "pptx.util.Pt.mm",
+      "target_signature": "get mm(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 48,
+        "end_line": 50
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    },
+    {
+      "inventory": "upstream-api-inventory.json#/objects/2406",
+      "source_id": "pptx.util.Pt.pt",
+      "target_signature": "get pt(): number",
+      "source_evidence": {
+        "file": "src/pptx/util.py",
+        "line": 53,
+        "end_line": 55
+      },
+      "mappings": ["J01", "J02", "J05", "J08", "J10"],
+      "disposition": "model_api_pending",
+      "reason": "The byte-operation SDK is additive. Retained live model properties, owner identity, inherited public views and length value constructors/accessors require separate public acceptance evidence."
+    }
+  ],
+  "validation": {
+    "status": "Maintained package tests/lint, selected workspace build, registered Shell tests and independent built-SDK corpus checks passed.",
+    "qa_plan": "../plans/pptx-settings.md",
+    "fixtures": "Original authored in-memory XML/ZIP packages; no downloaded unit fixtures. Cached corpus is disposable QA only.",
+    "qa": "Both manifest-admitted corpus fixtures passed independent ZIP/XML retention and notes-only isolation checks; unsupported corpus scaling rejected. Original built-SDK scaling coordinates passed independent assertions. Help/read/error screenshots inspected. No rendering or full public-model parity claim."
+  },
+  "supplemental_original_tests": [
+    {
+      "file": "packages/pptx/src/presentation-settings.test.ts",
+      "coverage": "notes dimensions/orientation; preserved opaque drawing/view/print/vendor bytes; slideshow three modes and explicit loop; signed numbering; conflict and range rejection; explicit unsupported scaling rejection; unchanged setting returns identical archive bytes",
+      "status": "passed"
+    },
+    {
+      "file": "packages/pptx/src/command-settings.test.ts",
+      "coverage": "SDK-backed direct CLI settings, shared schemas/results and dry-run validation",
+      "status": "passed"
+    },
+    {
+      "file": "packages/safe-bash/tests/commands/pptx/create.test.ts",
+      "coverage": "registered virtual Shell settings routes and memfs publication",
+      "status": "passed"
+    },
+    {
+      "file": "packages/pptx/src/settings-scaling.test.ts",
+      "coverage": "independent literal XML coordinate assertions; negative halfway rounding; group outer coordinates with unchanged child coordinate system; missing/rotated/unsupported transform rejection; eight malformed group child-coordinate lexical/range/missing-field regressions",
+      "status": "passed"
+    }
+  ]
+}

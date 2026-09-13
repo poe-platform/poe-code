@@ -1,6 +1,6 @@
 import { OfficeError } from "./errors.js";
 
-export function commandLength(value: string): number {
+export function commandLength(value: string, minimum = 1): number {
   const units = { emu: 1, in: 914400, cm: 360000, mm: 36000, pt: 12700 };
   const unit = Object.keys(units).find((candidate) => value.endsWith(candidate));
   const digits = unit ? value.slice(0, -unit.length) : "";
@@ -15,7 +15,7 @@ export function commandLength(value: string): number {
   )
     throw new OfficeError(
       "invalid-value",
-      "Lengths require a positive decimal and emu, in, cm, mm or pt unit.",
+      "Lengths require a decimal and emu, in, cm, mm or pt unit.",
       "usage"
     );
   const raw = Number(digits) * units[unit as keyof typeof units];
@@ -24,7 +24,7 @@ export function commandLength(value: string): number {
     !Number.isFinite(raw) ||
     raw > Number.MAX_SAFE_INTEGER ||
     !Number.isSafeInteger(result) ||
-    result < 1
+    result < minimum
   )
     throw new OfficeError("invalid-value", "Length is outside the supported range.", "usage");
   return result;

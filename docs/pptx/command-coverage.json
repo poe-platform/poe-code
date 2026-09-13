@@ -636,8 +636,10 @@
       "featureId": "F10",
       "family": "Presentation settings",
       "requiredSubset": "Size/orientation, slideshow options, view/grid settings and slide-number start; preserve unsupported settings",
-      "status": "proposed_not_implemented",
-      "operationIds": ["settings.get", "settings.set"],
+      "status": "partial_implementation",
+      "implementationReceipt": "docs/pptx/settings-case-accounting.json",
+      "remaining": "Grid/view editing, typed batch and live model APIs remain proposed. Current settings operations preserve unrequested grid/view/print/vendor data and edit the documented dimensions/numbering/slideshow subset.",
+      "operationIds": ["settings.list", "settings.get", "settings.set"],
       "levels": ["read", "edit", "preserve"],
       "inspection": {
         "operation": "inspect",
@@ -6178,7 +6180,8 @@
       "path": ["settings", "list"],
       "sdkOperationId": "settings.list",
       "version": 1,
-      "status": "proposed_not_implemented",
+      "status": "direct_implemented_batch_pending",
+      "implementationReceipt": "docs/pptx/settings-case-accounting.json",
       "transport": "direct-and-batch",
       "arguments": {
         "type": "object",
@@ -6233,7 +6236,8 @@
       "path": ["settings", "get"],
       "sdkOperationId": "settings.get",
       "version": 1,
-      "status": "proposed_not_implemented",
+      "status": "direct_implemented_batch_pending",
+      "implementationReceipt": "docs/pptx/settings-case-accounting.json",
       "transport": "direct-and-batch",
       "arguments": {
         "type": "object",
@@ -6288,7 +6292,9 @@
       "path": ["settings", "set"],
       "sdkOperationId": "settings.set",
       "version": 1,
-      "status": "proposed_not_implemented",
+      "status": "direct_subset_implemented_batch_pending",
+      "implementationReceipt": "docs/pptx/settings-case-accounting.json",
+      "remaining": "gridSpacing and snapToGrid edits and typed batch remain proposed; executable schema/capabilities expose the implemented subset.",
       "transport": "direct-and-batch",
       "arguments": {
         "type": "object",
@@ -6302,6 +6308,19 @@
           "orientation": {
             "type": "string",
             "enum": ["portrait", "landscape"]
+          },
+          "notesWidth": {
+            "$ref": "#/$defs/Length"
+          },
+          "notesHeight": {
+            "$ref": "#/$defs/Length"
+          },
+          "notesOrientation": {
+            "type": "string",
+            "enum": ["portrait", "landscape"]
+          },
+          "scaleContent": {
+            "type": "boolean"
           },
           "loop": {
             "type": "boolean"
@@ -6318,8 +6337,8 @@
           },
           "slideNumberStart": {
             "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "minimum": -2147483648,
+            "maximum": 2147483647
           }
         },
         "required": [],
@@ -6340,6 +6359,10 @@
         "width": "--width",
         "height": "--height",
         "orientation": "--orientation",
+        "notesWidth": "--notes-width",
+        "notesHeight": "--notes-height",
+        "notesOrientation": "--notes-orientation",
+        "scaleContent": "--scale-content",
         "loop": "--loop",
         "showType": "--show-type",
         "gridSpacing": "--grid-spacing",

@@ -12,6 +12,8 @@ import {
   splitSlides,
   mutateSlides,
   removeSlides,
+  mutatePresentationSettings,
+  readPresentationSettings,
   readSelectionIndex
 } from "pptx";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
@@ -112,6 +114,34 @@ const assemblyContext = { ...context,
   xmlLimits: { ...context.xmlLimits, maxBytes: 1048576, maxNodes: 20000 },
   relationshipLimits: { ...context.relationshipLimits, maxBytes: 1048576, maxParts: 4096, maxRelationships: 4096 }
 };
+test("pptx settings edit through shell and public SDK with canvas-only defaults", async () => {
+  const { shell, volume } = fixture();
+  const original = await createPresentation({ slides: [{ shapes: [{ x: 20, y: 30, width: 400, height: 500, text: "Independent canvas" }] }] }, context);
+  volume.writeFileSync("/work/input deck.pptx", original);
+  const result = await shell.exec("pptx settings set 'input deck.pptx' --width 10in --height 5in --notes-orientation landscape --slide-number-start -2 --loop true --show-type window --output result.pptx --json");
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  const bytes = new Uint8Array(volume.readFileSync("/work/result.pptx") as Buffer);
+  assert.deepEqual(bytes, await mutatePresentationSettings(original, { width: 9144000, height: 4572000, notesOrientation: "landscape", slideNumberStart: -2, loop: true, showType: "window" }, context));
+  const settings = await readPresentationSettings(bytes, context);
+  assert.equal(settings.width, 9144000);
+  assert.equal(settings.height, 4572000);
+  assert.equal(settings.slideNumberStart, -2);
+  assert.equal(settings.notesOrientation, "landscape");
+  const piped = await shell.exec("pptx settings set result.pptx --orientation portrait --output - | pptx settings get - --json");
+  assert.equal(piped.exitCode, 0, piped.stdout + piped.stderr);
+  assert.equal(JSON.parse(piped.stdout).data.settings.width, 4572000);
+  assert.equal(JSON.parse(piped.stdout).data.settings.height, 9144000);
+  const scaled = await shell.exec("pptx settings set result.pptx --width 20in --height 10in --scale-content true --output scaled.pptx --json");
+  assert.equal(scaled.exitCode, 0, scaled.stdout + scaled.stderr);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/scaled.pptx") as Buffer), await mutatePresentationSettings(bytes, { width: 18288000, height: 9144000, scaleContent: true }, context));
+  const dry = await shell.exec("pptx settings set result.pptx --loop false --in-place --dry-run --json");
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/result.pptx") as Buffer), bytes);
+  const unsupported = await shell.exec("pptx settings set result.pptx --width 12in --scale-content --in-place --json");
+  assert.equal(unsupported.exitCode, 2, unsupported.stdout + unsupported.stderr);
+  assert.equal(JSON.parse(unsupported.stdout).errors[0].code, "invalid-value");
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/result.pptx") as Buffer), bytes);
+});
 test("pptx merges and splits through shell and byte SDK with matching packages", async () => {
   const { shell, volume } = fixture(assemblyContext);
   const original = await createPresentation({ slides: [{ name: "Spring" }, { name: "Autumn" }] }, context);

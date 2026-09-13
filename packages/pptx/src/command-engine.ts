@@ -12,6 +12,7 @@ import {
 import type { Diagnostic, OfficeResult, Scope } from "./contracts.js";
 import {
   membershipSchemas,
+  settingsSchemas,
   createSchema,
   inspectSchema,
   slidesAddSchema,
@@ -39,6 +40,11 @@ import { mergeSelectedDecks, splitSelectedDecks } from "./slide-merge-split.js";
 import { SlideTransferBudget } from "./slide-transfer-budget.js";
 import { readMemberships, mutateMemberships, type MembershipRecord } from "./memberships.js";
 import { removeSlides } from "./slide-removal.js";
+import {
+  readPresentationSettings,
+  mutatePresentationSettings,
+  type MutatePresentationSettingsOptions
+} from "./presentation-settings.js";
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
 import type { ValidationLimits } from "./validation.js";
 
@@ -130,6 +136,15 @@ const help =
   "       pptx sections|shows remove INPUT [--select TOKEN | --slide N | --all]\n" +
   "                       [--output PATH | --in-place] [--dry-run] [--json]\n" +
   "       pptx capabilities [--json]\n" +
+  "       pptx settings list|get INPUT [--json]\n" +
+  "       pptx settings set INPUT [--width LENGTH] [--height LENGTH]\n" +
+  "                    [--orientation portrait|landscape] [--notes-width LENGTH]\n" +
+  "                    [--notes-height LENGTH] [--notes-orientation portrait|landscape]\n" +
+  "                    [--slide-number-start N] [--loop true|false]\n" +
+  "                    [--show-type speaker|window|kiosk] [--scale-content true|false]\n" +
+  "                    [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx schema settings list|get|set [--json]\n" +
+  "Settings resize the canvas only by default. Explicit content scaling rejects unsupported transforms.\n" +
   "Slide positions are one-based. Shape names are exact; numeric strings are names.\n" +
   "Duplicate names require --all. Default scope: slides.\n" +
   "Scopes: slides, notes, layouts, masters, notes-master, handout-master,\n" +
@@ -162,6 +177,7 @@ const help =
 
 interface Arguments {
   operation:
+    | `settings.${"list" | "get" | "set"}`
     | `sections.${"list" | "get" | "add" | "set" | "remove"}`
     | `shows.${"list" | "get" | "add" | "set" | "remove"}`
     | "create"
@@ -181,6 +197,7 @@ interface Arguments {
     | "help"
     | "version";
   membership?: { name?: string; slides?: readonly number[]; position?: number };
+  settings?: MutatePresentationSettingsOptions;
   creation?: CreatePresentationOptions;
   addition?: Partial<AddSlideOptions>;
   mutation?: Omit<MutateSlidesOptions, "selection">;
@@ -217,6 +234,14 @@ function usage(message: string): never {
 }
 
 const scalarOptions = [
+  "--scale-content",
+  "--notes-width",
+  "--notes-height",
+  "--orientation",
+  "--notes-orientation",
+  "--slide-number-start",
+  "--loop",
+  "--show-type",
   "--sources",
   "--slides",
   "--output-dir",
@@ -303,6 +328,8 @@ function parse(
       ["list", "get", "add", "set", "remove"].includes(argument)
     ) {
       output.operation = `${args[0]}.${argument}`;
+    } else if (index === 1 && args[0] === "settings" && ["list", "get", "set"].includes(argument)) {
+      output.operation = `settings.${argument}`;
     } else if (hintValue) hintValue = false;
     else if (hintOptions) {
       if (argument === "--") hintOptions = false;
@@ -311,7 +338,7 @@ function parse(
     }
   }
   if (invalidUtf8) usage("Arguments must be UTF-8.");
-  const command = ["xml", "slides", "sections", "shows"].includes(args[0]!)
+  const command = ["xml", "slides", "sections", "shows", "settings"].includes(args[0]!)
     ? `${args[0]}.${args.splice(1, 1)[0]}`
     : (args[0] ?? "help");
   const operation =
@@ -323,6 +350,7 @@ function parse(
   if (
     ![
       ...Object.keys(membershipSchemas),
+      ...Object.keys(settingsSchemas),
       "create",
       "slides.add",
       "slides.move",
@@ -389,6 +417,60 @@ function parse(
       (value.length === 0 && !["--author", "--name", "--title", "--body"].includes(argument))
     )
       usage("Missing option value.");
+    if (
+      [
+        "--notes-width",
+        "--scale-content",
+        "--notes-height",
+        "--orientation",
+        "--notes-orientation",
+        "--slide-number-start",
+        "--loop",
+        "--show-type"
+      ].includes(argument) ||
+      (operation === "settings.set" && ["--width", "--height"].includes(argument))
+    ) {
+      if (operation !== "settings.set") usage("Settings options require settings set.");
+      if (["--width", "--height", "--notes-width", "--notes-height"].includes(argument)) {
+        const key =
+          argument === "--notes-width"
+            ? "notesWidth"
+            : argument === "--notes-height"
+              ? "notesHeight"
+              : argument.slice(2);
+        result.settings = {
+          ...result.settings,
+          [key]: commandLength(value, key === "notesWidth" || key === "notesHeight" ? 0 : 1)
+        };
+      } else if (argument === "--orientation" || argument === "--notes-orientation") {
+        if (value !== "portrait" && value !== "landscape")
+          usage("Orientation requires portrait or landscape.");
+        result.settings = {
+          ...result.settings,
+          [argument === "--orientation" ? "orientation" : "notesOrientation"]: value
+        };
+      } else if (argument === "--slide-number-start") {
+        const digits = value.startsWith("-") ? value.slice(1) : value;
+        if (
+          !digits.length ||
+          ![...digits].every((c) => c >= "0" && c <= "9") ||
+          !Number.isSafeInteger(Number(value))
+        )
+          usage("Slide-number start requires a safe integer.");
+        result.settings = { ...result.settings, slideNumberStart: Number(value) };
+      } else if (argument === "--loop" || argument === "--scale-content") {
+        if (value !== "true" && value !== "false") usage("Boolean settings require true or false.");
+        result.settings = {
+          ...result.settings,
+          [argument === "--loop" ? "loop" : "scaleContent"]: value === "true"
+        };
+      } else {
+        if (value !== "speaker" && value !== "window" && value !== "kiosk")
+          usage("Unknown show type.");
+        result.settings = { ...result.settings, showType: value };
+      }
+      continue;
+    }
     if (
       Object.hasOwn(membershipSchemas, operation) &&
       ["--name", "--slides", "--position"].includes(argument)
@@ -758,6 +840,48 @@ function parse(
     operation === "slides.set" ||
     operation === "slides.remove";
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
+  if (Object.hasOwn(settingsSchemas, operation)) {
+    const mutation = operation === "settings.set";
+    const allowed = [
+      "--json",
+      "--limit",
+      ...(mutation
+        ? [
+            "--width",
+            "--height",
+            "--notes-width",
+            "--notes-height",
+            "--orientation",
+            "--notes-orientation",
+            "--slide-number-start",
+            "--loop",
+            "--show-type",
+            "--scale-content",
+            "--output",
+            "--in-place",
+            "--force",
+            "--dry-run"
+          ]
+        : [])
+    ];
+    if ([...seen].some((flag) => !allowed.includes(flag)))
+      usage("Option does not apply to this settings operation.");
+    if (positionals.length !== 1 || !positionals[0]) usage("Settings require one input.");
+    result.input = positionals[0];
+    if (mutation) {
+      if (!result.settings) usage("Settings set requires update fields.");
+      if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+      if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+      if (!result.dryRun && !result.inPlace && !result.output)
+        usage("Mutation requires a destination.");
+      if (result.force && !result.output) usage("Force requires an explicit output destination.");
+      if (result.output === result.input && result.output !== "-")
+        usage("Replacing input requires --in-place.");
+      if (result.output === "-" && result.json && !result.dryRun)
+        usage("Binary stdout cannot be combined with JSON.");
+    }
+    return result;
+  }
   if (membershipOperation) {
     const action = operation.split(".")[1];
     const mutation = !["list", "get"].includes(action!);
@@ -962,6 +1086,7 @@ function parse(
       (operation === "schema" || operation === "help") &&
       [
         ...Object.keys(membershipSchemas),
+        ...Object.keys(settingsSchemas),
         "create",
         "inspect",
         "slides.add",
@@ -1228,6 +1353,7 @@ async function execute(
         operations: Object.fromEntries(
           Object.entries({
             ...membershipSchemas,
+            ...settingsSchemas,
             create: createSchema,
             inspect: inspectSchema,
             "slides.add": slidesAddSchema,
@@ -1246,6 +1372,11 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          settings: {
+            level: "edit",
+            subset:
+              "Presentation and notes canvas dimensions/orientation, slide-number start, slideshow loop and speaker/window/kiosk mode. Canvas-only resize is the default. Explicit scaling supports unrotated explicit shape and group geometry on slides, layouts and masters without resizing fonts; inherited transforms, animations, conditional drawings and charts are rejected. Grid, view, print and unrequested vendor settings are preserved."
+          },
           creation: {
             level: "edit",
             subset:
@@ -1294,7 +1425,70 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (Object.hasOwn(membershipSchemas, args.operation)) {
+    else if (Object.hasOwn(settingsSchemas, args.operation)) {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const index = await readSelectionIndex(bytes, context);
+      const records = index.parts.filter((record) => record.scope === "presentation");
+      if (args.operation !== "settings.set") {
+        const settings = await readPresentationSettings(bytes, context);
+        result = success(
+          operation,
+          {
+            fingerprint: index.fingerprint,
+            ...(args.operation === "settings.list" ? { records: [settings] } : { settings })
+          },
+          records
+        );
+      } else {
+        const changed = await mutatePresentationSettings(bytes, args.settings!, context);
+        const after = await readSelectionIndex(changed, context);
+        const targets = after.parts.filter((record) => record.scope === "presentation");
+        const affected = after.fingerprint === index.fingerprint ? 0 : 1;
+        const dryRun = args.dryRun ?? false;
+        const destination = args.inPlace ? args.input! : args.output;
+        result = {
+          ...success(
+            operation,
+            {
+              effects: affected
+                ? targets.map((record) => ({
+                    location: record.location,
+                    action: "update",
+                    feature: "F10"
+                  }))
+                : [],
+              outputs: dryRun
+                ? []
+                : [{ path: destination!, sha256: after.fingerprint, bytes: changed.length }],
+              fingerprint: dryRun ? null : after.fingerprint
+            },
+            targets
+          ),
+          affected
+        };
+        human = `${dryRun ? "Validated" : "Updated"} presentation settings\n`;
+        if (destination === "-" && !dryRun) binary = changed;
+        else if (destination && destination !== "-") {
+          if (!request.publishOutput)
+            throw Object.assign(new Error("Output publication capability is unavailable."), {
+              code: "publication-unsupported"
+            });
+          publication = {
+            inputPath: args.input!,
+            outputPath: destination,
+            bytes: changed,
+            originalBytes: bytes,
+            inPlace: args.inPlace ?? false,
+            force: args.force ?? false,
+            dryRun
+          };
+        }
+      }
+    } else if (Object.hasOwn(membershipSchemas, args.operation)) {
       const [kind, action] = args.operation.split(".") as [
         "sections" | "shows",
         "list" | "get" | "add" | "set" | "remove"

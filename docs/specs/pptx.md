@@ -341,8 +341,9 @@ Units are case-sensitive `emu`, `in`, `cm`, `mm`, `pt`, with factors 1, 914400,
 360000, 36000, 12700. JSON uses `{value:number,unit:...}`. Convert once, nearest,
 halfway away from zero; stored EMUs are finite safe integers. Centipoints remain
 a model helper (127 EMUs), not an extra common CLI suffix. Width/height, font
-size, row/column size and grid spacing must be positive. Margins, border widths,
-shadow blur and tolerances may be zero; positions may be negative. Angles are
+size, row/column size and grid spacing must be positive; notes canvas dimensions
+are an explicit exception and may be zero. Margins, border widths, shadow blur
+and tolerances may be zero; positions may be negative. Angles are
 clockwise degrees in [-360000,360000], normalized modulo 360 only on assignment.
 Opacity and gradient-stop positions are fractions [0,1]. Stops are ordered,
 at least two, with endpoints 0 and 1; equal positions are allowed in given order.
@@ -386,8 +387,17 @@ names are exact scoped lookups. `layouts apply` requires `placeholderPolicy`:
 `type-index` matches each placeholder key and keeps unmatched local content;
 `reject-unmatched` rejects any unmatched placeholder. Neither chooses among
 ambiguous mappings. Master/layout text edits require a selected text shape.
-Settings size does not rescale shapes; orientation swaps width/height if needed
-and rejects contradictory explicitly supplied dimensions. Theme updates require
+Settings size changes the canvas only by default, preserving shape geometry.
+Explicit `scaleContent` requests scale supported content geometry with the canvas;
+group transforms MUST retain their nested coordinate-space semantics. Unsupported
+transforms MUST fail before publication rather than partially scaling content.
+Slide and notes orientations swap their respective width/height if needed and
+reject contradictory explicitly supplied dimensions. Square canvases inspect as
+landscape; requesting portrait for a square canvas fails. Notes dimensions affect
+the notes canvas only and may be zero. Missing dimensions remain null on inspection
+and MUST NOT be created by reads. Slide-number start is a signed 32-bit integer, matching its
+serialized field. Unrequested grid, view, print and vendor settings MUST remain
+unchanged. Theme updates require
 paired `colorSlot/color` or `fontSlot/font`; color slots are `dk1`, `lt1`, `dk2`,
 `lt2`, `accent1`..`accent6`, `hlink`, `folHlink`; font slots are `majorLatin`,
 `minorLatin`, `majorEastAsia`, `minorEastAsia`, `majorComplex`, `minorComplex`.
@@ -1004,11 +1014,11 @@ schemas, not extra undocumented direct flags.
 
 ### A. settings
 
-| Path / SDK ID                     | Inputs | Arguments (exact flags and types)                                                                                                                                                                                                                                         | Applicable options                                                    | Scope; cardinality; publication                                   |
-| --------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `settings list` / `settings.list` | 1      | none                                                                                                                                                                                                                                                                      | `--json`, `--limit`                                                   | presentation; collection; omitted filter means all in scope; none |
-| `settings get` / `settings.get`   | 1      | none                                                                                                                                                                                                                                                                      | `--json`, `--limit`                                                   | presentation; one; ambiguity fails; none                          |
-| `settings set` / `settings.set`   | 1      | `--width?: Length`; `--height?: Length`; `--orientation?: portrait / landscape`; `--loop?: boolean`; `--show-type?: speaker / window / kiosk`; `--grid-spacing?: Length`; `--snap-to-grid?: boolean`; `--slide-number-start?: integer≥-9007199254740991≤9007199254740991` | `--json`, `--limit`, `--output`, `--in-place`, `--force`, `--dry-run` | presentation; one; ambiguity fails; package                       |
+| Path / SDK ID                     | Inputs | Arguments (exact flags and types)                                                                                                                                                                                                                                                                                                                                                             | Applicable options                                                    | Scope; cardinality; publication                                   |
+| --------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `settings list` / `settings.list` | 1      | none                                                                                                                                                                                                                                                                                                                                                                                          | `--json`, `--limit`                                                   | presentation; collection; omitted filter means all in scope; none |
+| `settings get` / `settings.get`   | 1      | none                                                                                                                                                                                                                                                                                                                                                                                          | `--json`, `--limit`                                                   | presentation; one; ambiguity fails; none                          |
+| `settings set` / `settings.set`   | 1      | `--width?: Length`; `--height?: Length`; `--orientation?: portrait / landscape`; `--notes-width?: Length`; `--notes-height?: Length`; `--notes-orientation?: portrait / landscape`; `--scale-content?: boolean`; `--loop?: boolean`; `--show-type?: speaker / window / kiosk`; `--grid-spacing?: Length`; `--snap-to-grid?: boolean`; `--slide-number-start?: integer≥-2147483648≤2147483647` | `--json`, `--limit`, `--output`, `--in-place`, `--force`, `--dry-run` | presentation; one; ambiguity fails; package                       |
 
 ### A. masters
 

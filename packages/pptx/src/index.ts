@@ -80,3 +80,10 @@ export {
   type MembershipSelection,
   type MutateMembershipsOptions
 } from "./memberships.js";
+
+export {
+  readPresentationSettings,
+  mutatePresentationSettings,
+  type PresentationSettings,
+  type MutatePresentationSettingsOptions
+} from "./presentation-settings.js";

@@ -1,3 +1,4 @@
+import { textLinkCapabilities } from "./text-link-capability.js";
 import { readXmlCoordinate, readXmlInteger } from "./xml-scalars.js";
 import { createXmlElementView } from "./xml-view.js";
 import { AdjustmentCollection, validateAdjustmentValues } from "./shape-adjustments.js";
@@ -657,6 +658,9 @@ export class Shape {
         read(): XmlPart;
         write(xml: XmlPart): void;
         readonly part?: PartView;
+        readonly hyperlink?: (
+          path: () => readonly number[]
+        ) => import("./links-model.js").Hyperlink<{ readonly part: string }>;
       }
     | undefined;
   get #xml(): XmlPart {
@@ -674,6 +678,9 @@ export class Shape {
       read(): XmlPart;
       write(xml: XmlPart): void;
       readonly part?: PartView;
+      readonly hyperlink?: (
+        path: () => readonly number[]
+      ) => import("./links-model.js").Hyperlink<{ readonly part: string }>;
     }
   ) {
     if (
@@ -826,6 +833,17 @@ export class Shape {
         : { width: shape.width / 12700, height: shape.height / 12700 };
     };
     this.#textFrame = new TextFrame(read(), extents(), { read, write, extents, parent: this });
+    if (this.#owner?.hyperlink) {
+      const hyperlink = this.#owner.hyperlink;
+      textLinkCapabilities.set(this.#textFrame, (path) =>
+        hyperlink(() => {
+          const body = child(this.element, "txBody");
+          if (!body) throw new InvalidHandleError();
+          return [this.element.children.indexOf(body), ...path()];
+        })
+      );
+    }
+
     return this.#textFrame;
   }
   get fill(): FillFormat {

@@ -1,3 +1,4 @@
+import { textLinkCapabilities } from "./text-link-capability.js";
 import { protectedEquationNodes } from "./equations-compatibility.js";
 import type { FontMetricsHandle } from "./font-metrics.js";
 import { fitFrameXml, type ModelTextFitOptions } from "./text-fitting.js";
@@ -553,6 +554,14 @@ export class TextFrame {
             ]);
           }
         });
+        const hyperlink = textLinkCapabilities.get(this);
+        if (hyperlink)
+          textLinkCapabilities.set(handle, (path) =>
+            hyperlink(() => {
+              const { xml, node } = locate();
+              return [xml.root.children.indexOf(node), ...path()];
+            })
+          );
         this.#paragraphs[index] = handle;
         return handle;
       })

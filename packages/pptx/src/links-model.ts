@@ -64,26 +64,30 @@ function editable(link: LinkData | null): void {
 }
 
 export class Hyperlink<Slide = unknown> {
-  readonly #owner: LinkModelOwner<Slide>;
-  constructor(owner: LinkModelOwner<Slide>) {
+  readonly #owner: LinkModelOwner<Slide> | (() => LinkModelOwner<Slide>);
+  constructor(owner: LinkModelOwner<Slide> | (() => LinkModelOwner<Slide>)) {
     this.#owner = owner;
   }
+  get #current(): LinkModelOwner<Slide> {
+    return typeof this.#owner === "function" ? this.#owner() : this.#owner;
+  }
   get part(): XmlPart {
-    return this.#owner.part;
+    return this.#current.part;
   }
   get address(): string | null {
-    const link = this.#owner.read();
+    const link = this.#current.read();
     return link?.url ?? link?.targetReference ?? null;
   }
   set address(value: string | null) {
-    editable(this.#owner.read());
+    const owner = this.#current;
+    editable(owner.read());
     if (value === null || value === "") {
-      this.#owner.remove();
+      owner.remove();
       return;
     }
     if (!isOrdinaryLinkUrl(value))
       throw new OfficeError("invalid-value", "An ordinary inert URL is required.", "usage");
-    this.#owner.set({ url: value });
+    owner.set({ url: value });
   }
 }
 export { Hyperlink as _Hyperlink };
@@ -165,9 +169,12 @@ export interface LinkShapeIdentity {
   readonly id: string;
 }
 export class LinkShape {
-  readonly #session: import("./links.js").LinkSession;
+  readonly #session: Omit<import("./links.js").LinkSession, "save">;
   readonly #identity: LinkShapeIdentity;
-  constructor(session: import("./links.js").LinkSession, identity: LinkShapeIdentity) {
+  constructor(
+    session: Omit<import("./links.js").LinkSession, "save">,
+    identity: LinkShapeIdentity
+  ) {
     this.#session = session;
     this.#identity = Object.freeze({ ...identity });
     session.getPart(identity.owner);

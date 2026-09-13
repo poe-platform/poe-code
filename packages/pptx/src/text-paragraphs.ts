@@ -1,9 +1,11 @@
+import { textLinkCapabilities } from "./text-link-capability.js";
+import type { Hyperlink } from "./links-model.js";
 import { FillFormat } from "./shapes.js";
 import { ColorFormat } from "./text-run-color.js";
 import { Length, Pt } from "./length.js";
 import { MSO_LANGUAGE_ID } from "./language-enum.js";
 import type { BinaryInput, Location } from "./contracts.js";
-import { OfficeError, InvalidHandleError } from "./errors.js";
+import { OfficeError, InvalidHandleError, PropertyAccessError } from "./errors.js";
 import { SaxesParser } from "saxes";
 import { protectedEquationNodes } from "./equations-compatibility.js";
 import {
@@ -903,6 +905,7 @@ function replaceParagraphContent(xml: XmlPart, fragments: readonly string[]): Xm
 export class Run {
   readonly #binding: TextNodeBinding & { readonly parent: Paragraph };
   #font: Font | undefined;
+  #hyperlink: Hyperlink<{ readonly part: string }> | undefined;
   constructor(binding: TextNodeBinding & { readonly parent: Paragraph }) {
     this.#binding = binding;
   }
@@ -933,6 +936,20 @@ export class Run {
         `<t xmlns="${node.name.namespace}">${escapeModelText(value)}</t>`
       ])
     );
+  }
+  get hyperlink(): Hyperlink<{ readonly part: string }> {
+    this.#binding.read();
+    const capability = textLinkCapabilities.get(this.#binding.parent);
+    if (!capability) throw new PropertyAccessError("Run has no package hyperlink owner.");
+    void this.font;
+    return (this.#hyperlink ??= capability(() => {
+      const { document, node } = this.#binding.read();
+      const properties = node.children.findIndex(
+        (child) => child.name.namespace === node.name.namespace && child.name.localName === "rPr"
+      );
+      if (properties < 0) throw new InvalidHandleError();
+      return [document.root.children.indexOf(node), properties];
+    }));
   }
   get font(): Font {
     const { document, node } = this.#binding.read();

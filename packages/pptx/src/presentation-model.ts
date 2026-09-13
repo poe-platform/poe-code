@@ -1,3 +1,5 @@
+import { createLiveLinkSession } from "./links.js";
+import { Hyperlink, LinkShape } from "./links-model.js";
 import { SlideLayouts, prepareLayoutInsertion } from "./slide-layout-model.js";
 import type { SlideInventory } from "./inventory.js";
 import { Image } from "./image-value.js";
@@ -194,11 +196,41 @@ class LivePresentation implements PresentationModel {
       state.save(part, updated);
       this.#revision++;
     });
+    const linkSession = createLiveLinkSession(state, context, () => {
+      this.#revision++;
+    });
     const createSlide = (record: SlideInventory): Slide => {
       let latestBytes: Uint8Array | undefined;
       let latestXml: ReturnType<State["doc"]> | undefined;
       const owner: SlideShapeOwner = {
         part: this.#part.package.get_part(record.part)!,
+        hyperlink: (shapeId, path) =>
+          new Hyperlink(() => {
+            const relative = path();
+            const xml = state.doc(record.part);
+            const matches: number[][] = [];
+            const visit = (node: import("./xml.js").XmlElement, route: number[]) => {
+              if (
+                node.name.namespace === state.p &&
+                ["sp", "pic", "graphicFrame", "grpSp"].includes(node.name.localName) &&
+                readShape(node).shapeId === shapeId
+              )
+                matches.push(route);
+              node.children.forEach((child, index) => visit(child, [...route, index]));
+            };
+            visit(xml.root, []);
+            if (matches.length !== 1)
+              throw new OfficeError(
+                "invalid-handle",
+                "Run shape is no longer available.",
+                "select"
+              );
+            return new LinkShape(linkSession, { owner: record.part, id: String(shapeId) }).owner([
+              ...matches[0]!,
+              ...relative
+            ]);
+          }),
+
         resource: (id) => {
           const edge = parseRelationships(
             state.doc(relPart(record.part)).bytes(),

@@ -39,6 +39,10 @@ import { ShapeIdAllocator } from "./shape-id.js";
 
 export interface SlideShapeOwner {
   part?: PartView;
+  hyperlink?(
+    shapeId: number,
+    path: () => readonly number[]
+  ): import("./links-model.js").Hyperlink<{ readonly part: string }>;
   resource?(relationshipId: string): Pick<PartView, "blob" | "content_type" | "partname">;
   insertAsset?(
     kind: "picture" | "movie" | "ole",
@@ -111,6 +115,9 @@ function binding(owner: SlideShapeOwner, id: number, kind: string, _groupId?: nu
   let source: XmlPart | undefined, cached: XmlPart | undefined;
   return {
     ...(owner.part === undefined ? {} : { part: owner.part }),
+    ...(owner.hyperlink === undefined
+      ? {}
+      : { hyperlink: (path: () => readonly number[]) => owner.hyperlink!(id, path) }),
     read() {
       const xml = owner.read();
       if (xml === source && cached) return cached;

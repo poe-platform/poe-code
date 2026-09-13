@@ -1,3 +1,4 @@
+import { escape } from "./masters.js";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput, Location } from "./contracts.js";
 import { OfficeError } from "./errors.js";
@@ -6,7 +7,12 @@ import { readPackage, type PackageReader } from "./package-reader.js";
 import { relativePartReference } from "./package-uri.js";
 import { writePackageArchive } from "./package-writer.js";
 import { readRelationshipGraph, type RelationshipEdge } from "./relationships.js";
-import { readSelectionIndex, type SelectionContext, type SelectionQuery } from "./selectors.js";
+import {
+  buildSelectionIndex,
+  readSelectionIndex,
+  type SelectionContext,
+  type SelectionQuery
+} from "./selectors.js";
 import { parseXmlPart, type XmlElement, type XmlPart } from "./xml.js";
 
 export type LinkAction =
@@ -468,7 +474,7 @@ function prepareChange(
             (rank === 0 && ["hlinkHover", "hlinkMouseOver"].includes(n.name.localName)))
       );
       xml = xml.spliceChildren(parent, insert < 0 ? parent.children.length : insert, 0, [
-        `<a:${localName} xmlns:a="${d.a}"/>`
+        `<a:${localName} xmlns="${escape(xml.resolveNamespace(parent, "") ?? "")}" xmlns:a="${d.a}"/>`
       ]);
       parent = at(xml, parentPath);
     }
@@ -527,6 +533,89 @@ export interface LinkSession {
   remove(options: LinkOptions & { readonly sanitize?: boolean }): void;
   save(): Promise<Uint8Array>;
 }
+export function createLiveLinkSession(
+  state: Awaited<ReturnType<typeof import("./masters.js").loadShared>>,
+  context: SelectionContext,
+  changed: () => void
+): Omit<LinkSession, "save"> {
+  let cached: LinkState | undefined;
+  let previousChanges = new Map<string, Uint8Array>();
+  let previousDeleted = new Set<string>();
+  const current = (): LinkState => {
+    if (context.signal?.aborted)
+      throw new OfficeError("cancelled", "Operation cancelled.", "index");
+    if (
+      cached &&
+      previousChanges.size === state.changes.size &&
+      previousDeleted.size === state.deleted.size &&
+      [...state.changes].every(([name, bytes]) => previousChanges.get(name) === bytes) &&
+      [...state.deleted].every((name) => previousDeleted.has(name))
+    )
+      return cached;
+
+    const names = [...new Set([...state.reader.names, ...state.changes.keys()])].filter(
+      (name) => !state.deleted.has(name)
+    );
+    const get = (name: string) => new Uint8Array(state.changes.get(name) ?? state.reader.get(name));
+    const reader: PackageReader = {
+      names,
+      get,
+      has: (name) => names.includes(name),
+      relsXmlFor: (owner) => {
+        const name = owner === "/" ? "/_rels/.rels" : relPart(owner);
+        return names.includes(name) ? get(name) : null;
+      }
+    };
+    previousChanges = new Map(state.changes);
+    previousDeleted = new Set(state.deleted);
+    return (cached = {
+      source: state.source,
+      reader,
+      graph: readRelationshipGraph(reader, context.relationshipLimits),
+      index: buildSelectionIndex(reader, state.index.fingerprint, context),
+      showIds: elements(parseXmlPart(reader.get(state.main), context.xmlLimits).root)
+        .filter(({ node }) => node.name.namespace === state.p && node.name.localName === "custShow")
+        .map(({ node }) => attr(node, "id") ?? "")
+    });
+  };
+  const apply = (updates: Map<string, Uint8Array>) => {
+    if (!updates.size) return;
+    const snapshot = current();
+    const candidate: PackageReader = {
+      ...snapshot.reader,
+      names: [...new Set([...snapshot.reader.names, ...updates.keys()])],
+      has: (name) => updates.has(name) || snapshot.reader.has(name),
+      get: (name) => updates.get(name)?.slice() ?? snapshot.reader.get(name),
+      relsXmlFor: (owner) =>
+        updates.get(relPart(owner))?.slice() ?? snapshot.reader.relsXmlFor(owner)
+    };
+    readRelationshipGraph(candidate, context.relationshipLimits);
+    for (const [name, bytes] of updates) state.changes.set(name, bytes);
+    changed();
+  };
+  return {
+    get slides() {
+      return current().index.slides.map((slide) => ({ part: slide.part }));
+    },
+    getPart(part) {
+      const snapshot = current();
+      if (!snapshot.index.slides.some((slide) => slide.part === part))
+        invalid("Select an owning slide part.");
+      return parseXmlPart(snapshot.reader.get(part), context.xmlLimits);
+    },
+    list(selection) {
+      return readLinks(current(), selection, context);
+    },
+    set(options) {
+      validateSet(options);
+      apply(prepareChange(current(), options, context, false));
+    },
+    remove(options) {
+      apply(prepareChange(current(), options, context, true));
+    }
+  };
+}
+
 export async function openLinkSession(
   input: BinaryInput,
   context: SelectionContext

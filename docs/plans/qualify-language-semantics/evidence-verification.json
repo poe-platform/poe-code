@@ -1,0 +1,82 @@
+{
+  "at": "2026-09-13T14:39:46.533Z",
+  "baseline": {
+    "manifest.json": {
+      "expected": "c8b428444f7854afcba72fe3bfebcf9b9390dfe2a9714b1c2da36794a6e43617",
+      "actual": "c8b428444f7854afcba72fe3bfebcf9b9390dfe2a9714b1c2da36794a6e43617",
+      "matches": true
+    },
+    "aggregate.json": {
+      "expected": "d066be16ae8bafa10ba81222f0b7a53a09e42e8228f1c3d08e8ad9c14d01ba48",
+      "actual": "d066be16ae8bafa10ba81222f0b7a53a09e42e8228f1c3d08e8ad9c14d01ba48",
+      "matches": true
+    },
+    "independent-mismatch-inventory.json": {
+      "expected": "9b196c676c2ce180e48a4ec9677565e1b4bc3bcbd217651ec88d2807521e70ad",
+      "actual": "9b196c676c2ce180e48a4ec9677565e1b4bc3bcbd217651ec88d2807521e70ad",
+      "matches": true
+    }
+  },
+  "lexical": [
+    {
+      "file": "packages/safe-js/src/parse/parser.ts",
+      "expected": "f33ca3a2c18c90cd6b6fc56ef296723a47226ec79d9eaf6b414d680f8577fee5",
+      "actual": "36cc631c287c00da9dd6514c83b9fbc64d6b650ae82fc1dc903d6bcd2cc9ad1c",
+      "matches": false
+    },
+    {
+      "file": "packages/safe-js/src/parse/tokenizer.ts",
+      "expected": "2700623f36201eed1593a7844e5b17ff8b726bc3c41ea88f61465e8a9f7867c9",
+      "actual": "cdb08638086eecc7f4182bd20184f0f6c6c4f2c991096601766980f2fa63dc57",
+      "matches": false
+    },
+    {
+      "file": "packages/safe-js/src/parse/format-error.ts",
+      "expected": "b3ef5799bd4bc6ce335e74ae7f935325f13fb2ba084dbb83da372370ee456f52",
+      "actual": "c8fa18ce1027b8ec8c3bf3d54c488bf3fff23c11a5168bc61d8f8bed83ff06f0",
+      "matches": false
+    },
+    {
+      "file": "packages/safe-js/src/error/shape.ts",
+      "expected": "4f8d3497120e5d9d37df228c7b7f9c933dd22639a0e7dd727f2617a54185cc15",
+      "actual": "4f8d3497120e5d9d37df228c7b7f9c933dd22639a0e7dd727f2617a54185cc15",
+      "matches": true
+    },
+    {
+      "file": "packages/safe-js/src/error/format.ts",
+      "expected": "bc2ae37ee4100e7c798af5079dd25ed2fa98f3f7f932ed80b8ef30aa86dc4124",
+      "actual": "bc2ae37ee4100e7c798af5079dd25ed2fa98f3f7f932ed80b8ef30aa86dc4124",
+      "matches": true
+    },
+    {
+      "file": "packages/safe-js/src/error/source-lines.ts",
+      "expected": "ecbc145086a50d552191f0188c0a2000a4236419eb6550320a2367221de7bec8",
+      "actual": "ecbc145086a50d552191f0188c0a2000a4236419eb6550320a2367221de7bec8",
+      "matches": true
+    },
+    {
+      "file": "packages/safe-js/src/parse/lexical-source-positions.test.ts",
+      "expected": "71672aa8a2901f57ff6d78d9a3d714262872681ba16da3263032a1c0278bbb7a",
+      "actual": "71672aa8a2901f57ff6d78d9a3d714262872681ba16da3263032a1c0278bbb7a",
+      "matches": true
+    },
+    {
+      "file": "packages/safe-js/src/parse/lexical-regexp-qualification.test.ts",
+      "expected": "aa26b42b79cdc7a76fbe6a1ae84a0742fcc312e0ca6a57368bbee4608988e41c",
+      "actual": "aa26b42b79cdc7a76fbe6a1ae84a0742fcc312e0ca6a57368bbee4608988e41c",
+      "matches": true
+    },
+    {
+      "file": "packages/safe-js/src/parse/lexical-statement-terminators.test.ts",
+      "expected": "f28ab5b4a0311d90e8e9c01208d1cd27a5e5a4d3e0e907c6e55f1614e746f009",
+      "actual": "f28ab5b4a0311d90e8e9c01208d1cd27a5e5a4d3e0e907c6e55f1614e746f009",
+      "matches": true
+    }
+  ],
+  "generatorReentry": {
+    "expected": "baa7a5c782cdb7230a80be13e4496a6fe563b91dc57ac0d36e5001d9b13cba34",
+    "actual": "baa7a5c782cdb7230a80be13e4496a6fe563b91dc57ac0d36e5001d9b13cba34"
+  },
+  "remoteMain": "49ed651876290182ab1ecb87dffaf8581c0011a6",
+  "localHead": "53f5e1598471b8c0281b9490732b2b5a6dc45342"
+}

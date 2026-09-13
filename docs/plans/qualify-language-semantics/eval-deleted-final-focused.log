@@ -1,0 +1,17 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/test/conformance/eval-deleted-global-function.test.ts (6 tests) 588ms
+   ✓ preserves recreated globals and separate eval sources through repeated replay  419ms
+ ✓ packages/safe-js/src/snapshot/eval-source.test.ts (18 tests) 1805ms
+ ✓ packages/safe-js/src/snapshot/dynamic-block-functions.test.ts (6 tests) 735ms
+ ✓ packages/safe-js/src/interp/globals/eval-global-declarations.test.ts (14 tests) 490ms
+ ✓ packages/safe-js/src/snapshot/eval-delete-block-function.test.ts (2 tests) 348ms
+ ✓ packages/safe-js/src/interp/scope.test.ts (28 tests) 68ms
+ ✓ packages/safe-js/src/interp/globals/eval-global-block-functions.test.ts (6 tests) 288ms
+
+ Test Files  7 passed (7)
+      Tests  80 passed (80)
+   Start at  09:39:03
+   Duration  6.10s (transform 3.50s, setup 151ms, import 7.01s, tests 4.32s, environment 0ms)
+

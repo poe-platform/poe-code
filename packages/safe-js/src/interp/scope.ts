@@ -408,10 +408,12 @@ export class Scope {
   }
 
   assignVar(name: string, value: InterpreterValue,
-    setProperty?: (object: SandboxObject, key: string, value: InterpreterValue) => void | Promise<void>
+    setProperty: (object: SandboxObject, key: string, value: InterpreterValue) => void | Promise<void>
   ): void | Promise<void> {
     if (this.options.globalEnvironment === true) {
-      return this.assign(name, value, setProperty, false);
+      const object = this.parent?.objectEnvironment;
+      if (object === undefined) throw new TypeError("Missing global object environment.");
+      return setProperty(object, name, value);
     }
     if (this.isFunctionBoundary()) {
       this.assignOwnBinding(name, value, false);

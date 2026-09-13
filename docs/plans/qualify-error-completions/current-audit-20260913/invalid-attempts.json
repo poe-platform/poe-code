@@ -25,5 +25,12 @@
     "exit": 1,
     "valid": true,
     "reason": "All three runtimes reproduced original diagnostic disclosure through remote-main fallback; red candidate, not a pass."
+  },
+  {
+    "command": "gh run view 34759703442 --repo poe-platform/poe-code --job 103730679839 --log",
+    "exit": 1,
+    "valid": false,
+    "reason": "Logs unavailable until parent workflow completed; later full workflow log and successful unit conclusion retained.",
+    "log": "root-unit-log-early.log.gz"
   }
 ]

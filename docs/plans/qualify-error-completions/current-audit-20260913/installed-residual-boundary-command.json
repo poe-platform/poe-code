@@ -1,0 +1,6 @@
+[
+  "node",
+  "--input-type=module",
+  "-e",
+  "import {run} from '@poe-platform/safe-js';const results=[];for(const kind of ['record-accessor','aggregate-child-proxy']){const trace=[];const child=new Proxy(new Error('private child'),{getPrototypeOf(t){trace.push('child prototype');return Reflect.getPrototypeOf(t)},getOwnPropertyDescriptor(t,k){trace.push('child descriptor:'+String(k));return Reflect.getOwnPropertyDescriptor(t,k)}});const reason=kind==='record-accessor'?{get message(){trace.push('message getter');return 'private synthetic diagnostic'}}:new AggregateError([child],'outer');try{const result=await run('try{fail()}catch(e){return [e.name,e.message,e.errors?.map(x=>[x.name,x.message])]}',{bindings:{fail(){throw reason}}});results.push({kind,trace,result:result.returnValue})}catch(e){results.push({kind,trace,failed:String(e)})}}console.log(JSON.stringify(results,null,2));"
+]

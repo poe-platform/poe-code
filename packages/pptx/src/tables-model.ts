@@ -1,5 +1,5 @@
 import { applyTableStructure, type TableStructureOperation } from "./table-spans.js";
-import { InvalidHandleError, OfficeError } from "./errors.js";
+import { IndexError, InvalidHandleError, OfficeError } from "./errors.js";
 import { Length } from "./length.js";
 import { child, required } from "./masters.js";
 import { FillFormat } from "./shapes.js";
@@ -10,11 +10,7 @@ import { applyTableUpdate, readTable, type TableUpdate } from "./tables.js";
 import type { XmlElement, XmlPart } from "./xml.js";
 function position(index: number, length: number): void {
   if (!Number.isSafeInteger(index) || index < 0 || index >= length)
-    throw new OfficeError(
-      "invalid-selection",
-      "Table position is outside the collection.",
-      "select"
-    );
+    throw new IndexError("Table position is outside the collection.");
 }
 function indexed<T extends { get(index: number): unknown }>(collection: T): T {
   return new Proxy(collection, {
@@ -23,6 +19,20 @@ function indexed<T extends { get(index: number): unknown }>(collection: T): T {
         return target.get(Number(key));
       const value = Reflect.get(target, key, target);
       return typeof value === "function" ? value.bind(target) : value;
+    },
+    defineProperty(target, key, descriptor) {
+      if (typeof key === "string" && key !== "" && String(Number(key)) === key)
+        throw new OfficeError(
+          "invalid-value",
+          "Table collections cannot replace entries.",
+          "usage"
+        );
+      return Reflect.defineProperty(target, key, descriptor);
+    },
+    deleteProperty(target, key) {
+      if (typeof key === "string" && key !== "" && String(Number(key)) === key)
+        throw new OfficeError("invalid-value", "Table collections cannot remove entries.", "usage");
+      return Reflect.deleteProperty(target, key);
     },
     set(target, key, value, receiver) {
       if (typeof key === "string" && key !== "" && String(Number(key)) === key)
@@ -341,7 +351,8 @@ export class TableRows implements Iterable<TableRow> {
   get length(): number {
     return readTable(this.table.element, this.table.xml).rows;
   }
-  get(index: number): TableRow {
+  readonly get = this.at;
+  at(index: number): TableRow {
     position(index, this.length);
     return new TableRow(this.table, index);
   }
@@ -357,7 +368,8 @@ export class TableColumns implements Iterable<TableColumn> {
   get length(): number {
     return readTable(this.table.element, this.table.xml).columns;
   }
-  get(index: number): TableColumn {
+  readonly get = this.at;
+  at(index: number): TableColumn {
     position(index, this.length);
     return new TableColumn(this.table, index);
   }
@@ -432,7 +444,8 @@ export class TableCells implements Iterable<TableCell> {
   get length(): number {
     return this.table.columns.length;
   }
-  get(index: number): TableCell {
+  readonly get = this.at;
+  at(index: number): TableCell {
     position(index, this.length);
     return this.table.cell(this.row, index);
   }

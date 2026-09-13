@@ -51,5 +51,5 @@ it("counts and edits only drawing gradient stops while retaining foreign childre
   );
   expect(list.children[1]!.children[0]!.name.localName).toBe("schemeClr");
   expect(list.children[1]!.children[0]!.children[0]!.attributes[0]!.value).toBe("50000");
-  expect(() => stops.at(2)).toThrowError(expect.objectContaining({ code: "invalid-value" }));
+  expect(() => stops.at(2)).toThrowError(expect.objectContaining({ code: "index-out-of-range" }));
 });

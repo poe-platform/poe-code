@@ -1,4 +1,4 @@
-import { OfficeError } from "./errors.js";
+import { IndexError, OfficeError, ValueError } from "./errors.js";
 import { Length } from "./length.js";
 import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
 import { attr, child } from "./masters.js";
@@ -1117,18 +1117,43 @@ export class GradientStop {
   }
 }
 export class GradientStops implements Iterable<GradientStop> {
+  readonly [index: number]: GradientStop;
   private readonly cache = new Map<number, GradientStop>();
   constructor(
     private readonly read: () => XmlPart,
     private readonly edit: DrawingEdit,
     private readonly owner: ColorOwner
-  ) {}
+  ) {
+    return new Proxy(this, {
+      get(target, key) {
+        if (typeof key === "string" && key !== "" && String(Number(key)) === key)
+          return target.at(Number(key));
+        const value = Reflect.get(target, key, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+      set(target, key, value, receiver) {
+        if (typeof key === "string" && key !== "" && String(Number(key)) === key)
+          invalid("Gradient stops cannot replace entries.");
+        return Reflect.set(target, key, value, receiver);
+      },
+      defineProperty(target, key, descriptor) {
+        if (typeof key === "string" && key !== "" && String(Number(key)) === key)
+          invalid("Gradient stops cannot replace entries.");
+        return Reflect.defineProperty(target, key, descriptor);
+      },
+      deleteProperty(target, key) {
+        if (typeof key === "string" && key !== "" && String(Number(key)) === key)
+          invalid("Gradient stops cannot remove entries.");
+        return Reflect.deleteProperty(target, key);
+      }
+    });
+  }
   get length() {
     return gradientNodes(this.owner(this.read().root)).length;
   }
   at(index: number) {
     if (!Number.isInteger(index) || index < -this.length || index >= this.length)
-      invalid("Gradient stop index is out of range.");
+      throw new IndexError("Gradient stop index is out of range.");
     const i = index < 0 ? index + this.length : index;
     let stop = this.cache.get(i);
     if (!stop) {
@@ -1140,19 +1165,19 @@ export class GradientStops implements Iterable<GradientStop> {
   *[Symbol.iterator]() {
     for (let i = 0; i < this.length; i++) yield this.at(i);
   }
-  slice(start?: number, end?: number) {
-    return Array.from(this).slice(start, end);
-  }
   includes(value: GradientStop) {
     return Array.from(this).includes(value);
   }
   count(value: GradientStop) {
     return this.includes(value) ? 1 : 0;
   }
-  index(value: GradientStop) {
-    const i = Array.from(this).indexOf(value);
-    if (i < 0) invalid("Gradient stop is not in this collection.");
-    return i;
+  index(value: GradientStop, start = 0, stop = this.length) {
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(stop))
+      throw new ValueError("Gradient stop search bounds must be integers.");
+    const lower = Math.max(0, start < 0 ? this.length + start : start);
+    const upper = Math.min(this.length, stop < 0 ? this.length + stop : stop);
+    for (let i = lower; i < upper; i++) if (this.at(i) === value) return i;
+    throw new ValueError("Gradient stop is not in this collection.");
   }
   reversed() {
     return Array.from(this).reverse();

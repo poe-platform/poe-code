@@ -4,6 +4,11 @@ import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from
 import { fieldSchemas } from "./fields-schema.js";
 import { addShape, mutateShapes, readShapes, type ShapeSelection } from "./shape-operations.js";
 import { groupShapes, ungroupShape, validateGroupOptions } from "./shape-groups.js";
+import {
+  mutateShapeSelection,
+  validateShapeSelectionOptions,
+  type ShapeSelectionOptions
+} from "./shape-selection.js";
 import { Emu } from "./length.js";
 import { validateShapeOptions, type ShapeUpdate } from "./shapes.js";
 import { fitTextFrames, validateTextFitOptions, type TextFitOptions } from "./text-fitting.js";
@@ -267,6 +272,7 @@ const help =
   "       pptx shapes list|get INPUT [--slide N --shape NAME] [--scope SCOPE] [--json]\n" +
   "       pptx shapes group INPUT --shapes LOCATIONS_JSON --tolerance LENGTH [output]\n" +
   "       pptx shapes ungroup INPUT [selection] --tolerance LENGTH [output]\n" +
+  "       pptx shapes move|align|distribute|duplicate INPUT [selection] --coordinate-system slide|group [options] [output]\n" +
   "       pptx shapes paths list|get|add|set INPUT [selection] [--path JSON]\n" +
   "       pptx shapes add INPUT --slide N --kind text-box|PRESET\n" +
   "                       --left LENGTH --top LENGTH --width LENGTH --height LENGTH [--name TEXT] [--text TEXT]\n" +
@@ -323,6 +329,7 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  selectionEdit?: ShapeSelectionOptions;
   shapes?: readonly Location[];
   tolerance?: Emu;
   path?: ShapePath;
@@ -344,6 +351,10 @@ interface Arguments {
     | "shapes.get"
     | "shapes.group"
     | "shapes.ungroup"
+    | "shapes.move"
+    | "shapes.align"
+    | "shapes.distribute"
+    | "shapes.duplicate"
     | `backgrounds.${"list" | "get" | "set"}`
     | `themes.${"list" | "get" | "set"}`
     | `settings.${"list" | "get" | "set"}`
@@ -592,6 +603,11 @@ const scalarOptions = [
   "--slide",
   "--shape",
   "--shapes",
+  "--coordinate-system",
+  "--order",
+  "--axis",
+  "--offset-x",
+  "--offset-y",
   "--tolerance",
   "--part",
   "--select",
@@ -670,7 +686,20 @@ function parse(
       ["sections", "shows", "masters", "layouts", "shapes", "backgrounds", "themes"].includes(
         args[0]!
       ) &&
-      ["list", "get", "add", "set", "remove", "apply", "group", "ungroup"].includes(argument)
+      [
+        "list",
+        "get",
+        "add",
+        "set",
+        "remove",
+        "apply",
+        "group",
+        "ungroup",
+        "move",
+        "align",
+        "distribute",
+        "duplicate"
+      ].includes(argument)
     ) {
       output.operation = `${args[0]}.${argument}`;
     } else if (index === 1 && args[0] === "settings" && ["list", "get", "set"].includes(argument)) {
@@ -786,6 +815,52 @@ function parse(
       ["--help", "-h"].includes(argument)
     )
       return { operation: "help", json: output.json, schemaPath: operation };
+    if (
+      ["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"].includes(
+        operation
+      ) &&
+      [
+        "--shapes",
+        "--coordinate-system",
+        "--order",
+        "--position",
+        "--alignment",
+        "--axis",
+        "--offset-x",
+        "--offset-y"
+      ].includes(argument)
+    ) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Shape selection option requires a value.");
+      if (argument === "--shapes") {
+        const locations = commandJson(value);
+        if (!Array.isArray(locations) || locations.length === 0)
+          usage("Shapes requires a nonempty location array.");
+        result.shapes = locations as Location[];
+      } else {
+        const key =
+          argument === "--coordinate-system"
+            ? "coordinateSystem"
+            : argument === "--offset-x"
+              ? "offsetX"
+              : argument === "--offset-y"
+                ? "offsetY"
+                : argument.slice(2);
+        result.selectionEdit = {
+          ...result.selectionEdit,
+          action: operation.slice(7),
+          [key]:
+            argument === "--offset-x" || argument === "--offset-y"
+              ? new Emu(commandLength(value, -Number.MAX_SAFE_INTEGER))
+              : argument === "--position"
+                ? Number(value)
+                : value
+        } as ShapeSelectionOptions;
+      }
+      continue;
+    }
     if (
       ["shapes.group", "shapes.ungroup"].includes(operation) &&
       ["--shapes", "--tolerance"].includes(argument)
@@ -1807,8 +1882,15 @@ function parse(
     return result;
   }
   if (Object.hasOwn(shapeSchemas, operation)) {
+    const selectionMutation = [
+      "shapes.move",
+      "shapes.align",
+      "shapes.distribute",
+      "shapes.duplicate"
+    ].includes(operation);
     const grouping = operation === "shapes.group" || operation === "shapes.ungroup";
-    const mutation = grouping || operation.endsWith(".add") || operation.endsWith(".set");
+    const mutation =
+      selectionMutation || grouping || operation.endsWith(".add") || operation.endsWith(".set");
     const flags = Object.keys(shapeSchemas[operation]!.options.properties).map(
       (key) =>
         "--" + [...key].map((c) => (c >= "A" && c <= "Z" ? "-" + c.toLowerCase() : c)).join("")
@@ -1820,7 +1902,31 @@ function parse(
     if (result.token && (result.slide !== undefined || result.part || result.shape || result.all))
       usage("Opaque and simple selectors cannot be combined.");
     if (mutation) {
-      if (grouping) {
+      if (selectionMutation) {
+        if (
+          result.shapes &&
+          (result.slide !== undefined ||
+            result.part ||
+            result.shape ||
+            result.token ||
+            result.all ||
+            result.allowEmpty)
+        )
+          usage("Location arrays and simple or opaque selectors cannot be combined.");
+        result.selectionEdit = {
+          ...result.selectionEdit,
+          action: operation.slice(7),
+          ...(result.shapes === undefined ? {} : { shapes: result.shapes }),
+          ...(result.scope === undefined ? {} : { scope: result.scope }),
+          ...(result.slide === undefined ? {} : { slide: result.slide }),
+          ...(result.part === undefined ? {} : { part: result.part }),
+          ...(result.shape === undefined ? {} : { shape: result.shape }),
+          ...(result.token === undefined ? {} : { select: result.token }),
+          ...(result.all === undefined ? {} : { all: result.all }),
+          ...(result.allowEmpty === undefined ? {} : { allowEmpty: result.allowEmpty })
+        } as ShapeSelectionOptions;
+        validateShapeSelectionOptions(result.selectionEdit);
+      } else if (grouping) {
         if (result.tolerance === undefined) usage("Grouping requires explicit tolerance.");
         if (operation === "shapes.group" && result.shapes === undefined)
           usage("Grouping requires shape locations.");
@@ -2546,63 +2652,76 @@ async function execute(
               : args.schemaPath?.startsWith("text.runs.")
                 ? runHelp
                 : help;
-      const resolvedUsage = args.schemaPath?.startsWith("shapes.paths.")
-        ? "Usage: pptx shapes paths list|get|add|set INPUT [selection] [path] [output]\n" +
-          "Read: list|get INPUT [selection]. Add/set require --path JSON or --vertices JSON.\n" +
-          "Path: {unit:emu,width,height,commands:[move|line|quadratic|cubic|close]}\n" +
-          "Coordinates: integer local EMUs, -2147483647..2147483647; viewport 1..2147483647.\n" +
-          "At most 4096 commands; explicit closure; command order preserved without winding evaluation.\n" +
-          "Alternatively --vertices JSON --close true|false uses {x,y} local EMU vertices and a derived viewport.\n" +
-          "Add placement: --left LENGTH --top LENGTH --width LENGTH --height LENGTH.\n" +
-          "Add accepts shape name, text, paint and metadata properties. Lengths require emu/in/cm/mm/pt.\n" +
-          "Selection: --slide N [--shape NAME] | --part URI --scope SCOPE | --select TOKEN.\n" +
-          "Set: selects one shape unless --all; --allow-empty accepts zero matches.\n" +
-          "Scopes: slides (default), layouts, masters; shared requires --part URI.\n" +
-          "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
-          "Unsupported formulas, arcs and arbitrary existing geometry are preserve-only.\n"
-        : ["shapes.group", "shapes.ungroup"].includes(args.schemaPath ?? "")
-          ? "Usage: pptx shapes group|ungroup INPUT --tolerance LENGTH [selection] [output]\n" +
-            "Group: --shapes JSON array of at least two inspected Location objects.\n" +
-            "Shapes must be distinct contiguous siblings; original IDs and z-order are retained.\n" +
-            "Ungroup: --slide N --shape NAME | --select TOKEN; selects one group.\n" +
-            "Selection: --part URI --scope SCOPE. Exact cardinality; --all/--allow-empty are unsupported.\n" +
-            "Tolerance is explicit nonnegative EMU precision using emu/in/cm/mm/pt lengths.\n" +
-            "Identity groups preserve child XML; transformed ungrouping supports nested groups and rectangles\n" +
-            "without text, styles or strokes.\n" +
-            "Transformed ungrouping supports quarter-turn rotation chains only.\n" +
-            "World geometry must remain within tolerance; unsupported geometry and references fail.\n" +
-            "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n"
-          : args.schemaPath?.startsWith("shapes.")
-            ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
-              "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
-              "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
-              "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
-              "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
-              "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
-              "  --flip-horizontal true|false --flip-vertical true|false\n" +
-              "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
-              "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
-              "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
-              "Omitted values stay unchanged.\n" +
-              "Null line width restores inherited width.\n" +
-              "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
-              "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
-              "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
-              "Set: --all edits every match; --allow-empty accepts zero matches.\n"
-            : args.schemaPath?.startsWith("fields.")
-              ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
-                "Selection: --slide N --shape NAME | --select TOKEN\n" +
-                "           --scope SCOPE --json --limit NAME=VALUE\n" +
-                "Mutation:  --all --allow-empty\n" +
-                "Output:    --output PATH | --in-place | --dry-run; --force\n" +
-                "Set/add:   --kind slide-number|date|footer|header\n" +
-                "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
-                "Add requires --kind and one text body; appends to its last paragraph.\n" +
-                "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
-                "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
-                "No field evaluation, automatic numbering or inherited-content flattening.\n" +
-                "List/get are read-only; get requires one field. Remove accepts no policy.\n"
-              : usage;
+      const resolvedUsage = [
+        "shapes.move",
+        "shapes.align",
+        "shapes.distribute",
+        "shapes.duplicate"
+      ].includes(args.schemaPath ?? "")
+        ? "Usage: pptx shapes move|align|distribute|duplicate INPUT [selection] --coordinate-system slide|group [output]\n" +
+          "Selection: --shapes JSON Location array, or --slide N [--shape NAME | --all], or --select TOKEN.\n" +
+          "Move: --order front|back|forward|backward OR --position N (one-based).\n" +
+          "Align: --alignment left|center|right|top|middle|bottom. Distribute: --axis horizontal|vertical.\n" +
+          "Duplicate: --offset-x LENGTH --offset-y LENGTH (explicit units, signed offsets).\n" +
+          "Hidden siblings participate; locked selections fail. Mixed slides or parent groups fail.\n" +
+          "Output: --output PATH | --in-place | --dry-run; --force, --json, --limit NAME=VALUE.\n"
+        : args.schemaPath?.startsWith("shapes.paths.")
+          ? "Usage: pptx shapes paths list|get|add|set INPUT [selection] [path] [output]\n" +
+            "Read: list|get INPUT [selection]. Add/set require --path JSON or --vertices JSON.\n" +
+            "Path: {unit:emu,width,height,commands:[move|line|quadratic|cubic|close]}\n" +
+            "Coordinates: integer local EMUs, -2147483647..2147483647; viewport 1..2147483647.\n" +
+            "At most 4096 commands; explicit closure; command order preserved without winding evaluation.\n" +
+            "Alternatively --vertices JSON --close true|false uses {x,y} local EMU vertices and a derived viewport.\n" +
+            "Add placement: --left LENGTH --top LENGTH --width LENGTH --height LENGTH.\n" +
+            "Add accepts shape name, text, paint and metadata properties. Lengths require emu/in/cm/mm/pt.\n" +
+            "Selection: --slide N [--shape NAME] | --part URI --scope SCOPE | --select TOKEN.\n" +
+            "Set: selects one shape unless --all; --allow-empty accepts zero matches.\n" +
+            "Scopes: slides (default), layouts, masters; shared requires --part URI.\n" +
+            "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
+            "Unsupported formulas, arcs and arbitrary existing geometry are preserve-only.\n"
+          : ["shapes.group", "shapes.ungroup"].includes(args.schemaPath ?? "")
+            ? "Usage: pptx shapes group|ungroup INPUT --tolerance LENGTH [selection] [output]\n" +
+              "Group: --shapes JSON array of at least two inspected Location objects.\n" +
+              "Shapes must be distinct contiguous siblings; original IDs and z-order are retained.\n" +
+              "Ungroup: --slide N --shape NAME | --select TOKEN; selects one group.\n" +
+              "Selection: --part URI --scope SCOPE. Exact cardinality; --all/--allow-empty are unsupported.\n" +
+              "Tolerance is explicit nonnegative EMU precision using emu/in/cm/mm/pt lengths.\n" +
+              "Identity groups preserve child XML; transformed ungrouping supports nested groups and rectangles\n" +
+              "without text, styles or strokes.\n" +
+              "Transformed ungrouping supports quarter-turn rotation chains only.\n" +
+              "World geometry must remain within tolerance; unsupported geometry and references fail.\n" +
+              "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n"
+            : args.schemaPath?.startsWith("shapes.")
+              ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
+                "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
+                "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
+                "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
+                "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
+                "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
+                "  --flip-horizontal true|false --flip-vertical true|false\n" +
+                "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
+                "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
+                "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
+                "Omitted values stay unchanged.\n" +
+                "Null line width restores inherited width.\n" +
+                "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
+                "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
+                "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
+                "Set: --all edits every match; --allow-empty accepts zero matches.\n"
+              : args.schemaPath?.startsWith("fields.")
+                ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
+                  "Selection: --slide N --shape NAME | --select TOKEN\n" +
+                  "           --scope SCOPE --json --limit NAME=VALUE\n" +
+                  "Mutation:  --all --allow-empty\n" +
+                  "Output:    --output PATH | --in-place | --dry-run; --force\n" +
+                  "Set/add:   --kind slide-number|date|footer|header\n" +
+                  "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
+                  "Add requires --kind and one text body; appends to its last paragraph.\n" +
+                  "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
+                  "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
+                  "No field evaluation, automatic numbering or inherited-content flattening.\n" +
+                  "List/get are read-only; get requires one field. Remove accepts no policy.\n"
+                : usage;
       result = success(operation, { usage: resolvedUsage });
       human = resolvedUsage;
     } else if (args.operation === "version") {
@@ -2764,6 +2883,12 @@ async function execute(
             level: "edit",
             subset:
               "Local integer EMU move/line/quadratic/cubic commands, explicit closure and retained command order without winding evaluation; 4096 commands, coordinates bounded to ±2147483647. Existing unsupported custom geometry and formulas are preserved; geometry-engine edits are rejected."
+          },
+          shapeSelection: {
+            level: "edit",
+            operations: ["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"],
+            subset:
+              "Explicit slide or group coordinates; distinct siblings; hidden objects participate and locked selections reject. Stable drawing order resolves ties. Alignment uses selection bounds, distribution preserves endpoints with equal edge gaps, and duplication requires signed offsets with fresh IDs and supported reference remapping. Unsupported geometry or references reject without publication."
           },
           shapes: {
             level: "edit",
@@ -3056,8 +3181,9 @@ async function execute(
           )
           .join("");
       } else {
-        const mutation =
-          args.operation === "shapes.group"
+        const mutation = args.selectionEdit
+          ? await mutateShapeSelection(bytes, args.selectionEdit, context)
+          : args.operation === "shapes.group"
             ? await groupShapes(
                 bytes,
                 { ...selection, shapes: args.shapes!, tolerance: args.tolerance! },
@@ -3091,12 +3217,17 @@ async function execute(
               affectedSlides: mutation.affectedSlides,
               effects: changed.map((x) => ({
                 location: x.location,
-                action: args.operation.endsWith(".add") ? "add" : "set",
-                feature: ["shapes.group", "shapes.ungroup"].includes(args.operation)
-                  ? "F24"
-                  : args.operation.startsWith("shapes.paths.")
-                    ? "F23"
-                    : "F22"
+                action:
+                  args.operation.endsWith(".add") || args.operation === "shapes.duplicate"
+                    ? "add"
+                    : "set",
+                feature: args.selectionEdit
+                  ? "F25"
+                  : ["shapes.group", "shapes.ungroup"].includes(args.operation)
+                    ? "F24"
+                    : args.operation.startsWith("shapes.paths.")
+                      ? "F23"
+                      : "F22"
               })),
               outputs: dryRun
                 ? []

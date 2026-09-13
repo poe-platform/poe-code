@@ -260,3 +260,14 @@ export {
   type GroupShapesOptions,
   type UngroupShapeOptions
 } from "./shape-groups.js";
+
+export {
+  mutateShapeSelection,
+  applyShapeSelection,
+  validateShapeSelectionOptions,
+  type ShapeSelectionOptions,
+  type ShapeSelectionAction,
+  type ShapeOrder,
+  type ShapeAlignment,
+  type ShapeAxis
+} from "./shape-selection.js";

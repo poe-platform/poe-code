@@ -1,0 +1,3348 @@
+{
+  "schemaVersion": 1,
+  "scope": "F25 selection layout research/provenance with adjacent inherited shape order, geometry, identity and connector obligations.",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "authorities": [
+    "../specs/pptx.md",
+    "../specs/office-sdk.md",
+    "../specs/office-cli.md"
+  ],
+  "selection": "Union of every transform/group receipt row; base identity/position/dimensions/rotation/ownership; connector endpoint/reference cases; shape collection indexing/order/cloning/ID allocation; expanded sequence and connector BDD scenarios. Each collected parameter and expanded scenario remains its own row. Freeform coordinate construction, sparse placeholder lookup and slide lifecycle remain in their existing feature ledgers.",
+  "directBaseline": "No direct selection move/align/distribute/duplicate operation exists in the pinned inventory. Original F25 operation cases supplement these adjacent obligations; no unrelated source test is claimed as equivalent.",
+  "notice": "Research only. Required standalone upstream-license-notice.txt and test-case-map-notice.txt remain retained. Product tests and assets are original.",
+  "counts": {
+    "unit": 173,
+    "bdd": 47,
+    "total": 220
+  },
+  "supplementalOriginalCases": [
+    {
+      "testFile": "../../packages/pptx/src/shape-selection.test.ts",
+      "status": "original-tests-authored; parent records final maintained validation in plan",
+      "assertions": [
+        "All four move modes and explicit position assert full literal sibling ID arrays.",
+        "Six alignment anchors, signed half-EMU ties, unequal edge gaps and stable ties assert literal integer coordinates.",
+        "Explicit group parent space, mixed-parent rejection, lock/hidden behavior and atomic failure.",
+        "New recursive identities, connector internal versus external targets, relationship IDs and original timing preservation.",
+        "Zero/positive/gapped allocator variants and unsigned-32-bit exhaustion are independent original cases; malformed and colliding identities reject. Empty-collection source allocator remains an adjacent gap.",
+        "Large-coordinate rational distribution has no intermediate rounding drift.",
+        "Dense stored arrays and exact namespace-qualified locks prevent getter execution and foreign lookalike interpretation."
+      ],
+      "testNames": [
+        "moves a disjoint selection %s in original sibling order",
+        "rounds negative half-coordinate alignment ties away from zero",
+        "distributes variable widths by edge gaps with stable coordinate ties",
+        "duplicates in source order with fresh recursive IDs and remaps only internal connector ends",
+        "rejects foreign connector lookalikes and opaque copied attributes",
+        "preserves unrelated grouping size and rotation locks during alignment",
+        "maps connector targets by numeric identity when source lexical forms differ"
+      ]
+    },
+    {
+      "testFile": "../../packages/pptx/src/command-shape-selection.test.ts",
+      "status": "original-memfs-command-tests-authored; parent records final maintained validation in plan",
+      "assertions": [
+        "Schema requires explicit coordinate space and rejects conflicting options before reading input.",
+        "Exact sibling order after reopening and literal arithmetic through CLI.",
+        "Duplicate dry-run leaves input bytes unchanged and reports F25 results.",
+        "Empty simple selections with allowEmpty succeed unchanged for all four actions."
+      ]
+    },
+    {
+      "testFile": "../../packages/pptx/src/shape-selection-sdk.test.ts",
+      "status": "implemented-original-memfs-case",
+      "assertions": [
+        "Public SDK uses only explicitly supplied VFS bytes; cross-slide and stale selections reject.",
+        "Duplicate returns fresh reusable locations, exact object order and offset arithmetic.",
+        "Empty simple selections preserve bytes with allowEmpty; original input is unchanged."
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "id": "presentation-unit-3f99db94d2ec",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_graphicFrame_element_containing_a_table",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1349",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_graphicFrame_element_containing_a_table"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1349/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/0",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-1c1a3a6218f4",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_grpSp_element",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1350",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_grpSp_element"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1350/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/1",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-d7a629dc9a2d",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_pic_element_representing_a_picture",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1351",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_pic_element_representing_a_picture"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1351/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/2",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-839cad6acda0",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_an_sp_element_for_a_placeholder",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1352",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_can_add_an_sp_element_for_a_placeholder"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1352/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/3",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-be33b60feb98",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_an_sp_element_for_an_autoshape",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1353",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_can_add_an_sp_element_for_an_autoshape"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1353/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/4",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-43875e3ff8c7",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_textbox_sp_element",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1354",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_textbox_sp_element"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1354/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/5",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-4db98acaf844",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_recalculate_its_pos_and_size[recalc_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1355",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_can_recalculate_its_pos_and_size[recalc_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1355/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/6",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-dbcc7b8936f2",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_recalculate_its_pos_and_size[recalc_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1356",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_can_recalculate_its_pos_and_size[recalc_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1356/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/7",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-39755adea5dd",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1357",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1357/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/8",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-b55abecd44fc",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1358",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1358/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/9",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-625bde34d404",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1359",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1359/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/10",
+      "priorStatus": "original-domain-behavior-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/shape-groups.test.ts",
+        "name": "calculates the stored sibling union $expected",
+        "variant": {
+          "expected": [
+            1,
+            2,
+            39,
+            58
+          ]
+        }
+      }
+    },
+    {
+      "id": "presentation-unit-c131dd494437",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1360",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1oxml~1shapes~1test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1360/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/11",
+      "priorStatus": "original-domain-behavior-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/shape-groups.test.ts",
+        "name": "calculates the stored sibling union $expected",
+        "variant": {
+          "expected": [
+            50,
+            50,
+            125,
+            75
+          ]
+        }
+      }
+    },
+    {
+      "id": "presentation-unit-d01da1cec833",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1717",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1717/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-5cc2c74c4439",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1718",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1718/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-1812ae58e6ab",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1719",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1719/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-c82eafeb8831",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1720",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1720/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-a882b7b563da",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1721",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1721/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-76e42746c2d9",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp/p:spPr-None-None]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1728",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp~1p:spPr-None-None]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1728/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/6",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-08c4394c24a3",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp/p:spPr/a:xfrm-None-None]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1729",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp~1p:spPr~1a:xfrm-None-None]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1729/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/7",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-5fb4d9864425",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp/p:spPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1730",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:cxnSp~1p:spPr~1a:xfrm~1a:off{x=123,y=456}-123-456]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1730/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/8",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-2c2cb7aa90b7",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame/p:xfrm-None-None]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1731",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame~1p:xfrm-None-None]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1731/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/9",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads graphicFrame placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-e714235fd1ad",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame/p:xfrm/a:off{x=123,y=456}-123-456]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1732",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame~1p:xfrm~1a:off{x=123,y=456}-123-456]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1732/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/10",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads graphicFrame placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-e2b40b866239",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:grpSp/p:grpSpPr-None-None]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1733",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:grpSp~1p:grpSpPr-None-None]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1733/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/11",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads grpSp placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-2e200a6f73c8",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:grpSp/p:grpSpPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1734",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:grpSp~1p:grpSpPr~1a:xfrm~1a:off{x=123,y=456}-123-456]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1734/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/12",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads grpSp placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-ed4157706b63",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:pic/p:spPr-None-None]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1735",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:pic~1p:spPr-None-None]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1735/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/13",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-4c466983b192",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:pic/p:spPr/a:xfrm-None-None]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1736",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:pic~1p:spPr~1a:xfrm-None-None]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1736/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/14",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-8d7b6feb6cf2",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:pic/p:spPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1737",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:pic~1p:spPr~1a:xfrm~1a:off{x=123,y=456}-123-456]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1737/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/15",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-39bae7189001",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:sp/p:spPr-None-None]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1738",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:sp~1p:spPr-None-None]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1738/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/16",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-5a059940a887",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:sp/p:spPr/a:xfrm-None-None]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1739",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:sp~1p:spPr~1a:xfrm-None-None]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1739/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/17",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-d7b64f111e8f",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:sp/p:spPr/a:xfrm/a:off{x=123,y=456}-123-456]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1740",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_a_position[p:sp~1p:spPr~1a:xfrm~1a:off{x=123,y=456}-123-456]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1740/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/18",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp placement with %s transform"
+      }
+    },
+    {
+      "id": "presentation-unit-3ecf394c0911",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1741",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1741/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/19",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates sp position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-7230abe8e022",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1742",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1742/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/20",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates pic position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-4e1e5cdb0db6",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1743",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1743/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/21",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates graphicFrame position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-c2a5758f5298",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1744",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1744/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/22",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates grpSp position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-3d3ae447ece8",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1745",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_position[position_set_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1745/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/23",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates cxnSp position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-56b741f5e668",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1746",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1746/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/24",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-fa2c65600cd9",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1747",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1747/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/25",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads sp dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-180fde955b00",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1748",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1748/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/26",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-e507a153f5d4",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1749",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1749/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/27",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads pic dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-5c2217395fb0",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1750",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1750/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/28",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads graphicFrame dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-28c305907552",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture5]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1751",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture5]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1751/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/29",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads graphicFrame dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-9a4fbbf69350",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture6]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1752",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture6]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1752/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/30",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads grpSp dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-67c7f5f4e6fa",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture7]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1753",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture7]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1753/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/31",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads grpSp dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-a1a0cdd7a5a0",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture8]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1754",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture8]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1754/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/32",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-d314679744ab",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture9]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1755",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_has_dimensions[dimensions_get_fixture9]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1755/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/33",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads cxnSp dimensions when present=%s"
+      }
+    },
+    {
+      "id": "presentation-unit-cda6903da132",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1756",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1756/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/34",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates sp position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-2bfa131db235",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1757",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1757/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/35",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates pic position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-bbc0854f5fc3",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1758",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1758/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/36",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates graphicFrame position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-e6b4b8b903b9",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1759",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1759/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/37",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates grpSp position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-d74fe505494d",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1760",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_dimensions[dimensions_set_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1760/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/38",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "creates cxnSp position and size pairs with explicit integers"
+      }
+    },
+    {
+      "id": "presentation-unit-d70a62f394de",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1761",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1761/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/39",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      }
+    },
+    {
+      "id": "presentation-unit-f98bdd685a54",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1762",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1762/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/40",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      }
+    },
+    {
+      "id": "presentation-unit-0fd52fff5d01",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1763",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1763/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/41",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      }
+    },
+    {
+      "id": "presentation-unit-0bb19c10dd7a",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1764",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1764/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/42",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      }
+    },
+    {
+      "id": "presentation-unit-f01cfc94ac03",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1765",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1765/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/43",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "reads precise angle $raw on $kind"
+      }
+    },
+    {
+      "id": "presentation-unit-a085489c6747",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1766",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1766/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/44",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "writes angle $value on $kind from $initial"
+      }
+    },
+    {
+      "id": "presentation-unit-a8cb919f6853",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1767",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1767/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/45",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "writes angle $value on $kind from $initial"
+      }
+    },
+    {
+      "id": "presentation-unit-7eaf052dafdd",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1768",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1768/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/46",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "writes angle $value on $kind from $initial"
+      }
+    },
+    {
+      "id": "presentation-unit-c6be790cf4bd",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1769",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1769/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/47",
+      "priorStatus": "original-domain-behavior-covered",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "writes angle $value on $kind from $initial"
+      }
+    },
+    {
+      "id": "presentation-unit-2b3cb35a53ad",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_the_part_it_belongs_to",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1773",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeBaseShape::it_knows_the_part_it_belongs_to"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1773/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-2e577a8d5c01",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_base.py::DescribeSubshape::it_knows_the_part_it_belongs_to",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1781",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_base.py::DescribeSubshape::it_knows_the_part_it_belongs_to"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1781/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-fe87790ea93b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_x_location[begin_x_get_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1786",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_knows_its_begin_point_x_location[begin_x_get_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1786/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-50847602cdeb",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_x_location[begin_x_get_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1787",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_knows_its_begin_point_x_location[begin_x_get_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1787/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-f6cbb54cf64b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1788",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1788/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-88fc9e509983",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1789",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1789/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-68e6685afd85",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1790",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1790/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-62d4508d3cb7",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1791",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1791/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-41e33a9f31d1",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1792",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1792/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-a348fe42ec23",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture5]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1793",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture5]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1793/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-555f7639b89d",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_y_location[begin_y_get_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1794",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_knows_its_begin_point_y_location[begin_y_get_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1794/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-b0efb0fe40f2",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_y_location[begin_y_get_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1795",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_knows_its_begin_point_y_location[begin_y_get_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1795/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-c942aa958d0f",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1796",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1796/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-30e18c18229f",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1797",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1797/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-04336a17bd97",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1798",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1798/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-2643dbb2e64b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1799",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1799/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-3ae4f2054112",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1800",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1800/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-2148cce7d7b3",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture5]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1801",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture5]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1801/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-a33108436794",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_x_location[end_x_get_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1802",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_knows_its_end_point_x_location[end_x_get_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1802/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-9354b265efb1",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_x_location[end_x_get_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1803",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_knows_its_end_point_x_location[end_x_get_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1803/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-8f1cfdcb4cdc",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1804",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1804/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-8d5fdaf9d638",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1805",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1805/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-b63e9dc79008",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1806",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1806/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-3b305be62b41",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1807",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1807/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-e5325ae3792c",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1808",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1808/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-47fc041196dc",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture5]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1809",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture5]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1809/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-3e2963845081",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_y_location[end_y_get_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1810",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_knows_its_end_point_y_location[end_y_get_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1810/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-56dbc4d01c77",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_y_location[end_y_get_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1811",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_knows_its_end_point_y_location[end_y_get_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1811/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-ad4143663246",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1812",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1812/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-be05fffb7163",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1813",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1813/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-e87ff28a1fa1",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1814",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1814/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-67c6987dfc60",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1815",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1815/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-dadc6a95b35b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1816",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1816/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-50728e22c0c3",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture5]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1817",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture5]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1817/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-4aa61e954ce2",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_connect_its_begin_point_to_a_shape",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1818",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_connect_its_begin_point_to_a_shape"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1818/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-3fe4f15bcb4d",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_connect_its_end_point_to_a_shape",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1819",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_connect_its_end_point_to_a_shape"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1819/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-3b22e47890d3",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1822",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1822/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-baacdb2d89fd",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1823",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1823/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-ae24a1e7bfc3",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1824",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1824/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-d9d7d29f32da",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1825",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1825/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-752a92e246c8",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1826",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1826/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-5f2d0d7c1f6a",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1827",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1827/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-3fc4805cff8b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1828",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1828/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-d20a809097c2",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1829",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1829/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-73d5e3eaeeef",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1830",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1830/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-dbd674b5f6e6",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1831",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1831/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-cb5420a9c574",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1832",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1832/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-273005937e93",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1833",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1833/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-e23afcb8c3f0",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_group.py::DescribeGroupShape::it_raises_on_access_click_action",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1896",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_group.py::DescribeGroupShape::it_raises_on_access_click_action"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1896/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/12",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-0fe8427455a1",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_group.py::DescribeGroupShape::it_provides_access_to_its_shadow",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1897",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_group.py::DescribeGroupShape::it_provides_access_to_its_shadow"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1897/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/13",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-d2eeca5129cf",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_group.py::DescribeGroupShape::it_knows_its_shape_type",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1898",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_group.py::DescribeGroupShape::it_knows_its_shape_type"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1898/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/14",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-94075bb660b4",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_group.py::DescribeGroupShape::it_provides_access_to_its_sub_shapes",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1899",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_group.py::DescribeGroupShape::it_provides_access_to_its_sub_shapes"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1899/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/15",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-407e8f2198c6",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1934",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1934/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/48",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-d245852e14ed",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1935",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1935/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/49",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-814aa5be8fac",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1936",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1936/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/50",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-228cff6076fa",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1937",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_override_dimensions_when_present[override_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1937/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/51",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-922c74849100",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[left]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1938",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[left]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1938/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/52",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-d08235375bd4",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[top]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1939",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[top]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1939/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/53",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-a0f9690c6f70",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[width]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1940",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[width]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1940/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/54",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-f6e0cd7f8399",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[height]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1941",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_provides_inherited_dims_when_no_override[height]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1941/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/55",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-814d423146eb",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_gets_an_inherited_dim_value_to_help[base_val_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1942",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_gets_an_inherited_dim_value_to_help[base_val_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1942/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/56",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-dbc064696f0e",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_gets_an_inherited_dim_value_to_help[base_val_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1943",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_gets_an_inherited_dim_value_to_help[base_val_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1943/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/57",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-69b48b29dbd7",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1945",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1945/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/58",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-e664fc4f118c",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1946",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1946/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/59",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-19c6035c70ea",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1947",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1947/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/60",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-8bb27a1b2a6e",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1948",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_placeholder.py::Describe_BaseSlidePlaceholder::it_can_override_inherited_dimensions[dim_set_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1948/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/61",
+      "priorStatus": "deferred-adjacent-api",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-01dee27e76e9",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_iterate_over_the_shapes_it_contains",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1984",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_can_iterate_over_the_shapes_it_contains"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1984/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-87e2790346a8",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_iterates_shape_elements_to_help__iter__",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1985",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_iterates_shape_elements_to_help__iter__"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1985/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-40f2a5f3a040",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_supports_indexed_access",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1986",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_supports_indexed_access"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1986/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-f04b87b7eb3d",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_raises_on_shape_index_out_of_range",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1987",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_raises_on_shape_index_out_of_range"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1987/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-899d6cd5379f",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_clone_a_placeholder",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1988",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_can_clone_a_placeholder"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1988/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-33add480fabf",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_knows_if_turbo_add_is_enabled[turbo_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1989",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_knows_if_turbo_add_is_enabled[turbo_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1989/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-869261c687ad",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_knows_if_turbo_add_is_enabled[turbo_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1990",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_knows_if_turbo_add_is_enabled[turbo_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1990/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-0e8b5995fcb7",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1991",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1991/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-bb125cb51d74",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1992",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1992/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-ba50ed9a610f",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1993",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1993/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-11b0e71e0765",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1994",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1994/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-a7d71dc0bcc4",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1995",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1995/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null,
+      "equivalence": "The source empty-collection allocator result 1 is retained as an adjacent creation/helper obligation. Duplicate requires an existing object; an allowEmpty no-op does not allocate and is not equivalent."
+    },
+    {
+      "id": "presentation-unit-9a591fc4937a",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1996",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1996/original_behavior",
+      "status": "bounded-allocation-equivalence",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": "../../packages/pptx/src/shape-selection.test.ts",
+      "equivalence": "Original numeric identity cases cover zero, positive and gapped maxima. Malformed lexical identities and duplicate numeric identities deliberately reject rather than ignore invalid input. Bounded duplication does not expose the source helper as model API."
+    },
+    {
+      "id": "presentation-unit-d7899d0c7103",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1997",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1997/original_behavior",
+      "status": "bounded-allocation-equivalence",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": "../../packages/pptx/src/shape-selection.test.ts",
+      "equivalence": "Original numeric identity cases cover zero, positive and gapped maxima. Malformed lexical identities and duplicate numeric identities deliberately reject rather than ignore invalid input. Bounded duplication does not expose the source helper as model API."
+    },
+    {
+      "id": "presentation-unit-23e787db0dc6",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1998",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1998/original_behavior",
+      "status": "bounded-allocation-equivalence",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": "../../packages/pptx/src/shape-selection.test.ts",
+      "equivalence": "Original numeric identity cases cover zero, positive and gapped maxima. Malformed lexical identities and duplicate numeric identities deliberately reject rather than ignore invalid input. Bounded duplication does not expose the source helper as model API."
+    },
+    {
+      "id": "presentation-unit-fdd219ba608a",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/1999",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/1999/original_behavior",
+      "status": "bounded-allocation-equivalence",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": "../../packages/pptx/src/shape-selection.test.ts",
+      "equivalence": "Original numeric identity cases cover zero, positive and gapped maxima. Malformed lexical identities and duplicate numeric identities deliberately reject rather than ignore invalid input. Bounded duplication does not expose the source helper as model API."
+    },
+    {
+      "id": "presentation-unit-7ecba7d95073",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture5]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2000",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture5]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2000/original_behavior",
+      "status": "bounded-allocation-equivalence",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": "../../packages/pptx/src/shape-selection.test.ts",
+      "equivalence": "Original numeric identity cases cover zero, positive and gapped maxima. Malformed lexical identities and duplicate numeric identities deliberately reject rather than ignore invalid input. Bounded duplication does not expose the source helper as model API."
+    },
+    {
+      "id": "presentation-unit-b20b58778fbf",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture6]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2001",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture6]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2001/original_behavior",
+      "status": "bounded-allocation-equivalence",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": "../../packages/pptx/src/shape-selection.test.ts",
+      "equivalence": "Original numeric identity cases cover zero, positive and gapped maxima. Malformed lexical identities and duplicate numeric identities deliberately reject rather than ignore invalid input. Bounded duplication does not expose the source helper as model API."
+    },
+    {
+      "id": "presentation-unit-f3f6470aa308",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture7]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2002",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture7]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2002/original_behavior",
+      "status": "bounded-allocation-equivalence",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": "../../packages/pptx/src/shape-selection.test.ts",
+      "equivalence": "Original numeric identity cases cover zero, positive and gapped maxima. Malformed lexical identities and duplicate numeric identities deliberately reject rather than ignore invalid input. Bounded duplication does not expose the source helper as model API."
+    },
+    {
+      "id": "presentation-unit-f19dbe1273c3",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_chart",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2007",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_chart"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2007/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/16",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-590214002c1c",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_connector_shape",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2008",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_connector_shape"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2008/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/17",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-5181ebec853b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2009",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2009/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/18",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-5bc93f4be53f",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2010",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2010/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/19",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-538eb9a0ab2b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2011",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2011/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/20",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-370c3a94da95",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_group_shape",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2012",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_group_shape"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2012/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/21",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-81031efd142b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_an_ole_object",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2013",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_add_an_ole_object"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2013/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/22",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-8bd6e59f5d89",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_picture",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2014",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_picture"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2014/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/23",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-192f70ea86a7",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_shape",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2015",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_shape"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2015/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/24",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-fb7fc0b66e7d",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_textbox",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2016",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_textbox"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2016/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/25",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-0e0fbcec998b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2017",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2017/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/26",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-0ba79940ec49",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2018",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2018/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/27",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-0ab45e06128d",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2019",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2019/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/28",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-63946329be21",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2020",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2020/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/29",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-4045929feab5",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture4]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2021",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture4]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2021/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/30",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-a90d2f4dcb55",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture5]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2022",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture5]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2022/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/31",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-d15831230e29",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2023",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2023/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/32",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-3c68fa2b6a93",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2024",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2024/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/33",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-f7c3542cf5d2",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_chart_graphicFrame_to_help",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2025",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_chart_graphicFrame_to_help"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2025/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/34",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-6b5e20aca1bf",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2026",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2026/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/35",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-9d3c4a08aa1a",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture1]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2027",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture1]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2027/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/36",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-60320818b2ae",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture2]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2028",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture2]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2028/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/37",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-c9cc4857837e",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture3]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2029",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture3]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2029/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/38",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-a299c18ce6df",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_pic_element_to_help",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2030",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_pic_element_to_help"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2030/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/39",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-b8a99c5d7a4b",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_an_sp_element_to_help",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2031",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_adds_an_sp_element_to_help"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2031/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/40",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-6abf850c0d1a",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_textbox_sp_element_to_help",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2032",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_textbox_sp_element_to_help"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2032/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/41",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-05b8ac8f620d",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::DescribeGroupShapes::it_recalculates_its_extents_to_help",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2033",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::DescribeGroupShapes::it_recalculates_its_extents_to_help"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2033/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "groups-case-map.json#/rows/42",
+      "priorStatus": "neighboring-model-gap",
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-51e18ba93eac",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_iterate_over_its_placeholders[iter_fixture0]",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2045",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::DescribeSlidePlaceholders::it_can_iterate_over_its_placeholders[iter_fixture0]"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2045/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-unit-dde700e6b0a6",
+      "kind": "unit",
+      "source": {
+        "identity": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_clone_placeholder_shapes_from_a_layout",
+        "inventory": "upstream-test-inventory.json#/unit_cases/2068",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::DescribeSlideShapes::it_can_clone_placeholder_shapes_from_a_layout"
+      },
+      "originalBehavior": "test-case-map.json#/rows/2068/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-1ab607788770",
+      "kind": "bdd",
+      "source": {
+        "identity": "Connector.begin_connect()",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/550"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3250/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-622b0d42d0af",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get Connector.begin_x/y -- @1.1 Connector begin point states",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/551"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3251/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-d9e53836c71e",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get Connector.end_x/y -- @1.1 Connector end point states",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/552"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3252/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-ef68c8d4dd81",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set Connector.begin_x -- @1.1 Connector begin point assignment results",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/553"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3253/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-925b3764c19a",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set Connector.begin_y -- @1.1 Connector begin point assignment results",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/554"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3254/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-763b32a092ff",
+      "kind": "bdd",
+      "source": {
+        "identity": "Connector.end_connect()",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/555"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3255/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-64a6857f9448",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set Connector.end_x -- @1.1 Connector end point assignment results",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/556"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3256/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-016a0b936bf9",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set Connector.end_y -- @1.1 Connector end point assignment results",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/557"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3257/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-9b549be4d1c7",
+      "kind": "bdd",
+      "source": {
+        "identity": "_BaseShapes.turbo_add_enabled default",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/617"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3317/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-1900529b07a2",
+      "kind": "bdd",
+      "source": {
+        "identity": "_BaseShapes.turbo_add_enabled turned on",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/618"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3318/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-48d8e4d9beed",
+      "kind": "bdd",
+      "source": {
+        "identity": "GroupShapes is a sequence",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/619"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3319/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-8d41dc3974b2",
+      "kind": "bdd",
+      "source": {
+        "identity": "LayoutPlaceholders is a sequence",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/627"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3327/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-6446b8f6f7e9",
+      "kind": "bdd",
+      "source": {
+        "identity": "LayoutShapes is a sequence",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/628"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3328/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-841f0cdd2ffd",
+      "kind": "bdd",
+      "source": {
+        "identity": "MasterPlaceholders is a sequence",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/629"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3329/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-55e20bd6103f",
+      "kind": "bdd",
+      "source": {
+        "identity": "MasterShapes is a sequence",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/630"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3330/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-d3d58f58e10d",
+      "kind": "bdd",
+      "source": {
+        "identity": "SlideShapes is a sequence",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/631"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3331/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-16f6870b5dea",
+      "kind": "bdd",
+      "source": {
+        "identity": "SlidePlaceholders is a sequence",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/695"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3395/original_behavior",
+      "status": "adjacent-public-behavior-gap",
+      "priorReceipt": null,
+      "priorStatus": null,
+      "originalTest": null
+    },
+    {
+      "id": "presentation-bdd-95343b0e00c9",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.left and shape.top -- @1.1 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/725"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3425/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/63",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes sp authored placement"
+      }
+    },
+    {
+      "id": "presentation-bdd-c2f28358c74e",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.left and shape.top -- @1.2 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/726"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3426/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/64",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes pic authored placement"
+      }
+    },
+    {
+      "id": "presentation-bdd-1300dc0a05ad",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.left and shape.top -- @1.3 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/727"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3427/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/65",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes graphicFrame authored placement"
+      }
+    },
+    {
+      "id": "presentation-bdd-23b8e1562e6b",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.left and shape.top -- @1.4 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/728"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3428/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/66",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes grpSp authored placement"
+      }
+    },
+    {
+      "id": "presentation-bdd-f0c2d856774c",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.left and shape.top -- @1.5 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/729"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3429/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/67",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes cxnSp authored placement"
+      }
+    },
+    {
+      "id": "presentation-bdd-08354ef9d8a6",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.left and shape.top -- @1.1 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/730"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3430/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/68",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates sp placement independently"
+      }
+    },
+    {
+      "id": "presentation-bdd-7108bbc01dd7",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.left and shape.top -- @1.2 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/731"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3431/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/69",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates pic placement independently"
+      }
+    },
+    {
+      "id": "presentation-bdd-11f56d08cc01",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.left and shape.top -- @1.3 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/732"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3432/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/70",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates graphicFrame placement independently"
+      }
+    },
+    {
+      "id": "presentation-bdd-4c2390ab073a",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.left and shape.top -- @1.4 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/733"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3433/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/71",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates grpSp placement independently"
+      }
+    },
+    {
+      "id": "presentation-bdd-ef1cce8de130",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.left and shape.top -- @1.5 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/734"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3434/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/72",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates cxnSp placement independently"
+      }
+    },
+    {
+      "id": "presentation-bdd-5f6988110799",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.rotation -- @1.1 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/750"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3450/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/73",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes sp authored rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-cc81690913ca",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.rotation -- @1.2 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/751"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3451/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/74",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes pic authored rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-932bb180678a",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.rotation -- @1.3 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/752"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3452/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/75",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes graphicFrame authored rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-80f715bf0564",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.rotation -- @1.4 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/753"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3453/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/76",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes grpSp authored rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-fc58773e53b3",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.rotation -- @1.5 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/754"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3454/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/77",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes cxnSp authored rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-c46e31f5f6a7",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.rotation -- @1.1 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/755"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3455/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/78",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates sp normalized rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-c04bca83ad07",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.rotation -- @1.2 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/756"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3456/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/79",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates pic normalized rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-c24795812e92",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.rotation -- @1.3 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/757"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3457/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/80",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates graphicFrame normalized rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-0067489a1739",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.rotation -- @1.4 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/758"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3458/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/81",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates grpSp normalized rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-ed2e5cd1b441",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.rotation -- @1.5 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/759"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3459/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/82",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates cxnSp normalized rotation"
+      }
+    },
+    {
+      "id": "presentation-bdd-31d6c6149195",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.width and shape.height -- @1.1 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/770"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3470/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/83",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes sp authored dimensions"
+      }
+    },
+    {
+      "id": "presentation-bdd-afa982545f7c",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.width and shape.height -- @1.2 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/771"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3471/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/84",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes pic authored dimensions"
+      }
+    },
+    {
+      "id": "presentation-bdd-cdb67063a55a",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.width and shape.height -- @1.3 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/772"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3472/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/85",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes graphicFrame authored dimensions"
+      }
+    },
+    {
+      "id": "presentation-bdd-85e3698e6e3c",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.width and shape.height -- @1.4 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/773"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3473/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/86",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes grpSp authored dimensions"
+      }
+    },
+    {
+      "id": "presentation-bdd-65e897bc01c8",
+      "kind": "bdd",
+      "source": {
+        "identity": "Get shape.width and shape.height -- @1.5 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/774"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3474/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/87",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "observes cxnSp authored dimensions"
+      }
+    },
+    {
+      "id": "presentation-bdd-56d934e24ea9",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.width and shape.height -- @1.1 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/775"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3475/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/88",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates sp dimensions independently"
+      }
+    },
+    {
+      "id": "presentation-bdd-b59954dd8990",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.width and shape.height -- @1.2 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/776"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3476/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/89",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates pic dimensions independently"
+      }
+    },
+    {
+      "id": "presentation-bdd-ad0370d8ed33",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.width and shape.height -- @1.3 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/777"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3477/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/90",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates graphicFrame dimensions independently"
+      }
+    },
+    {
+      "id": "presentation-bdd-d353dd924e07",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.width and shape.height -- @1.4 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/778"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3478/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/91",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates grpSp dimensions independently"
+      }
+    },
+    {
+      "id": "presentation-bdd-a826c3064d64",
+      "kind": "bdd",
+      "source": {
+        "identity": "Set shape.width and shape.height -- @1.5 Shape types",
+        "inventory": "upstream-test-inventory.json#/bdd_cases/779"
+      },
+      "originalBehavior": "test-case-map.json#/rows/3479/original_behavior",
+      "status": "existing-receipt-retained",
+      "priorReceipt": "transform-case-map.json#/rows/92",
+      "priorStatus": "domain-workflow-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+        "title": "updates cxnSp dimensions independently"
+      }
+    }
+  ],
+  "wholePublicApiParity": false,
+  "dispositions": {
+    "existing-receipt-retained": "Existing parameter-specific receipt is retained without expanding coverage.",
+    "adjacent-public-behavior-gap": "Selection operations do not establish the entire adjacent live-model collection, connector endpoint, identity accessor or allocation contract. Exact parameter/scenario evidence remains visible; this does not block the bounded F25 operation.",
+    "bounded-allocation-equivalence": "Original allocation tests preserve numeric maxima and explicitly reject malformed/duplicate source identity variants; no live-model private allocator API is claimed."
+  }
+}

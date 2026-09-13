@@ -1962,13 +1962,73 @@ for (const action of ["group", "ungroup"]) {
     }
   });
 }
+for (const action of ["move", "align", "distribute", "duplicate"]) {
+  const base = shapeSchemaDefinitions["shapes.set"]!;
+  const properties = Object.fromEntries(
+    Object.entries(base.options.properties).filter(([key]) => !Object.hasOwn(shapeValues, key))
+  );
+  Object.assign(shapeSchemaDefinitions, {
+    ["shapes." + action]: {
+      ...base,
+      description:
+        "Explicit slide or group coordinates and distinct siblings. Hidden objects participate; locked objects reject the operation. Stable drawing order breaks ties. Alignment uses the selection bounds; distribution preserves endpoints and equalizes edge gaps. Duplication allocates fresh IDs and remaps supported references.",
+      options: {
+        ...base.options,
+        required: [
+          "coordinateSystem",
+          ...(action === "align"
+            ? ["alignment"]
+            : action === "distribute"
+              ? ["axis"]
+              : action === "duplicate"
+                ? ["offsetX", "offsetY"]
+                : [])
+        ],
+        properties: {
+          ...properties,
+          coordinateSystem: { enum: ["slide", "group"] },
+          shapes: {
+            type: "array",
+            minItems: 1,
+            uniqueItems: true,
+            items: inspectSchema.result.$defs.location
+          },
+          ...(action === "move"
+            ? {
+                order: { enum: ["front", "back", "forward", "backward"] },
+                position: { type: "integer", minimum: 1 }
+              }
+            : action === "align"
+              ? { alignment: { enum: ["left", "center", "right", "top", "middle", "bottom"] } }
+              : action === "distribute"
+                ? { axis: { enum: ["horizontal", "vertical"] } }
+                : Object.fromEntries(
+                    ["offsetX", "offsetY"].map((key) => [
+                      key,
+                      {
+                        type: "object",
+                        additionalProperties: false,
+                        required: ["value", "unit"],
+                        properties: {
+                          value: { type: "number" },
+                          unit: { enum: ["emu", "in", "cm", "mm", "pt"] }
+                        }
+                      }
+                    ])
+                  ))
+        }
+      }
+    }
+  });
+}
 export const shapeSchemas = Object.fromEntries(
   Object.entries(shapeSchemaDefinitions).map(([operation, schema]) => {
     const mutation =
       operation.endsWith(".add") ||
       operation.endsWith(".set") ||
       operation === "shapes.group" ||
-      operation === "shapes.ungroup";
+      operation === "shapes.ungroup" ||
+      ["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"].includes(operation);
     const base = masterSchemas[mutation ? "shapes.set" : "masters.list"]!.result;
     const data = base.properties.data.oneOf[1]!;
     return [
@@ -1978,6 +2038,27 @@ export const shapeSchemas = Object.fromEntries(
         options: {
           ...schema.options,
           allOf: [
+            ...(operation === "shapes.move"
+              ? [{ oneOf: [{ required: ["order"] }, { required: ["position"] }] }]
+              : []),
+            ...(["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"].includes(
+              operation
+            )
+              ? [
+                  {
+                    if: { required: ["shapes"] },
+                    then: {
+                      not: {
+                        anyOf: ["select", "slide", "part", "shape", "all", "allowEmpty"].map(
+                          (key) => ({
+                            required: [key]
+                          })
+                        )
+                      }
+                    }
+                  }
+                ]
+              : []),
             { not: { required: ["part", "slide"] } },
             { not: { required: ["description", "altText"] } },
             {
@@ -2034,8 +2115,14 @@ export const shapeSchemas = Object.fromEntries(
                             ...data.properties!.effects!.items,
                             properties: {
                               ...data.properties!.effects!.items.properties,
-                              feature:
-                                operation === "shapes.group" || operation === "shapes.ungroup"
+                              feature: [
+                                "shapes.move",
+                                "shapes.align",
+                                "shapes.distribute",
+                                "shapes.duplicate"
+                              ].includes(operation)
+                                ? { const: "F25" }
+                                : operation === "shapes.group" || operation === "shapes.ungroup"
                                   ? { const: "F24" }
                                   : data.properties!.effects!.items.properties.feature
                             }

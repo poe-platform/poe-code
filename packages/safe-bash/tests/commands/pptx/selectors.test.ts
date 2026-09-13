@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, createPresentation, mutateSlides, readPresentationText, readSelectionIndex } from "pptx";
+import { createPptxCommandEngine, createPresentation, mutateSlides, readPresentationText, readSelectionIndex, readShapes } from "pptx";
 import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
 import { FsError, toByteSource, type FileSystem, type PluginHost } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -565,6 +565,40 @@ test("pptx text reads Unicode, empty bodies and hidden slides through the regist
   assert.equal(selected.exitCode, 0, selected.stderr);
   assert.equal(selected.stdout, "雪 café\nNext paragraph");
   assert.deepEqual(new Uint8Array(volume.readFileSync("/work/text.pptx") as Buffer), source);
+});
+
+test("pptx selection editing preserves exact drawing order and arithmetic through the shell", async t => {
+  const timer = globalThis.setTimeout;
+  t.mock.method(globalThis, "setTimeout", ((callback: () => void, delay?: number) =>
+    delay === 0 ? setImmediate(callback) : timer(callback, delay)) as typeof setTimeout);
+  const { shell, volume } = fixture();
+  const original = await createPresentation({ slides: [{ shapes: [
+    { name: "First", x: 10, y: 20, width: 10, height: 20, text: "one" },
+    { name: "Second", x: 40, y: 50, width: 20, height: 20, text: "two" },
+    { name: "Third", x: 100, y: 80, width: 30, height: 20, text: "three" }
+  ] }] }, context);
+  volume.writeFileSync("/work/selection.pptx", original);
+  const bytes = () => new Uint8Array(volume.readFileSync("/work/selection.pptx") as Buffer);
+  for (const args of ["align --alignment top", "distribute --axis horizontal"]) {
+    const result = await shell.exec(`pptx shapes ${args} selection.pptx --slide 1 --all --coordinate-system slide --in-place --json`);
+    assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  }
+  let records = await readShapes(bytes(), {}, context);
+  assert.deepEqual(records.map(record => [record.left, record.top]), [[10, 20], [50, 20], [100, 20]]);
+  const locationJson = JSON.stringify([records[0]!.location]);
+  const moved = await shell.exec(`pptx shapes move selection.pptx --shapes '${locationJson}' --coordinate-system slide --order front --in-place --json`);
+  assert.equal(moved.exitCode, 0, moved.stdout + moved.stderr);
+  records = await readShapes(bytes(), {}, context);
+  assert.deepEqual(records.map(record => record.shapeId), [3, 4, 2]);
+  const duplicate = await shell.exec("pptx shapes duplicate selection.pptx --slide 1 --shape First --coordinate-system slide --offset-x 5emu --offset-y -2emu --in-place --json");
+  assert.equal(duplicate.exitCode, 0, duplicate.stdout + duplicate.stderr);
+  records = await readShapes(bytes(), {}, context);
+  assert.deepEqual(records.map(record => record.shapeId), [3, 4, 2, 5]);
+  assert.deepEqual([records[3]!.left, records[3]!.top], [15, 18]);
+  const before = bytes();
+  const invalid = await shell.exec("pptx shapes move selection.pptx --slide 1 --shape First --order back --in-place --json");
+  assert.equal(invalid.exitCode, 2, invalid.stdout + invalid.stderr);
+  assert.deepEqual(bytes(), before);
 });
 
 test("pptx text replacement runs in a VFS script with explicit match and publication controls", async () => {

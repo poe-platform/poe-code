@@ -583,6 +583,48 @@ fails until connectors are explicitly detached/removed; complex timing targets
 are never silently dropped. Simple shadow means an outer shadow with zero offset,
 explicit blur/color/opacity; advanced shadow/effect stacks remain preserve-only.
 
+#### Selection ordering, layout and duplication
+
+`shapes move/align/distribute/duplicate` MUST require explicit
+`coordinateSystem: "slide" | "group"` (`--coordinate-system`). Every selected
+object MUST belong to the same immediate parent, and that parent MUST match the
+specified coordinate system. Cross-slide, cross-group and ancestor/descendant
+mixtures MUST fail before mutation. An optional explicit `shapes: Location[]`
+(`--shapes`) selects a subset without depending on names; it MUST NOT mix with
+simple selectors or a token. Repeated identities and stale locations MUST fail.
+An empty simple-selector result succeeds unchanged only with `allowEmpty`
+(`--allow-empty`); explicit location arrays MUST remain nonempty.
+Selection-array order MUST NOT override existing sibling order.
+
+Hidden objects participate normally. An explicitly selected object with the
+nonvisual `noSelect` lock, or with a locked ancestor, MUST reject the complete
+edit. `noMove` also rejects move/align/distribute; `noCopy` rejects duplication.
+Grouping, resizing and rotation locks MUST remain intact without blocking these
+other operations. Unselected locked objects retain their relative order but are
+not barriers to a selected object's z-order change. Lock metadata MUST NOT be removed.
+
+Move accepts exactly one of a one-based final `position` or
+`order: front | back | forward | backward` (`--order`). Front is the final
+painted sibling, back is the first. Front/back and numeric placement preserve
+selected sibling order as one block. Forward/backward move each selected run
+past at most one adjacent unselected sibling, without reversing either set.
+Boundary moves are no-ops.
+
+Align and distribute use stored unrotated boxes in the stated parent space;
+rotation, flips, extents and group child mappings remain unchanged. Alignment
+uses the union of selected boxes. Distribution sorts by the chosen axis's
+leading edge, breaking ties by original sibling order. It preserves the first
+and last boxes and equalizes edge gaps, including negative gaps. Intermediate
+positions MUST be computed without cumulative rounding, with nearest-EMU ties
+away from zero. Missing or invalid explicit geometry MUST fail.
+
+Duplication requires both offsets, interpreted in the stated parent space.
+Copies MUST append at the front of the sibling stack, receive fresh part-local
+shape identities and retain the selected objects' sibling order. References
+between copied objects MUST target their copies; references to unselected objects and existing timing targets MUST remain
+unchanged. Unsupported opaque reference structures MUST fail rather than be
+silently discarded. Returned locations MUST identify the serialized result.
+
 Tables require positive rows/columns and a rectangular text grid matching them;
 absent data produces empty cells. New row heights/column widths divide the box in
 EMU order, giving remainder EMUs to the earliest rows/columns. A `tables set`
@@ -1264,10 +1306,10 @@ schemas, not extra undocumented direct flags.
 | `shapes paths set` / `shapes.paths.set` | 1 | `--path: ShapePath` OR `--vertices: PathVertices` plus `--close: boolean` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `shapes group` / `shapes.group`             | 1      | `--shapes: Location[]`; `--tolerance: Length`                                                                                                                                                                                                                                                           | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `shapes ungroup` / `shapes.ungroup`         | 1      | `--tolerance: Length`                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes move` / `shapes.move`               | 1      | `--position: Position`                                                                                                                                                                                                                                                                                  | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes align` / `shapes.align`             | 1      | `--alignment: left / center / right / top / middle / bottom`                                                                                                                                                                                                                                            | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes distribute` / `shapes.distribute`   | 1      | `--axis: horizontal / vertical`                                                                                                                                                                                                                                                                         | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes duplicate` / `shapes.duplicate`     | 1      | `--offset-x: Length`; `--offset-y: Length`                                                                                                                                                                                                                                                              | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `shapes move` / `shapes.move`               | 1      | exactly one of `--position: Position` / `--order: front / back / forward / backward`; `--coordinate-system: slide / group`; `--shapes?: Location[]` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `shapes align` / `shapes.align`             | 1      | `--alignment: left / center / right / top / middle / bottom`; `--coordinate-system: slide / group`; `--shapes?: Location[]` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `shapes distribute` / `shapes.distribute`   | 1      | `--axis: horizontal / vertical`; `--coordinate-system: slide / group`; `--shapes?: Location[]` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `shapes duplicate` / `shapes.duplicate`     | 1      | `--offset-x: Length`; `--offset-y: Length`; `--coordinate-system: slide / group`; `--shapes?: Location[]` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `shapes effects set` / `shapes.effects.set` | 1      | `--shadow: boolean`; `--opacity: Ratio`; `--shadow-blur: Length`; `--shadow-color: Color`                                                                                                                                                                                                               | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 
 ### A. fields

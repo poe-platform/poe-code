@@ -1,3 +1,6 @@
+import { templateSchema, templateUsage } from "./template-schema.js";
+import { executeTemplateCommand, validateTemplateCommand } from "./command-template.js";
+import { validateTemplateBindings, type TemplateBinding } from "./template-bindings.js";
 import { commentSchemas, commentsUsage } from "./comments-schema.js";
 import { validateCommentsCommand, executeCommentsCommand, type CommentsArguments } from "./command-comments.js";
 import { noteSchemas, notesUsage } from "./notes-schema.js";
@@ -305,6 +308,7 @@ const help =
   "       pptx properties list|get|set|remove INPUT [--name NAME] [--value VALUE] [--type TYPE] [output]\n" +
   "       pptx tags list|get|add|set|remove INPUT [--slide N | --scope presentation | --select TOKEN] [--name NAME] [--value TEXT] [output]\n" +
   "       pptx sanitize INPUT --remove properties [output]\n" +
+  "       pptx template apply INPUT (--data-json JSON | --data-file PATH) [output]\n" +
   "       pptx notes add|set INPUT --text TEXT [--slide N | --select TOKEN | --all] [output]\n" +
   "       pptx notes remove INPUT [--slide N | --select TOKEN | --all] [output]\n" +
   "       pptx text get INPUT [--slide N] [--shape NAME] [--scope SCOPE] [--json]\n" +
@@ -447,8 +451,11 @@ interface Arguments {
   animationEdit?: Omit<MutateAnimationsOptions, "selection">;
   animationBatch?: readonly AnimationBatchItem[];
   opsFile?: string;
+  dataFile?: string;
+  bindings?: readonly TemplateBinding[];
   linkEdit?: NonNullable<LinkArguments["linkEdit"]>;
   operation:
+    | "template.apply"
     | `accessibility.${"list" | "get" | "set"}`
     | `comments.${"list" | "get" | "add" | "set" | "remove"}`
     | `notes.${"list" | "get" | "add" | "set" | "remove"}`
@@ -714,6 +721,7 @@ const imageSetFlags = [
   "--alt-text"
 ];
 const scalarOptions = [
+  "--data-json", "--data-file",
   "--decorative",
   "--trigger", "--delay", "--target", "--ops-json", "--ops-file",
   "--duration",
@@ -878,6 +886,8 @@ function parse(
       if (command === "text") output.operation = "text.get";
       if (["create", "inspect", "schema", "capabilities", "help", "version", "batch", "sanitize"].includes(command))
         output.operation = command;
+    } else if (index === 1 && args[0] === "template" && argument === "apply") {
+      output.operation = "template.apply";
     } else if (index === 1 && args[0] === "text" && ["get", "replace", "fit"].includes(argument)) {
       output.operation = `text.${argument}`;
     } else if (index === 1 && args[0] === "xml" && ["get", "set"].includes(argument)) {
@@ -975,6 +985,7 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "template",
     "accessibility",
     "properties",
     "tags",
@@ -1014,6 +1025,7 @@ function parse(
         : command;
   if (
     ![
+      "template.apply",
       ...Object.keys(animationSchemas),
       "batch",
       ...Object.keys(transitionSchemas),
@@ -1080,7 +1092,7 @@ function parse(
       continue;
     }
     if (
-      (operation.startsWith("media.") ||
+      (operation === "template.apply" || operation.startsWith("media.") ||
         operation.startsWith("animations.") ||
         operation.startsWith("transitions.") ||
         operation.startsWith("images.") ||
@@ -1509,6 +1521,17 @@ function parse(
         ].includes(argument))
     )
       usage("Missing option value.");
+    if (["--data-json", "--data-file"].includes(argument)) {
+      if (operation !== "template.apply") usage("Binding sources require template apply.");
+      if (argument === "--data-file") result.dataFile = value;
+      else {
+        if (value.length > 1048576) usage("Binding JSON exceeds the text limit.");
+        const bindings = commandJson(value);
+        validateTemplateBindings(bindings);
+        result.bindings = bindings;
+      }
+      continue;
+    }
     if (["media.add", "media.replace"].includes(operation) && ["--poster", "--poster-content-type", "--mime-type", "--kind", "--left", "--top", "--width", "--height", "--trim-start", "--trim-end", "--loop", "--volume"].includes(argument)) {
       if (argument === "--poster") result.poster = value;
       else if (argument === "--poster-content-type") result.posterContentType = value;
@@ -2604,6 +2627,10 @@ function parse(
     validateLinkCommand(result, positionals, seen);
     return result;
   }
+  if (operation === "template.apply") {
+    validateTemplateCommand(result, positionals, seen);
+    return result;
+  }
   if (Object.hasOwn(equationSchemas, operation)) {
     validateEquationCommand(result, positionals, seen);
     return result;
@@ -3511,6 +3538,7 @@ function parse(
     if (
       (operation === "schema" || operation === "help") &&
       [
+        "template.apply",
         "batch",
         "accessibility",
         ...Object.keys(animationSchemas),
@@ -3947,6 +3975,7 @@ async function execute(
       if (args.schemaPath && Object.hasOwn(metadataSchemas, args.schemaPath)) resolvedUsage = metadataUsage;
       if (args.schemaPath === "accessibility" || (args.schemaPath && Object.hasOwn(accessibilitySchemas, args.schemaPath))) resolvedUsage = accessibilityUsage;
       if (args.schemaPath?.startsWith("links.")) resolvedUsage = linksUsage;
+      if (args.schemaPath === "template.apply") resolvedUsage = templateUsage;
       if (args.schemaPath?.startsWith("transitions.")) resolvedUsage = transitionsUsage;
       if (args.schemaPath?.startsWith("animations.")) resolvedUsage = animationsUsage;
       if (args.schemaPath === "batch") resolvedUsage = animationBatchUsage;
@@ -4047,6 +4076,7 @@ async function execute(
         version: 1,
         operations: Object.fromEntries(
           Object.entries({
+            "template.apply": templateSchema,
             ...animationSchemas,
             batch: animationBatchSchema,
             ...transitionSchemas,
@@ -4097,6 +4127,7 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          templates: { level: "edit", operations: ["template.apply"], subset: "Explicit slide-scoped literal text, fixed-grid tables and embedded image bindings; all required names and cardinality are validated before mutation. Repeated slides are unavailable." },
           diagrams: {
             level: "preserve",
             operations: ["inspect", "slides.import"],
@@ -4529,6 +4560,9 @@ async function execute(
     } else if (Object.hasOwn(linkSchemas, args.operation)) {
       const links = await executeLinkCommand(args, request, options);
       result = links.result; human = links.human; binary = links.binary; publication = links.publication;
+    } else if (args.operation === "template.apply") {
+      const template = await executeTemplateCommand(args, request, options);
+      result = template.result; human = template.human; binary = template.binary; publication = template.publication;
     } else if (Object.hasOwn(opaqueSchemas, args.operation)) {
       const opaque = await executeOpaqueCommand(args, request, options);
       result = opaque.result;

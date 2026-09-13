@@ -299,6 +299,50 @@ locations identify the containing text owners. A replacement across runs uses
 the first affected run's style and preserves unrelated formatting. Whole `.text`
 assignment and `set --text` intentionally retain their destructive model scope.
 
+### 6.2.1. Bounded typed template bindings
+
+The bounded `template.apply` operation MUST accept an array of closed typed JSON
+records. Every record MUST contain `name`, `kind`, `scope: "slides"`, an explicit
+positive one-based `slide`, and `cardinality: "one" | "all"`. Names MUST be
+nonempty, case-sensitive strings without braces. The payload MUST be exactly
+`text: string` for text, `table: string[][]` for tables, or
+`image: { bytes: number[], contentType: string }` for images. Image bytes MUST be
+integers from 0 through 255 and pass bounded image admission; paths and URLs are
+not binding payloads. Unknown fields, mismatched payloads and non-JSON SDK values
+MUST fail. JSON data MUST NOT execute accessors, expressions or scripts.
+
+A text slot is literal `{{name}}` within adjacent ordinary runs of a single
+paragraph. Table and embedded-picture slots use an exact whole shape name
+`{{name}}`. Single/unmatched braces remain literal. Matching MUST NOT normalize
+Unicode or evaluate names as property paths. Inserted text MUST NOT be scanned
+again. Cross-run text replacement MUST retain the first affected run's formatting
+and unrelated runs, hyperlinks and package content.
+
+Every recognized slot on each explicitly selected slide MUST have a corresponding
+binding of its kind/name/slide. Duplicate declarations, absent targets, missing
+bindings and more than one occurrence with `one` MUST fail before graph mutation.
+`all` admits repetition only on the selected slide. The same name on
+other slides is independent. Text inside a table owned by a table binding is
+payload content rather than an additional text binding scope. Empty bindings MUST
+produce unchanged source bytes and zero affected objects.
+
+Table values MUST be rectangular and match the existing grid. Merged cells,
+multiple paragraphs, fields, breaks, equations and cells without an existing
+ordinary text run are outside this bounded edit. Cell formatting
+and grid geometry MUST be retained. Image replacement MUST target the selected
+occurrence without changing other occurrences sharing the original resource.
+`affected` counts text replacements, table slots and image slots; locations
+identify their owning objects. Binding validation MUST complete for the entire
+operation before graph mutation. CLI source alternatives are exactly one of `--data-file` and
+`--data-json`; both MUST invoke the same typed SDK behavior.
+
+This bounded profile MUST reject repeated-slide records, notes/layout/master
+scopes and table resizing. F57's proposed repeated-slide obligation remains
+outstanding; this profile does not establish complete F57 or live-model coverage.
+Validation evidence MUST include literal braces, Unicode, non-cascading values,
+repeated names, missing/unknown bindings, structured payloads, preserved formatting
+and failure without publication through both SDK and CLI.
+
 ### 6.3. Values, absence and defaults
 
 Unknown fields, duplicate JSON keys, unknown enum values, nonfinite numbers and
@@ -314,8 +358,9 @@ the exact nullable model assignment remains available through typed batch.
 Empty text/name/value strings are intentional, except lookup names, property
 names, file paths, handles and identifiers MUST be nonempty. Required collections
 must be nonempty unless defined here: empty table cell text is valid; `Bindings:[]`
-and an empty batch are validated no-change operations; empty repeat records
-remove the selected prototype slides. Empty `series`, path vertices, selected
+and an empty batch are validated no-change operations. The proposed repeated-slide
+extension uses empty repeat records to remove selected prototype slides; the bounded
+template-binding profile rejects repeat records. Empty `series`, path vertices, selected
 slide sets, source lists and sanitization policies are rejected. Field presence
 is checked independently of truthiness. JSON booleans never accept 0/1 or strings.
 

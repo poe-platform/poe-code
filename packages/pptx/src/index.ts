@@ -18,6 +18,11 @@ export type {
 } from "./contracts.js";
 export { OfficeError, type ByteErrorCode, type OfficeErrorCode } from "./errors.js";
 export {
+  applyTemplateBindings,
+  validateTemplateBindings,
+  type TemplateBinding
+} from "./template-bindings.js";
+export {
   readAccessibility,
   mutateAccessibility,
   type AccessibilityUpdate,

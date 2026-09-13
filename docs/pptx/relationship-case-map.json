@@ -1,0 +1,616 @@
+{
+  "schema_version": 1,
+  "scope": "opc-relationships internal graph foundation; no public API or complete parity claim",
+  "authorities": [
+    "../specs/pptx.md",
+    "../specs/office-sdk.md",
+    "../specs/office-cli.md",
+    "upstream-test-audit.md",
+    "upstream-api-audit.md",
+    "test-case-map.json"
+  ],
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "inventory_sha256": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+  "accounting": {
+    "source_unit_total": 2700,
+    "source_bdd_total": 973,
+    "relationship_unit_rows": 62,
+    "relationship_bdd_rows": 1,
+    "unit_status_counts": {
+      "adapted_internal_behavior": 6,
+      "deferred_model_or_serialization": 49,
+      "adapted_behavior": 4,
+      "partial": 3
+    },
+    "other_cases": "All other unit variants and BDD examples remain in the complete test-case-map.json ledger; no status is promoted by dependency on this graph layer."
+  },
+  "selection": "All relationship classes/members and package part traversal in tests/opc/test_package.py, relationship XML classes in tests/opc/test_oxml.py, and the explicit external-relationship BDD round-trip scenario. Higher-level slide, hyperlink, image, notes and chart scenarios retain their existing feature assignments and are not claimed as passes here.",
+  "language_security": {
+    "owner_ids": "IDs are exact source-local strings, never globally keyed.",
+    "external": "Raw targets retained, no URL fetching or ambient capabilities; internal targetPart is null for external edges. Public throwing accessors remain deferred.",
+    "collections": "Immutable internal arrays and Maps, distinct from future live public model collections.",
+    "limits": "Explicit part, total relationship and XML byte bounds; synchronous internal indexing/traversal.",
+    "imports": "New immutable graph plus deterministic name mapping. No payload copy, XML serialization or public slide merge.",
+    "public_api": "Existing complete API inventory remains authoritative including all inherited, underscore-prefixed, enum/helper and untested members. No public member is reclassified as private."
+  },
+  "documentation_drift": "Historical audit statements that adaptation has not started do not describe the later package implementation. This dated supplement and earlier package evidence establish only their explicitly tested subsets; baseline inventories are preserved.",
+  "legal": "Original TypeScript implementation, assertions, wording and assets; no source text or reference fixtures copied. Reference identities remain in this provenance record and existing standalone legal notices.",
+  "unit_cases": [
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_provides_read_access_to_xml_values",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 50,
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "parses target mode %s and preserves unknown kinds"
+        }
+      ],
+      "reason": "Exact id, type, target and mode fields are checked from original XML rather than a proxy object."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_constructs_an_internal_relationship_when_no_target_mode_is_provided",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 60,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::and_it_constructs_an_internal_relationship_when_target_mode_INTERNAL_is_specified",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 71,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::and_it_constructs_an_external_relationship_when_target_mode_EXTERNAL_is_specified",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 82,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_construct_a_new_relationships_element",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 98,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_build_rels_element_incrementally",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 104,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_generate_rels_file_xml",
+      "source_file": "tests/opc/test_oxml.py",
+      "line": 120,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_find_a_part_related_by_reltype",
+      "source_file": "tests/opc/test_package.py",
+      "line": 56,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_establish_a_relationship_to_another_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 66,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_RelatableMixin::and_it_can_establish_a_relationship_to_an_external_link",
+      "source_file": "tests/opc/test_package.py",
+      "line": 76,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_find_a_related_part_by_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 88,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_RelatableMixin::it_can_find_a_target_ref_URI_by_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 101,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_iterate_over_its_parts",
+      "source_file": "tests/opc/test_package.py",
+      "line": 154,
+      "status": "adapted_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "resolves owner-relative aliases and enumerates cycles once"
+        }
+      ],
+      "reason": "A cyclic graph with shared targets, aliases and external edges has an exact unique part closure."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_iterate_over_its_relationships",
+      "source_file": "tests/opc/test_package.py",
+      "line": 172,
+      "status": "partial",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "resolves owner-relative aliases and enumerates cycles once"
+        }
+      ],
+      "reason": "Forward/reverse edges and part closure are covered; there is no public iter_rels method or global edge iterator."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_constructs_its_relationships_object_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 273,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_PackageLoader::it_loads_the_xml_relationships_from_the_package_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 337,
+      "status": "partial",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "indexes package streams without interpreting relationship parts as owners"
+        }
+      ],
+      "reason": "Original package streams are indexed with owner-relative resolution; reference mock-call assertions and invalid-target filtering are not reproduced. Dangling edges are retained and traversal rejects them."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::DescribePart::it_provides_access_to_its_relationships_for_traversal",
+      "source_file": "tests/opc/test_package.py",
+      "line": 422,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::DescribePart::it_constructs_its_relationships_object_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 438,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[/FOO/BAR.Rels-application/vnd.openxmlformats-package.relationships+xml]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 585,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_knows_whether_it_contains_a_relationship_with_rId[rId1-True]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 620,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_knows_whether_it_contains_a_relationship_with_rId[rId2-False]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 620,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_has_dict_style_lookup_of_rel_by_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 627,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::but_it_raises_KeyError_when_no_relationship_has_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 631,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_iterate_the_rIds_of_the_relationships_it_contains",
+      "source_file": "tests/opc/test_package.py",
+      "line": 637,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_has_a_len",
+      "source_file": "tests/opc/test_package.py",
+      "line": 647,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_add_a_relationship_to_a_target_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 651,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::but_it_returns_an_existing_relationship_if_it_matches",
+      "source_file": "tests/opc/test_package.py",
+      "line": 662,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_add_an_external_relationship_to_a_URI",
+      "source_file": "tests/opc/test_package.py",
+      "line": 671,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::but_it_returns_an_existing_external_relationship_if_it_matches",
+      "source_file": "tests/opc/test_package.py",
+      "line": 686,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_load_from_the_xml_in_a_rels_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 697,
+      "status": "partial",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "indexes package streams without interpreting relationship parts as owners"
+        }
+      ],
+      "reason": "Original package streams are indexed with owner-relative resolution; reference mock-call assertions and invalid-target filtering are not reproduced. Dangling edges are retained and traversal rejects them."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_find_a_part_with_reltype",
+      "source_file": "tests/opc/test_package.py",
+      "line": 714,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::but_it_raises_KeyError_when_there_is_no_such_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 723,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::and_it_raises_ValueError_when_there_is_more_than_one_part_with_reltype",
+      "source_file": "tests/opc/test_package.py",
+      "line": 734,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_pop_a_relationship_to_remove_it_from_the_collection",
+      "source_file": "tests/opc/test_package.py",
+      "line": 750,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_serialize_itself_to_XML",
+      "source_file": "tests/opc/test_package.py",
+      "line": 760,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_add_a_relationship_to_a_part_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 791,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::and_it_can_add_an_external_relationship_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 813,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[http://url-True-rId1]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[part_1-False-rId2]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[http://foo-True-rId3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[part_2-False-rId4]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_can_get_a_matching_relationship_to_help[http://bar-True-None]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 829,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::but_it_returns_None_when_there_is_no_matching_relationship",
+      "source_file": "tests/opc/test_package.py",
+      "line": 868,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds0-rId1]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds1-rId2]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds2-rId3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds3-rId3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds4-rId3]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_finds_the_next_rId_to_help[rIds5-rId4]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 874,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationships::it_collects_relationships_by_reltype_to_help",
+      "source_file": "tests/opc/test_package.py",
+      "line": 891,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::it_can_construct_from_xml",
+      "source_file": "tests/opc/test_package.py",
+      "line": 945,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_whether_it_is_external[Internal-False]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 962,
+      "status": "adapted_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "parses target mode %s and preserves unknown kinds"
+        }
+      ],
+      "reason": "All three exact mode/default variants assert the external boolean independently."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_whether_it_is_external[External-True]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 962,
+      "status": "adapted_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "parses target mode %s and preserves unknown kinds"
+        }
+      ],
+      "reason": "All three exact mode/default variants assert the external boolean independently."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_whether_it_is_external[None-False]",
+      "source_file": "tests/opc/test_package.py",
+      "line": 962,
+      "status": "adapted_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "parses target mode %s and preserves unknown kinds"
+        }
+      ],
+      "reason": "All three exact mode/default variants assert the external boolean independently."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_its_relationship_type",
+      "source_file": "tests/opc/test_package.py",
+      "line": 970,
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "resolves owner-relative aliases and enumerates cycles once"
+        }
+      ],
+      "reason": "Literal edge fields independently assert identity, type, resolved canonical part and unchanged external URI; no public object accessor coverage is claimed."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_its_rId",
+      "source_file": "tests/opc/test_package.py",
+      "line": 974,
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "resolves owner-relative aliases and enumerates cycles once"
+        }
+      ],
+      "reason": "Literal edge fields independently assert identity, type, resolved canonical part and unchanged external URI; no public object accessor coverage is claimed."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::it_provides_access_to_its_target_part",
+      "source_file": "tests/opc/test_package.py",
+      "line": 978,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::but_it_raises_ValueError_on_target_part_for_external_rel",
+      "source_file": "tests/opc/test_package.py",
+      "line": 982,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_its_target_partname",
+      "source_file": "tests/opc/test_package.py",
+      "line": 990,
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "resolves owner-relative aliases and enumerates cycles once"
+        }
+      ],
+      "reason": "Literal edge fields independently assert identity, type, resolved canonical part and unchanged external URI; no public object accessor coverage is claimed."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::but_it_raises_ValueError_on_target_partname_for_external_rel",
+      "source_file": "tests/opc/test_package.py",
+      "line": 996,
+      "status": "deferred_model_or_serialization",
+      "original_cases": [],
+      "reason": "Collection mutation, lookup, automatic ID allocation, object accessors or serialization behavior remains in the complete source-case ledger; internal graph indexing does not implement that API."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::it_knows_the_target_uri_for_an_external_rel",
+      "source_file": "tests/opc/test_package.py",
+      "line": 1007,
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "resolves owner-relative aliases and enumerates cycles once"
+        }
+      ],
+      "reason": "Literal edge fields independently assert identity, type, resolved canonical part and unchanged external URI; no public object accessor coverage is claimed."
+    },
+    {
+      "source_node_id": "tests/opc/test_package.py::Describe_Relationship::and_it_knows_the_relative_partname_for_an_internal_rel",
+      "source_file": "tests/opc/test_package.py",
+      "line": 1011,
+      "status": "adapted_internal_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "imports a complete cyclic graph with deterministic collisions and source-local IDs"
+        }
+      ],
+      "reason": "Imported internal references are asserted literally relative to the remapped owning part."
+    }
+  ],
+  "bdd_cases": [
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 31,
+      "name": "Round-trip external relationships",
+      "status": "partial_packaging_behavior",
+      "original_cases": [
+        {
+          "file": "packages/pptx/src/relationships.test.ts",
+          "name": "preserves external relationship streams through package serialization"
+        }
+      ],
+      "reason": "Original link bytes, URI semantics and exact relationship-stream count survive package writing/reloading, checked with an independent ZIP reader. Presentation factory/save and CLI surfaces remain pending."
+    }
+  ]
+}

@@ -1,0 +1,1426 @@
+{
+  "rows": [
+    {
+      "id": "unicode-identifier",
+      "source": "let π=1; π",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "astral-identifier",
+      "source": "let 𐐀=1; 𐐀",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "identifier-escape",
+      "source": "let \\u{10400}=1; 𐐀",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "surrogate-identifier",
+      "source": "let \\uD800=1",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid identifier escape at line 1, column 5."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid or unexpected token"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected strict mode reserved word"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Invalid identifier escape at line 1, column 5."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Invalid identifier escape at line 1, column 5."
+      }
+    },
+    {
+      "id": "surrogate-string",
+      "source": "let x=\"\\uD800\"",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 5,
+                "offset": 4
+              },
+              "end": {
+                "line": 1,
+                "column": 6,
+                "offset": 5
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "escaped-keyword",
+      "source": "let \\u0069f=1",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected token 'if' at line 1, column 5."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Keyword must not contain escaped characters"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected strict mode reserved word"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Unexpected token 'if' at line 1, column 5."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Unexpected token 'if' at line 1, column 5."
+      }
+    },
+    {
+      "id": "identifier-joiner",
+      "source": "let a‌b=1",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'a‌b' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 5,
+                "offset": 4
+              },
+              "end": {
+                "line": 1,
+                "column": 8,
+                "offset": 7
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "start-joiner",
+      "source": "let ‌a=1",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected character '‌' at line 1, column 5."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid or unexpected token"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected strict mode reserved word"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Unexpected character '‌' at line 1, column 5."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Unexpected character '‌' at line 1, column 5."
+      }
+    },
+    {
+      "id": "hashbang",
+      "source": "#!/usr/bin/guest\nlet x=1",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 2,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 2,
+                "column": 5,
+                "offset": 21
+              },
+              "end": {
+                "line": 2,
+                "column": 6,
+                "offset": 22
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "hashbang-leading-space",
+      "source": " #!x\nlet x=1",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Expected private identifier at line 1, column 2."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid or unexpected token"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid or unexpected token"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Expected private identifier at line 1, column 2."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Expected private identifier at line 1, column 2."
+      }
+    },
+    {
+      "id": "html-comment",
+      "source": "<!-- x\nlet x=1",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "HTML comments are not allowed in modules"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "HTML-style comments are not supported in Agent Script at line 1, column 1."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "HTML-style comments are not supported in Agent Script at line 1, column 1."
+      }
+    },
+    {
+      "id": "block-comment",
+      "source": "let x=1/* */let y=2",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 5,
+                "offset": 4
+              },
+              "end": {
+                "line": 1,
+                "column": 6,
+                "offset": 5
+              }
+            }
+          },
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'y' is declared but never read.",
+            "filename": "<input>",
+            "line": 2,
+            "column": 7,
+            "span": {
+              "start": {
+                "line": 2,
+                "column": 7,
+                "offset": 16
+              },
+              "end": {
+                "line": 2,
+                "column": 8,
+                "offset": 17
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "asi-return",
+      "source": "function f(){return  1}",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'f' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 10,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 10,
+                "offset": 9
+              },
+              "end": {
+                "line": 1,
+                "column": 11,
+                "offset": 10
+              }
+            }
+          },
+          {
+            "code": "AS-UNREACHABLE",
+            "severity": "warning",
+            "message": "Statement is unreachable because a prior statement in the same block always exits.",
+            "filename": "<input>",
+            "line": 2,
+            "column": 2,
+            "span": {
+              "start": {
+                "line": 2,
+                "column": 2,
+                "offset": 21
+              },
+              "end": {
+                "line": 2,
+                "column": 3,
+                "offset": 22
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "asi-throw",
+      "source": "function f(){throw  1}",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Illegal newline after throw at line 1, column 14."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Illegal newline after throw"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Illegal newline after throw"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Illegal newline after throw at line 1, column 14."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Illegal newline after throw at line 1, column 14."
+      }
+    },
+    {
+      "id": "numeric-separator",
+      "source": "let x=0xAB_CD+0b10_01+0o7_7+1_000+1.2_3e1_0+1_0n",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 5,
+                "offset": 4
+              },
+              "end": {
+                "line": 1,
+                "column": 6,
+                "offset": 5
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "numeric-separator-double",
+      "source": "let x=1__0",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid decimal numeric literal at line 1, column 8."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Only one underscore is allowed as numeric separator"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Only one underscore is allowed as numeric separator"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Invalid decimal numeric literal at line 1, column 8."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Invalid decimal numeric literal at line 1, column 8."
+      }
+    },
+    {
+      "id": "numeric-separator-radix",
+      "source": "let x=0x_FF",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid hexadecimal numeric literal at line 1, column 9."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid or unexpected token"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid or unexpected token"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Invalid hexadecimal numeric literal at line 1, column 9."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Invalid hexadecimal numeric literal at line 1, column 9."
+      }
+    },
+    {
+      "id": "numeric-adjacent",
+      "source": "let x=1foo",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid number at line 1, column 8."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid or unexpected token"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid or unexpected token"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Invalid number at line 1, column 8."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Invalid number at line 1, column 8."
+      }
+    },
+    {
+      "id": "legacy-octal",
+      "source": "let x=077",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Octal literals are not allowed in strict mode."
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Legacy octal numeric literals are not supported in strict mode at line 1, column 7."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Legacy octal numeric literals are not supported in strict mode at line 1, column 7."
+      }
+    },
+    {
+      "id": "strict-legacy-octal",
+      "source": "\"use strict\";let x=077",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Legacy numeric literals are not supported in strict mode."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Octal literals are not allowed in strict mode."
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Octal literals are not allowed in strict mode."
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Legacy octal numeric literals are not supported in strict mode at line 1, column 20."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Legacy octal numeric literals are not supported in strict mode at line 1, column 20."
+      }
+    },
+    {
+      "id": "legacy-escape",
+      "source": "let x=\"\\1\"",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Octal escape sequences are not allowed in strict mode."
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Legacy octal escape sequences are not supported at line 1, column 8."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Legacy octal escape sequences are not supported at line 1, column 8."
+      }
+    },
+    {
+      "id": "strict-legacy-escape",
+      "source": "\"use strict\";let x=\"\\1\"",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Legacy escape sequences are not supported in strict mode."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Octal escape sequences are not allowed in strict mode."
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Octal escape sequences are not allowed in strict mode."
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Legacy octal escape sequences are not supported at line 1, column 21."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "Error",
+        "message": "Legacy octal escape sequences are not supported at line 1, column 21."
+      }
+    },
+    {
+      "id": "tagged-invalid-escape",
+      "source": "const tag=x=>x;tag`\\xZ`",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "untagged-invalid-escape",
+      "source": "`\\xZ`",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid hex escape at line 1, column 2."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid hexadecimal escape sequence"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Invalid hexadecimal escape sequence"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Invalid hex escape at line 1, column 2."
+      },
+      "lint": {
+        "accepted": false,
+        "name": "ParseError",
+        "message": "Invalid hex escape at line 1, column 2."
+      }
+    },
+    {
+      "id": "regex-after-condition",
+      "source": "if(true) /x/.test(\"x\")",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "division-after-object",
+      "source": "const x=({a:4}).a / 2",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 7,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 7,
+                "offset": 6
+              },
+              "end": {
+                "line": 1,
+                "column": 8,
+                "offset": 7
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "contextual-identifiers",
+      "source": "let async=1,of=2,from=3; async+of+from",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "strict-reserved",
+      "source": "\"use strict\";let implements=1",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected token 'implements' at line 1, column 18."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected strict mode reserved word"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected strict mode reserved word"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'implements' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 18,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 18,
+                "offset": 17
+              },
+              "end": {
+                "line": 1,
+                "column": 28,
+                "offset": 27
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "sloppy-reserved",
+      "source": "var implements=1",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected strict mode reserved word"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "return-embedding",
+      "source": "return 1",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Disallowed syntax 'return in a static block' at line 1, column 1."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Illegal return statement"
+      },
+      "nativeModuleOracle": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Illegal return statement"
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "await-embedding",
+      "source": "await 0",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected token '0' at line 1, column 7."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "await is only valid in async functions and the top level bodies of modules"
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "module-export",
+      "source": "export const x=1",
+      "Script": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Disallowed syntax 'export' at line 1, column 1."
+      },
+      "nativeScript": {
+        "accepted": false,
+        "name": "SyntaxError",
+        "message": "Unexpected token 'export'"
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS-EXPORT-UNKNOWN",
+            "severity": "error",
+            "message": "Named export 'x' is not allowed.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 14,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 14,
+                "offset": 13
+              },
+              "end": {
+                "line": 1,
+                "column": 15,
+                "offset": 14
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "terminator-\"\\n\"",
+      "source": "let x=1\nlet y=2",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 5,
+                "offset": 4
+              },
+              "end": {
+                "line": 1,
+                "column": 6,
+                "offset": 5
+              }
+            }
+          },
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'y' is declared but never read.",
+            "filename": "<input>",
+            "line": 2,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 2,
+                "column": 5,
+                "offset": 12
+              },
+              "end": {
+                "line": 2,
+                "column": 6,
+                "offset": 13
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "terminator-\"\\r\"",
+      "source": "let x=1\rlet y=2",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 5,
+                "offset": 4
+              },
+              "end": {
+                "line": 1,
+                "column": 6,
+                "offset": 5
+              }
+            }
+          },
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'y' is declared but never read.",
+            "filename": "<input>",
+            "line": 2,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 2,
+                "column": 5,
+                "offset": 12
+              },
+              "end": {
+                "line": 2,
+                "column": 6,
+                "offset": 13
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "terminator-\"\\r\\n\"",
+      "source": "let x=1\r\nlet y=2",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 5,
+                "offset": 4
+              },
+              "end": {
+                "line": 1,
+                "column": 6,
+                "offset": 5
+              }
+            }
+          },
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'y' is declared but never read.",
+            "filename": "<input>",
+            "line": 2,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 2,
+                "column": 5,
+                "offset": 13
+              },
+              "end": {
+                "line": 2,
+                "column": 6,
+                "offset": 14
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "terminator-\" \"",
+      "source": "let x=1 let y=2",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 5,
+                "offset": 4
+              },
+              "end": {
+                "line": 1,
+                "column": 6,
+                "offset": 5
+              }
+            }
+          },
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'y' is declared but never read.",
+            "filename": "<input>",
+            "line": 2,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 2,
+                "column": 5,
+                "offset": 12
+              },
+              "end": {
+                "line": 2,
+                "column": 6,
+                "offset": 13
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "terminator-\" \"",
+      "source": "let x=1 let y=2",
+      "Script": {
+        "accepted": true
+      },
+      "nativeScript": {
+        "accepted": true
+      },
+      "nativeModuleOracle": {
+        "accepted": true
+      },
+      "SafeJSModule": {
+        "status": "unsupported in isolated committed API; native oracle is not engine support"
+      },
+      "AgentScript": {
+        "accepted": true
+      },
+      "lint": {
+        "accepted": true,
+        "diagnostics": [
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'x' is declared but never read.",
+            "filename": "<input>",
+            "line": 1,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 5,
+                "offset": 4
+              },
+              "end": {
+                "line": 1,
+                "column": 6,
+                "offset": 5
+              }
+            }
+          },
+          {
+            "code": "AS007",
+            "severity": "warning",
+            "message": "Binding 'y' is declared but never read.",
+            "filename": "<input>",
+            "line": 2,
+            "column": 5,
+            "span": {
+              "start": {
+                "line": 2,
+                "column": 5,
+                "offset": 12
+              },
+              "end": {
+                "line": 2,
+                "column": 6,
+                "offset": 13
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "scriptMatches": 37
+}

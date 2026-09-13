@@ -1,0 +1,112 @@
+[
+  {
+    "source": "return eval(\"\\nmissing\")",
+    "name": "ReferenceError",
+    "message": "Identifier 'missing' is not defined.",
+    "filename": null,
+    "span": {
+      "start": {
+        "line": 2,
+        "column": 1,
+        "offset": 1
+      },
+      "end": {
+        "line": 2,
+        "column": 8,
+        "offset": 8
+      }
+    },
+    "stack": "ReferenceError: Identifier 'missing' is not defined.\n    at <anonymous> (line 2, column 1)"
+  },
+  {
+    "source": "return eval(\"const x=)\")",
+    "name": "SyntaxError",
+    "message": "Unexpected token ')' at line 1, column 9.",
+    "filename": "<eval>",
+    "span": {
+      "start": {
+        "column": 9,
+        "line": 1,
+        "offset": 8
+      },
+      "end": {
+        "column": 10,
+        "line": 1,
+        "offset": 9
+      }
+    },
+    "stack": "SyntaxError: Unexpected token ')' at line 1, column 9.\n    at eval (line 1, column 8)"
+  },
+  {
+    "source": "return Function(\"\\nreturn missing\")()",
+    "name": "ReferenceError",
+    "message": "Identifier 'missing' is not defined.",
+    "filename": null,
+    "span": {
+      "start": {
+        "line": 4,
+        "column": 8,
+        "offset": 32
+      },
+      "end": {
+        "line": 4,
+        "column": 15,
+        "offset": 39
+      }
+    },
+    "stack": "ReferenceError: Identifier 'missing' is not defined.\n    at anonymous (line 1, column 8)\n    at <anonymous> (line 4, column 8)"
+  },
+  {
+    "source": "return eval(\"1+2\")",
+    "result": {
+      "ok": true,
+      "returnValue": 3
+    }
+  },
+  {
+    "source": "return Function(\"return 3\")()",
+    "result": {
+      "ok": true,
+      "returnValue": 3
+    }
+  },
+  {
+    "source": "const f=eval(\"()=>missing\");await 0;return f()",
+    "original": {
+      "name": "ReferenceError",
+      "message": "Identifier 'missing' is not defined.",
+      "filename": null,
+      "span": {
+        "start": {
+          "line": 1,
+          "column": 5,
+          "offset": 4
+        },
+        "end": {
+          "line": 1,
+          "column": 12,
+          "offset": 11
+        }
+      },
+      "stack": "ReferenceError: Identifier 'missing' is not defined.\n    at <anonymous> (line 1, column 44)\n    at <anonymous> (line 1, column 5)"
+    },
+    "restored": {
+      "name": "ReferenceError",
+      "message": "Identifier 'missing' is not defined.",
+      "filename": null,
+      "span": {
+        "start": {
+          "line": 1,
+          "column": 5,
+          "offset": 4
+        },
+        "end": {
+          "line": 1,
+          "column": 12,
+          "offset": 11
+        }
+      },
+      "stack": "ReferenceError: Identifier 'missing' is not defined.\n    at <anonymous> (line 1, column 44)\n    at <anonymous> (line 1, column 5)"
+    }
+  }
+]

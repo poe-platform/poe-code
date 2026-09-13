@@ -1,0 +1,105 @@
+{
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--package=workerd@1.20260911.1",
+    "--",
+    "workerd",
+    "serve",
+    "--socket-addr=http=127.0.0.1:60167",
+    "/tmp/lexical-workerd/config.capnp"
+  ],
+  "result": {
+    "status": "passed",
+    "results": [
+      {
+        "separator": "\n",
+        "filename": "<eval>",
+        "span": {
+          "start": {
+            "column": 9,
+            "line": 2,
+            "offset": 14
+          },
+          "end": {
+            "column": 10,
+            "line": 2,
+            "offset": 15
+          }
+        }
+      },
+      {
+        "separator": "\r",
+        "filename": "<eval>",
+        "span": {
+          "start": {
+            "column": 9,
+            "line": 2,
+            "offset": 14
+          },
+          "end": {
+            "column": 10,
+            "line": 2,
+            "offset": 15
+          }
+        }
+      },
+      {
+        "separator": "\r\n",
+        "filename": "<eval>",
+        "span": {
+          "start": {
+            "column": 9,
+            "line": 2,
+            "offset": 15
+          },
+          "end": {
+            "column": 10,
+            "line": 2,
+            "offset": 16
+          }
+        }
+      },
+      {
+        "separator": "\u2028",
+        "filename": "<eval>",
+        "span": {
+          "start": {
+            "column": 9,
+            "line": 2,
+            "offset": 14
+          },
+          "end": {
+            "column": 10,
+            "line": 2,
+            "offset": 15
+          }
+        }
+      },
+      {
+        "separator": "\u2029",
+        "filename": "<eval>",
+        "span": {
+          "start": {
+            "column": 9,
+            "line": 2,
+            "offset": 14
+          },
+          "end": {
+            "column": 10,
+            "line": 2,
+            "offset": 15
+          }
+        }
+      }
+    ],
+    "value": [
+      42,
+      4,
+      true
+    ]
+  },
+  "error": null,
+  "processExit": null
+}

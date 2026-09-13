@@ -1834,3 +1834,43 @@ Reproduction on the fetched candidate: **one failure / three controls** before t
 Final screenshot review exposed a startup boundary that reduced positioned parser diagnostics to plain messages. A fresh regression reproduced **one failure / two controls**. A separate runtime-path assertion reproduced **one failure / two controls**, exposing the resolved `/guest/` prefix rather than the supplied relative filename. The CLI now formats structured startup ParseError excerpts and consistently supplies the original argument filename to lint, execution and error formatting. File reads still use the resolved path; no filesystem authority changes.
 
 After repair, `npx vitest run packages/safe-js/src/cli.original-source.test.ts packages/safe-js/src/cli.unlocated-diagnostics.test.ts packages/safe-js/src/cli.test.ts` passes **53/53**. Guest-thrown SyntaxError remains runtime exit 1; invalid source remains parse exit 2; a valid astral-identifier/CRLF neighbor executes normally. The earlier combined gate passed **3,023 tests / one opt-in fuzz skip** before this final CLI-only repair. Final lint/build/screenshots/corpus and publication receipts follow; unresolved dynamic runtime/Function/module/restored-source origins remain open.
+
+
+### qualify-lexical-and-source-text — final isolated candidate, 2026-09-13
+
+**Acceptance remains open; the verified repair set is ready for remote delivery.** [Final audit and recovery path](qualify-lexical-and-source-text/eval-span-audit/final-audit.md), [source/commit receipt](qualify-lexical-and-source-text/eval-span-audit/source-receipt.json), [completed corpus and every nonpass](qualify-lexical-and-source-text/eval-span-audit/final-corpus-summary.json), [separate grammar outcomes](qualify-lexical-and-source-text/eval-span-audit/final-grammar.json), [current dynamic/replay origins](qualify-lexical-and-source-text/eval-span-audit/current-origins.json).
+
+Published edition and API pins are unchanged. Candidate **`f5805d989da0a212b934ea17ca4dad52c5cbed11`**, source-content SHA-256 **`9ecaf24156f233f701e904bc0e2758899d49ac0204c6cd3d1da2ef73357cbfc2`**, manifest **`23eaf4f8c358d4b28ddca02d695dee4f2c3392044ee96e5b70fd75880f98b1f5`**; Node **22.23.2**, ICU **78.2**, Unicode **17.0**. Seven separate Conventional Commits repair eval syntax diagnostics, statement semicolons, regexp lexical goals/line terminators, host parser stacks, Unicode caret clipping, and CLI origin/excerpt display. Each has recorded red/green evidence. Unrelated local commits/staged files and pending source-module implementation are preserved.
+
+Completed 2026-09-13T07:21:53.703Z, exit **1**: **1,231 files / 2,381 variants; 2,335 passed, 44 timeout failures, two explicitly unsupported module variants**, zero metadata/execution accounting errors. All 70 initial non-timeout mismatches are repaired. The timeout count increases from 42 to 44 because two formerly early-failing regexp variants now reach their exhaustive execution; this is not claimed as improved timing. Deadlines remain **3,000 ms per variant / 10,000 ms startup**, without budget overrides.
+
+| Category | Variants | Passed | Timeout failures | Unsupported |
+| --- | ---: | ---: | ---: | ---: |
+| language/asi | 204 | 204 | 0 | 0 |
+| language/comments | 46 | 42 | 4 | 0 |
+| language/comments/hashbang | 35 | 34 | 0 | 1 |
+| language/expressions/template-literal | 114 | 114 | 0 | 0 |
+| language/future-reserved-words | 85 | 85 | 0 | 0 |
+| language/identifiers | 535 | 503 | 32 | 0 |
+| language/keywords | 50 | 50 | 0 | 0 |
+| language/line-terminators | 82 | 82 | 0 | 0 |
+| language/literals/bigint | 26 | 26 | 0 | 0 |
+| language/literals/bigint/numeric-separators | 92 | 92 | 0 | 0 |
+| language/literals/boolean | 8 | 8 | 0 | 0 |
+| language/literals/null | 6 | 6 | 0 | 0 |
+| language/literals/numeric | 175 | 175 | 0 | 0 |
+| language/literals/numeric/numeric-separators | 126 | 126 | 0 | 0 |
+| language/literals/regexp | 368 | 360 | 8 | 0 |
+| language/literals/regexp/named-groups | 112 | 112 | 0 | 0 |
+| language/literals/string | 128 | 128 | 0 | 0 |
+| language/reserved-words | 53 | 52 | 0 | 1 |
+| language/source-text | 2 | 2 | 0 | 0 |
+| language/white-space | 134 | 134 | 0 | 0 |
+
+This table records all requested lexical cohorts, with hashbang and separator subcategories explicit. Standard Script matches the native oracle in 37/37 selected cases; module oracle results are not engine execution claims, and public embedding/lint remain separate. No unsupported authority is counted as an ECMAScript defect.
+
+**Verification:** 3,023 integration passes / one opt-in fuzz skip, then 53 CLI passes after the final CLI-only repair; exact-source ESLint and the maintained selected workspace build closure pass, including eight built-import checks. [Built runtime controls](qualify-lexical-and-source-text/eval-span-audit/built-runtime-controls.json) pass on Node 18.18.0 / 20.20.0 / 22.23.2 / 24.14.0 / 26.8.2 and Bun; [real Workerd controls](qualify-lexical-and-source-text/eval-span-audit/workerd-controls.json) pass on workerd 2026-09-11. These are focused controls, not full corpus coverage on every runtime. Eval, hostile-input and corrected Unicode CLI screenshots were inspected; the first failed Unicode screenshot led to the final CLI repair.
+
+**Still unresolved:** 44 unchanged-deadline exhaustive failures; runtime eval/caller filenames; Function wrapper positions; imported and restored executable-source identity. Current eval SyntaxError is correctly located in `<eval>` text but does not identify nested callers. Full qualification is not complete. No associated issue was supplied.
+
+**Delivery checkpoint:** local code commits are listed in the source receipt. Remote-main ancestry and registry publication are not yet claimed; the following delivery receipt must record them independently.

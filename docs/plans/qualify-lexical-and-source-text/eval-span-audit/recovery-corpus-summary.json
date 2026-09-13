@@ -1,0 +1,659 @@
+{
+  "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+  "sourceSha": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+  "sourceHash": "2d897c00268b8a654abe7c690eef16b7f4907442e88e2a38035307b64e1fe9a3",
+  "manifestId": "a3127febb4646288e7e62734ef5de3609e27c963db273b72830681defd257a06",
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": {
+    "timeoutMs": 3000,
+    "budget": {},
+    "effectiveBudget": {
+      "maxSteps": "unlimited",
+      "maxCallDepth": "unlimited",
+      "stringLength": "unlimited",
+      "arrayLength": "unlimited",
+      "dataSize": "unlimited"
+    },
+    "deadline": "per-variant timeout",
+    "isolation": {
+      "kind": "persistent-child-process",
+      "startupTimeoutMs": 10000,
+      "wallTimeoutMs": 3000,
+      "timerStarts": "before-dispatch",
+      "recovery": "kill-and-replace-without-retrying-variant"
+    }
+  },
+  "command": [
+    "--corpus",
+    "/private/tmp/safejs-baseline-test262-419d3e0",
+    "--report",
+    "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-lexical-and-source-text/eval-span-audit/recovery-corpus.jsonl",
+    "--include",
+    "language/identifiers",
+    "--include",
+    "language/source-text",
+    "--include",
+    "language/literals",
+    "--include",
+    "language/asi",
+    "--include",
+    "language/comments",
+    "--include",
+    "language/line-terminators",
+    "--include",
+    "language/white-space",
+    "--include",
+    "language/keywords",
+    "--include",
+    "language/future-reserved-words",
+    "--include",
+    "language/reserved-words",
+    "--include",
+    "language/expressions/template-literal"
+  ],
+  "complete": true,
+  "counts": {
+    "files": 1231,
+    "fixtures": 0,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 2381,
+    "passed": 2335,
+    "failed": 44,
+    "unsupported": 2
+  },
+  "completedAt": "2026-09-13T08:08:37.891Z",
+  "exitCode": 1,
+  "categories": {
+    "language/asi": {
+      "variants": 204,
+      "passed": 204
+    },
+    "language/comments": {
+      "variants": 46,
+      "passed": 42,
+      "failed": 4
+    },
+    "language/comments/hashbang": {
+      "variants": 35,
+      "passed": 34,
+      "unsupported": 1
+    },
+    "language/expressions/template-literal": {
+      "variants": 114,
+      "passed": 114
+    },
+    "language/future-reserved-words": {
+      "variants": 85,
+      "passed": 85
+    },
+    "language/identifiers": {
+      "variants": 535,
+      "passed": 503,
+      "failed": 32
+    },
+    "language/keywords": {
+      "variants": 50,
+      "passed": 50
+    },
+    "language/line-terminators": {
+      "variants": 82,
+      "passed": 82
+    },
+    "language/literals/bigint": {
+      "variants": 26,
+      "passed": 26
+    },
+    "language/literals/bigint/numeric-separators": {
+      "variants": 92,
+      "passed": 92
+    },
+    "language/literals/boolean": {
+      "variants": 8,
+      "passed": 8
+    },
+    "language/literals/null": {
+      "variants": 6,
+      "passed": 6
+    },
+    "language/literals/numeric": {
+      "variants": 175,
+      "passed": 175
+    },
+    "language/literals/numeric/numeric-separators": {
+      "variants": 126,
+      "passed": 126
+    },
+    "language/literals/regexp": {
+      "variants": 368,
+      "passed": 360,
+      "failed": 8
+    },
+    "language/literals/regexp/named-groups": {
+      "variants": 112,
+      "passed": 112
+    },
+    "language/literals/string": {
+      "variants": 128,
+      "passed": 128
+    },
+    "language/reserved-words": {
+      "variants": 53,
+      "unsupported": 1,
+      "passed": 52
+    },
+    "language/source-text": {
+      "variants": 2,
+      "passed": 2
+    },
+    "language/white-space": {
+      "variants": 134,
+      "passed": 134
+    }
+  },
+  "nonpasses": [
+    {
+      "filename": "language/comments/S7.4_A5.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/comments/S7.4_A5.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/comments/S7.4_A6.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/comments/S7.4_A6.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/comments/hashbang/module.js",
+      "mode": "raw",
+      "status": "unsupported",
+      "reason": "module"
+    },
+    {
+      "filename": "language/identifiers/start-unicode-10.0.0-escaped.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-10.0.0-escaped.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-10.0.0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-10.0.0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-13.0.0-escaped.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-13.0.0-escaped.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-13.0.0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-13.0.0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-15.0.0-escaped.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-15.0.0-escaped.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-15.0.0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-15.0.0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-16.0.0-escaped.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-16.0.0-escaped.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-16.0.0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-16.0.0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-17.0.0-escaped.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-17.0.0-escaped.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-17.0.0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-17.0.0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-5.2.0-escaped.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-5.2.0-escaped.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-5.2.0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-5.2.0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-8.0.0-escaped.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-8.0.0-escaped.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-8.0.0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-8.0.0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-9.0.0-escaped.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-9.0.0-escaped.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-9.0.0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/identifiers/start-unicode-9.0.0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/literals/regexp/S7.8.5_A1.1_T2.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/literals/regexp/S7.8.5_A1.1_T2.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/literals/regexp/S7.8.5_A1.4_T2.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/literals/regexp/S7.8.5_A1.4_T2.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/literals/regexp/S7.8.5_A2.1_T2.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/literals/regexp/S7.8.5_A2.1_T2.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/literals/regexp/S7.8.5_A2.4_T2.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/literals/regexp/S7.8.5_A2.4_T2.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    {
+      "filename": "language/reserved-words/await-module.js",
+      "mode": "module",
+      "status": "unsupported",
+      "reason": "module"
+    }
+  ],
+  "reportSha256": "1f4eea43bcf9e4c8ddef9ca19bc5106044672ea80d7d9212e577618ca3408c04"
+}

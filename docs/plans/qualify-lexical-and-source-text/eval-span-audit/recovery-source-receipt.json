@@ -1,0 +1,44 @@
+{
+  "sourceSha": "f5805d989da0a212b934ea17ca4dad52c5cbed11",
+  "sourceHash": "9ecaf24156f233f701e904bc0e2758899d49ac0204c6cd3d1da2ef73357cbfc2",
+  "commits": [
+    "75363a1198d45b767b571c0354f7b006cd834b0f fix(safe-js): preserve eval syntax source diagnostics",
+    "b85625fb99fe30d2d4b110de52e21185fb1948b6 fix(safe-js): consume statement body terminators correctly",
+    "a8c7a4f5c526ee6b5b2148380c52a15cb34d4cfb fix(safe-js): honor regexp lexical goals and line terminators",
+    "278037d1f924bf2f727ce67a689dc2e192a4e21d fix(safe-js): scrub unlocated parser host stacks",
+    "b92c64ea8e646933a8e77a105b6a8926ecf46b7b fix(safe-js): align Unicode source excerpts and carets",
+    "60d8f302a29b4b0eb59ac0b311f7c357d77fb3d0 fix(safe-js): display unlocated CLI source origins",
+    "f5805d989da0a212b934ea17ca4dad52c5cbed11 fix(safe-js): render original CLI source diagnostics"
+  ],
+  "sourceFiles": {
+    "packages/safe-js/src/cli-runtime.ts": "fe501e4306ca14045c30b015b951e9acb603ff57e825c8530cec6dc9b7639706",
+    "packages/safe-js/src/cli.original-source.test.ts": "f9be4814f8e142b0a78bffa1ff537c59ef948d65d13c6f472db10ad51942fc27",
+    "packages/safe-js/src/cli.unlocated-diagnostics.test.ts": "cb6480e24d6f5ce14362aec9c1bd94670a3126c6b1a48ea49fc71f7274a79215",
+    "packages/safe-js/src/error/shape.ts": "4f8d3497120e5d9d37df228c7b7f9c933dd22639a0e7dd727f2617a54185cc15",
+    "packages/safe-js/src/error/source-lines.ts": "ecbc145086a50d552191f0188c0a2000a4236419eb6550320a2367221de7bec8",
+    "packages/safe-js/src/interp/exceptions.ts": "7f6f22bf6f5325aafab3715edb66e38ff7eace025307ee81750bec0a2ba17579",
+    "packages/safe-js/src/parse/eval-syntax-positions.test.ts": "ac53b4ffc359d49dc5b8eff0edd52e8e044d41602584b424317ed86369253911",
+    "packages/safe-js/src/parse/format-error.ts": "5667c870aaeb3216e6f5d9dfde2167a5fea9cfb828d4e1f02a24a52e4159a4c2",
+    "packages/safe-js/src/parse/lexical-host-stack.test.ts": "d7b55569e729fae4dfb31cd90633f9d419be24584f2fcdbd67e97e1dd9c8ed99",
+    "packages/safe-js/src/parse/lexical-regexp-qualification.test.ts": "aa26b42b79cdc7a76fbe6a1ae84a0742fcc312e0ca6a57368bbee4608988e41c",
+    "packages/safe-js/src/parse/lexical-statement-terminators.test.ts": "f28ab5b4a0311d90e8e9c01208d1cd27a5e5a4d3e0e907c6e55f1614e746f009",
+    "packages/safe-js/src/parse/lexical-unicode-rendering.test.ts": "308d6289a8f6c8f57be270df050e92b7a160f7070e7f2ab98d95195d8faaa25e",
+    "packages/safe-js/src/parse/parser.ts": "e4ebcb4d2ae929623dace9570fb257819c9959080946b4d67373cfa83ad46c19",
+    "packages/safe-js/src/parse/syntax-diagnostic.ts": "6af808bcc8fb3ea635878d9d6392cf1433b8d4ea0542ceb09a6020018d397322",
+    "packages/safe-js/src/parse/tokenizer.ts": "2700623f36201eed1593a7844e5b17ff8b726bc3c41ea88f61465e8a9f7867c9"
+  },
+  "sharedHead": "bc6107ba5a308e94335f2d419d51d122ed17e6c3",
+  "sharedStagedPatchSha256": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "remoteMainBeforePush": "bfdd5353120a48dd1a4157241c2aeabf9154c1f6",
+  "remoteDelivery": null,
+  "publication": null,
+  "recovery": {
+    "commits": [
+      "d92879b57436f4e65441cf217227b948ea2a2ccc",
+      "1b4a46948ad735414f75e4b07290c26c3a8942f2"
+    ],
+    "sourceHash": "2d897c00268b8a654abe7c690eef16b7f4907442e88e2a38035307b64e1fe9a3",
+    "remoteMainVerified": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+    "sourceCommit": "1b4a46948ad735414f75e4b07290c26c3a8942f2"
+  }
+}

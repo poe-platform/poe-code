@@ -1,0 +1,268 @@
+{
+  "observedAt": "2026-09-13T08:07:35.766429+00:00",
+  "requiredSourceCommit": "d92879b57436f4e65441cf217227b948ea2a2ccc",
+  "packages": [
+    {
+      "name": "@poe-platform/safe-js",
+      "version": "0.1.567",
+      "status": "failed",
+      "error": "<HTTPError 404: 'Not Found'>"
+    },
+    {
+      "name": "@poe-platform/safe-fs",
+      "version": "0.1.567",
+      "metadata": {
+        "name": "@poe-platform/safe-fs",
+        "version": "0.1.567",
+        "dist": {
+          "shasum": "dcce51599455107471ff93470938081ebf5d00fd",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.567.tgz",
+          "fileCount": 141,
+          "integrity": "sha512-ygqNvU2qlaPjDmnjik7UCqJAsGwGayowIVrHGS86CPlIFRc40kjJdVymQ2HsX20eEBz9AL9oSXfKrKFtkNOpEA==",
+          "signatures": [
+            {
+              "sig": "MEYCIQCHzpjhWZMA9PRmESfEoFt8R0BhKadK70ByEDhVMtIWrAIhAP/xOYBKln7Jw15tTGrMhJELiOMQl0+J0el8FefqQKxb",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.567",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 717171
+        }
+      },
+      "integrityVerified": true,
+      "provenanceStatements": [
+        {
+          "_type": "https://in-toto.io/Statement/v1",
+          "subject": [
+            {
+              "name": "pkg:npm/%40poe-platform/safe-fs@0.1.567",
+              "digest": {
+                "sha512": "ca0a8dbd4daa95a3e30e69e38a4ed40aa240b06c066b2a30215ac7192f3a08f948151738d248c9755ca64361ec5f6d1e101cfd00bf684977caaca16d90d3a910"
+              }
+            }
+          ],
+          "predicateType": "https://slsa.dev/provenance/v1",
+          "predicate": {
+            "buildDefinition": {
+              "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+              "externalParameters": {
+                "workflow": {
+                  "ref": "refs/heads/main",
+                  "repository": "https://github.com/poe-platform/poe-code",
+                  "path": ".github/workflows/release-safe.yml"
+                }
+              },
+              "internalParameters": {
+                "github": {
+                  "event_name": "push",
+                  "repository_id": "1078492326",
+                  "repository_owner_id": "129537891"
+                }
+              },
+              "resolvedDependencies": [
+                {
+                  "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+                  "digest": {
+                    "gitCommit": "d92879b57436f4e65441cf217227b948ea2a2ccc"
+                  }
+                }
+              ]
+            },
+            "runDetails": {
+              "builder": {
+                "id": "https://github.com/actions/runner/github-hosted"
+              },
+              "metadata": {
+                "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34746694706/attempts/1"
+              }
+            }
+          }
+        }
+      ],
+      "sourceAncestryVerified": true,
+      "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-scoped567-first-fs-aqk7xfq9",
+      "commands": [
+        {
+          "command": [
+            "npm",
+            "install",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+            "@poe-platform/safe-fs@0.1.567"
+          ],
+          "exitCode": 0,
+          "output": "\nadded 3 packages in 1s\n"
+        },
+        {
+          "command": [
+            "node",
+            "smoke.mjs",
+            "fs",
+            "@poe-platform/safe-fs"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"@poe-platform/safe-fs\",\"mode\":\"fs\",\"status\":\"passed\",\"node\":\"v22.23.2\",\"icu\":\"78.2\"}\n"
+        },
+        {
+          "command": [
+            "npm",
+            "exec",
+            "--yes",
+            "--package=node@18.18.0",
+            "--",
+            "node",
+            "smoke.mjs",
+            "fs",
+            "@poe-platform/safe-fs"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"@poe-platform/safe-fs\",\"mode\":\"fs\",\"status\":\"passed\",\"node\":\"v18.18.0\",\"icu\":\"73.2\"}\n"
+        },
+        {
+          "command": [
+            "npm",
+            "audit",
+            "signatures"
+          ],
+          "exitCode": 0,
+          "output": "audited 3 packages in 0s\n\n3 packages have verified registry signatures\n\n2 packages have verified attestations\n\n"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "name": "@poe-platform/safe-bash",
+      "version": "0.1.567",
+      "metadata": {
+        "name": "@poe-platform/safe-bash",
+        "version": "0.1.567",
+        "dist": {
+          "shasum": "b4a1b1da9d2e19c8c65950eb24b9b6708b297cdb",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.567.tgz",
+          "fileCount": 1645,
+          "integrity": "sha512-Xh3linQ2DBzGLl/Jd08D0CGmS2pJ3uUxETiaotbwZ7blMaAnhD++u2EDaPCgTU+WVIb+UvqUjkH7//OuFIM1OA==",
+          "signatures": [
+            {
+              "sig": "MEQCIElmvPLFd78gixZIWoK3doMK2k14qghnAuF7JR06ZdQiAiAdhdmmWFSgznLQj/LReDpZ/CwWj3s6dFUWQctyOGLU3Q==",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.567",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 26143278
+        }
+      },
+      "integrityVerified": true,
+      "provenanceStatements": [
+        {
+          "_type": "https://in-toto.io/Statement/v1",
+          "subject": [
+            {
+              "name": "pkg:npm/%40poe-platform/safe-bash@0.1.567",
+              "digest": {
+                "sha512": "5e1de58a74360c1cc62e5fc9774f03d021a64b6a49dee53111389aa2d6f067b6e531a027843fbebb610368f0a04d4f965486fe52fa948e41fbfff3ae14833538"
+              }
+            }
+          ],
+          "predicateType": "https://slsa.dev/provenance/v1",
+          "predicate": {
+            "buildDefinition": {
+              "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+              "externalParameters": {
+                "workflow": {
+                  "ref": "refs/heads/main",
+                  "repository": "https://github.com/poe-platform/poe-code",
+                  "path": ".github/workflows/release-safe.yml"
+                }
+              },
+              "internalParameters": {
+                "github": {
+                  "event_name": "push",
+                  "repository_id": "1078492326",
+                  "repository_owner_id": "129537891"
+                }
+              },
+              "resolvedDependencies": [
+                {
+                  "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+                  "digest": {
+                    "gitCommit": "d92879b57436f4e65441cf217227b948ea2a2ccc"
+                  }
+                }
+              ]
+            },
+            "runDetails": {
+              "builder": {
+                "id": "https://github.com/actions/runner/github-hosted"
+              },
+              "metadata": {
+                "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34746694706/attempts/1"
+              }
+            }
+          }
+        }
+      ],
+      "sourceAncestryVerified": true,
+      "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-scoped567-first-bash-pr4_ozte",
+      "commands": [
+        {
+          "command": [
+            "npm",
+            "install",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+            "@poe-platform/safe-bash@0.1.567"
+          ],
+          "exitCode": 0,
+          "output": "\nadded 6 packages in 2s\n"
+        },
+        {
+          "command": [
+            "node",
+            "smoke.mjs",
+            "bash",
+            "@poe-platform/safe-bash"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"@poe-platform/safe-bash\",\"mode\":\"bash\",\"status\":\"passed\",\"node\":\"v22.23.2\",\"icu\":\"78.2\"}\n"
+        },
+        {
+          "command": [
+            "npm",
+            "exec",
+            "--yes",
+            "--package=node@18.18.0",
+            "--",
+            "node",
+            "smoke.mjs",
+            "bash",
+            "@poe-platform/safe-bash"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"@poe-platform/safe-bash\",\"mode\":\"bash\",\"status\":\"passed\",\"node\":\"v18.18.0\",\"icu\":\"73.2\"}\n"
+        },
+        {
+          "command": [
+            "npm",
+            "audit",
+            "signatures"
+          ],
+          "exitCode": 0,
+          "output": "audited 6 packages in 0s\n\n6 packages have verified registry signatures\n\n4 packages have verified attestations\n\n"
+        }
+      ],
+      "status": "passed"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+TAP version 13
+# ✘ [ERROR] Could not resolve "\#safe-fs-native-seek"
+#     packages/safe-fs/dist/node/native-seek.js:6:36:
+#       6 │         const module = await import("\#safe-fs-native-seek");
+#         ╵                                     ~~~~~~~~~~~~~~~~~~~~~~
+#   The package import "\#safe-fs-native-seek" is not defined in this "imports" map:
+#     packages/safe-fs/dist/package.json:3:13:
+#       3 │   "imports": {
+#         ╵              ^
+#   You can mark the path "\#safe-fs-native-seek" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle. You can also add ".catch()" here to handle this failure at run-time instead of bundle-time.
+# Subtest: Workerd public entry bundles without native filesystem authority
+not ok 1 - Workerd public entry bundles without native filesystem authority
+  ---
+  duration_ms: 109.81925
+  type: 'test'
+  location: '/Users/kjopek/Workspace/poe-code/packages/safe-js/scripts/built-imports.test.mjs:7:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Build failed with 1 error:
+    packages/safe-fs/dist/node/native-seek.js:6:36: ERROR: Could not resolve "#safe-fs-native-seek"
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    failureErrorWithLog (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1748:15)
+    /Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1207:25
+    /Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1159:52
+    buildResponseToResult (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1205:7)
+    /Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1232:16
+    responseCallbacks.<computed> (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:884:9)
+    handleIncomingPacket (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:939:12)
+    Socket.readFromStdout (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:862:7)
+    Socket.emit (node:events:519:28)
+    addChunk (node:internal/streams/readable:561:12)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 167.603958

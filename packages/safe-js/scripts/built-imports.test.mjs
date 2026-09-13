@@ -2,6 +2,17 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
+import { build } from "esbuild";
+
+test("Workerd public entry bundles without native filesystem authority", async () => {
+  const result = await build({
+    entryPoints: [new URL("../dist/workerd.js", import.meta.url).pathname],
+    bundle: true, platform: "neutral", format: "esm", conditions: ["workerd"],
+    external: ["node:*"], write: false, metafile: true
+  });
+  assert.ok(result.outputFiles.length > 0);
+  assert.equal(Object.keys(result.metafile.inputs).some(name => name.includes("native-seek")), false);
+});
 
 const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 test("built platform resolution does not add a nested canonical filesystem package scope", () => {

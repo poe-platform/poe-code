@@ -1647,3 +1647,22 @@ local, not verified on remote main. This evidence-only audit does not push
 or initiate publication. Release receipt: **null**. The new evidence commit's
 SHA is reported separately after commit. No CLI behavior changed, so visual
 CLI screenshots do not apply.
+
+
+### Promise admission delivery qualification and Workerd repair — 2026-09-12
+
+Source base: `4408e49a0c4ac0cdddc9af2b59cd772950d6ca08`. Node **22.23.2**, ICU **78.2**. Existing admission, proof-authority and export repairs were present before this execution. Fetch confirmed remote main `40b5ac20e91570772786e5f9cb961881b11d6692`, an ancestor. Unrelated working and staged changes remain preserved. The ECMA-262 edition 16 / ECMA-402 edition 12 target and separately tracked newer APIs remain unchanged.
+
+The Workerd bundle blocker is now reproduced and repaired: a new maintained in-memory esbuild postbuild test fails resolving `#safe-fs-native-seek` before the change (one failure, zero skips). `modules/fs.ts` now imports the bridge from the existing SafeFS `/node` export and contracts from `/contracts`, avoiding the unrelated real-filesystem barrel. No native module is stubbed or newly externalized.
+
+Fresh commands and outcomes:
+
+- `npx vitest run packages/safe-js/src/interp/native-promise-admission.test.ts packages/safe-js/src/interp/native-promise-admission-budgets.test.ts packages/safe-js/src/interp/promise-import-properties.test.ts packages/safe-js/src/snapshot/input-symbol-references.test.ts packages/safe-js/src/index.test.ts packages/safe-js/src/core.test.ts`: **60 passed**, no failures/skips.
+- `node --test --test-name-pattern='Workerd public' packages/safe-js/scripts/built-imports.test.mjs`: **one expected failure** before repair, recorded in `delivery-20260912/workerd-red.log`.
+- `npm run build:workspaces -- --workspace=@poe-code/safe-js`: **exit 0**, all eight maintained postbuild tests passed, including the regression. Build log retained.
+- `npx eslint packages/safe-js/src/modules/fs.ts packages/safe-js/scripts/built-imports.test.mjs`: **exit 0**.
+- `npx vitest run packages/safe-js/src/modules/fs.workerd.test.ts packages/safe-js/src/platform/workerd.test.ts packages/safe-js/src/modules/fs.test.ts`: **561 passed**, no failures/skips.
+- `npx vitest run packages/safe-js/src/modules/fs.adapters.test.ts packages/safe-js/src/modules/fs.conformance.test.ts packages/safe-js/src/modules/fs.host-module.test.ts packages/safe-js/src/modules/fs.option-surface.test.ts packages/safe-js/src/run.replay.stress.test.ts -t 'callback completion proof|.'`: **368 passed / 33 skipped**, no failures. The expression selects all named tests; this ran the complete replay stress file. The 33 declared filesystem reference gaps remain nonpasses.
+- Actual **workerd 2026-09-01** execution passes binding and nested-host-result admission controls. Exact manual source/configuration and commands are in `delivery-20260912/workerd-qualification.md`. ICU is not exposed there. This closes the earlier bundle/runtime admission blocker without claiming unavailable Workerd APIs.
+
+The previous complete package result remains historical; the additional import repair is covered by the maintained build, focused filesystem suites and actual Workerd control. No budgets, assertions, runtime support or timeouts were weakened. No CLI rendering changed. No issue number is explicitly associated with this task. Local commit, remote ancestry and publication receipts follow separately; at this point a push/publication is not yet claimed.

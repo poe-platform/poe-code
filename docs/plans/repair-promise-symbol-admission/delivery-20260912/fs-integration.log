@@ -1,0 +1,15 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/modules/fs.host-module.test.ts (9 tests) 616ms
+ ✓ packages/safe-js/src/modules/fs.adapters.test.ts (97 tests) 729ms
+ ✓ packages/safe-js/src/modules/fs.conformance.test.ts (201 tests | 33 skipped) 73ms
+ ✓ packages/safe-js/src/modules/fs.option-surface.test.ts (29 tests) 8ms
+ ✓ packages/safe-js/src/run.replay.stress.test.ts (65 tests) 7169ms
+     ✓ matches native random reaction ordering across 32 rounds  626ms
+
+ Test Files  5 passed (5)
+      Tests  368 passed | 33 skipped (401)
+   Start at  19:47:41
+   Duration  11.48s (transform 4.57s, setup 162ms, import 8.20s, tests 8.59s, environment 0ms)
+

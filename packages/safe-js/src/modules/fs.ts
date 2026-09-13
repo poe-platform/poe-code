@@ -3,13 +3,13 @@ import * as nodeFsPromises from "node:fs/promises";
 import { dirname, isAbsolute, resolve, sep } from "node:path";
 import { inspect } from "node:util";
 import { accessDeniedSystemError } from "#safe-js-platform";
+import { createNodeFsBridge } from "@poe-code/safe-fs/node";
 import {
-  createNodeFsBridge,
   type EntryComparison,
   type FileSystem,
   FsError,
   isPathWithin
-} from "@poe-code/safe-fs";
+} from "@poe-code/safe-fs/contracts";
 
 import { getOwnErrorCode } from "../error-codes.js";
 import { declareHostOperation } from "../interp/host-bridge.js";

@@ -73,6 +73,14 @@ function text(value: unknown): asserts value is string {
       invalid();
   }
 }
+function utf8Size(value: string): number {
+  let size = 0;
+  for (const character of value) {
+    const point = character.codePointAt(0)!;
+    size += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
+  }
+  return size;
+}
 export function validateTemplateBindings(
   bindings: unknown
 ): asserts bindings is readonly TemplateBinding[] {
@@ -166,11 +174,11 @@ export async function applyTemplateBindings(
     context.signal?.throwIfAborted();
     const size =
       binding.kind === "text"
-        ? binding.text.length
+        ? utf8Size(binding.text)
         : binding.kind === "image"
           ? binding.image.bytes.length
           : binding.table.reduce(
-              (n, row) => n + row.reduce((m, cell) => m + cell.length + 1, 0),
+              (n, row) => n + row.reduce((m, cell) => m + utf8Size(cell) + 1, 0),
               0
             );
     cumulative += size;
@@ -191,10 +199,10 @@ export async function applyTemplateBindings(
   for (const binding of snapshots) {
     const size =
       binding.kind === "text"
-        ? binding.text.length
+        ? utf8Size(binding.text)
         : binding.kind === "image"
           ? binding.image.bytes.length
-          : binding.table.reduce((n, row) => n + row.reduce((m, cell) => m + cell.length, 0), 0);
+          : binding.table.reduce((n, row) => n + row.reduce((m, cell) => m + utf8Size(cell), 0), 0);
     if (
       size >
       Math.min(
@@ -399,10 +407,11 @@ export async function applyTemplateBindings(
           if (binding.kind !== "text") invalid();
           return { ...marker, value: binding.text };
         });
-        let projected = original.length;
+        let projected = utf8Size(original);
         for (const replacement of replacements) {
-          projected += replacement.value.length - (replacement.end - replacement.start);
-          replacementBudget += replacement.value.length;
+          const size = utf8Size(replacement.value);
+          projected += size - utf8Size(original.slice(replacement.start, replacement.end));
+          replacementBudget += size;
           if (
             !Number.isSafeInteger(projected) ||
             projected > context.xmlLimits.maxBytes ||

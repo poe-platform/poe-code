@@ -60,6 +60,11 @@ bindings fail before publication. Literal single or unmatched braces are text.
 Text inserted by a binding is never scanned again, so `{{other}}` in a supplied
 value stays literal. No expressions, scripts or dotted-property lookup run.
 
+Payload and expanded-text byte budgets count UTF-8 bytes, including multibyte
+Unicode. Oversized text or table payloads fail admission before the SDK reads
+the presentation; repeated replacements are bounded before editing. Serialized
+XML and package output must also fit their configured limits.
+
 Cross-run text replacements retain the first affected run's formatting and leave
 unaffected runs and hyperlinks intact. Table binding retains the fixed grid and
 cell formatting. Image binding changes the selected occurrence, preserving

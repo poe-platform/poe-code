@@ -308,11 +308,52 @@ it("rejects an empty media type during stored-data validation", async () => {
     ])
   ).toThrowError(expect.objectContaining({ code: "invalid-value" }));
 });
-it("bounds multiplied replacement text before package publication", async () => {
-  const source = await fixture("{{title}} {{title}} {{title}}");
+it.each(["x".repeat(40000), "海".repeat(15000), "😀".repeat(10000)])(
+  "bounds multiplied replacement text before package publication (%#)",
+  async (value) => {
+    const source = await fixture("{{title}} {{title}} {{title}}");
+    await expect(
+      applyTemplateBindings(source, [binding("title", value, "all")], context)
+    ).rejects.toMatchObject({ code: "resource-limit", phase: "validate-intent" });
+  }
+);
+it.each([
+  { kind: "text", text: "海".repeat(4) },
+  { kind: "text", text: "😀".repeat(3) },
+  { kind: "table", table: [["海海", "😀"]] }
+])("admits UTF-8 payload bytes before reading input: $kind", async (payload) => {
+  const read = vi.fn(async () => null);
   await expect(
-    applyTemplateBindings(source, [binding("title", "x".repeat(40000), "all")], context)
-  ).rejects.toMatchObject({ code: "resource-limit" });
+    applyTemplateBindings(
+      { read },
+      [
+        { name: "slot", scope: "slides", slide: 1, cardinality: "one", ...payload }
+      ] as TemplateBinding[],
+      { ...context, limits: { ...context.limits, maxBytes: 9 } }
+    )
+  ).rejects.toMatchObject({ code: "resource-limit", phase: "admit" });
+  expect(read).not.toHaveBeenCalled();
+});
+it("applies the XML payload ceiling in bytes independently of the total budget", async () => {
+  const read = vi.fn(async () => null);
+  await expect(
+    applyTemplateBindings({ read }, [binding("slot", "海😀海")], {
+      ...context,
+      xmlLimits: { ...context.xmlLimits, maxBytes: 9 }
+    })
+  ).rejects.toMatchObject({ code: "resource-limit", phase: "admit" });
+  expect(read).not.toHaveBeenCalled();
+});
+it("admits a Unicode payload at the exact UTF-8 boundary", async () => {
+  const read = vi.fn(async () => null);
+  await expect(
+    applyTemplateBindings({ read }, [binding("slot", "海😀海")], {
+      ...context,
+      limits: { ...context.limits, maxBytes: 10 },
+      xmlLimits: { ...context.xmlLimits, maxBytes: 10 }
+    })
+  ).rejects.toMatchObject({ code: "invalid-archive", phase: "parse" });
+  expect(read).toHaveBeenCalledOnce();
 });
 it("rejects multi-paragraph table cells before changing their literal value", async () => {
   const deck = await createPresentation({ slides: [{}] }, context);

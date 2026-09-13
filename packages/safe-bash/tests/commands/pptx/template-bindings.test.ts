@@ -226,7 +226,9 @@ test("binding file input supports dry-run and protects the binding source from o
 });
 
 test("invalid bindings leave input and existing output unchanged", async () => {
-  const { shell, volume } = fixture();
+  const { shell, fs, volume } = fixture();
+  const publication = mock.fn(fs.writeFileConditional!);
+  fs.writeFileConditional = publication;
   const input = await originalDeck();
   volume.writeFileSync("/work/deck.pptx", input);
   const sentinel = new Uint8Array([8, 5, 3, 1]);
@@ -240,7 +242,29 @@ test("invalid bindings leave input and existing output unchanged", async () => {
       code: "invalid-value"
     },
     { data: [{ ...bindings[0], expression: "1 + 1" }], exit: 2, code: "invalid-value" },
-    { data: [{ ...bindings[0], scope: "masters" }], exit: 2, code: "invalid-value" }
+    { data: [{ ...bindings[0], scope: "masters" }], exit: 2, code: "invalid-value" },
+    ...Object.keys(bindings[0]).map((missing) => ({
+      data: [Object.fromEntries(Object.entries(bindings[0]).filter(([key]) => key !== missing))],
+      exit: 2,
+      code: "invalid-value"
+    })),
+    { data: [bindings[0], bindings[0]], exit: 2, code: "invalid-value" },
+    {
+      data: [bindings[0], { ...bindings[0], name: "missing later", slide: 2 }],
+      exit: 1,
+      code: "missing-binding"
+    },
+    ...[
+      { kind: "table", table: [[{ value: "cell" }]] },
+      { kind: "table", table: [["first"], ["second", "extra"]] },
+      { kind: "image", image: { bytes: [256], contentType: "image/gif" } },
+      { kind: "image", image: { bytes: [71], contentType: "image/gif", expression: "1 + 1" } },
+      { kind: "image", image: { bytes: [71] } }
+    ].map((value) => ({
+      data: [bindings[0], { name: "later", scope: "slides", slide: 1, cardinality: "one", ...value }],
+      exit: 2,
+      code: "invalid-value"
+    }))
   ];
   try {
     for (const { data, exit, code } of cases) {
@@ -254,6 +278,7 @@ test("invalid bindings leave input and existing output unchanged", async () => {
       assert.equal(envelope.errors[0].code, code);
       assert.equal(envelope.affected, 0);
       assert.equal(envelope.data, null);
+      assert.equal(publication.mock.callCount(), 0);
       assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), input);
       assert.deepEqual(
         new Uint8Array(volume.readFileSync("/work/existing.pptx") as Buffer),
@@ -271,11 +296,41 @@ test("invalid bindings leave input and existing output unchanged", async () => {
       );
       assert.equal(result.exitCode, 2, result.stdout + result.stderr);
       assert.equal(JSON.parse(result.stdout).affected, 0);
+      assert.equal(publication.mock.callCount(), 0);
       assert.deepEqual(
         new Uint8Array(volume.readFileSync("/work/existing.pptx") as Buffer),
         sentinel
       );
     }
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("UTF-8 binding bytes exceed the XML budget before editing or publication", async () => {
+  const limited = { ...context, xmlLimits: { ...context.xmlLimits, maxBytes: 8192 } };
+  const { shell, fs, volume } = fixture(limited);
+  const publication = mock.fn(fs.writeFileConditional!);
+  fs.writeFileConditional = publication;
+  const input = await originalDeck();
+  const sentinel = new Uint8Array([4, 8, 15]);
+  volume.writeFileSync("/work/deck.pptx", input);
+  volume.writeFileSync("/work/existing.pptx", sentinel);
+  const data = [{ ...bindings[0], text: "海".repeat(3000) }];
+  try {
+    const result = await shell.exec(
+      `pptx template apply deck.pptx --data-json '${JSON.stringify(data)}' --output existing.pptx --force --json`
+    );
+    assert.equal(result.exitCode, 4, result.stdout + result.stderr);
+    const envelope = JSON.parse(result.stdout);
+    assert.equal(envelope.ok, false);
+    assert.equal(envelope.affected, 0);
+    assert.equal(envelope.data, null);
+    assert.equal(envelope.errors[0].code, "resource-limit");
+    assert.equal(envelope.errors[0].context.phase, "admit");
+    assert.equal(publication.mock.callCount(), 0);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), input);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/work/existing.pptx") as Buffer), sentinel);
   } finally {
     await shell.dispose();
   }

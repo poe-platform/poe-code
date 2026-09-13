@@ -11,6 +11,16 @@ import { createChartWorkbook, validateChartWorkbook } from "./chart-workbook.js"
 import { applyFrameFormatting } from "./text-frames.js";
 
 export const chartTypes = [
+  "AREA",
+  "AREA_STACKED",
+  "AREA_STACKED_100",
+  "BUBBLE",
+  "BUBBLE_THREE_D_EFFECT",
+  "DOUGHNUT",
+  "DOUGHNUT_EXPLODED",
+  "RADAR",
+  "RADAR_FILLED",
+  "RADAR_MARKERS",
   "BAR_CLUSTERED",
   "BAR_STACKED",
   "BAR_STACKED_100",
@@ -36,9 +46,14 @@ export interface ChartInputSeries {
   readonly name: string;
   readonly values: readonly (number | null)[];
   readonly xValues?: readonly number[];
+  readonly bubbleSizes?: readonly number[];
   readonly numberFormat?: string;
 }
 export interface ChartData {
+  readonly categoryLevels?: readonly (readonly (string | null)[])[];
+  readonly numberFormat?: string;
+  readonly categoryNumberFormat?: string;
+  readonly date1904?: boolean;
   readonly categories?: readonly (string | number | null)[];
   readonly series: readonly ChartInputSeries[];
 }
@@ -119,9 +134,12 @@ function dateSerial(value: string, date1904: boolean): number {
         Math.floor(Date.UTC(1899, 11, 31) / 86400000) +
         (day >= Math.floor(Date.UTC(1900, 2, 1) / 86400000) ? 1 : 0);
 }
-function normalizedData(data: ChartData, date1904 = false): ChartData {
+function normalizedData(data: ChartData, date1904 = data.date1904 ?? false): ChartData {
   return {
     ...data,
+    ...(data.categories?.some(dateLabel)
+      ? { categoryNumberFormat: data.categoryNumberFormat ?? "yyyy-mm-dd" }
+      : {}),
     ...(data.categories
       ? {
           categories: data.categories.map((value) =>
@@ -132,7 +150,37 @@ function normalizedData(data: ChartData, date1904 = false): ChartData {
   };
 }
 export function validateChartData(data: ChartData, type?: CreatableChartType): void {
-  object(data, ["categories", "series"]);
+  object(data, [
+    "categories",
+    "categoryLevels",
+    "numberFormat",
+    "categoryNumberFormat",
+    "date1904",
+    "series"
+  ]);
+  for (const format of [data.numberFormat, data.categoryNumberFormat])
+    if (format !== undefined && typeof format !== "string")
+      invalid("Number formats require strings.");
+  if (data.date1904 !== undefined && typeof data.date1904 !== "boolean")
+    invalid("Date system requires a boolean.");
+  if (data.categoryLevels !== undefined) {
+    array(data.categoryLevels);
+    for (const level of data.categoryLevels) array(level);
+    if (
+      data.categories !== undefined ||
+      data.categoryLevels.length > 64 ||
+      data.categoryLevels.length * (data.categoryLevels[0]?.length ?? 0) > 250000
+    )
+      invalid("Hierarchical categories require at most 64 levels and 250000 labels.");
+    for (const level of data.categoryLevels) {
+      array(level);
+      if (
+        level.length !== data.categoryLevels[0]!.length ||
+        level.some((value) => value !== null && typeof value !== "string")
+      )
+        invalid("Category levels require equally sized string or null arrays.");
+    }
+  }
   array(data.series);
   if (type !== undefined && !chartTypes.includes(type)) invalid("Unsupported chart creation type.");
   if (data.categories !== undefined) {
@@ -150,7 +198,7 @@ export function validateChartData(data: ChartData, type?: CreatableChartType): v
       invalid("Categories require homogeneous strings or finite numbers with optional nulls.");
   }
   for (const series of data.series) {
-    object(series, ["name", "values", "xValues", "numberFormat"]);
+    object(series, ["name", "values", "xValues", "bubbleSizes", "numberFormat"]);
     if (
       typeof series.name !== "string" ||
       (series.numberFormat !== undefined && typeof series.numberFormat !== "string")
@@ -167,19 +215,33 @@ export function validateChartData(data: ChartData, type?: CreatableChartType): v
       )
         invalid("Scatter coordinates require equal length finite x values.");
     }
-    if (type?.startsWith("XY_")) {
-      if (data.categories !== undefined || !series.xValues)
+    if (series.bubbleSizes !== undefined) {
+      array(series.bubbleSizes);
+      if (
+        series.bubbleSizes.length !== series.values.length ||
+        series.bubbleSizes.some(
+          (value) => typeof value !== "number" || !Number.isFinite(value) || value < 0
+        )
+      )
+        invalid("Bubble sizes require equal length nonnegative finite values.");
+    }
+    if (type !== undefined && !type.startsWith("BUBBLE") && series.bubbleSizes !== undefined)
+      invalid("Bubble sizes are only supported by bubble charts.");
+    if (type?.startsWith("BUBBLE") && series.bubbleSizes === undefined)
+      invalid("Bubble charts require sizes.");
+    if (type?.startsWith("XY_") || type?.startsWith("BUBBLE")) {
+      if (data.categories !== undefined || data.categoryLevels !== undefined || !series.xValues)
         invalid("Scatter requires x values and forbids categories.");
     } else if (type !== undefined) {
       if (
-        !data.categories ||
-        data.categories.length !== series.values.length ||
+        (!data.categories && !data.categoryLevels) ||
+        (data.categories ?? data.categoryLevels![0]!).length !== series.values.length ||
         series.xValues !== undefined
       )
         invalid("Category series lengths must match categories.");
     }
   }
-  if (type?.startsWith("PIE") && data.series.length !== 1)
+  if ((type?.startsWith("PIE") || type?.startsWith("DOUGHNUT")) && data.series.length !== 1)
     invalid("Pie charts require exactly one series.");
 }
 export function validateChartUpdate(update: ChartUpdate): void {
@@ -212,8 +274,12 @@ function column(n: number): string {
 }
 function variant(type: CreatableChartType) {
   return {
-    scatter: type.startsWith("XY_"),
-    pie: type.startsWith("PIE"),
+    scatter: type.startsWith("XY_") || type.startsWith("BUBBLE"),
+    bubble: type.startsWith("BUBBLE"),
+    area: type.startsWith("AREA"),
+    radar: type.startsWith("RADAR"),
+    doughnut: type.startsWith("DOUGHNUT"),
+    pie: type.startsWith("PIE") || type.startsWith("DOUGHNUT"),
     bar: type.startsWith("BAR_") || type.startsWith("COLUMN_"),
     horizontal: type.startsWith("BAR_"),
     grouping: type.endsWith("_100")
@@ -236,8 +302,8 @@ function seriesXml(
   data = normalizedData(data, date1904);
   const series = data.series[index]!,
     v = variant(type),
-    xColumn = v.scatter ? index * 2 : 0,
-    yColumn = v.scatter ? index * 2 + 1 : index + 1;
+    xColumn = v.scatter ? index * (v.bubble ? 3 : 2) : 0,
+    yColumn = v.scatter ? xColumn + 1 : index + (data.categoryLevels?.length ?? 1);
   const sheet = sheetName === "Sheet1" ? sheetName : `'${sheetName.split("'").join("''")}'`;
   const reference = (
     holder: string,
@@ -245,18 +311,32 @@ function seriesXml(
     numeric: boolean,
     col: number
   ) =>
-    `<c:${holder}><c:${numeric ? "num" : "str"}Ref><c:f>${escape(`${sheet}!$${column(col)}$2:$${column(col)}$${values.length + 1}`)}</c:f><c:${numeric ? "num" : "str"}Cache>${numeric ? `<c:formatCode>${escape(holder === "cat" && dates ? "yyyy-mm-dd" : (series.numberFormat ?? "General"))}</c:formatCode>` : ""}<c:ptCount val="${values.length}"/>${values.map((n, i) => (n === null ? "" : `<c:pt idx="${i}"><c:v>${escape(String(n))}</c:v></c:pt>`)).join("")}</c:${numeric ? "num" : "str"}Cache></c:${numeric ? "num" : "str"}Ref></c:${holder}>`;
-  return `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:strRef><c:f>${escape(`${sheet}!$${column(yColumn)}$1`)}</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>${escape(series.name)}</c:v></c:pt></c:strCache></c:strRef></c:tx>${type.startsWith("LINE") || v.scatter ? `<c:marker><c:symbol val="${(v.scatter ? v.marker : type.includes("MARKERS")) ? "circle" : "none"}"/></c:marker>` : ""}${type === "PIE_EXPLODED" ? '<c:explosion val="25"/>' : ""}${
+    `<c:${holder}><c:${numeric ? "num" : "str"}Ref><c:f>${escape(`${sheet}!$${column(col)}$2:$${column(col)}$${values.length + 1}`)}</c:f><c:${numeric ? "num" : "str"}Cache>${numeric ? `<c:formatCode>${escape(holder === "cat" ? (data.categoryNumberFormat ?? (dates ? "yyyy-mm-dd" : "General")) : holder === "xVal" || holder === "bubbleSize" ? (data.numberFormat ?? "General") : (series.numberFormat ?? data.numberFormat ?? "General"))}</c:formatCode>` : ""}<c:ptCount val="${values.length}"/>${values.map((n, i) => (n === null ? "" : `<c:pt idx="${i}"><c:v>${escape(String(n))}</c:v></c:pt>`)).join("")}</c:${numeric ? "num" : "str"}Cache></c:${numeric ? "num" : "str"}Ref></c:${holder}>`;
+  return `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:strRef><c:f>${escape(`${sheet}!$${column(yColumn)}$1`)}</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>${escape(series.name)}</c:v></c:pt></c:strCache></c:strRef></c:tx>${type.startsWith("LINE") || (v.scatter && !v.bubble) || (v.radar && type !== "RADAR_FILLED") ? `<c:marker><c:symbol val="${(v.scatter ? v.marker : type.includes("MARKERS")) ? "circle" : "none"}"/></c:marker>` : ""}${type === "PIE_EXPLODED" || type === "DOUGHNUT_EXPLODED" ? '<c:explosion val="25"/>' : ""}${
     v.scatter
       ? reference("xVal", series.xValues!, true, xColumn) +
-        reference("yVal", series.values, true, yColumn)
-      : reference(
-          "cat",
-          data.categories!,
-          data.categories!.some((x) => typeof x === "number"),
-          0
-        ) + reference("val", series.values, true, yColumn)
-  }${type.startsWith("LINE") || v.scatter ? `<c:smooth val="${v.smooth ? 1 : 0}"/>` : ""}</c:ser>`;
+        reference("yVal", series.values, true, yColumn) +
+        (v.bubble
+          ? reference("bubbleSize", series.bubbleSizes!, true, yColumn + 1) +
+            `<c:bubble3D val="${type === "BUBBLE_THREE_D_EFFECT" ? 1 : 0}"/>`
+          : "")
+      : (data.categoryLevels
+          ? `<c:cat><c:multiLvlStrRef><c:f>${escape(`${sheet}!$A$2:$${column(data.categoryLevels.length - 1)}$${data.categoryLevels[0]!.length + 1}`)}</c:f><c:multiLvlStrCache><c:ptCount val="${data.categoryLevels[0]!.length}"/>${[
+              ...data.categoryLevels
+            ]
+              .reverse()
+              .map(
+                (level, reversedLevel) =>
+                  `<c:lvl>${level.map((value, i) => (value === null || (reversedLevel > 0 && i > 0 && data.categoryLevels!.slice(0, data.categoryLevels!.length - reversedLevel).every((ancestor) => ancestor[i] === ancestor[i - 1])) ? "" : `<c:pt idx="${i}"><c:v>${escape(value)}</c:v></c:pt>`)).join("")}</c:lvl>`
+              )
+              .join("")}</c:multiLvlStrCache></c:multiLvlStrRef></c:cat>`
+          : reference(
+              "cat",
+              data.categories!,
+              data.categories!.some((x) => typeof x === "number"),
+              0
+            )) + reference("val", series.values, true, yColumn)
+  }${type.startsWith("LINE") || (v.scatter && !v.bubble) ? `<c:smooth val="${v.smooth ? 1 : 0}"/>` : ""}</c:ser>`;
 }
 function titleXml(title: string, a: string, c: string): string {
   return `<c:title xmlns:c="${c}" xmlns:a="${a}"><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>${escape(title)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>`;
@@ -267,7 +347,7 @@ export function createChartXml(
   properties: ChartUpdate = {},
   strict = false,
   sheetName = "Sheet1",
-  date1904 = false
+  date1904 = data.date1904 ?? false
 ): string {
   validateChartData(data, type);
   validateChartUpdate(properties);
@@ -281,19 +361,37 @@ export function createChartXml(
       ? "http://purl.oclc.org/ooxml/officeDocument/relationships"
       : "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
     v = variant(type),
-    plot = v.scatter ? "scatterChart" : v.pie ? "pieChart" : v.bar ? "barChart" : "lineChart";
+    plot = v.bubble
+      ? "bubbleChart"
+      : v.scatter
+        ? "scatterChart"
+        : v.doughnut
+          ? "doughnutChart"
+          : v.pie
+            ? "pieChart"
+            : v.bar
+              ? "barChart"
+              : v.area
+                ? "areaChart"
+                : v.radar
+                  ? "radarChart"
+                  : "lineChart";
   const axisName = (category: boolean) =>
-    category ? (data.categories?.some(dateLabel) ? "dateAx" : "catAx") : "valAx";
+    category ? (data.categories?.some(dateLabel) && !v.radar ? "dateAx" : "catAx") : "valAx";
   const axis = (id: number, cross: number, pos: string, category: boolean) =>
-    `<c:${axisName(category)}><c:axId val="${id}"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="${pos}"/><c:numFmt formatCode="${category && data.categories?.some(dateLabel) ? "yyyy-mm-dd" : "General"}" sourceLinked="1"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:crossAx val="${cross}"/><c:crosses val="autoZero"/>${category ? (data.categories?.some(dateLabel) ? '<c:auto val="1"/><c:lblOffset val="100"/><c:baseTimeUnit val="days"/>' : '<c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/>') : `<c:crossBetween val="${v.scatter ? "midCat" : "between"}"/>`}</c:${axisName(category)}>`;
-  const setup = v.scatter
-    ? `<c:scatterStyle val="${type === "XY_SCATTER" ? "marker" : v.smooth ? (v.marker ? "smoothMarker" : "smooth") : v.marker ? "lineMarker" : "line"}"/>`
-    : v.bar
-      ? `<c:barDir val="${v.horizontal ? "bar" : "col"}"/><c:grouping val="${v.grouping}"/>`
-      : v.pie
-        ? ""
-        : `<c:grouping val="${v.grouping === "clustered" ? "standard" : v.grouping}"/>`;
-  return `<c:chartSpace xmlns:c="${c}" xmlns:a="${a}" xmlns:r="${r}">${date1904 ? '<c:date1904 val="1"/>' : ""}${properties.style === undefined ? "" : `<c:style val="${properties.style}"/>`}<c:chart>${properties.title === undefined ? "" : titleXml(properties.title, a, c)}<c:autoTitleDeleted val="${properties.title === undefined ? 1 : 0}"/><c:plotArea><c:layout/><c:${plot}>${setup}<c:varyColors val="${v.pie ? 1 : 0}"/>${data.series.map((_, i) => seriesXml(type, data, i, sheetName, date1904)).join("")}${v.bar ? `<c:gapWidth val="150"/>${v.grouping !== "clustered" ? '<c:overlap val="100"/>' : ""}` : ""}${v.pie ? '<c:firstSliceAng val="0"/>' : '<c:axId val="1"/><c:axId val="2"/>'}</c:${plot}>${v.pie ? "" : axis(1, 2, v.horizontal ? "l" : "b", !v.scatter) + axis(2, 1, v.horizontal ? "b" : "l", false)}</c:plotArea>${properties.legend ? '<c:legend><c:legendPos val="r"/><c:overlay val="0"/></c:legend>' : ""}<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart><c:externalData r:id="rId1"><c:autoUpdate val="0"/></c:externalData></c:chartSpace>`;
+    `<c:${axisName(category)}><c:axId val="${id}"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="${pos}"/><c:numFmt formatCode="${escape(category ? (data.categoryNumberFormat ?? (data.categories?.some(dateLabel) ? "yyyy-mm-dd" : "General")) : "General")}" sourceLinked="1"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:crossAx val="${cross}"/><c:crosses val="autoZero"/>${category ? (data.categories?.some(dateLabel) && !v.radar ? '<c:auto val="1"/><c:lblOffset val="100"/><c:baseTimeUnit val="days"/>' : '<c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/>') : `<c:crossBetween val="${v.scatter ? "midCat" : "between"}"/>`}</c:${axisName(category)}>`;
+  const setup = v.bubble
+    ? ""
+    : v.radar
+      ? `<c:radarStyle val="${type === "RADAR_FILLED" ? "filled" : "marker"}"/>`
+      : v.scatter
+        ? `<c:scatterStyle val="${type === "XY_SCATTER" ? "marker" : v.smooth ? (v.marker ? "smoothMarker" : "smooth") : v.marker ? "lineMarker" : "line"}"/>`
+        : v.bar
+          ? `<c:barDir val="${v.horizontal ? "bar" : "col"}"/><c:grouping val="${v.grouping}"/>`
+          : v.pie
+            ? ""
+            : `<c:grouping val="${v.grouping === "clustered" ? "standard" : v.grouping}"/>`;
+  return `<c:chartSpace xmlns:c="${c}" xmlns:a="${a}" xmlns:r="${r}">${date1904 ? '<c:date1904 val="1"/>' : ""}${properties.style === undefined ? "" : `<c:style val="${properties.style}"/>`}<c:chart>${properties.title === undefined ? "" : titleXml(properties.title, a, c)}<c:autoTitleDeleted val="${properties.title === undefined ? 1 : 0}"/><c:plotArea><c:layout/><c:${plot}>${setup}<c:varyColors val="${v.pie ? 1 : 0}"/>${data.series.map((_, i) => seriesXml(type, data, i, sheetName, date1904)).join("")}${v.bar ? `<c:gapWidth val="150"/>${v.grouping !== "clustered" ? '<c:overlap val="100"/>' : ""}` : ""}${v.bubble ? '<c:bubbleScale val="100"/><c:showNegBubbles val="0"/>' : ""}${v.doughnut ? '<c:firstSliceAng val="0"/><c:holeSize val="50"/>' : v.pie ? '<c:firstSliceAng val="0"/>' : '<c:axId val="1"/><c:axId val="2"/>'}</c:${plot}>${v.pie ? "" : axis(1, 2, v.horizontal ? "l" : "b", !v.scatter) + axis(2, 1, v.horizontal ? "b" : "l", false)}</c:plotArea>${properties.legend ? '<c:legend><c:legendPos val="r"/><c:overlay val="0"/></c:legend>' : ""}<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart><c:externalData r:id="rId1"><c:autoUpdate val="0"/></c:externalData></c:chartSpace>`;
 }
 export async function addChart(
   input: BinaryInput,
@@ -370,7 +468,9 @@ export async function addChart(
   );
   s.changes.set(
     workbookPart,
-    await createChartWorkbook(normalizedData(options.data), variant(type).scatter, context)
+    await createChartWorkbook(normalizedData(options.data), variant(type).scatter, context, {
+      date1904: options.data.date1904 ?? false
+    })
   );
   s.changes.set(
     relPart(chartPart),
@@ -467,6 +567,22 @@ function existingType(doc: XmlPart): CreatableChartType {
     return `LINE${marker && marker !== "none" ? "_MARKERS" : ""}${suffix}` as CreatableChartType;
   }
   if (plot.type === "pieChart") return "PIE";
+  if (plot.type === "doughnutChart") return "DOUGHNUT";
+  if (plot.type === "areaChart") return `AREA${suffix}` as CreatableChartType;
+  if (plot.type === "radarChart") {
+    if (plot.properties.radarStyle === "filled") return "RADAR_FILLED";
+    const marker = plot.series[0]?.marker?.children.find((node) => node.name === "symbol")
+      ?.attributes.val;
+    return marker === "none" ? "RADAR" : "RADAR_MARKERS";
+  }
+  if (plot.type === "bubbleChart") {
+    const chart = required(required(doc.root, "chart"), "plotArea");
+    const series = child(required(chart, "bubbleChart"), "ser");
+    const effect = series && child(series, "bubble3D");
+    return effect && ["1", "true"].includes(attr(effect, "val") ?? "")
+      ? "BUBBLE_THREE_D_EFFECT"
+      : "BUBBLE";
+  }
   if (plot.type === "scatterChart") {
     const types: Record<string, CreatableChartType> = {
       marker: "XY_SCATTER",
@@ -545,27 +661,34 @@ export async function setCharts(
         metadata = await validateChartWorkbook(workbook, context);
       if (s.index.inventory.relationships.filter((x) => x.targetPart === workbookPart).length !== 1)
         unsupported("Shared chart workbook ownership is ambiguous.");
+      if (update.data.date1904 !== undefined && update.data.date1904 !== metadata.date1904)
+        unsupported("Chart replacement must retain the existing date system.");
       const sheet =
         metadata.sheetName === "Sheet1"
           ? "Sheet1"
           : `'${metadata.sheetName.split("'").join("''")}'`;
       for (const [index, series] of inspection.plots[0]!.series.entries()) {
-        const scatter = variant(type).scatter,
-          xColumn = scatter ? index * 2 : 0,
-          yColumn = scatter ? index * 2 + 1 : index + 1;
+        const v = variant(type),
+          scatter = v.scatter,
+          depth = series.categories?.levels.length || 1,
+          xColumn = scatter ? index * (v.bubble ? 3 : 2) : 0,
+          yColumn = scatter ? xColumn + 1 : index + depth;
         const channels = [
           [series.nameSource, `${sheet}!$${column(yColumn)}$1`],
           [scatter ? series.xValues : series.categories, null],
-          [scatter ? series.yValues : series.values, null]
+          [scatter ? series.yValues : series.values, null],
+          ...(v.bubble ? [[series.bubbleSizes, null] as const] : [])
         ] as const;
         for (const [position, [source, nameFormula]] of channels.entries()) {
           if (!source || source.authority !== "referenced" || !source.cached)
             unsupported("Chart data must have simple owned cached references.");
           const count = Number(source.pointCount),
-            col = position === 1 ? xColumn : yColumn;
+            col = position === 1 ? xColumn : position === 3 ? yColumn + 1 : yColumn;
           if (!Number.isSafeInteger(count) || count < 1)
             unsupported("Chart cache cardinality is invalid.");
-          const expected = nameFormula ?? `${sheet}!$${column(col)}$2:$${column(col)}$${count + 1}`;
+          const expected =
+            nameFormula ??
+            `${sheet}!$${column(col)}$2:$${column(position === 1 && !scatter ? depth - 1 : col)}$${count + 1}`;
           if (source.formula !== expected)
             unsupported("Chart formulas must reference their owned simple data ranges.");
         }
@@ -601,7 +724,8 @@ export async function setCharts(
         for (const name of [
           "tx",
           variant(type).scatter ? "xVal" : "cat",
-          variant(type).scatter ? "yVal" : "val"
+          variant(type).scatter ? "yVal" : "val",
+          ...(variant(type).bubble ? ["bubbleSize"] : [])
         ]) {
           const fresh = child(generated.root, name)!;
           const updatedPlot = required(required(doc.root, "chart"), "plotArea").children.find(

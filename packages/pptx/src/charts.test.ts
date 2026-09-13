@@ -5,6 +5,13 @@ import { parseXmlPart } from "./xml.js";
 import { inspectChart, readCharts } from "./charts.js";
 const c = "http://schemas.openxmlformats.org/drawingml/2006/chart";
 const limits = { maxBytes: 65536, maxNodes: 4000, maxDepth: 32 };
+it("recognizes bubble depth decoration while retaining unknown extensions", () => {
+  const result = chart(
+    '<c:chart><c:plotArea><c:bubbleChart><c:ser><c:bubble3D val="1"/></c:ser></c:bubbleChart></c:plotArea><c:extLst/></c:chart>'
+  );
+  expect(result.unsupported.map((node) => node.name)).toEqual(["extLst"]);
+  expect(result.plots[0]!.series[0]!.xml).toContain('<c:bubble3D val="1"/>');
+});
 function chart(body: string, ns = c) {
   return inspectChart(
     parseXmlPart(

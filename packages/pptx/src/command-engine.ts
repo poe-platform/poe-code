@@ -3591,16 +3591,23 @@ async function execute(
           (adding
             ? "Slide positions are one-based. Lengths require emu, in, cm, mm or pt.\n" +
               "Types:\n" +
+              "  AREA, AREA_STACKED, AREA_STACKED_100\n" +
               "  BAR_CLUSTERED, BAR_STACKED, BAR_STACKED_100\n" +
               "  COLUMN_CLUSTERED, COLUMN_STACKED, COLUMN_STACKED_100\n" +
               "  LINE, LINE_STACKED, LINE_STACKED_100\n" +
               "  LINE_MARKERS, LINE_MARKERS_STACKED, LINE_MARKERS_STACKED_100\n" +
               "  PIE, PIE_EXPLODED\n" +
+              "  DOUGHNUT, DOUGHNUT_EXPLODED\n" +
+              "  RADAR, RADAR_FILLED, RADAR_MARKERS\n" +
+              "  BUBBLE, BUBBLE_THREE_D_EFFECT\n" +
               "  XY_SCATTER, XY_SCATTER_LINES, XY_SCATTER_LINES_NO_MARKERS\n" +
               "  XY_SCATTER_SMOOTH, XY_SCATTER_SMOOTH_NO_MARKERS\n"
             : "Select one chart, or use --all for every match. --allow-empty permits zero matches.\n") +
           'Category data: {"categories":["North","South"],"series":[{"name":"Count","values":[2,4]}]}\n' +
           'Scatter data: {"series":[{"name":"Pairs","xValues":[1,3],"values":[2,4]}]}\n' +
+          'Bubble data: {"series":[{"name":"Size","xValues":[1,3],"values":[2,4],"bubbleSizes":[0,5]}]}\n' +
+          "Hierarchies: categoryLevels lists outer-to-inner string/null levels instead of categories.\n" +
+          "Data options: numberFormat, categoryNumberFormat, date1904 (boolean; default false).\n" +
           "Null values retain missing point positions. Category and series lengths must agree.\n" +
           "Data edits synchronize simple embedded workbooks; complex or external data is rejected.\n";
       }
@@ -3665,7 +3672,7 @@ async function execute(
             level: "edit",
             operations: Object.keys(chartSchemas),
             subset:
-              "Slide chart inventory and bar, column, line, pie and scatter creation/data/style editing. No formula evaluation or external fetching. Unsupported extensions retain raw XML."
+              "Slide chart inventory and area, bar, column, line, pie, doughnut, radar, XY and bubble creation/data/style editing. No formula evaluation or external fetching. Unsupported extensions retain raw XML."
           },
           images: {
             level: "edit",

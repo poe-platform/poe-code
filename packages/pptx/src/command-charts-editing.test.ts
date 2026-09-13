@@ -72,6 +72,65 @@ const add = [
   "--height",
   "3in"
 ];
+it.each([
+  ["AREA", "areaChart"],
+  ["AREA_STACKED", "areaChart"],
+  ["AREA_STACKED_100", "areaChart"],
+  ["DOUGHNUT", "doughnutChart"],
+  ["DOUGHNUT_EXPLODED", "doughnutChart"],
+  ["RADAR", "radarChart"],
+  ["RADAR_FILLED", "radarChart"],
+  ["RADAR_MARKERS", "radarChart"],
+  ["BUBBLE", "bubbleChart"],
+  ["BUBBLE_THREE_D_EFFECT", "bubbleChart"]
+])("publishes %s through the shared command and SDK contract", async (type, plot) => {
+  const f = await setup();
+  const args = [...add];
+  args[args.indexOf("--type") + 1] = type;
+  if (type.startsWith("BUBBLE"))
+    args[args.indexOf("--data") + 1] = JSON.stringify({
+      series: [{ name: "Survey", xValues: [3, 1], values: [4, null], bubbleSizes: [0, 8] }]
+    });
+  const result = await f.run([...args, "--output", "/out.pptx", "--json"]);
+  expect(result.exitCode, JSON.stringify(result.value)).toBe(0);
+  const charts = await readCharts(
+    new Uint8Array(f.volume.readFileSync("/out.pptx") as Buffer),
+    {},
+    context
+  );
+  expect(charts[0]!.plots[0]!.type).toBe(plot);
+});
+
+it("advertises hierarchical data, inherited formats and date-system choices in the operation schema", async () => {
+  const f = await setup();
+  const schema = await f.run(["schema", "charts", "add", "--json"]);
+  const validate = compileJsonSchema(schema.value.data.operations["charts.add"].options);
+  const options = {
+    slide: 1,
+    type: "AREA",
+    dryRun: true,
+    left: { value: 0, unit: "in" },
+    top: { value: 0, unit: "in" },
+    width: { value: 4, unit: "in" },
+    height: { value: 3, unit: "in" },
+    data: {
+      categoryLevels: [
+        ["Coast", "Coast"],
+        ["North", "South"]
+      ],
+      numberFormat: "0.00",
+      categoryNumberFormat: "General",
+      date1904: false,
+      series: [{ name: "Survey", values: [2, 5] }]
+    }
+  };
+  expect(validate.validate(options).ok).toBe(true);
+  expect(validate.validate({ ...options, data: { ...options.data, date1904: "true" } }).ok).toBe(
+    false
+  );
+  const capabilities = await f.run(["capabilities", "--json"]);
+  expect(JSON.stringify(capabilities.value)).toContain("bubble");
+});
 it("creates ordered missing-point chart data through command schema and reads it through the SDK", async () => {
   const f = await setup();
   const result = await f.run([

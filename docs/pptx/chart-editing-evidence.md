@@ -1,5 +1,8 @@
 # Chart editing evidence and remaining obligations
 
+Historical 19-variant checkpoint. The subsequent [29-variant expansion receipt](chart-expansion-evidence.md)
+records current operation coverage, hierarchical data and format/epoch mappings.
+
 This receipt concerns the requested bar/column/line/pie/scatter operation slice.
 The proposed full creation contract includes 29 enum symbols; this slice includes
 19. It does not establish whole F37/F38 coverage or complete public-model parity.

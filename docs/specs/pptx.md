@@ -744,8 +744,12 @@ fails `unsupported-edit`, not a warning or an automatic conversion.
 Chart creation accepts exactly the 29 enum symbols in Appendix B. Category families
 require nonempty categories and equal-length series values. Category label types
 are homogeneous string/number/UTC-date; the typed model additionally supports
-hierarchical categories with consistent depth. Direct JSON flat categories do not
-silently flatten hierarchical input. Pie/doughnut require exactly one series.
+hierarchical categories with consistent depth. The operation representation is
+`categoryLevels`, an outer-to-inner array of string/null label arrays, one label
+per leaf in each level. It MUST NOT be combined with `categories`, silently
+flattened, or accepted for XY/bubble data. It is bounded to 64 levels and 250,000
+total label slots. Repeated adjacent parent paths form a category span; a change
+in any ancestor begins a new span. Pie/doughnut require exactly one series.
 XY families forbid categories and require equal-length xValues/values per series;
 bubble additionally requires matching nonnegative bubbleSizes. Null y/category
 values mean a missing point with a retained index; null x or size is rejected.
@@ -760,6 +764,17 @@ already simple. Both reject external data, unsupported formulas, additional
 unrelated sheets/tables or ambiguous ownership; neither means cache-only editing.
 Date categories use the existing 1900/1904 date system, default 1900 on creation.
 No calculation/refresh or formula evaluation occurs.
+Operation `date1904` explicitly selects the creation epoch; replacement MUST
+reject a supplied value that conflicts with the owned workbook epoch. Omission
+retains that epoch. Operation dates are explicit UTC-Z strings; the neutral model
+retains the shared SDK's UTC `Date` contract. Date categories use date axes for
+area/bar/column/line and category axes for radar; pie/doughnut have no axes.
+The dataset `numberFormat` defaults to `General`; each series may override it for
+its y/values channel. XY x coordinates and bubble sizes retain the dataset format.
+`categoryNumberFormat` independently formats numeric/date categories, defaulting
+to `General` for numbers and `yyyy-mm-dd` for dates. Cache formats and simple
+worksheet numeric cell formats MUST agree. These operation fields do not rename
+the documented model's `number_format` properties.
 
 Existing chart properties, including axes, gridlines, legends, points, markers,
 labels and series, retain all documented typed getters/setters even on graphs
@@ -1611,9 +1626,36 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
       },
       "maxItems": 250000,
       "minItems": 1
+    },
+    "categoryLevels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 250000,
+        "items": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "numberFormat": {
+      "type": "string"
+    },
+    "categoryNumberFormat": {
+      "type": "string"
+    },
+    "date1904": {
+      "type": "boolean"
     }
   },
-  "required": ["series"],
+  "required": [
+    "series"
+  ],
   "additionalProperties": false
 }
 ```

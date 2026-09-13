@@ -30,9 +30,11 @@ it("writes ordered categories and sparse numeric caches with independently speci
   expect(xml).toContain("<c:f>Sheet1!$B$2:$B$5</c:f>");
 });
 it.each(chartTypes)("creates deterministic XML for %s", (type) => {
-  const d = type.startsWith("XY_")
-    ? { series: [{ name: "Pair", xValues: [2, 1], values: [4, null] }] }
-    : data;
+  const d = type.startsWith("BUBBLE")
+    ? { series: [{ name: "Pair", xValues: [2, 1], values: [4, null], bubbleSizes: [0, 8] }] }
+    : type.startsWith("XY_")
+      ? { series: [{ name: "Pair", xValues: [2, 1], values: [4, null] }] }
+      : data;
   expect(createChartXml(type, d)).toBe(createChartXml(type, d));
   expect(parse(createChartXml(type, d)).plots).toHaveLength(1);
 });

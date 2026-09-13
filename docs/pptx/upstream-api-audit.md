@@ -2,6 +2,12 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Current chart operations: [29-variant expansion and exact mappings](chart-expansion-evidence.md),
+[complete retained chart case ledger](chart-expansion-case-map.json), and
+[chart public-member ledger](chart-expansion-api-map.json). This expands bounded
+creation/data replacement, not the outstanding live chart object graph. All
+inherited, underscore-prefixed and untested documented members remain accounted for.
+
 Current image insertion: [bounded byte admission and exact security mappings](image-insertion-admission-evidence.md),
 [121-case insertion ledger](image-insertion-case-map.json), and
 [draft SDK/CLI usage](image-insertion-usage.md). PNG/JPEG/GIF insertion is available

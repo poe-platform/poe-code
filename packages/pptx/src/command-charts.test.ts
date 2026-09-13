@@ -37,6 +37,16 @@ describe("chart command discovery and admission", () => {
     for (const flag of ["--shape", "--select", "--all", "--allow-empty", "--workbook-policy"])
       expect(help.text).not.toContain(flag);
     for (const type of [
+      "AREA",
+      "AREA_STACKED",
+      "AREA_STACKED_100",
+      "DOUGHNUT",
+      "DOUGHNUT_EXPLODED",
+      "RADAR",
+      "RADAR_FILLED",
+      "RADAR_MARKERS",
+      "BUBBLE",
+      "BUBBLE_THREE_D_EFFECT",
       "BAR_CLUSTERED",
       "BAR_STACKED",
       "BAR_STACKED_100",
@@ -60,6 +70,8 @@ describe("chart command discovery and admission", () => {
       expect(help.text.replaceAll("\n", " ").replaceAll(",", " ").split(" ")).toContain(type);
     expect(Math.max(...help.text.split("\n").map((line) => line.length))).toBeLessThanOrEqual(100);
     expect(readInput).not.toHaveBeenCalled();
+    expect(help.text).toContain('"bubbleSizes":[0,5]');
+    expect(help.text).toContain("categoryLevels");
   });
   it.each(["set", "replace"])("shows only applicable %s mutation options", async (action) => {
     const help = await run(["charts", action, "--help"]);

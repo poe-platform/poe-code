@@ -232,6 +232,15 @@ const chartData = {
   required: ["series"],
   properties: {
     categories: { type: "array", minItems: 1, items: { type: ["string", "number", "null"] } },
+    categoryLevels: {
+      type: "array",
+      minItems: 1,
+      maxItems: 64,
+      items: { type: "array", minItems: 1, maxItems: 250000, items: { type: ["string", "null"] } }
+    },
+    numberFormat: { type: "string" },
+    categoryNumberFormat: { type: "string" },
+    date1904: { type: "boolean" },
     series: {
       type: "array",
       minItems: 1,
@@ -243,6 +252,7 @@ const chartData = {
           name: { type: "string" },
           values: { type: "array", minItems: 1, items: { type: ["number", "null"] } },
           xValues: { type: "array", minItems: 1, items: { type: "number" } },
+          bubbleSizes: { type: "array", minItems: 1, items: { type: "number", minimum: 0 } },
           numberFormat: { type: "string" }
         }
       }
@@ -258,7 +268,7 @@ export const chartSchemas = {
         operation,
         {
           description:
-            "Edit the supported bar, column, line, pie and scatter chart subset with synchronized data and deterministic identifiers.",
+            "Edit category area, bar, column, line, pie, doughnut, radar, XY and bubble charts with synchronized data and deterministic identifiers.",
           input: textGetSchema.input,
           options: {
             ...options,

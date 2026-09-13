@@ -8,6 +8,8 @@ import {
   createPresentation,
   duplicateSlides,
   importSlides,
+  mergeSlides,
+  splitSlides,
   mutateSlides,
   removeSlides,
   readSelectionIndex
@@ -39,7 +41,7 @@ before(() => {
     delay === 0 ? setImmediate(callback) : timer(callback, delay)) as typeof setTimeout);
 });
 after(() => mock.restoreAll());
-function fixture() {
+function fixture(engineContext = context) {
   const volume = Volume.fromJSON({ "/work": null });
   const fs: FileSystem = new MemoryFileSystem();
   const identityScope = {};
@@ -99,11 +101,83 @@ function fixture() {
   };
   const shell = new Shell({ fs, cwd: "/work" }).use(
     pptxCommands({
-      engine: createPptxCommandEngine({ context, maxOutputBytes: 262144, maxArgumentBytes: 65536 })
+      engine: createPptxCommandEngine({ context: engineContext, maxOutputBytes: 262144, maxArgumentBytes: 65536 })
     })
   );
   return { shell, fs, volume };
 }
+
+const assemblyContext = { ...context,
+  archiveLimits: { ...context.archiveLimits, maxMembers: 256, maxTotalBytes: 1048576 },
+  xmlLimits: { ...context.xmlLimits, maxBytes: 1048576, maxNodes: 20000 },
+  relationshipLimits: { ...context.relationshipLimits, maxBytes: 1048576, maxParts: 4096, maxRelationships: 4096 }
+};
+test("pptx merges and splits through shell and byte SDK with matching packages", async () => {
+  const { shell, volume } = fixture(assemblyContext);
+  const original = await createPresentation({ slides: [{ name: "Spring" }, { name: "Autumn" }] }, context);
+  const destination = await createPresentation({}, context);
+  volume.writeFileSync("/work/source.pptx", original);
+  volume.writeFileSync("/work/input.pptx", destination);
+  volume.mkdirSync("/work/out");
+  const merged = await shell.exec(`pptx slides merge input.pptx --sources '[{"vfsPath":"source.pptx"}]' --source-slides '[2,1]' --theme-policy source --output merged.pptx --json`);
+  assert.equal(merged.exitCode, 0, merged.stdout + merged.stderr);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/merged.pptx") as Buffer), await mergeSlides(destination, [original], { sourceSlides: [2,1], themePolicy: "source" }, assemblyContext));
+  const split = await shell.exec("pptx slides split source.pptx --slides '[2,1]' --output-dir out --allow-partial-output --json");
+  assert.equal(split.exitCode, 0, split.stdout + split.stderr);
+  const outputs = JSON.parse(split.stdout).data.outputs;
+  assert.deepEqual(outputs.map((item: {path: string}) => item.path), ["out/slide-000001.pptx", "out/slide-000002.pptx"]);
+  const sdk = await splitSlides(original, { slides: [2,1] }, assemblyContext);
+  for (const output of sdk) assert.deepEqual(new Uint8Array(volume.readFileSync(`/work/out/${output.name}`) as Buffer), output.bytes);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source.pptx") as Buffer), original);
+});
+
+test("pptx split preflights every output and refuses aliases before writes", async () => {
+  const { shell, volume } = fixture(assemblyContext);
+  const original = await createPresentation({ slides: [{ name: "East" }, { name: "West" }] }, context);
+  volume.writeFileSync("/work/input.pptx", original);
+  volume.mkdirSync("/work/out");
+  volume.linkSync("/work/input.pptx", "/work/out/slide-000002.pptx");
+  const result = await shell.exec("pptx slides split input.pptx --slides '[1,2]' --output-dir out --force --allow-partial-output --json");
+  assert.equal(result.exitCode, 3, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).affected, 0);
+  assert.equal(volume.existsSync("/work/out/slide-000001.pptx"), false);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/input.pptx") as Buffer), original);
+});
+
+test("pptx split reports completed output after conditional publication failure", async () => {
+  const { shell, fs, volume } = fixture(assemblyContext);
+  const original = await createPresentation({ slides: [{ name: "Copper" }, { name: "Silver" }] }, context);
+  volume.writeFileSync("/work/input.pptx", original);
+  volume.mkdirSync("/work/out");
+  const write = fs.writeFileConditional!;
+  fs.writeFileConditional = async (path, bytes, options) => {
+    if (path.endsWith("slide-000002.pptx")) throw new FsError("EIO");
+    return write(path, bytes, options);
+  };
+  const result = await shell.exec("pptx slides split input.pptx --slides '[2,1]' --output-dir out --allow-partial-output --json");
+  assert.equal(result.exitCode, 3, result.stdout + result.stderr);
+  const envelope = JSON.parse(result.stdout);
+  assert.equal(envelope.affected, 1);
+  assert.deepEqual(envelope.data.outputs.map((item: {path:string}) => item.path), ["out/slide-000001.pptx"]);
+  assert.equal(envelope.data.sources[0].sourceSlide, 2);
+  assert.equal(volume.existsSync("/work/out/slide-000002.pptx"), false);
+});
+
+test("pptx split requires partial authorization and preserves existing output conflicts", async () => {
+  const { shell, volume } = fixture(assemblyContext);
+  const original = await createPresentation({ slides: [{ name: "North" }, { name: "South" }] }, context);
+  volume.writeFileSync("/work/input.pptx", original);
+  volume.mkdirSync("/work/out");
+  const unavailable = await shell.exec("pptx slides split input.pptx --slides '[1,2]' --output-dir out --json");
+  assert.equal(unavailable.exitCode, 1, unavailable.stdout + unavailable.stderr);
+  assert.equal(JSON.parse(unavailable.stdout).errors[0].code, "publication-unsupported");
+  volume.writeFileSync("/work/out/slide-000002.pptx", "retained");
+  const conflict = await shell.exec("pptx slides split input.pptx --slides '[1,2]' --output-dir out --allow-partial-output --json");
+  assert.equal(conflict.exitCode, 3, conflict.stdout + conflict.stderr);
+  assert.equal(JSON.parse(conflict.stdout).data, null);
+  assert.equal(volume.existsSync("/work/out/slide-000001.pptx"), false);
+  assert.equal(volume.readFileSync("/work/out/slide-000002.pptx", "utf8"), "retained");
+});
 
 test("pptx imports ordered slides through SDK and shell with isolated source bytes", async () => {
   const { shell, volume } = fixture();

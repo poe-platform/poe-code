@@ -26,6 +26,21 @@ const members = [
 ];
 
 describe("package byte reader", () => {
+  it("reports admitted ZIP records and exact lengths without cloning payloads", async () => {
+    const reader = await readPackage(
+      storedArchive([
+        { name: "folder/", bytes: new Uint8Array(), mode: 0o40755 },
+        { name: "folder/item.bin", bytes: Uint8Array.of(3, 4, 5) }
+      ]),
+      context
+    );
+    expect(reader.entryCount).toBe(2);
+    expect(reader.names).toEqual(["/folder/item.bin"]);
+    expect(reader.byteLength("/FOLDER/item.bin")).toBe(3);
+    expect(() => reader.byteLength("/missing.bin")).toThrowError(
+      expect.objectContaining({ code: "missing-binding" })
+    );
+  });
   it("reads content-type bytes as a reserved package stream", async () => {
     const reader = await readPackage(
       storedArchive([{ name: "[Content_Types].xml", bytes: text("<Types/>") }]),

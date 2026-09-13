@@ -7,7 +7,8 @@ import { readPackage } from "./package-reader.js";
 import { writePackageArchive } from "./package-writer.js";
 import { asciiKey, relativePartReference } from "./package-uri.js";
 import { readRelationshipGraph } from "./relationships.js";
-import { readSelectionIndex, type SelectionContext } from "./selectors.js";
+import type { SelectionContext } from "./selectors.js";
+import type { SlideTransferBudget } from "./slide-transfer-budget.js";
 import { remapCopiedXml } from "./slide-copy-xml.js";
 import { parseXmlPart, type XmlElement } from "./xml.js";
 import { validatePresentation } from "./validation.js";
@@ -61,17 +62,18 @@ function unsupported(message: string): never {
   throw new OfficeError("unsupported-edit", message, "validate-intent");
 }
 
-function textDefaults(
+function presentationDefaults(
   xml: ReturnType<typeof parseXmlPart>,
-  dialect: (typeof dialects)[number]
+  dialect: (typeof dialects)[number],
+  name: string
 ): string {
   const tokens: string[] = [];
   const parser = new SaxesParser({ xmlns: true });
   let depth = 0;
   parser.on("opentag", (tag) => {
-    if (tag.uri === dialect.p && tag.local === "defaultTextStyle") {
+    if (tag.uri === dialect.p && tag.local === name) {
       if (depth || tokens.length)
-        unsupported("Import cannot resolve duplicate presentation text defaults.");
+        unsupported("Import cannot resolve duplicate presentation defaults.");
       depth = 1;
     } else if (depth) depth++;
     if (
@@ -87,7 +89,7 @@ function textDefaults(
         ))
     )
       unsupported(
-        "Import cannot establish equivalence of extended or linked presentation text defaults."
+        "Import cannot establish equivalence of extended or linked presentation defaults."
       );
     if (depth)
       tokens.push(
@@ -162,18 +164,41 @@ export async function importSlides(
     new Set(options.sourceSlides).size !== options.sourceSlides.length
   )
     throw new OfficeError("invalid-value", "Invalid source slide selection.", "usage");
-  const destinationBytes = await readBinary(destination, context);
-  const sourceBytes = await readBinary(source, context);
-  const destinationReader = await readPackage(destinationBytes, context);
-  const sourceReader = await readPackage(sourceBytes, context);
+  return importSelectedSlides(destination, source, options, context);
+}
+
+export async function importSelectedSlides(
+  destination: BinaryInput,
+  source: BinaryInput,
+  options: ImportSlidesOptions,
+  context: SelectionContext,
+  budget?: SlideTransferBudget
+): Promise<Uint8Array> {
+  context = budget?.context ?? context;
+  const parse = (bytes: Uint8Array) =>
+    budget ? budget.xml(bytes) : parseXmlPart(bytes, context.xmlLimits);
+  const destinationBytes = budget
+    ? await budget.read(destination)
+    : await readBinary(destination, context);
+  const sourceBytes = budget ? await budget.read(source) : await readBinary(source, context);
+  const destinationReader = budget
+    ? await budget.open(destinationBytes)
+    : await readPackage(destinationBytes, context);
+  const sourceReader = budget
+    ? await budget.open(sourceBytes)
+    : await readPackage(sourceBytes, context);
   const limits = {
     ...context.xmlLimits,
     ...context.relationshipLimits,
     maxBytes: Math.min(context.xmlLimits.maxBytes, context.relationshipLimits.maxBytes),
     maxEntries: context.archiveLimits.maxMembers
   };
-  const destinationGraph = readRelationshipGraph(destinationReader, context.relationshipLimits);
-  const sourceGraph = readRelationshipGraph(sourceReader, context.relationshipLimits);
+  const destinationGraph = budget
+    ? budget.graph(destinationReader)
+    : readRelationshipGraph(destinationReader, context.relationshipLimits);
+  const sourceGraph = budget
+    ? budget.graph(sourceReader)
+    : readRelationshipGraph(sourceReader, context.relationshipLimits);
   for (const reader of [destinationReader, sourceReader]) {
     const types = parseContentTypes(reader.get("/[Content_Types].xml"), limits);
     for (const name of reader.names) {
@@ -204,8 +229,46 @@ export async function importSlides(
           )
       )
         unsupported("Import does not modify signed or macro-enabled packages.");
-  const destinationIndex = await readSelectionIndex(destinationBytes, context);
-  const sourceIndex = await readSelectionIndex(sourceBytes, context);
+  const destinationMain = destinationGraph
+    .outgoing("/")
+    .find((edge) => dialects.some((d) => edge.type === `${d.r}/officeDocument`))!.targetPart!;
+  const sourceMain = sourceGraph
+    .outgoing("/")
+    .find((edge) => dialects.some((d) => edge.type === `${d.r}/officeDocument`))!.targetPart!;
+  let presentation = parse(destinationReader.get(destinationMain));
+  const sourcePresentation = parse(sourceReader.get(sourceMain));
+  const d = dialects.find((value) => value.p === presentation.root.name.namespace)!;
+  const slideList = (
+    xml: ReturnType<typeof parseXmlPart>,
+    graph: typeof sourceGraph,
+    main: string
+  ) =>
+    xml.root.children
+      .filter(
+        (node) =>
+          node.name.namespace === xml.root.name.namespace && node.name.localName === "sldIdLst"
+      )
+      .flatMap((list) =>
+        list.children
+          .filter(
+            (node) =>
+              node.name.namespace === xml.root.name.namespace && node.name.localName === "sldId"
+          )
+          .map((node) => {
+            const namespace = dialects.find((value) => value.p === xml.root.name.namespace)!.r;
+            const id = attr(node, "id", namespace);
+            const edge = graph.outgoing(main).find((value) => value.id === id);
+            if (!edge?.targetPart || !graph.parts.includes(edge.targetPart))
+              throw new OfficeError(
+                "invalid-opc",
+                "Presentation references a missing slide.",
+                "validate-intent"
+              );
+            return { id: attr(node, "id")!, part: edge.targetPart };
+          })
+      );
+  const destinationIndex = { slides: slideList(presentation, destinationGraph, destinationMain) };
+  const sourceIndex = { slides: slideList(sourcePresentation, sourceGraph, sourceMain) };
   const position = options.position ?? destinationIndex.slides.length + 1;
   if (
     position > destinationIndex.slides.length + 1 ||
@@ -213,15 +276,6 @@ export async function importSlides(
   )
     throw new OfficeError("invalid-value", "Slide position is outside the slide list.", "usage");
   const selected = options.sourceSlides.map((value) => sourceIndex.slides[value - 1]!.part);
-  const destinationMain = destinationGraph
-    .outgoing("/")
-    .find((edge) => dialects.some((d) => edge.type === `${d.r}/officeDocument`))!.targetPart!;
-  const sourceMain = sourceGraph
-    .outgoing("/")
-    .find((edge) => dialects.some((d) => edge.type === `${d.r}/officeDocument`))!.targetPart!;
-  let presentation = parseXmlPart(destinationReader.get(destinationMain), context.xmlLimits);
-  const sourcePresentation = parseXmlPart(sourceReader.get(sourceMain), context.xmlLimits);
-  const d = dialects.find((value) => value.p === presentation.root.name.namespace)!;
   if (sourcePresentation.root.name.namespace !== d.p)
     unsupported("Import requires matching XML dialects.");
   for (const xml of [presentation, sourcePresentation]) {
@@ -236,8 +290,12 @@ export async function importSlides(
       pending.push(...node.children);
     }
   }
-  if (textDefaults(presentation, d) !== textDefaults(sourcePresentation, d))
-    unsupported("Import requires equivalent presentation-wide text defaults.");
+  for (const name of ["defaultTextStyle", "kinsoku"])
+    if (
+      presentationDefaults(presentation, d, name) !==
+      presentationDefaults(sourcePresentation, d, name)
+    )
+      unsupported("Import requires equivalent presentation-wide text and line-break defaults.");
   if (
     [presentation, sourcePresentation].some((xml) =>
       xml.root.children.some(
@@ -278,6 +336,7 @@ export async function importSlides(
   const closure = [...selected];
   const visited = new Set(selected);
   for (let cursor = 0; cursor < closure.length; cursor++) {
+    if (cursor && cursor % 64 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
     const owner = closure[cursor]!;
     for (const edge of sourceGraph.outgoing(owner)) {
       const kind = edge.type.startsWith(`${d.r}/`) ? edge.type.slice(d.r.length + 1) : "";
@@ -338,7 +397,7 @@ export async function importSlides(
   for (const name of destinationGraph.parts) {
     if (!destinationGraph.incoming(name).some((edge) => edge.type === `${d.r}/slideMaster`))
       continue;
-    const xml = parseXmlPart(destinationReader.get(name), context.xmlLimits);
+    const xml = parse(destinationReader.get(name));
     for (const list of xml.root.children.filter(
       (node) => node.name.namespace === d.p && node.name.localName === "sldLayoutIdLst"
     ))
@@ -346,9 +405,16 @@ export async function importSlides(
   }
   let nextLayoutId = 2147483648;
   const changes = new Map<string, Uint8Array>();
-  let manifest = parseXmlPart(destinationReader.get("/[Content_Types].xml"), context.xmlLimits);
+  const save = (name: string, bytes: Uint8Array) => {
+    budget?.copy(bytes);
+    changes.set(name, bytes);
+  };
+  let manifest = parse(destinationReader.get("/[Content_Types].xml"));
+  let copied = 0;
   for (const original of closure) {
-    context.signal?.throwIfAborted();
+    if (++copied % 64 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    if (context.signal?.aborted)
+      throw new OfficeError("cancelled", "Operation cancelled.", "mutate");
     const copy = copies.get(original)!;
     const bytes = sourceReader.get(original);
     const edges = sourceGraph.outgoing(original);
@@ -361,7 +427,7 @@ export async function importSlides(
     }
     const type = types.get(original);
     if (type.endsWith("+xml") || type === "application/xml" || type === "text/xml") {
-      const xml = parseXmlPart(bytes, context.xmlLimits);
+      const xml = parse(bytes);
       const pending = [xml.root];
       while (pending.length) {
         const node = pending.pop()!;
@@ -369,7 +435,7 @@ export async function importSlides(
           unsupported("Import cannot yet resolve presentation-wide table styles.");
         pending.push(...node.children);
       }
-      changes.set(
+      save(
         copy,
         remapCopiedXml(bytes, edges, ids, {
           xmlLimits: context.xmlLimits,
@@ -385,10 +451,10 @@ export async function importSlides(
       );
     } else {
       if (edges.length) unsupported("Import cannot remap relationships inside this binary part.");
-      changes.set(copy, bytes);
+      save(copy, bytes);
     }
     if (edges.length) {
-      let rels = parseXmlPart(sourceReader.get(relPart(original)), context.xmlLimits);
+      let rels = parse(sourceReader.get(relPart(original)));
       for (let index = 0; index < rels.root.children.length; index++) {
         const node = rels.root.children[index]!;
         const edge = edges.find((value) => value.id === attr(node, "Id"))!;
@@ -405,13 +471,13 @@ export async function importSlides(
           ]
         });
       }
-      changes.set(relPart(copy), rels.bytes());
+      save(relPart(copy), rels.bytes());
     }
     manifest = manifest.spliceChildren(manifest.root, manifest.root.children.length, 0, [
       `<Override xmlns="${contentNamespace}" PartName="${escape(copy)}" ContentType="${escape(type)}"/>`
     ]);
   }
-  let mainRels = parseXmlPart(destinationReader.get(relPart(destinationMain)), context.xmlLimits);
+  let mainRels = parse(destinationReader.get(relPart(destinationMain)));
   const usedRelIds = new Set(destinationGraph.outgoing(destinationMain).map((edge) => edge.id));
   let nextRelId = 1;
   const register = (name: string, kind: string) => {
@@ -508,9 +574,9 @@ export async function importSlides(
     }),
     position - 1
   );
-  changes.set(destinationMain, presentation.bytes());
-  changes.set(relPart(destinationMain), mainRels.bytes());
-  changes.set("/[Content_Types].xml", manifest.bytes());
+  save(destinationMain, presentation.bytes());
+  save(relPart(destinationMain), mainRels.bytes());
+  save("/[Content_Types].xml", manifest.bytes());
   const names = [
     ...destinationReader.names,
     ...[...changes.keys()].filter((name) => !destinationReader.has(name))
@@ -520,10 +586,16 @@ export async function importSlides(
       name: name.slice(1),
       bytes: changes.get(name) ?? destinationReader.get(name)
     })),
-    context,
+    budget?.outputContext() ?? context,
     { compression: "auto", source: destinationBytes }
   );
-  if (!validatePresentation(await readPackage(output, context), limits).valid)
+  budget?.output(output);
+  if (
+    !validatePresentation(
+      budget ? await budget.open(output) : await readPackage(output, context),
+      limits
+    ).valid
+  )
     throw new OfficeError(
       "invalid-opc",
       "Imported presentation fails graph validation.",

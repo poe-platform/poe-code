@@ -1,4 +1,5 @@
 import { OfficeError } from "./errors.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 import { packageUri, partName } from "./package-uri.js";
 import {
   SelectionError,
@@ -16,6 +17,8 @@ import {
   slidesMoveSchema,
   slidesDuplicateSchema,
   slidesImportSchema,
+  slidesMergeSchema,
+  slidesSplitSchema,
   slidesRemoveSchema,
   slidesSetSchema,
   xmlGetSchema,
@@ -31,6 +34,8 @@ import {
 import { commandJson, commandLength, commandTimestamp } from "./command-engine-values.js";
 import { duplicateSlides } from "./slide-copy.js";
 import { importSlides, type ImportSlidesOptions } from "./slide-import.js";
+import { mergeSelectedDecks, splitSelectedDecks } from "./slide-merge-split.js";
+import { SlideTransferBudget } from "./slide-transfer-budget.js";
 import { removeSlides } from "./slide-removal.js";
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
 import type { ValidationLimits } from "./validation.js";
@@ -54,6 +59,9 @@ export interface PptxPublicationRequest {
 }
 export interface PptxCommandRequest {
   readonly publishOutput?: (publication: PptxPublicationRequest) => Promise<void>;
+  readonly preflightOutput?: (publication: PptxPublicationRequest) => Promise<void>;
+  /** Trusted adapter transaction: either every requested file is published or none is. */
+  readonly publishOutputs?: (publications: readonly PptxPublicationRequest[]) => Promise<void>;
   readonly args: readonly Uint8Array[];
   readonly signal: AbortSignal;
   readonly readInput: (path: string, maxBytes: number) => Promise<Uint8Array>;
@@ -97,6 +105,11 @@ const help =
   "       pptx slides import INPUT --source PATH --source-slides JSON [--position N]\n" +
   "                       [--theme-policy source|destination] [--dimension-policy reject|destination]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx slides merge INPUT --sources JSON --theme-policy source|destination\n" +
+  "                       [--source-slides JSON] [--dimension-policy reject|destination]\n" +
+  "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx slides split INPUT --slides JSON [--output-dir DIR]\n" +
+  "                       [--allow-partial-output] [--force] [--dry-run] [--json]\n" +
   "       pptx slides move INPUT --position N [--slide N | --select TOKEN | --all]\n" +
   "                       [--allow-empty] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides set INPUT [--name TEXT] [--hidden true|false] [--position N]\n" +
@@ -105,7 +118,9 @@ const help =
   "       pptx xml get INPUT --part URI [--scope SCOPE] [--pretty] [--json]\n" +
   "       pptx xml set INPUT --part URI --file XML [--scope SCOPE]\n" +
   "                    [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-  "       pptx schema [create | inspect | slides add | slides move | slides set | slides remove | slides duplicate | slides import | xml get | xml set] [--json]\n" +
+  "       pptx schema [create | inspect | slides add | slides move | slides set |\n" +
+  "                    slides remove | slides duplicate | slides import |\n" +
+  "                    slides merge | slides split | xml get | xml set] [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "Slide positions are one-based. Shape names are exact; numeric strings are names.\n" +
   "Duplicate names require --all. Default scope: slides.\n" +
@@ -126,6 +141,10 @@ const help =
   "Slides move/set/remove/duplicate also accept --selection-json QUERY_OR_ARRAY instead of simple selectors.\n" +
   "Slide removal requires --reference-policy remove for affected known references; opaque targets are rejected.\n" +
   "Import source-slides is an ordered JSON array of unique one-based positions.\n" +
+  'Merge sources use --sources \'[{"vfsPath":"source.pptx"}]\'.\n' +
+  "Merge applies source-slides to each source, or imports all when omitted.\n" +
+  "Split names slide-NNNNNN.pptx follow emitted order; outward slide links fail.\n" +
+  "Split requires an atomic adapter or explicit --allow-partial-output.\n" +
   "Import preserves source appearance by default; destination theme mapping is unavailable.\n" +
   "Import rejects conflicting notes masters, global font/text/table-style dependencies, unselected slide links and opaque references.\n" +
   "Dimension conflicts reject by default; destination policy retains source coordinates and destination size.\n" +
@@ -141,6 +160,8 @@ interface Arguments {
     | "slides.remove"
     | "slides.duplicate"
     | "slides.import"
+    | "slides.merge"
+    | "slides.split"
     | "inspect"
     | "xml.get"
     | "xml.set"
@@ -153,6 +174,10 @@ interface Arguments {
   mutation?: Omit<MutateSlidesOptions, "selection">;
   importing?: Partial<ImportSlidesOptions>;
   source?: string;
+  sources?: readonly string[];
+  splitSlides?: readonly number[];
+  outputDir?: string;
+  allowPartialOutput?: boolean;
   allowEmpty?: boolean;
   referencePolicy?: "remove";
   selection?: SelectionQuery | readonly SelectionQuery[];
@@ -180,6 +205,9 @@ function usage(message: string): never {
 }
 
 const scalarOptions = [
+  "--sources",
+  "--slides",
+  "--output-dir",
   "--source",
   "--source-slides",
   "--theme-policy",
@@ -254,7 +282,7 @@ function parse(
     } else if (
       index === 1 &&
       args[0] === "slides" &&
-      ["add", "move", "set", "remove", "duplicate", "import"].includes(argument)
+      ["add", "move", "set", "remove", "duplicate", "import", "merge", "split"].includes(argument)
     ) {
       output.operation = `slides.${argument}`;
     } else if (hintValue) hintValue = false;
@@ -284,6 +312,8 @@ function parse(
       "slides.remove",
       "slides.duplicate",
       "slides.import",
+      "slides.merge",
+      "slides.split",
       "inspect",
       "xml.get",
       "xml.set",
@@ -325,6 +355,11 @@ function parse(
       result.allowEmpty = true;
       continue;
     }
+    if (argument === "--allow-partial-output") {
+      if (operation !== "slides.split") usage("Partial output requires slides split.");
+      result.allowPartialOutput = true;
+      continue;
+    }
     if (argument === "--all") {
       result.all = true;
       continue;
@@ -336,6 +371,44 @@ function parse(
       (value.length === 0 && !["--author", "--name", "--title", "--body"].includes(argument))
     )
       usage("Missing option value.");
+    if (argument === "--sources") {
+      if (operation !== "slides.merge") usage("Sources require slides merge.");
+      const sources = commandJson(value);
+      if (
+        !Array.isArray(sources) ||
+        !sources.length ||
+        sources.some(
+          (source) =>
+            !source ||
+            typeof source !== "object" ||
+            Array.isArray(source) ||
+            Object.keys(source).length !== 1 ||
+            typeof source.vfsPath !== "string" ||
+            !source.vfsPath.length
+        )
+      )
+        usage("Sources require a nonempty ordered array of scoped vfsPath inputs.");
+      const paths = sources.map((source: { vfsPath: string }) => source.vfsPath);
+      if (new Set(paths).size !== paths.length) usage("Source inputs must be unique.");
+      result.sources = paths;
+      continue;
+    }
+    if (argument === "--output-dir" || argument === "--slides") {
+      if (operation !== "slides.split") usage("Option requires slides split.");
+      if (argument === "--output-dir") result.outputDir = value;
+      else {
+        const positions = commandJson(value);
+        if (
+          !Array.isArray(positions) ||
+          !positions.length ||
+          positions.some((position) => !Number.isSafeInteger(position) || position < 1) ||
+          new Set(positions).size !== positions.length
+        )
+          usage("Slides require a nonempty array of unique one-based positions.");
+        result.splitSlides = positions;
+      }
+      continue;
+    }
     if (argument === "--reference-policy") {
       if (operation !== "slides.remove" || value !== "remove")
         usage("Slide removal reference policy must be remove.");
@@ -345,7 +418,10 @@ function parse(
     if (
       ["--source", "--source-slides", "--theme-policy", "--dimension-policy"].includes(argument)
     ) {
-      if (operation !== "slides.import") usage("Option requires slides import.");
+      if (operation !== "slides.import" && operation !== "slides.merge")
+        usage("Option requires slides import or merge.");
+      if (operation === "slides.merge" && argument === "--source")
+        usage("Merge requires --sources.");
       if (argument === "--source") result.source = value;
       else if (argument === "--source-slides") {
         const positions = commandJson(value);
@@ -639,6 +715,55 @@ function parse(
     operation === "slides.remove";
   if (result.allowEmpty && !slideMutation)
     usage("Allow-empty requires a supported slide mutation.");
+  if (operation === "slides.merge" || operation === "slides.split") {
+    const allowed = [
+      "--json",
+      "--limit",
+      "--force",
+      "--dry-run",
+      ...(operation === "slides.merge"
+        ? [
+            "--sources",
+            "--source-slides",
+            "--theme-policy",
+            "--dimension-policy",
+            "--output",
+            "--in-place"
+          ]
+        : ["--slides", "--output-dir", "--allow-partial-output"])
+    ];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to this assembly operation.");
+    if (positionals.length !== 1 || !positionals[0])
+      usage("Assembly requires one destination or source input.");
+    result.input = positionals[0];
+    if (operation === "slides.split") {
+      if (!result.splitSlides) usage("Split requires --slides.");
+      if (!result.outputDir && !result.dryRun) usage("Split requires --output-dir.");
+      if (result.outputDir === "-") usage("Output directories cannot be stdout.");
+      if (result.force && !result.outputDir) usage("Force requires an output directory.");
+    } else {
+      if (!result.sources || !result.importing?.themePolicy)
+        usage("Merge requires sources and an explicit theme policy.");
+      if ([result.input, ...result.sources].filter((path) => path === "-").length > 1)
+        usage("Only one input may consume stdin.");
+      if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+      if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+      if (!result.dryRun && !result.inPlace && !result.output)
+        usage("Merge requires a destination.");
+      if (result.force && !result.output) usage("Force requires an explicit output destination.");
+      if (result.output === result.input && result.output !== "-")
+        usage("Replacing input requires --in-place.");
+      if (
+        result.sources.includes(result.inPlace ? result.input : (result.output ?? "")) &&
+        (result.inPlace || result.output !== "-")
+      )
+        usage("Merge output cannot replace a source.");
+      if (result.output === "-" && result.json && !result.dryRun)
+        usage("Binary stdout cannot be combined with JSON.");
+    }
+    return result;
+  }
   if (operation === "create") {
     if (positionals.length) usage("Creation takes no input positional arguments.");
     const allowed = [
@@ -760,6 +885,8 @@ function parse(
         "slides.remove",
         "slides.duplicate",
         "slides.import",
+        "slides.merge",
+        "slides.split",
         "xml.get",
         "xml.set"
       ].includes(positionals.join("."))
@@ -893,6 +1020,57 @@ function outputLimitFailure(operation: string, json: boolean): PptxCommandOutput
   };
 }
 
+async function transferLocations(bytes: Uint8Array, budget: SlideTransferBudget) {
+  const relationshipNamespaces = [
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+    "http://purl.oclc.org/ooxml/officeDocument/relationships"
+  ];
+  const reader = await budget.open(bytes);
+  const graph = budget.graph(reader);
+  const roots = graph
+    .outgoing("/")
+    .filter((edge) =>
+      relationshipNamespaces.some((namespace) => edge.type === `${namespace}/officeDocument`)
+    );
+  const root = roots.length === 1 ? roots[0]!.targetPart : undefined;
+  if (!root) throw new OfficeError("invalid-opc", "Presentation part is missing.", "index");
+  const relationshipNamespace = roots[0]!.type.slice(0, -"/officeDocument".length);
+  const xml = budget.xml(reader.get(root));
+  const fingerprint = Array.from(sha256(bytes), (byte) => byte.toString(16).padStart(2, "0")).join(
+    ""
+  );
+  const locations = xml.root.children
+    .filter(
+      (node) =>
+        node.name.namespace === xml.root.name.namespace && node.name.localName === "sldIdLst"
+    )
+    .flatMap((node) => node.children)
+    .map((node) => {
+      const id = node.attributes.find(
+        (attribute) => attribute.name.namespace === "" && attribute.name.localName === "id"
+      )?.value;
+      const reference = node.attributes.find(
+        (attribute) =>
+          attribute.name.namespace === relationshipNamespace && attribute.name.localName === "id"
+      )?.value;
+      const owner = graph
+        .outgoing(root)
+        .find(
+          (edge) => edge.id === reference && edge.type === `${relationshipNamespace}/slide`
+        )?.targetPart;
+      if (!id || !owner || !reader.has(owner))
+        throw new OfficeError("invalid-opc", "Referenced slide is missing.", "index");
+      return {
+        fingerprint,
+        scope: "slides" as const,
+        owner: root,
+        objectId: String(Number(id)),
+        coordinateSystem: "identity" as const
+      };
+    });
+  return { fingerprint, locations };
+}
+
 async function execute(
   request: PptxCommandRequest,
   options: PptxCommandEngineOptions
@@ -903,6 +1081,15 @@ async function execute(
   let human: string | undefined;
   let binary: Uint8Array | undefined;
   let publication: PptxPublicationRequest | undefined;
+  let publications: readonly PptxPublicationRequest[] | undefined;
+  let splitManifest: readonly {
+    path: string;
+    sha256: string;
+    bytes: number;
+    sourceSlide: number;
+    sourceLocation: SelectionRecord["location"];
+  }[] = [];
+  let allowPartialOutput = false;
   try {
     request.signal.throwIfAborted();
     if (!Array.isArray(request.args)) usage("Arguments must be byte arrays.");
@@ -963,6 +1150,8 @@ async function execute(
             "slides.remove": slidesRemoveSchema,
             "slides.duplicate": slidesDuplicateSchema,
             "slides.import": slidesImportSchema,
+            "slides.merge": slidesMergeSchema,
+            "slides.split": slidesSplitSchema,
             "xml.get": xmlGetSchema,
             "xml.set": xmlSetSchema
           }).filter(([path]) => !args.schemaPath || path === args.schemaPath)
@@ -992,6 +1181,11 @@ async function execute(
             subset:
               "F08 subset: ordered source slides with supported dependency closure and deterministic collision remapping; source appearance is the default. Dimension conflicts reject unless destination size with unchanged source coordinates is explicit. Destination theme mapping, conflicting notes masters, tables/global table styles, embedded fonts, unequal presentation text defaults, unknown extension references, mixed dialects and links to unselected slides are rejected."
           },
+          slideAssembly: {
+            level: "edit",
+            subset:
+              "Merge ordered sources using import closure and combined budgets. Split selected slides into independent packages with deterministic manifests; outward slide navigation is rejected. Multiple outputs require an atomic adapter or explicit partial-output mode."
+          },
           editing: { level: "reject", reason: "Other semantic model editing is not exposed." },
           xml: {
             level: options.context.validationLimits ? "edit" : "reject",
@@ -1004,7 +1198,120 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (args.operation === "create") {
+    else if (args.operation === "slides.merge" || args.operation === "slides.split") {
+      const context = { ...options.context, signal: request.signal };
+      const budget = new SlideTransferBudget(context);
+      let remaining = context.limits.maxBytes;
+      const inputs: Uint8Array[] = [];
+      for (const path of [args.input!, ...(args.sources ?? [])]) {
+        if (remaining < 1)
+          throw new OfficeError("resource-limit", "Combined input limit exceeded.", "admit");
+        const bytes = await request.readInput(
+          path,
+          Math.min(remaining, context.archiveLimits.maxArchiveBytes)
+        );
+        if (bytes.length > remaining || bytes.length > context.archiveLimits.maxArchiveBytes)
+          throw new OfficeError("resource-limit", "Combined input limit exceeded.", "admit");
+        remaining -= bytes.length;
+        inputs.push(await budget.read(bytes));
+      }
+      const before = await transferLocations(inputs[0]!, budget);
+      const dryRun = args.dryRun ?? false;
+      if (args.operation === "slides.merge") {
+        const changed = await mergeSelectedDecks(
+          inputs[0]!,
+          inputs.slice(1),
+          {
+            ...args.importing,
+            themePolicy: args.importing!.themePolicy!
+          },
+          context,
+          budget
+        );
+        const after = await transferLocations(changed, budget);
+        const targets = after.locations.slice(before.locations.length);
+        const destination = args.inPlace ? args.input! : args.output;
+        result = {
+          ...success(operation, {
+            effects: targets.map((location) => ({
+              location,
+              action: "add",
+              feature: "F08"
+            })),
+            outputs: dryRun
+              ? []
+              : [{ path: destination!, sha256: after.fingerprint, bytes: changed.length }],
+            fingerprint: dryRun ? null : after.fingerprint
+          }),
+          affected: targets.length,
+          locations: targets
+        };
+        human = `${dryRun ? "Validated" : "Merged"} ${targets.length} slide(s)\n`;
+        if (destination === "-" && !dryRun) binary = changed;
+        else if (destination && destination !== "-") {
+          if (!request.publishOutput)
+            throw Object.assign(new Error("Publication unavailable."), {
+              code: "publication-unsupported"
+            });
+          publication = {
+            inputPath: args.input!,
+            protectedInputPaths: args.sources!,
+            outputPath: destination,
+            bytes: changed,
+            originalBytes: inputs[0]!,
+            inPlace: args.inPlace ?? false,
+            force: args.force ?? false,
+            dryRun
+          };
+        }
+      } else {
+        const decks = await splitSelectedDecks(
+          inputs[0]!,
+          { slides: args.splitSlides! },
+          context,
+          budget
+        );
+        splitManifest = decks.map((deck) => ({
+          path: `${args.outputDir ?? ""}${args.outputDir?.endsWith("/") || !args.outputDir ? "" : "/"}${deck.name}`,
+          sha256: Array.from(sha256(deck.bytes), (byte) => byte.toString(16).padStart(2, "0")).join(
+            ""
+          ),
+          bytes: deck.bytes.length,
+          sourceSlide: deck.sourceSlide,
+          sourceLocation: before.locations[deck.sourceSlide - 1]!
+        }));
+        allowPartialOutput = args.allowPartialOutput ?? false;
+        if (!dryRun && !request.publishOutputs && (!allowPartialOutput || !request.publishOutput))
+          throw Object.assign(
+            new Error("Split requires atomic publication or explicit partial output."),
+            { code: "publication-unsupported" }
+          );
+        if (args.outputDir)
+          publications = decks.map((deck, index) => ({
+            inputPath: args.input!,
+            outputPath: splitManifest[index]!.path,
+            bytes: deck.bytes,
+            originalBytes: inputs[0]!,
+            inPlace: false,
+            force: args.force ?? false,
+            dryRun
+          }));
+        result = {
+          ...success(operation, {
+            outputs: dryRun
+              ? []
+              : splitManifest.map(({ path, sha256, bytes }) => ({ path, sha256, bytes })),
+            sources: splitManifest.map(({ sourceSlide, sourceLocation }) => ({
+              sourceSlide,
+              sourceLocation
+            }))
+          }),
+          affected: decks.length,
+          locations: splitManifest.map((item) => item.sourceLocation)
+        };
+        human = `${dryRun ? "Validated" : "Split"} ${decks.length} slide(s)\n${JSON.stringify(result.data, null, 2)}\n`;
+      }
+    } else if (args.operation === "create") {
       if (args.template)
         throw new OfficeError(
           "unsupported-profile",
@@ -1392,6 +1699,87 @@ async function execute(
       json ? `${JSON.stringify(result)}\n` : (human ?? `${JSON.stringify(result.data, null, 2)}\n`)
     );
   if (encoded.length > options.maxOutputBytes) return outputLimitFailure(operation, json);
+  if (publications && result.ok) {
+    let published = 0;
+    const partialFailure = (code: string, phase: string) => ({
+      ...result,
+      ok: false,
+      affected: allowPartialOutput ? published : 0,
+      locations: allowPartialOutput
+        ? splitManifest.slice(0, published).map((item) => item.sourceLocation)
+        : [],
+      data:
+        allowPartialOutput && published > 0
+          ? {
+              outputs: splitManifest
+                .slice(0, published)
+                .map(({ path, sha256, bytes }) => ({ path, sha256, bytes })),
+              sources: splitManifest
+                .slice(0, published)
+                .map(({ sourceSlide, sourceLocation }) => ({ sourceSlide, sourceLocation }))
+            }
+          : null,
+      errors: [{ code, message: "Output could not be published.", context: { phase } }]
+    });
+    const reserve =
+      new TextEncoder().encode(
+        JSON.stringify({
+          ...partialFailure("publication-unsupported", "publish"),
+          locations: splitManifest.map((item) => item.sourceLocation),
+          data: {
+            outputs: splitManifest.map(({ path, sha256, bytes }) => ({ path, sha256, bytes })),
+            sources: splitManifest.map(({ sourceSlide, sourceLocation }) => ({
+              sourceSlide,
+              sourceLocation
+            }))
+          }
+        })
+      ).length + 1;
+    if (reserve > options.maxOutputBytes) return outputLimitFailure(operation, json);
+    try {
+      for (const item of publications) {
+        request.signal.throwIfAborted();
+        if (request.preflightOutput) await request.preflightOutput(item);
+        else if (request.publishOutput) await request.publishOutput({ ...item, dryRun: true });
+      }
+      if (!publications[0]?.dryRun) {
+        if (request.publishOutputs) await request.publishOutputs(publications);
+        else
+          for (const item of publications) {
+            request.signal.throwIfAborted();
+            await request.publishOutput!(item);
+            published++;
+          }
+      }
+    } catch (error) {
+      const rawCode =
+        error && typeof error === "object" && "code" in error ? error.code : undefined;
+      const code = request.signal.aborted
+        ? "cancelled"
+        : typeof rawCode === "string" &&
+            ["resource-limit", "stale-input", "publication-unsupported"].includes(rawCode)
+          ? rawCode
+          : "io-failure";
+      const failure = partialFailure(code, "publish");
+      const message = new TextEncoder().encode(
+        json
+          ? `${JSON.stringify(failure)}\n`
+          : `pptx: ${code}: Output could not be published.\n${JSON.stringify(failure.data)}\n`
+      );
+      return {
+        exitCode:
+          code === "cancelled"
+            ? 130
+            : code === "resource-limit"
+              ? 4
+              : code === "publication-unsupported" || code === "stale-input"
+                ? 1
+                : 3,
+        stdout: json ? message : new Uint8Array(),
+        stderr: json ? new Uint8Array() : message
+      };
+    }
+  }
   if (publication && result.ok) {
     try {
       request.signal.throwIfAborted();

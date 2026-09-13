@@ -63,3 +63,11 @@ export { removeSlides, type RemoveSlidesOptions } from "./slide-removal.js";
 export { duplicateSlides, type DuplicateSlidesOptions } from "./slide-copy.js";
 
 export { importSlides, type ImportSlidesOptions } from "./slide-import.js";
+
+export {
+  mergeSlides,
+  splitSlides,
+  type MergeSlidesOptions,
+  type SplitSlidesOptions,
+  type SplitSlideOutput
+} from "./slide-merge-split.js";

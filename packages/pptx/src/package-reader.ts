@@ -15,6 +15,11 @@ export interface PackageReader {
   relsXmlFor(partname: string): Uint8Array | null;
 }
 
+export interface AdmittedPackageReader extends PackageReader {
+  readonly entryCount: number;
+  byteLength(partname: string): number;
+}
+
 const zip = createZipCodec(undefined, {
   zip64: true,
   rejectDuplicateNames: true,
@@ -24,7 +29,7 @@ const zip = createZipCodec(undefined, {
 export async function readPackage(
   input: BinaryInput,
   context: PackageContext
-): Promise<PackageReader> {
+): Promise<AdmittedPackageReader> {
   if (!context?.limits) {
     throw new OfficeError("invalid-type", "Explicit byte limits are required.", "usage");
   }
@@ -54,8 +59,10 @@ export async function readPackage(
   const signal = context.signal ?? new AbortController().signal;
   const parts = new Map<string, Uint8Array>();
   const names: string[] = [];
+  let entryCount = 0;
   try {
     const archive = await zip.readZipArchive(bytes, limits, signal);
+    entryCount = archive.entries.length;
     const identities = new Set<string>();
     const parents = new Set<string>();
     const entries = archive.entries.map((entry) => {
@@ -104,6 +111,12 @@ export async function readPackage(
   }
   return Object.freeze({
     names: Object.freeze(names),
+    entryCount,
+    byteLength(partname: string) {
+      const data = parts.get(asciiKey(partName(partname, false)));
+      if (!data) throw new OfficeError("missing-binding", "Package member is absent.", "index");
+      return data.length;
+    },
     has(partname: string) {
       return parts.has(asciiKey(partName(partname, false)));
     },

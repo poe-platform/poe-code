@@ -683,3 +683,120 @@ export const slidesImportSchema = {
     }
   }
 };
+
+export const slidesMergeSchema = {
+  description:
+    "Append ordered sources using import dependency closure. The same ordered sourceSlides selection applies to every source; omitted means all. Explicit source theme is supported; destination theme mapping is rejected.",
+  input: inspectSchema.input,
+  options: {
+    ...slidesImportSchema.options,
+    required: ["sources", "themePolicy"],
+    properties: {
+      sources: {
+        type: "array",
+        minItems: 1,
+        uniqueItems: true,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["vfsPath"],
+          properties: { vfsPath: inspectSchema.input }
+        }
+      },
+      sourceSlides: slidesImportSchema.options.properties.sourceSlides,
+      themePolicy: { enum: ["source", "destination"] },
+      dimensionPolicy: slidesImportSchema.options.properties.dimensionPolicy,
+      json: { type: "boolean", default: false },
+      limit: xmlSelection.limit,
+      output: { type: "string", minLength: 1 },
+      inPlace: { type: "boolean", default: false },
+      force: { type: "boolean", default: false },
+      dryRun: { type: "boolean", default: false }
+    }
+  },
+  result: {
+    ...slidesImportSchema.result,
+    properties: { ...slidesImportSchema.result.properties, operation: { const: "slides.merge" } }
+  }
+};
+
+const splitManifest = {
+  type: "object",
+  additionalProperties: false,
+  required: ["outputs", "sources"],
+  properties: {
+    outputs: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["path", "sha256", "bytes"],
+        properties: {
+          path: { type: "string" },
+          sha256: { type: "string" },
+          bytes: { type: "integer", minimum: 0 }
+        }
+      }
+    },
+    sources: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["sourceSlide", "sourceLocation"],
+        properties: {
+          sourceSlide: { type: "integer", minimum: 1 },
+          sourceLocation: { $ref: "#/$defs/location" }
+        }
+      }
+    }
+  }
+};
+export const slidesSplitSchema = {
+  description:
+    "Emit one independently valid package per selected slide in requested order, named slide-NNNNNN.pptx by emitted order. Navigation outside each output is rejected. Publication requires an atomic adapter transaction or explicit allowPartialOutput; failure then reports only completed outputs.",
+  input: inspectSchema.input,
+  options: {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    type: "object",
+    additionalProperties: false,
+    required: ["slides"],
+    properties: {
+      slides: slidesImportSchema.options.properties.sourceSlides,
+      outputDir: { type: "string", minLength: 1, not: { const: "-" } },
+      allowPartialOutput: { type: "boolean", default: false },
+      json: { type: "boolean", default: false },
+      limit: xmlSelection.limit,
+      force: { type: "boolean", default: false },
+      dryRun: { type: "boolean", default: false }
+    },
+    allOf: [
+      {
+        anyOf: [
+          { required: ["outputDir"] },
+          { required: ["dryRun"], properties: { dryRun: { const: true } } }
+        ]
+      },
+      {
+        if: { required: ["force"], properties: { force: { const: true } } },
+        then: { required: ["outputDir"] }
+      }
+    ]
+  },
+  result: {
+    ...inspectSchema.result,
+    properties: {
+      ...inspectSchema.result.properties,
+      operation: { const: "slides.split" },
+      affected: { type: "integer", minimum: 0 },
+      data: { oneOf: [{ type: "null" }, splitManifest] }
+    },
+    allOf: [
+      {
+        if: { properties: { ok: { const: true } } },
+        then: { properties: { data: splitManifest, errors: { maxItems: 0 } } },
+        else: { properties: { errors: { minItems: 1 } } }
+      }
+    ]
+  }
+};

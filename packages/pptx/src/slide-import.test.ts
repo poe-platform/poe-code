@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { createPresentation, importSlides } from "./index.js";
+import { createPresentation, importSlides, mergeSlides, splitSlides } from "./index.js";
 import { inspectZip } from "../tests/zip-reader.js";
 import { storedArchive } from "../tests/fixtures/archive.js";
 import { parseXmlPart } from "./xml.js";
@@ -187,6 +187,123 @@ describe("cross-deck slide import", () => {
       delay === 0 ? setImmediate(callback) : timer(callback, delay)) as typeof setTimeout);
   });
   afterAll(() => vi.restoreAllMocks());
+  it("splits notes and binary dependencies into independently complete decks", async () => {
+    const source = await deck("Indigo", true);
+    const output = (
+      await splitSlides(
+        archive(source),
+        { slides: [1] },
+        {
+          ...context,
+          limits: { ...context.limits, maxBytes: 10000000 },
+          archiveLimits: { ...context.archiveLimits, maxTotalBytes: 10000000, maxMembers: 1000 },
+          xmlLimits: { ...context.xmlLimits, maxNodes: 100000 },
+          relationshipLimits: {
+            ...context.relationshipLimits,
+            maxParts: 1000,
+            maxRelationships: 10000
+          }
+        }
+      )
+    )[0]!;
+    const result = parts(output.bytes);
+    expect(result.get("ppt/media/tile-import1.png")).toEqual(source.get("ppt/media/tile.png"));
+    expect(result.get("ppt/embeddings/table-import1.xlsx")).toEqual(
+      source.get("ppt/embeddings/table.xlsx")
+    );
+    expect(target(result, "ppt/notesSlides/_rels/note-import1.xml.rels", "slide")).toBe(
+      "../slides/slide1-import1.xml"
+    );
+    expect(target(result, "ppt/notesSlides/_rels/note-import1.xml.rels", "notesMaster")).toBe(
+      "../notesMasters/master-import1.xml"
+    );
+    expect(target(result, "ppt/charts/_rels/chart-import1.xml.rels", "package")).toBe(
+      "../embeddings/table-import1.xlsx"
+    );
+    expect(attrs(result.get("ppt/theme/theme1-import1.xml")!, "latin")[0]!.typeface).toBe(
+      "Georgia"
+    );
+    for (const [name, bytes] of result) {
+      if (!name.endsWith(".rels")) continue;
+      const owner =
+        name === "_rels/.rels"
+          ? ""
+          : name.slice(0, name.lastIndexOf("/_rels/")) +
+            "/" +
+            name.slice(name.lastIndexOf("/") + 1, -5);
+      for (const relationship of attrs(bytes, "Relationship")) {
+        if (relationship.TargetMode === "External") continue;
+        const targetPart = new URL(
+          relationship.Target!,
+          `https://package.invalid/${owner}`
+        ).pathname.slice(1);
+        expect(result.has(targetPart), `${name} -> ${targetPart}`).toBe(true);
+      }
+    }
+  });
+  it("preserves presentation text defaults and line-break rules while splitting", async () => {
+    const source = await deck("Indigo");
+    append(
+      source,
+      "ppt/presentation.xml",
+      `<p:defaultTextStyle xmlns:p="${p}" xmlns:a="${a}"><a:lvl1pPr><a:defRPr sz="2200"/></a:lvl1pPr></p:defaultTextStyle>`
+    );
+    append(
+      source,
+      "ppt/presentation.xml",
+      `<p:kinsoku xmlns:p="${p}" lang="ja-JP" invalStChars=")]" invalEndChars="(["/>`
+    );
+    const limits = {
+      ...context,
+      limits: { ...context.limits, maxBytes: 10000000 },
+      archiveLimits: { ...context.archiveLimits, maxTotalBytes: 10000000, maxMembers: 1000 },
+      xmlLimits: { ...context.xmlLimits, maxNodes: 100000 },
+      relationshipLimits: { ...context.relationshipLimits, maxParts: 1000, maxRelationships: 10000 }
+    };
+    const result = parts((await splitSlides(archive(source), { slides: [1] }, limits))[0]!.bytes);
+    expect(attrs(result.get("ppt/presentation.xml")!, "kinsoku")).toEqual([
+      { "xmlns:p": p, lang: "ja-JP", invalStChars: ")]", invalEndChars: "([" }
+    ]);
+    expect(attrs(result.get("ppt/presentation.xml")!, "defRPr")[0]!.sz).toBe("2200");
+    const destination = await deck("Amber");
+    append(
+      destination,
+      "ppt/presentation.xml",
+      `<p:defaultTextStyle xmlns:p="${p}" xmlns:a="${a}"><a:lvl1pPr><a:defRPr sz="2200"/></a:lvl1pPr></p:defaultTextStyle>`
+    );
+    await expect(
+      mergeSlides(archive(destination), [archive(source)], { themePolicy: "source" }, limits)
+    ).rejects.toMatchObject({ code: "unsupported-edit" });
+  });
+  it("merges source notes, chart workbooks and media without stripping their graph", async () => {
+    const source = await deck("Indigo", true);
+    const result = parts(
+      await mergeSlides(
+        archive(await deck("Amber")),
+        [archive(source)],
+        { themePolicy: "source" },
+        {
+          ...context,
+          limits: { ...context.limits, maxBytes: 10000000 },
+          archiveLimits: { ...context.archiveLimits, maxTotalBytes: 10000000, maxMembers: 1000 },
+          xmlLimits: { ...context.xmlLimits, maxNodes: 100000 },
+          relationshipLimits: {
+            ...context.relationshipLimits,
+            maxParts: 1000,
+            maxRelationships: 10000
+          }
+        }
+      )
+    );
+    expect(result.get("ppt/media/tile-import1.png")).toEqual(source.get("ppt/media/tile.png"));
+    expect(result.get("ppt/embeddings/table-import1.xlsx")).toEqual(
+      source.get("ppt/embeddings/table.xlsx")
+    );
+    expect(target(result, "ppt/notesSlides/_rels/note-import1.xml.rels", "slide")).toBe(
+      "../slides/slide1-import1.xml"
+    );
+    expect(attrs(result.get("ppt/presentation.xml")!, "notesMasterId")).toHaveLength(1);
+  });
   it("copies the complete source graph and preserves unrelated destination hashes", async () => {
     const destination = await deck("Amber");
     const source = await deck("Indigo", true);
@@ -340,6 +457,26 @@ describe("cross-deck slide import", () => {
     expect(target(result, "ppt/slides/_rels/slide1-import1.xml.rels", "slide")).toBe(
       "slide2-import1.xml"
     );
+  });
+  it("resolves slide IDs by their exact relationship namespace", async () => {
+    const source = await deck("Indigo");
+    const xml = parseXmlPart(source.get("ppt/presentation.xml")!, context.xmlLimits);
+    const list = xml.root.children.find((node) => node.name.localName === "sldIdLst")!;
+    source.set(
+      "ppt/presentation.xml",
+      xml
+        .spliceChildren(list, 0, 1, [
+          `<p:sldId xmlns:p="${p}" xmlns:r="${r}" id="256" xml:id="opaque" r:id="rId2"/>`
+        ])
+        .bytes()
+    );
+    const result = await importSlides(
+      await createPresentation({}, context),
+      archive(source),
+      { sourceSlides: [1] },
+      context
+    );
+    expect(attrs(parts(result).get("ppt/presentation.xml")!, "sldId")).toHaveLength(1);
   });
   it("imports into an empty slide list", async () => {
     const result = parts(

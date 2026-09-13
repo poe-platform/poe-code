@@ -2008,7 +2008,9 @@ class Parser {
     const next = this.peekToken(1);
     // Statement-only positions allow sloppy `let` as an expression, but never `let [`.
     return next.value === "[" || (allowDeclarations &&
-      (next.value === "{" || isIdentifierLikeToken(next) || this.isContextualIdentifier(next)));
+      (next.value === "{" || isIdentifierLikeToken(next) || this.isContextualIdentifier(next) ||
+        ((next.type === "keyword" || next.type === "escaped-keyword") &&
+          (next.value === "await" || next.value === "yield"))));
   }
 
   private parseVariableDeclaration(allowIn = true): VariableDeclaration {

@@ -2252,3 +2252,34 @@ installed-artifact/full-task gates, and the prior trailing-newline caret issue.
 These are residual counts, not a fresh whole-selection report. Unrelated local and
 staged changes remain preserved. This repair receives its own local commit;
 remote-main delivery **not performed**; release/publication **not performed**.
+
+### qualify-language-semantics — let declaration lookahead, 2026-09-13
+
+**Acceptance remains incomplete.** [Atomic audit and manual checks](qualify-language-semantics/let-lookahead/audit.md)
+reproduce nine syntax regressions before repair. Sloppy `let` followed by newline
+and `await`/`yield` is now recognized as a lexical declaration and rejected by its
+existing early errors. Explicit semicolons, normal-function bindings, strings and
+statement-only expressions remain valid. The initial strict-eval replay fixture
+mistake remains recorded separately; its corrected sloppy context preserves all
+error, side-effect, saved-generator-source and repeated replay assertions.
+
+Parent main SHA `8aecabb27604bec0f166a50c44ef186c8561eff6`, Node **22.23.2 / ICU78.2**.
+[Original row/context/source reconciliation](qualify-language-semantics/let-lookahead/reconciliation.json)
+records **8/8 upstream variants passing**, including both original sloppy failures.
+Working fingerprint `275d60c5cc0f880176b80432b41a0ad6b7ada9bae751c8aaa26c636761bc3555`;
+independent HEAD-plus-owned-change fingerprint
+`4ecbfab4c180a643a4b7caf2a7ae88a13c7b7111eb1447156bd5b7613abed742`.
+Both candidates pass **74 focused tests / five files**, zero failures/skips; scoped
+lint verifies the exact committed parser/regression bytes. Maintained build and
+eight built-import checks pass. Six Node SDK cells and Bun pass native/syntax,
+sloppy eval, finally, saved generator state/source, three pending/completed replay,
+host escape denial and unchanged step-budget controls. CLI screenshot was inspected;
+SDK error location/message agrees. All edition/extension pins and deadlines remain.
+
+**Remaining:** 163 historical primary nonpasses before edition/extension disposition,
+126 secondary resource nonpasses, other-owner reconciliation, runtime/recovery and
+installed-artifact/full-task gates, and the prior caret issue. These are historical
+residuals, not a fresh whole-selection pass. Previous local repair SHA is
+`8aecabb27604bec0f166a50c44ef186c8561eff6`; this improvement receives its own local
+commit. Unrelated working/staged changes are preserved. Remote-main delivery
+**not performed**; release/publication **not performed**.

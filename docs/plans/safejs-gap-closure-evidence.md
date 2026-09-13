@@ -1449,3 +1449,141 @@ SHA plus the primitive-admission worktree change, not a separately committed
 revision; the final source hashes and terminal acceptance are pinned separately.
 
 The corrected maintained conformance command completed: **4 pinned files / 8 variants passed**, zero failed, unsupported, metadata-error or execution-error cases. Receipt: `repair-promise-symbol-admission/pinned-fixtures-qualified.jsonl`; exact command is in its header and `.log`. Test262 revision is unchanged. Runner source SHA is `40b5ac20e91570772786e5f9cb961881b11d6692`; working-source digest is `3a889f58a269ad4afca5b3e275dbb761bab2121596440bcbf3704aeab9ba0ef6`. The default 3,000 ms per-variant deadline and declared default budgets were unchanged.
+
+### Promise admission full-package follow-up and proof-authority repair — 2026-09-12
+
+Revalidation started at `ca34f2cf25df3a1f0b2b96d67eac16bbbf177cbc`
+(Node 22.23.2 / ICU 78.2). The previous source hashes matched, and the
+maintained workspace build and scoped ESLint passed. Seven built-public API
+runtime probes and the four mapped Test262 files / eight variants passed.
+`current-qualification.json` records this pre-repair candidate, exact commands,
+versions and independent manual controls. These receipts do not describe the
+subsequent proof-authority repair.
+
+The maintained `npm test --workspace=@poe-code/safe-js` exposed a real
+regression in the existing `test/final-async-proof-conversion.test.ts`:
+`HostCallResumeContext.toSandboxValue(Symbol("invalid"))` stopped throwing.
+The new general symbol branch in the shared host converter bypassed the
+converter's narrower callback-proof authority contract. The package attempt
+was stopped after that failure (exit 130); `current-package-test.log` is
+**failed and incomplete**, never a completed broad gate. The original assertion
+was not changed or removed.
+
+TDD: three independent unique/global/well-known nested symbol controls in
+`native-promise-admission-budgets.test.ts` reproduced the issue: **3 failed /
+5 passed**, exit 1 (`proof-authority-red.log`). The repair checks the existing
+`proofFunctions` context before accepting symbol primitives. General host
+imports and admitted Promise key/value/settlement identity still pass. The
+focused command over admission, budgets, import properties, input-symbol
+references and the unchanged callback-proof suite passes **5 files / 48 tests**,
+zero failures or skips (`proof-authority-green.log`). This preserves the proof
+capability boundary rather than narrowing ECMAScript support or weakening an
+assertion. The two changed runtime lines and the new controls are scoped to
+SafeJS; no budget, runtime version or timeout changed.
+
+Manual QA in `repair-promise-symbol-admission/manual-checks.md` now additionally
+checks failed admission retaining previous authority, duplicate keys, accessor
+noninvocation, host-registry isolation, and revocation versus already-imported
+persistent-realm data. The first fixture incorrectly redeclared top-level
+`const keys` in the persistent realm and failed. A block-scoped declaration
+corrected that fixture; the original failure and corrected result are both in
+`current-qualification.json`. The final rebuilt candidate passes this control
+and the existing pending callable-rebinding/completed replay controls on both
+bindings and nested host results (`proof-authority-qualification.json`).
+
+A fresh real Workerd conditional-bundle attempt fails before guest execution:
+`packages/safe-fs/dist/node/native-seek.js` cannot resolve
+`#safe-fs-native-seek` under the Workerd conditions. Exact bundler options and
+exit 1 are recorded in `current-qualification.json` and
+`current-workerd-bundle.log`. No unresolved import was externalized to fake a
+pass, and no ambient Node authority was added. The **WORKERD cell remains
+unverified and blocked at integration**; Node/Bun imports of the Workerd export
+are not a substitute. The native late-hook/nonextensible-Promise limitation
+was separately reproduced again (`current-native-controls.log`): the control
+process passes by requiring the native subprocess's exit 1 and exact native
+error condition. It is not a SafeJS semantic failure.
+
+The pinned target remains ECMA-262 edition 16 / ECMA-402 edition 12, the
+previously tracked newer APIs, and Test262
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93`. No new CLI option or visible CLI
+behavior changed; screenshots are not applicable to this repair. Full-package
+rerun, final candidate identity, matrix outcomes and delivery follow below.
+
+The second maintained package attempt completed (exit 1, 1,674.23 s):
+**1,322 files passed / 2 failed / 2 skipped; 29,260 tests passed / 2 failed /
+47 skipped**. The callback-proof authority regression passes in that run.
+Both remaining failures were exact public-export inventories in `index.test.ts`
+and `core.test.ts` omitting the newly added `admitNativePromiseProperties`
+export. Their red diffs are preserved in `proof-authority-package-test.log`.
+The index fixture was corrected after its failed case had executed; the core
+fixture was corrected after the run completed. This is a completed **failed**
+package attempt, not a final-candidate pass.
+
+Both inventories now require the new API while retaining exact equality.
+The index contract additionally checks identical function identity across
+index/core/workerd entrypoints. The corrected fixtures pass **2 files / 18
+tests**, zero failures/skips (`public-export-contracts-green.log`); ESLint
+passes (`public-export-contracts-lint.log`). Local runtime repair commit:
+`f30bce387`; local export-contract commit: `671e42cf3c2ce98fc7f88cb3787721dd417544f3`.
+These are local commits only. The final full-package run uses that candidate;
+no source/test edits are planned during it.
+
+The repaired runtime's rebuilt public probes pass on MIN 18.18.0, N18 18.20.8,
+N20 20.20.2, CI22 22.23.2, N24 24.21.0, N26 26.8.2 and Bun 1.3.11.
+All three entrypoints preserve admitted aliases/settlement and exclude retained
+host context in original/completed replay. Manual pending-callable rebinding
+and independent admission/realm-lifetime controls pass. The mapped pinned
+Test262 files passed on all six Node cells: **48 variants passed**, zero failed,
+unsupported, metadata-error or execution-error cases, with the maintained
+3,000 ms per-variant deadline unchanged. Exact runtime commands and per-cell
+results are in `proof-authority-pinned-matrix.json`; source/built hashes,
+Node/ICU versions and public/manual results are in
+`proof-authority-qualification.json`. Bun is qualified by its public-contract
+probe rather than claiming the Node child-process harness executed there.
+
+### Promise admission final candidate receipt
+
+Final candidate: `671e42cf3c2ce98fc7f88cb3787721dd417544f3` (runtime repair
+`f30bce387`, original admission implementation `ba051e363`). The fresh maintained
+`npm test --workspace=@poe-code/safe-js` completed with **exit 0**:
+**1,324 files passed / 2 skipped; 29,262 tests passed / 47 skipped / zero
+failures**, duration 1,770.33 s. All native pretest/type-contract stages ran.
+Receipt: `repair-promise-symbol-admission/final-package-test.log`. The index and
+core exact export contracts and callback-proof negative controls pass in this
+complete run. This supersedes neither failed attempt: their original logs,
+counts, interruption and diagnoses remain above.
+
+The 47 skips are explicitly unverified by this package invocation: two native
+Math.f16round controls (unavailable host intrinsic), four native Temporal.Instant
+controls and seven host-Instant structured-clone controls (unavailable native
+Temporal), 33 declared filesystem-reference gaps, and one opt-in parser fuzz
+case. None belongs to the added admission regressions; none was introduced or
+changed to obtain a pass. No optional fuzz profile or missing native API was
+counted as a pass. The package includes 11 preserved untracked test files;
+their hashes, the tracked source/test hashes and actual runtime versions are
+recorded so this workspace execution is not misrepresented as a pristine
+checkout result.
+
+The maintained SafeJS build closure and its seven postbuild import tests pass;
+scoped ESLint passes for runtime and export-test changes. Final source hashes
+still match the built/matrix candidate; only the documented export-contract
+fixtures changed after the runtime matrix. The six Node mapped-variant cells,
+seven public API runtime cells and independent manual controls are all terminal
+passes. No broad repository gate, performance claim, screenshot or actual
+Workerd execution is inferred from those results. Root-wide tests/lint/build
+were not run for this SafeJS-only repair; no workflow changed.
+
+Disposition: explicit caller-owned symbol preservation and active/retired
+host-context isolation pass independently, including original/pending/completed
+replay, budgets, rollback and negative proof authority. **Full task closure
+still has an unverified WORKERD integration cell** due to the independently
+recorded conditional native-seek bundle failure. The unchanged native
+late-hook/nonextensibility limitation is also recorded. Neither limitation
+is reclassified as an ECMAScript defect or silently removed from support.
+
+Delivery: the two follow-up fixes are local commits. Fresh remote-main read
+still reports `40b5ac20e91570772786e5f9cb961881b11d6692`, so none of the local
+admission commits is verified delivered there. No push was requested or
+performed; no release was initiated; successful-release receipt is **null**.
+See `repair-promise-symbol-admission/final-receipt.json` and
+`proof-authority-qualification.json` for exact candidate and terminal results.

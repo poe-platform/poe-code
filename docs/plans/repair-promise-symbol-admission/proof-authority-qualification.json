@@ -1,0 +1,806 @@
+{
+  "at": "2026-09-12T23:44:31.444819+00:00",
+  "baseSourceSha": "ca34f2cf25df3a1f0b2b96d67eac16bbbf177cbc",
+  "workingTree": true,
+  "buildExit": 0,
+  "lintExit": 0,
+  "focused": {
+    "passed": 48,
+    "failed": 0,
+    "skipped": 0,
+    "files": 5
+  },
+  "files": {
+    "packages/safe-js/src/core.ts": "88057a461abd95ffe1134bb550696ef5413ec06f97b3f060d3fc3bda11a61c9c",
+    "packages/safe-js/src/index.ts": "e11bbef038f2fdf323de00dfdbd24e34e96b2c59375f909d96eaca51afce9d5c",
+    "packages/safe-js/src/interp/host-bridge.ts": "102619c84d597f97af7acd34ccabb7eac82735617bec27ef7e2615ff4dfc7369",
+    "packages/safe-js/src/interp/host-call.ts": "7a7470b38c430a03d3ed86a74de30c507056c996a7876999f2fe3f800f455c44",
+    "packages/safe-js/src/interp/native-promise-properties.ts": "253b71f3de290adde74cfa1adcdd25fe1ec6cc39593277a209d70611a64027c0",
+    "packages/safe-js/src/interp/values.ts": "658799c537294a19aecce56e5e04dd1077e2bb970e35af32b71f3b880af02ebe",
+    "packages/safe-js/src/run.ts": "49e2aaa68d9476a9f11b84c833e6086b7d24fa333e0e2cb8acdda3309beb3421",
+    "packages/safe-js/src/snapshot/replay-data.ts": "d07c6eb8916a991dfc582d2ff97f185501fe14d585a07664c226593aa0e9a2b8",
+    "packages/safe-js/src/snapshot/replay-inputs.ts": "0bf06db00523ea8376e3554d6551c5dc0e1c71ccc3d89bc5ce5210b041c43124",
+    "packages/safe-js/src/workerd.ts": "4baf8934e99f10b8ee7896d81e4b456846cc30d5ba206b3263b70f09f5d826d9",
+    "packages/safe-js/src/interp/native-promise-admission.test.ts": "678b18fe29badbf41f5f438f3f8442fba92d072d9aa37f477804b577ff344bfb",
+    "packages/safe-js/src/interp/native-promise-admission-budgets.test.ts": "9bf8b0ed45c83e2e12ee6af9eead4d568bbf670c13612e9803e903082ede906d",
+    "packages/safe-js/src/interp/promise-import-properties.test.ts": "059f80dfcf10177017912cc466dd66bed9b9f50636bbcf1b24e51e3cf8abff61",
+    "packages/safe-js/src/snapshot/input-symbol-references.test.ts": "6c91b86df9da500df0da47ac29d4a82fcfdda8dc41d18f2eaaab6afcdb03de0d",
+    "packages/safe-js/src/index.test.ts": "42ca9a4b705b3d2d8db19a8ca203e65908f9c5f962cf77673543ad4991bf912c",
+    "packages/safe-js/src/core.test.ts": "c7f3f01cbb9a9401ccdd4d1e38b7486062e3e4bee4016198d50cfe03361633b1"
+  },
+  "publicRuntimeResults": [
+    {
+      "runtime": "MIN",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v18.18.0/bin/node",
+        "--input-type=module",
+        "-e",
+        "\nimport assert from \"node:assert/strict\";\nimport { AsyncLocalStorage } from \"node:async_hooks\";\nconst results = [];\nfor (const entry of [\"index\", \"core\", \"workerd\"]) {\n  const api = await import(new URL(`./packages/safe-js/dist/${entry}.js`, `file://${process.cwd()}/`));\n  assert.equal(typeof api.admitNativePromiseProperties, \"function\");\n  const storage = new AsyncLocalStorage();\n  const key = Symbol(\"kResourceStore\");\n  const input = storage.run({ secret: \"do-not-export\" }, () => Promise.resolve(key));\n  Object.defineProperty(input, key, { value: key });\n  api.admitNativePromiseProperties(input, [key]);\n  storage.disable();\n  Object.preventExtensions(input);\n  const source = \"const key = Object.getOwnPropertySymbols(input)[0]; return [Object.getOwnPropertySymbols(input).length, input[key] === key, await input === key, Object.isExtensible(input)]\";\n  const original = await api.run(source, { bindings: { input } });\n  assert.equal(original.ok, true);\n  assert.deepEqual(original.returnValue, [1, true, true, false]);\n  const { dump, restore } = await import(new URL(\"./packages/safe-js/dist/index.js\", `file://${process.cwd()}/`));\n  const saved = await dump(original);\n  assert.equal(saved.includes(\"do-not-export\"), false);\n  const replay = await api.run(source, { snapshot: restore(JSON.parse(saved), { source }) });\n  assert.equal(replay.ok, true);\n  assert.deepEqual(replay.returnValue, [1, true, true, false]);\n  results.push({ entry, original: true, completedReplay: true, isolated: true });\n}\nconsole.log(JSON.stringify({ versions: process.versions, results }));\n"
+      ],
+      "exit": 0,
+      "stdout": "{\"versions\":{\"node\":\"18.18.0\",\"acorn\":\"8.10.0\",\"ada\":\"2.6.0\",\"ares\":\"1.19.1\",\"brotli\":\"1.0.9\",\"cldr\":\"43.1\",\"icu\":\"73.2\",\"llhttp\":\"6.0.11\",\"modules\":\"108\",\"napi\":\"9\",\"nghttp2\":\"1.55.0\",\"nghttp3\":\"0.7.0\",\"ngtcp2\":\"0.8.1\",\"openssl\":\"3.0.10+quic\",\"simdutf\":\"3.2.14\",\"tz\":\"2023c\",\"undici\":\"5.22.1\",\"unicode\":\"15.0\",\"uv\":\"1.46.0\",\"uvwasi\":\"0.0.18\",\"v8\":\"10.2.154.26-node.26\",\"zlib\":\"1.2.13.1-motley\"},\"results\":[{\"entry\":\"index\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"core\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"workerd\",\"original\":true,\"completedReplay\":true,\"isolated\":true}]}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "N18",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v18.20.8/bin/node",
+        "--input-type=module",
+        "-e",
+        "\nimport assert from \"node:assert/strict\";\nimport { AsyncLocalStorage } from \"node:async_hooks\";\nconst results = [];\nfor (const entry of [\"index\", \"core\", \"workerd\"]) {\n  const api = await import(new URL(`./packages/safe-js/dist/${entry}.js`, `file://${process.cwd()}/`));\n  assert.equal(typeof api.admitNativePromiseProperties, \"function\");\n  const storage = new AsyncLocalStorage();\n  const key = Symbol(\"kResourceStore\");\n  const input = storage.run({ secret: \"do-not-export\" }, () => Promise.resolve(key));\n  Object.defineProperty(input, key, { value: key });\n  api.admitNativePromiseProperties(input, [key]);\n  storage.disable();\n  Object.preventExtensions(input);\n  const source = \"const key = Object.getOwnPropertySymbols(input)[0]; return [Object.getOwnPropertySymbols(input).length, input[key] === key, await input === key, Object.isExtensible(input)]\";\n  const original = await api.run(source, { bindings: { input } });\n  assert.equal(original.ok, true);\n  assert.deepEqual(original.returnValue, [1, true, true, false]);\n  const { dump, restore } = await import(new URL(\"./packages/safe-js/dist/index.js\", `file://${process.cwd()}/`));\n  const saved = await dump(original);\n  assert.equal(saved.includes(\"do-not-export\"), false);\n  const replay = await api.run(source, { snapshot: restore(JSON.parse(saved), { source }) });\n  assert.equal(replay.ok, true);\n  assert.deepEqual(replay.returnValue, [1, true, true, false]);\n  results.push({ entry, original: true, completedReplay: true, isolated: true });\n}\nconsole.log(JSON.stringify({ versions: process.versions, results }));\n"
+      ],
+      "exit": 0,
+      "stdout": "{\"versions\":{\"node\":\"18.20.8\",\"acorn\":\"8.14.0\",\"ada\":\"2.8.0\",\"ares\":\"1.29.0\",\"base64\":\"0.5.2\",\"brotli\":\"1.1.0\",\"cjs_module_lexer\":\"1.2.2\",\"cldr\":\"44.1\",\"icu\":\"74.2\",\"llhttp\":\"6.1.1\",\"modules\":\"108\",\"napi\":\"9\",\"nghttp2\":\"1.61.0\",\"openssl\":\"3.0.16\",\"simdutf\":\"5.6.4\",\"tz\":\"2024a\",\"undici\":\"5.29.0\",\"unicode\":\"15.1\",\"uv\":\"1.44.2\",\"uvwasi\":\"0.0.19\",\"v8\":\"10.2.154.26-node.39\",\"zlib\":\"1.3.0.1-motley\"},\"results\":[{\"entry\":\"index\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"core\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"workerd\",\"original\":true,\"completedReplay\":true,\"isolated\":true}]}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "N20",
+      "command": [
+        "/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node",
+        "--input-type=module",
+        "-e",
+        "\nimport assert from \"node:assert/strict\";\nimport { AsyncLocalStorage } from \"node:async_hooks\";\nconst results = [];\nfor (const entry of [\"index\", \"core\", \"workerd\"]) {\n  const api = await import(new URL(`./packages/safe-js/dist/${entry}.js`, `file://${process.cwd()}/`));\n  assert.equal(typeof api.admitNativePromiseProperties, \"function\");\n  const storage = new AsyncLocalStorage();\n  const key = Symbol(\"kResourceStore\");\n  const input = storage.run({ secret: \"do-not-export\" }, () => Promise.resolve(key));\n  Object.defineProperty(input, key, { value: key });\n  api.admitNativePromiseProperties(input, [key]);\n  storage.disable();\n  Object.preventExtensions(input);\n  const source = \"const key = Object.getOwnPropertySymbols(input)[0]; return [Object.getOwnPropertySymbols(input).length, input[key] === key, await input === key, Object.isExtensible(input)]\";\n  const original = await api.run(source, { bindings: { input } });\n  assert.equal(original.ok, true);\n  assert.deepEqual(original.returnValue, [1, true, true, false]);\n  const { dump, restore } = await import(new URL(\"./packages/safe-js/dist/index.js\", `file://${process.cwd()}/`));\n  const saved = await dump(original);\n  assert.equal(saved.includes(\"do-not-export\"), false);\n  const replay = await api.run(source, { snapshot: restore(JSON.parse(saved), { source }) });\n  assert.equal(replay.ok, true);\n  assert.deepEqual(replay.returnValue, [1, true, true, false]);\n  results.push({ entry, original: true, completedReplay: true, isolated: true });\n}\nconsole.log(JSON.stringify({ versions: process.versions, results }));\n"
+      ],
+      "exit": 0,
+      "stdout": "{\"versions\":{\"node\":\"20.20.2\",\"acorn\":\"8.16.0\",\"ada\":\"2.9.2\",\"ares\":\"1.34.6\",\"brotli\":\"1.1.0\",\"cjs_module_lexer\":\"2.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.2\",\"llhttp\":\"9.3.1\",\"modules\":\"115\",\"napi\":\"9\",\"nghttp2\":\"1.61.0\",\"openssl\":\"3.0.19\",\"simdutf\":\"6.4.2\",\"tz\":\"2025c\",\"undici\":\"6.24.1\",\"unicode\":\"17.0\",\"uv\":\"1.46.0\",\"uvwasi\":\"0.0.23\",\"v8\":\"11.3.244.8-node.38\",\"zlib\":\"1.3.1-e00f703\"},\"results\":[{\"entry\":\"index\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"core\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"workerd\",\"original\":true,\"completedReplay\":true,\"isolated\":true}]}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "CI22",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+        "--input-type=module",
+        "-e",
+        "\nimport assert from \"node:assert/strict\";\nimport { AsyncLocalStorage } from \"node:async_hooks\";\nconst results = [];\nfor (const entry of [\"index\", \"core\", \"workerd\"]) {\n  const api = await import(new URL(`./packages/safe-js/dist/${entry}.js`, `file://${process.cwd()}/`));\n  assert.equal(typeof api.admitNativePromiseProperties, \"function\");\n  const storage = new AsyncLocalStorage();\n  const key = Symbol(\"kResourceStore\");\n  const input = storage.run({ secret: \"do-not-export\" }, () => Promise.resolve(key));\n  Object.defineProperty(input, key, { value: key });\n  api.admitNativePromiseProperties(input, [key]);\n  storage.disable();\n  Object.preventExtensions(input);\n  const source = \"const key = Object.getOwnPropertySymbols(input)[0]; return [Object.getOwnPropertySymbols(input).length, input[key] === key, await input === key, Object.isExtensible(input)]\";\n  const original = await api.run(source, { bindings: { input } });\n  assert.equal(original.ok, true);\n  assert.deepEqual(original.returnValue, [1, true, true, false]);\n  const { dump, restore } = await import(new URL(\"./packages/safe-js/dist/index.js\", `file://${process.cwd()}/`));\n  const saved = await dump(original);\n  assert.equal(saved.includes(\"do-not-export\"), false);\n  const replay = await api.run(source, { snapshot: restore(JSON.parse(saved), { source }) });\n  assert.equal(replay.ok, true);\n  assert.deepEqual(replay.returnValue, [1, true, true, false]);\n  results.push({ entry, original: true, completedReplay: true, isolated: true });\n}\nconsole.log(JSON.stringify({ versions: process.versions, results }));\n"
+      ],
+      "exit": 0,
+      "stdout": "{\"versions\":{\"node\":\"22.23.2\",\"acorn\":\"8.16.0\",\"ada\":\"2.9.2\",\"amaro\":\"1.1.8\",\"ares\":\"1.34.6\",\"brotli\":\"1.1.0\",\"cjs_module_lexer\":\"2.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.2\",\"llhttp\":\"9.4.3\",\"modules\":\"127\",\"napi\":\"10\",\"nbytes\":\"0.1.3\",\"ncrypto\":\"0.0.1\",\"nghttp2\":\"1.69.0\",\"openssl\":\"3.5.7\",\"simdjson\":\"4.5.0\",\"simdutf\":\"6.4.2\",\"sqlite\":\"3.51.3\",\"tz\":\"2026a\",\"undici\":\"6.28.0\",\"unicode\":\"17.0\",\"uv\":\"1.51.0\",\"uvwasi\":\"0.0.23\",\"v8\":\"12.4.254.21-node.56\",\"zlib\":\"1.3.1-e00f703\",\"zstd\":\"1.5.7\"},\"results\":[{\"entry\":\"index\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"core\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"workerd\",\"original\":true,\"completedReplay\":true,\"isolated\":true}]}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "N24",
+      "command": [
+        "/tmp/safejs-published-baseline.gM67xh/runtimes/node-24.21.0",
+        "--input-type=module",
+        "-e",
+        "\nimport assert from \"node:assert/strict\";\nimport { AsyncLocalStorage } from \"node:async_hooks\";\nconst results = [];\nfor (const entry of [\"index\", \"core\", \"workerd\"]) {\n  const api = await import(new URL(`./packages/safe-js/dist/${entry}.js`, `file://${process.cwd()}/`));\n  assert.equal(typeof api.admitNativePromiseProperties, \"function\");\n  const storage = new AsyncLocalStorage();\n  const key = Symbol(\"kResourceStore\");\n  const input = storage.run({ secret: \"do-not-export\" }, () => Promise.resolve(key));\n  Object.defineProperty(input, key, { value: key });\n  api.admitNativePromiseProperties(input, [key]);\n  storage.disable();\n  Object.preventExtensions(input);\n  const source = \"const key = Object.getOwnPropertySymbols(input)[0]; return [Object.getOwnPropertySymbols(input).length, input[key] === key, await input === key, Object.isExtensible(input)]\";\n  const original = await api.run(source, { bindings: { input } });\n  assert.equal(original.ok, true);\n  assert.deepEqual(original.returnValue, [1, true, true, false]);\n  const { dump, restore } = await import(new URL(\"./packages/safe-js/dist/index.js\", `file://${process.cwd()}/`));\n  const saved = await dump(original);\n  assert.equal(saved.includes(\"do-not-export\"), false);\n  const replay = await api.run(source, { snapshot: restore(JSON.parse(saved), { source }) });\n  assert.equal(replay.ok, true);\n  assert.deepEqual(replay.returnValue, [1, true, true, false]);\n  results.push({ entry, original: true, completedReplay: true, isolated: true });\n}\nconsole.log(JSON.stringify({ versions: process.versions, results }));\n"
+      ],
+      "exit": 0,
+      "stdout": "{\"versions\":{\"node\":\"24.21.0\",\"acorn\":\"8.18.0\",\"ada\":\"4.0.0\",\"amaro\":\"1.1.11\",\"ares\":\"1.34.8\",\"brotli\":\"1.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.3\",\"llhttp\":\"9.4.3\",\"merve\":\"1.2.2\",\"modules\":\"137\",\"napi\":\"10\",\"nbytes\":\"0.1.4\",\"ncrypto\":\"0.0.1\",\"nghttp2\":\"1.70.0\",\"nghttp3\":\"\",\"ngtcp2\":\"\",\"openssl\":\"3.5.8\",\"simdjson\":\"4.6.7\",\"simdutf\":\"6.4.0\",\"sqlite\":\"3.53.4\",\"tz\":\"2026c\",\"undici\":\"7.29.1\",\"unicode\":\"17.0\",\"uv\":\"1.52.1\",\"uvwasi\":\"0.0.23\",\"v8\":\"13.6.233.17-node.53\",\"zlib\":\"1.3.2.1-motley-8002e91\",\"zstd\":\"1.5.7\"},\"results\":[{\"entry\":\"index\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"core\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"workerd\",\"original\":true,\"completedReplay\":true,\"isolated\":true}]}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "N26",
+      "command": [
+        "/tmp/safejs-published-baseline.gM67xh/runtimes/node-26.8.2",
+        "--input-type=module",
+        "-e",
+        "\nimport assert from \"node:assert/strict\";\nimport { AsyncLocalStorage } from \"node:async_hooks\";\nconst results = [];\nfor (const entry of [\"index\", \"core\", \"workerd\"]) {\n  const api = await import(new URL(`./packages/safe-js/dist/${entry}.js`, `file://${process.cwd()}/`));\n  assert.equal(typeof api.admitNativePromiseProperties, \"function\");\n  const storage = new AsyncLocalStorage();\n  const key = Symbol(\"kResourceStore\");\n  const input = storage.run({ secret: \"do-not-export\" }, () => Promise.resolve(key));\n  Object.defineProperty(input, key, { value: key });\n  api.admitNativePromiseProperties(input, [key]);\n  storage.disable();\n  Object.preventExtensions(input);\n  const source = \"const key = Object.getOwnPropertySymbols(input)[0]; return [Object.getOwnPropertySymbols(input).length, input[key] === key, await input === key, Object.isExtensible(input)]\";\n  const original = await api.run(source, { bindings: { input } });\n  assert.equal(original.ok, true);\n  assert.deepEqual(original.returnValue, [1, true, true, false]);\n  const { dump, restore } = await import(new URL(\"./packages/safe-js/dist/index.js\", `file://${process.cwd()}/`));\n  const saved = await dump(original);\n  assert.equal(saved.includes(\"do-not-export\"), false);\n  const replay = await api.run(source, { snapshot: restore(JSON.parse(saved), { source }) });\n  assert.equal(replay.ok, true);\n  assert.deepEqual(replay.returnValue, [1, true, true, false]);\n  results.push({ entry, original: true, completedReplay: true, isolated: true });\n}\nconsole.log(JSON.stringify({ versions: process.versions, results }));\n"
+      ],
+      "exit": 0,
+      "stdout": "{\"versions\":{\"node\":\"26.8.2\",\"acorn\":\"8.18.0\",\"ada\":\"4.0.0\",\"amaro\":\"1.1.11\",\"ares\":\"1.34.8\",\"brotli\":\"1.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.3\",\"libffi\":\"3.8.0\",\"lief\":\"0.17.0\",\"llhttp\":\"9.4.3\",\"merve\":\"1.2.2\",\"modules\":\"147\",\"napi\":\"10\",\"nbytes\":\"0.1.4\",\"ncrypto\":\"0.0.1\",\"nghttp2\":\"1.70.0\",\"nghttp3\":\"\",\"ngtcp2\":\"\",\"openssl\":\"3.5.8\",\"simdjson\":\"4.6.9\",\"simdutf\":\"7.7.0\",\"sqlite\":\"3.53.4\",\"tz\":\"2026c\",\"undici\":\"8.10.2\",\"unicode\":\"17.0\",\"uv\":\"1.52.1\",\"uvwasi\":\"0.0.23\",\"v8\":\"14.6.202.34-node.28\",\"zlib\":\"1.3.2.1-motley-5eb4d7e\",\"zstd\":\"1.5.7\"},\"results\":[{\"entry\":\"index\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"core\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"workerd\",\"original\":true,\"completedReplay\":true,\"isolated\":true}]}\n",
+      "stderr": ""
+    },
+    {
+      "runtime": "BUN",
+      "command": [
+        "/Users/kjopek/.bun/bin/bun",
+        "--input-type=module",
+        "-e",
+        "\nimport assert from \"node:assert/strict\";\nimport { AsyncLocalStorage } from \"node:async_hooks\";\nconst results = [];\nfor (const entry of [\"index\", \"core\", \"workerd\"]) {\n  const api = await import(new URL(`./packages/safe-js/dist/${entry}.js`, `file://${process.cwd()}/`));\n  assert.equal(typeof api.admitNativePromiseProperties, \"function\");\n  const storage = new AsyncLocalStorage();\n  const key = Symbol(\"kResourceStore\");\n  const input = storage.run({ secret: \"do-not-export\" }, () => Promise.resolve(key));\n  Object.defineProperty(input, key, { value: key });\n  api.admitNativePromiseProperties(input, [key]);\n  storage.disable();\n  Object.preventExtensions(input);\n  const source = \"const key = Object.getOwnPropertySymbols(input)[0]; return [Object.getOwnPropertySymbols(input).length, input[key] === key, await input === key, Object.isExtensible(input)]\";\n  const original = await api.run(source, { bindings: { input } });\n  assert.equal(original.ok, true);\n  assert.deepEqual(original.returnValue, [1, true, true, false]);\n  const { dump, restore } = await import(new URL(\"./packages/safe-js/dist/index.js\", `file://${process.cwd()}/`));\n  const saved = await dump(original);\n  assert.equal(saved.includes(\"do-not-export\"), false);\n  const replay = await api.run(source, { snapshot: restore(JSON.parse(saved), { source }) });\n  assert.equal(replay.ok, true);\n  assert.deepEqual(replay.returnValue, [1, true, true, false]);\n  results.push({ entry, original: true, completedReplay: true, isolated: true });\n}\nconsole.log(JSON.stringify({ versions: process.versions, results }));\n"
+      ],
+      "exit": 0,
+      "stdout": "{\"versions\":{\"node\":\"24.3.0\",\"bun\":\"1.3.11\",\"boringssl\":\"4f4f5ef8ebc6e23cbf393428f0ab1b526773f7ac\",\"openssl\":\"1.1.0\",\"llhttp\":\"9.3.0\",\"libarchive\":\"9525f90ca4bd14c7b335e2f8c84a4607b0af6bdf\",\"mimalloc\":\"1beadf9651a7bfdec6b5367c380ecc3fe1c40d1a\",\"picohttpparser\":\"066d2b1e9ab820703db0837a7255d92d30f0c9f5\",\"uwebsockets\":\"687700d842737a07f3cf530cf4cabc0015685631\",\"webkit\":\"7da058f2ad4432ec5547dbfc3a5b6d544bb05d1d\",\"zig\":\"c031cbebf5b063210473ff5204a24ebfb2492c72\",\"zlib\":\"886098f3f339617b4243b286f5ed364b9989e245\",\"tinycc\":\"12882eee073cfe5c7621bcfadf679e1372d4537b\",\"lolhtml\":\"e3aa54798602dd27250fafde1b5a66f080046252\",\"ares\":\"3ac47ee46edd8ea40370222f91613fc16c434853\",\"libdeflate\":\"c8c56a20f8f621e6a966b716b31f1dedab6a41e3\",\"usockets\":\"687700d842737a07f3cf530cf4cabc0015685631\",\"lshpack\":\"8905c024b6d052f083a3d11d0a169b3c2735c8a1\",\"zstd\":\"f8745da6ff1ad1e7bab384bd1f9d742439278e99\",\"v8\":\"13.6.233.10-node.18\",\"uv\":\"1.48.0\",\"napi\":\"10\",\"icu\":\"74.2\",\"unicode\":\"15.1\",\"modules\":\"137\"},\"results\":[{\"entry\":\"index\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"core\",\"original\":true,\"completedReplay\":true,\"isolated\":true},{\"entry\":\"workerd\",\"original\":true,\"completedReplay\":true,\"isolated\":true}]}\n",
+      "stderr": ""
+    }
+  ],
+  "manualResults": [
+    {
+      "source": "import assert from 'node:assert/strict';\nimport { admitNativePromiseProperties, run, dump, restore } from './packages/safe-js/dist/index.js';\nfor (const surface of ['binding', 'host']) {\n  let settle;\n  const input = new Promise(resolve => { settle = resolve; });\n  const key = Symbol('callable');\n  const first = () => 1;\n  Object.defineProperty(input, key, { value: first });\n  admitNativePromiseProperties(input, [key]);\n  let reached;\n  const ready = new Promise(resolve => { reached = resolve; });\n  const load = () => ({ input });\n  const source = (surface === 'host' ? 'const input = (await load()).input; ' : '') + 'mark(); const value = await input; const key = Object.getOwnPropertySymbols(input)[0]; return [input[key](), value]';\n  const execution = run(source, { bindings: surface === 'host' ? { first, load, mark: reached } : { first, input, mark: reached } });\n  try {\n    await ready;\n    await execution.pause();\n    const snapshot = restore(JSON.parse(await dump(execution)), { source });\n    const resumed = await run(source, { snapshot, bindings: { first: () => 2, load, mark: () => {} }, hostCallResumeProvider: request => ({ ...request, outcome: { status: 'fulfilled', value: 9 } }) });\n    assert.equal(resumed.ok, true);\n    assert.deepEqual(resumed.returnValue, [2, 9]);\n    settle(7);\n    execution.resume();\n    const original = await execution;\n    assert.deepEqual(original.returnValue, [1, 7]);\n    const completed = await run(source, { bindings: { first: () => 3, load, mark: () => {} }, snapshot: restore(JSON.parse(await dump(original)), { source }) });\n    assert.deepEqual(completed.returnValue, [1, 7]);\n    console.log(surface, 'original, pending callable rebind, completed replay: passed');\n  } finally {\n    settle(7);\n    if (execution.executionState === 'paused') execution.resume();\n    await execution;\n  }\n}",
+      "exit": 0,
+      "stdout": "binding original, pending callable rebind, completed replay: passed\nhost original, pending callable rebind, completed replay: passed\n",
+      "stderr": ""
+    },
+    {
+      "source": "import assert from 'node:assert/strict';\nimport { admitNativePromiseProperties, createRealm, run } from './packages/safe-js/dist/index.js';\nconst first = Symbol.for('admission-independent-control');\nconst second = Symbol('admission-independent-control');\nconst input = Promise.resolve(3);\nlet invoked = 0;\nObject.defineProperty(input, first, { value: 11 });\nObject.defineProperty(input, second, { get() { invoked++; return 99; } });\nadmitNativePromiseProperties(input, [first, first]);\nassert.throws(() => admitNativePromiseProperties(input, [second]), TypeError);\nconst source = '{ const keys = Object.getOwnPropertySymbols(input); return [keys.length, input[keys[0]], Symbol.keyFor(keys[0]), await input]; }';\nconst original = await run(source, { bindings: { input } });\nassert.equal(original.ok, true);\nassert.deepEqual(original.returnValue, [1, 11, undefined, 3]);\nconst realm = createRealm({ bindings: { input } });\ntry {\n  assert.deepEqual((await realm.evaluate(source)).returnValue, [1, 11, undefined, 3]);\n  admitNativePromiseProperties(input, []);\n  assert.deepEqual((await realm.evaluate(source)).returnValue, [1, 11, undefined, 3]);\n  assert.deepEqual((await run('return Object.getOwnPropertySymbols(input).length', { bindings: { input } })).returnValue, 0);\n  assert.equal(invoked, 0);\n} finally { await realm.close(); }\nconsole.log('atomic replacement, deduplication, registry isolation, realm lifetime, revocation, getter noninvocation: passed');",
+      "exit": 0,
+      "stdout": "atomic replacement, deduplication, registry isolation, realm lifetime, revocation, getter noninvocation: passed\n",
+      "stderr": ""
+    }
+  ],
+  "mappedConformance": [
+    {
+      "type": "summary",
+      "complete": true,
+      "manifestId": "1fc6db4478e2c79c3c1221ee7746df21bb672834949b7a66f1ce03d021327f08",
+      "selected": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js"
+      ],
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "selections": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js"
+      ],
+      "counts": {
+        "files": 4,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 8,
+        "passed": 8,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "harnessHashes": {
+        "assert.js": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+        "assertRelativeDateMs.js": "5113bc0c6d87018bb372da7eb589ca5912b0b7664563262169e3336ad96ad3cc",
+        "asyncHelpers.js": "9afd9a18e080f30b998fa3b9c3e2303fc85fb1ebae664a532a58d56d86d3bcc9",
+        "atomicsHelper.js": "9486ad9ca3bef4672180553a5ba66e2d44d33139905c48629c080ff590db6cca",
+        "byteConversionValues.js": "33d19f8bec615dcaf7a99298035df4f7155fe371ff33e54fef2fdb78b658c3da",
+        "compareArray.js": "3330423fe116cd96db70077d194471319ae9767ba1c8e2f73d7c133c5204509d",
+        "compareIterator.js": "ce41ebea8f4a3514d2412aea139e2961521a6c4534215a37d664fc93c8d311d3",
+        "dateConstants.js": "f7cafff2ac96601232c801568bb357eff1a515b849211b230e1b16a41bc786ce",
+        "decimalToHexString.js": "bc8786436987220b53cbc28443697f1fb61d5818fbf4f0741fd80a736d1d4ff5",
+        "deepEqual.js": "b884b27b927d91c62eb9fc7d2ff9d76050d524d8179b9993eda3d5a2d9f86525",
+        "detachArrayBuffer.js": "d487a9c3c7d51b7e9d66c5fce89929ab3d09a6341d21a833e38f9caba6bf2e0e",
+        "doneprintHandle.js": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add",
+        "features.yml": "53227230ea262fa4584fd798f0d798e13f09a1165d181f86a1d01526df65a0e6",
+        "fnGlobalObject.js": "c1cdfdd80333c70a2567377331788555c10fefc50c4cb0c573170baa8864ac1a",
+        "isConstructor.js": "68e1a3e4565a8d33ea7fc918627fbbf446bcf14d7a939777616b2b545a5e7d32",
+        "iteratorZipUtils.js": "225712bd535058c9e60000dbda45759be56b8e1e1d3999a531e44254ae46c94f",
+        "nans.js": "cfc08a1415d798879d544b58e11bee1e368f7ca52e1bbf3652c77737050bc90d",
+        "nativeErrors.js": "601b5841cc3df18b72c3b5ce35c4d737acb3843c733b786991461ec5a6184508",
+        "nativeFunctionMatcher.js": "277e156a46d4f200e92c0f0d89aebbf5c6e94ca3eae8638f7802365819db0954",
+        "promiseHelper.js": "76cf933b2a7069dc22fcff70d6d4f082ab777b3485e08b79ab4d6a18aef9df9c",
+        "propertyHelper.js": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8",
+        "proxyTrapsHelper.js": "0fb687804ab799e320c5dc4a0d4316162e6a14c286873405d881a151cb15787a",
+        "regExpUtils.js": "76d46c1f38486ae94c4757646cefa64716b03fce3df7576be4c87d37b88c02f5",
+        "resizableArrayBufferUtils.js": "029aa552050861eb85fe9d848a52716dfd24747dcaf06f2a8937cb510ab31f50",
+        "sm/assertThrowsValue.js": "101f426e0b86f2b833248b509f09c55894865ea8aee41dc53748768ddab31b1a",
+        "sm/non262-Date-shell.js": "0e99cd29d9dfd26172a733cb336921bd9212667778f745702ff4c382febdfc5d",
+        "sm/non262-expressions-shell.js": "b7ebfbcdef5dcfe18994441efea440b26b45ba9a21ac167c6bf35b73371a568f",
+        "sm/non262-generators-shell.js": "a489ee0e718066080dae7766f4884e1f69ede4e6391b1372f022818e6c90bad6",
+        "sm/non262-JSON-shell.js": "6e044b591f99d9e7db383c58d2c9d68010aa613c97c06a72f5f0f839bde4204c",
+        "sm/non262-Math-shell.js": "79dea1172236685567e09da8c9e868e0f84686bf40cff728785223c5b43f5e7b",
+        "sm/non262-Reflect-shell.js": "aa9579bc7040fff7c7313becf5ad528d64b3e550497ff761dd3a3a4b6e1c3116",
+        "sm/non262-Set-shell.js": "b6cf757b362036e7768c0b29b0b6a4cc68a7d34a67dee57fed0e0fdb277e5ce6",
+        "sm/non262-strict-shell.js": "fe77ba782cbddebef6bc7f86f354f48c9b435557222ab585c6b2ee1b6c6804b6",
+        "sm/non262-Temporal-PlainMonthDay-shell.js": "00418c0b37f9eb472c49730ea149fda95db0cf8bbc2f42aee3f6d369e8b2bf8c",
+        "sm/non262-TypedArray-shell.js": "3798d277ac8f105b65ad26602b500b497af7f3361fd14a169c58a601c605bb2e",
+        "sta.js": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+        "tcoHelper.js": "a533b07378e41044c98199e250e1c78a28610a783ad0814cb467e9ea2f5de8fa",
+        "temporalHelpers.js": "4585c97b969b4a29cec0387a4981de7d0d210375c2a8a9a8360d6c18d3a9f359",
+        "testAtomics.js": "ebc1ca5e35a70941015a764968d46746ed51a6e37de6840e90d71efd4b7121df",
+        "testIntl.js": "dee1aeb19883536773990cb39a47e49b58511a6dc8ffe5952a4a2875e2f95d74",
+        "testIntlNumberFormat.js": "d2e52c1e2f37d67b3dce488e7da63d32ce35b9a0adb594fc060e6a0c4e03bd74",
+        "testTypedArray.js": "51eb50e53e6215f31f14d64d249bea2d08ad943c77835f63ba52ec694de2189a",
+        "typeCoercion.js": "b0864a0ead1fe13939a1dfa57986af004d0b7bf13f3ffd56060f36e9841b1e51",
+        "wellKnownIntrinsicObjects.js": "bf52f7cca33e62937a9f800b67f6c9d4e4a0bc5819115223f6782f8cb84536a4"
+      },
+      "completedAt": "2026-09-12T23:49:31.169Z"
+    },
+    {
+      "type": "summary",
+      "complete": true,
+      "manifestId": "c5c6df73f58dc55b2d9c2871741b430dd22da492edee5c80145b85f14584b8c5",
+      "selected": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js"
+      ],
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "runtime": {
+        "node": "v18.18.0",
+        "icu": "73.2",
+        "v8": "10.2.154.26-node.26",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "selections": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js"
+      ],
+      "counts": {
+        "files": 4,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 8,
+        "passed": 8,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "harnessHashes": {
+        "assert.js": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+        "assertRelativeDateMs.js": "5113bc0c6d87018bb372da7eb589ca5912b0b7664563262169e3336ad96ad3cc",
+        "asyncHelpers.js": "9afd9a18e080f30b998fa3b9c3e2303fc85fb1ebae664a532a58d56d86d3bcc9",
+        "atomicsHelper.js": "9486ad9ca3bef4672180553a5ba66e2d44d33139905c48629c080ff590db6cca",
+        "byteConversionValues.js": "33d19f8bec615dcaf7a99298035df4f7155fe371ff33e54fef2fdb78b658c3da",
+        "compareArray.js": "3330423fe116cd96db70077d194471319ae9767ba1c8e2f73d7c133c5204509d",
+        "compareIterator.js": "ce41ebea8f4a3514d2412aea139e2961521a6c4534215a37d664fc93c8d311d3",
+        "dateConstants.js": "f7cafff2ac96601232c801568bb357eff1a515b849211b230e1b16a41bc786ce",
+        "decimalToHexString.js": "bc8786436987220b53cbc28443697f1fb61d5818fbf4f0741fd80a736d1d4ff5",
+        "deepEqual.js": "b884b27b927d91c62eb9fc7d2ff9d76050d524d8179b9993eda3d5a2d9f86525",
+        "detachArrayBuffer.js": "d487a9c3c7d51b7e9d66c5fce89929ab3d09a6341d21a833e38f9caba6bf2e0e",
+        "doneprintHandle.js": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add",
+        "features.yml": "53227230ea262fa4584fd798f0d798e13f09a1165d181f86a1d01526df65a0e6",
+        "fnGlobalObject.js": "c1cdfdd80333c70a2567377331788555c10fefc50c4cb0c573170baa8864ac1a",
+        "isConstructor.js": "68e1a3e4565a8d33ea7fc918627fbbf446bcf14d7a939777616b2b545a5e7d32",
+        "iteratorZipUtils.js": "225712bd535058c9e60000dbda45759be56b8e1e1d3999a531e44254ae46c94f",
+        "nans.js": "cfc08a1415d798879d544b58e11bee1e368f7ca52e1bbf3652c77737050bc90d",
+        "nativeErrors.js": "601b5841cc3df18b72c3b5ce35c4d737acb3843c733b786991461ec5a6184508",
+        "nativeFunctionMatcher.js": "277e156a46d4f200e92c0f0d89aebbf5c6e94ca3eae8638f7802365819db0954",
+        "promiseHelper.js": "76cf933b2a7069dc22fcff70d6d4f082ab777b3485e08b79ab4d6a18aef9df9c",
+        "propertyHelper.js": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8",
+        "proxyTrapsHelper.js": "0fb687804ab799e320c5dc4a0d4316162e6a14c286873405d881a151cb15787a",
+        "regExpUtils.js": "76d46c1f38486ae94c4757646cefa64716b03fce3df7576be4c87d37b88c02f5",
+        "resizableArrayBufferUtils.js": "029aa552050861eb85fe9d848a52716dfd24747dcaf06f2a8937cb510ab31f50",
+        "sm/assertThrowsValue.js": "101f426e0b86f2b833248b509f09c55894865ea8aee41dc53748768ddab31b1a",
+        "sm/non262-Date-shell.js": "0e99cd29d9dfd26172a733cb336921bd9212667778f745702ff4c382febdfc5d",
+        "sm/non262-expressions-shell.js": "b7ebfbcdef5dcfe18994441efea440b26b45ba9a21ac167c6bf35b73371a568f",
+        "sm/non262-generators-shell.js": "a489ee0e718066080dae7766f4884e1f69ede4e6391b1372f022818e6c90bad6",
+        "sm/non262-JSON-shell.js": "6e044b591f99d9e7db383c58d2c9d68010aa613c97c06a72f5f0f839bde4204c",
+        "sm/non262-Math-shell.js": "79dea1172236685567e09da8c9e868e0f84686bf40cff728785223c5b43f5e7b",
+        "sm/non262-Reflect-shell.js": "aa9579bc7040fff7c7313becf5ad528d64b3e550497ff761dd3a3a4b6e1c3116",
+        "sm/non262-Set-shell.js": "b6cf757b362036e7768c0b29b0b6a4cc68a7d34a67dee57fed0e0fdb277e5ce6",
+        "sm/non262-strict-shell.js": "fe77ba782cbddebef6bc7f86f354f48c9b435557222ab585c6b2ee1b6c6804b6",
+        "sm/non262-Temporal-PlainMonthDay-shell.js": "00418c0b37f9eb472c49730ea149fda95db0cf8bbc2f42aee3f6d369e8b2bf8c",
+        "sm/non262-TypedArray-shell.js": "3798d277ac8f105b65ad26602b500b497af7f3361fd14a169c58a601c605bb2e",
+        "sta.js": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+        "tcoHelper.js": "a533b07378e41044c98199e250e1c78a28610a783ad0814cb467e9ea2f5de8fa",
+        "temporalHelpers.js": "4585c97b969b4a29cec0387a4981de7d0d210375c2a8a9a8360d6c18d3a9f359",
+        "testAtomics.js": "ebc1ca5e35a70941015a764968d46746ed51a6e37de6840e90d71efd4b7121df",
+        "testIntl.js": "dee1aeb19883536773990cb39a47e49b58511a6dc8ffe5952a4a2875e2f95d74",
+        "testIntlNumberFormat.js": "d2e52c1e2f37d67b3dce488e7da63d32ce35b9a0adb594fc060e6a0c4e03bd74",
+        "testTypedArray.js": "51eb50e53e6215f31f14d64d249bea2d08ad943c77835f63ba52ec694de2189a",
+        "typeCoercion.js": "b0864a0ead1fe13939a1dfa57986af004d0b7bf13f3ffd56060f36e9841b1e51",
+        "wellKnownIntrinsicObjects.js": "bf52f7cca33e62937a9f800b67f6c9d4e4a0bc5819115223f6782f8cb84536a4"
+      },
+      "completedAt": "2026-09-12T23:45:47.273Z"
+    },
+    {
+      "type": "summary",
+      "complete": true,
+      "manifestId": "c8c8f11f07457cab245d20766a1baba4c768bc6b9c29ea700a7ddd828805a643",
+      "selected": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js"
+      ],
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "runtime": {
+        "node": "v18.20.8",
+        "icu": "74.2",
+        "v8": "10.2.154.26-node.39",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "selections": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js"
+      ],
+      "counts": {
+        "files": 4,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 8,
+        "passed": 8,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "harnessHashes": {
+        "assert.js": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+        "assertRelativeDateMs.js": "5113bc0c6d87018bb372da7eb589ca5912b0b7664563262169e3336ad96ad3cc",
+        "asyncHelpers.js": "9afd9a18e080f30b998fa3b9c3e2303fc85fb1ebae664a532a58d56d86d3bcc9",
+        "atomicsHelper.js": "9486ad9ca3bef4672180553a5ba66e2d44d33139905c48629c080ff590db6cca",
+        "byteConversionValues.js": "33d19f8bec615dcaf7a99298035df4f7155fe371ff33e54fef2fdb78b658c3da",
+        "compareArray.js": "3330423fe116cd96db70077d194471319ae9767ba1c8e2f73d7c133c5204509d",
+        "compareIterator.js": "ce41ebea8f4a3514d2412aea139e2961521a6c4534215a37d664fc93c8d311d3",
+        "dateConstants.js": "f7cafff2ac96601232c801568bb357eff1a515b849211b230e1b16a41bc786ce",
+        "decimalToHexString.js": "bc8786436987220b53cbc28443697f1fb61d5818fbf4f0741fd80a736d1d4ff5",
+        "deepEqual.js": "b884b27b927d91c62eb9fc7d2ff9d76050d524d8179b9993eda3d5a2d9f86525",
+        "detachArrayBuffer.js": "d487a9c3c7d51b7e9d66c5fce89929ab3d09a6341d21a833e38f9caba6bf2e0e",
+        "doneprintHandle.js": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add",
+        "features.yml": "53227230ea262fa4584fd798f0d798e13f09a1165d181f86a1d01526df65a0e6",
+        "fnGlobalObject.js": "c1cdfdd80333c70a2567377331788555c10fefc50c4cb0c573170baa8864ac1a",
+        "isConstructor.js": "68e1a3e4565a8d33ea7fc918627fbbf446bcf14d7a939777616b2b545a5e7d32",
+        "iteratorZipUtils.js": "225712bd535058c9e60000dbda45759be56b8e1e1d3999a531e44254ae46c94f",
+        "nans.js": "cfc08a1415d798879d544b58e11bee1e368f7ca52e1bbf3652c77737050bc90d",
+        "nativeErrors.js": "601b5841cc3df18b72c3b5ce35c4d737acb3843c733b786991461ec5a6184508",
+        "nativeFunctionMatcher.js": "277e156a46d4f200e92c0f0d89aebbf5c6e94ca3eae8638f7802365819db0954",
+        "promiseHelper.js": "76cf933b2a7069dc22fcff70d6d4f082ab777b3485e08b79ab4d6a18aef9df9c",
+        "propertyHelper.js": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8",
+        "proxyTrapsHelper.js": "0fb687804ab799e320c5dc4a0d4316162e6a14c286873405d881a151cb15787a",
+        "regExpUtils.js": "76d46c1f38486ae94c4757646cefa64716b03fce3df7576be4c87d37b88c02f5",
+        "resizableArrayBufferUtils.js": "029aa552050861eb85fe9d848a52716dfd24747dcaf06f2a8937cb510ab31f50",
+        "sm/assertThrowsValue.js": "101f426e0b86f2b833248b509f09c55894865ea8aee41dc53748768ddab31b1a",
+        "sm/non262-Date-shell.js": "0e99cd29d9dfd26172a733cb336921bd9212667778f745702ff4c382febdfc5d",
+        "sm/non262-expressions-shell.js": "b7ebfbcdef5dcfe18994441efea440b26b45ba9a21ac167c6bf35b73371a568f",
+        "sm/non262-generators-shell.js": "a489ee0e718066080dae7766f4884e1f69ede4e6391b1372f022818e6c90bad6",
+        "sm/non262-JSON-shell.js": "6e044b591f99d9e7db383c58d2c9d68010aa613c97c06a72f5f0f839bde4204c",
+        "sm/non262-Math-shell.js": "79dea1172236685567e09da8c9e868e0f84686bf40cff728785223c5b43f5e7b",
+        "sm/non262-Reflect-shell.js": "aa9579bc7040fff7c7313becf5ad528d64b3e550497ff761dd3a3a4b6e1c3116",
+        "sm/non262-Set-shell.js": "b6cf757b362036e7768c0b29b0b6a4cc68a7d34a67dee57fed0e0fdb277e5ce6",
+        "sm/non262-strict-shell.js": "fe77ba782cbddebef6bc7f86f354f48c9b435557222ab585c6b2ee1b6c6804b6",
+        "sm/non262-Temporal-PlainMonthDay-shell.js": "00418c0b37f9eb472c49730ea149fda95db0cf8bbc2f42aee3f6d369e8b2bf8c",
+        "sm/non262-TypedArray-shell.js": "3798d277ac8f105b65ad26602b500b497af7f3361fd14a169c58a601c605bb2e",
+        "sta.js": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+        "tcoHelper.js": "a533b07378e41044c98199e250e1c78a28610a783ad0814cb467e9ea2f5de8fa",
+        "temporalHelpers.js": "4585c97b969b4a29cec0387a4981de7d0d210375c2a8a9a8360d6c18d3a9f359",
+        "testAtomics.js": "ebc1ca5e35a70941015a764968d46746ed51a6e37de6840e90d71efd4b7121df",
+        "testIntl.js": "dee1aeb19883536773990cb39a47e49b58511a6dc8ffe5952a4a2875e2f95d74",
+        "testIntlNumberFormat.js": "d2e52c1e2f37d67b3dce488e7da63d32ce35b9a0adb594fc060e6a0c4e03bd74",
+        "testTypedArray.js": "51eb50e53e6215f31f14d64d249bea2d08ad943c77835f63ba52ec694de2189a",
+        "typeCoercion.js": "b0864a0ead1fe13939a1dfa57986af004d0b7bf13f3ffd56060f36e9841b1e51",
+        "wellKnownIntrinsicObjects.js": "bf52f7cca33e62937a9f800b67f6c9d4e4a0bc5819115223f6782f8cb84536a4"
+      },
+      "completedAt": "2026-09-12T23:47:15.852Z"
+    },
+    {
+      "type": "summary",
+      "complete": true,
+      "manifestId": "88a3f06c30b49338f632199be3250d05ccf6278c8b3a51b8ef5cacaf242f237c",
+      "selected": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js"
+      ],
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "runtime": {
+        "node": "v20.20.2",
+        "icu": "78.2",
+        "v8": "11.3.244.8-node.38",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "selections": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js"
+      ],
+      "counts": {
+        "files": 4,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 8,
+        "passed": 8,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "harnessHashes": {
+        "assert.js": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+        "assertRelativeDateMs.js": "5113bc0c6d87018bb372da7eb589ca5912b0b7664563262169e3336ad96ad3cc",
+        "asyncHelpers.js": "9afd9a18e080f30b998fa3b9c3e2303fc85fb1ebae664a532a58d56d86d3bcc9",
+        "atomicsHelper.js": "9486ad9ca3bef4672180553a5ba66e2d44d33139905c48629c080ff590db6cca",
+        "byteConversionValues.js": "33d19f8bec615dcaf7a99298035df4f7155fe371ff33e54fef2fdb78b658c3da",
+        "compareArray.js": "3330423fe116cd96db70077d194471319ae9767ba1c8e2f73d7c133c5204509d",
+        "compareIterator.js": "ce41ebea8f4a3514d2412aea139e2961521a6c4534215a37d664fc93c8d311d3",
+        "dateConstants.js": "f7cafff2ac96601232c801568bb357eff1a515b849211b230e1b16a41bc786ce",
+        "decimalToHexString.js": "bc8786436987220b53cbc28443697f1fb61d5818fbf4f0741fd80a736d1d4ff5",
+        "deepEqual.js": "b884b27b927d91c62eb9fc7d2ff9d76050d524d8179b9993eda3d5a2d9f86525",
+        "detachArrayBuffer.js": "d487a9c3c7d51b7e9d66c5fce89929ab3d09a6341d21a833e38f9caba6bf2e0e",
+        "doneprintHandle.js": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add",
+        "features.yml": "53227230ea262fa4584fd798f0d798e13f09a1165d181f86a1d01526df65a0e6",
+        "fnGlobalObject.js": "c1cdfdd80333c70a2567377331788555c10fefc50c4cb0c573170baa8864ac1a",
+        "isConstructor.js": "68e1a3e4565a8d33ea7fc918627fbbf446bcf14d7a939777616b2b545a5e7d32",
+        "iteratorZipUtils.js": "225712bd535058c9e60000dbda45759be56b8e1e1d3999a531e44254ae46c94f",
+        "nans.js": "cfc08a1415d798879d544b58e11bee1e368f7ca52e1bbf3652c77737050bc90d",
+        "nativeErrors.js": "601b5841cc3df18b72c3b5ce35c4d737acb3843c733b786991461ec5a6184508",
+        "nativeFunctionMatcher.js": "277e156a46d4f200e92c0f0d89aebbf5c6e94ca3eae8638f7802365819db0954",
+        "promiseHelper.js": "76cf933b2a7069dc22fcff70d6d4f082ab777b3485e08b79ab4d6a18aef9df9c",
+        "propertyHelper.js": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8",
+        "proxyTrapsHelper.js": "0fb687804ab799e320c5dc4a0d4316162e6a14c286873405d881a151cb15787a",
+        "regExpUtils.js": "76d46c1f38486ae94c4757646cefa64716b03fce3df7576be4c87d37b88c02f5",
+        "resizableArrayBufferUtils.js": "029aa552050861eb85fe9d848a52716dfd24747dcaf06f2a8937cb510ab31f50",
+        "sm/assertThrowsValue.js": "101f426e0b86f2b833248b509f09c55894865ea8aee41dc53748768ddab31b1a",
+        "sm/non262-Date-shell.js": "0e99cd29d9dfd26172a733cb336921bd9212667778f745702ff4c382febdfc5d",
+        "sm/non262-expressions-shell.js": "b7ebfbcdef5dcfe18994441efea440b26b45ba9a21ac167c6bf35b73371a568f",
+        "sm/non262-generators-shell.js": "a489ee0e718066080dae7766f4884e1f69ede4e6391b1372f022818e6c90bad6",
+        "sm/non262-JSON-shell.js": "6e044b591f99d9e7db383c58d2c9d68010aa613c97c06a72f5f0f839bde4204c",
+        "sm/non262-Math-shell.js": "79dea1172236685567e09da8c9e868e0f84686bf40cff728785223c5b43f5e7b",
+        "sm/non262-Reflect-shell.js": "aa9579bc7040fff7c7313becf5ad528d64b3e550497ff761dd3a3a4b6e1c3116",
+        "sm/non262-Set-shell.js": "b6cf757b362036e7768c0b29b0b6a4cc68a7d34a67dee57fed0e0fdb277e5ce6",
+        "sm/non262-strict-shell.js": "fe77ba782cbddebef6bc7f86f354f48c9b435557222ab585c6b2ee1b6c6804b6",
+        "sm/non262-Temporal-PlainMonthDay-shell.js": "00418c0b37f9eb472c49730ea149fda95db0cf8bbc2f42aee3f6d369e8b2bf8c",
+        "sm/non262-TypedArray-shell.js": "3798d277ac8f105b65ad26602b500b497af7f3361fd14a169c58a601c605bb2e",
+        "sta.js": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+        "tcoHelper.js": "a533b07378e41044c98199e250e1c78a28610a783ad0814cb467e9ea2f5de8fa",
+        "temporalHelpers.js": "4585c97b969b4a29cec0387a4981de7d0d210375c2a8a9a8360d6c18d3a9f359",
+        "testAtomics.js": "ebc1ca5e35a70941015a764968d46746ed51a6e37de6840e90d71efd4b7121df",
+        "testIntl.js": "dee1aeb19883536773990cb39a47e49b58511a6dc8ffe5952a4a2875e2f95d74",
+        "testIntlNumberFormat.js": "d2e52c1e2f37d67b3dce488e7da63d32ce35b9a0adb594fc060e6a0c4e03bd74",
+        "testTypedArray.js": "51eb50e53e6215f31f14d64d249bea2d08ad943c77835f63ba52ec694de2189a",
+        "typeCoercion.js": "b0864a0ead1fe13939a1dfa57986af004d0b7bf13f3ffd56060f36e9841b1e51",
+        "wellKnownIntrinsicObjects.js": "bf52f7cca33e62937a9f800b67f6c9d4e4a0bc5819115223f6782f8cb84536a4"
+      },
+      "completedAt": "2026-09-12T23:48:23.055Z"
+    },
+    {
+      "type": "summary",
+      "complete": true,
+      "manifestId": "8bc5a4959e4c83f99ef61572cb5811100fab33c9df388c95b5ddec19e89b59b8",
+      "selected": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js"
+      ],
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "runtime": {
+        "node": "v24.21.0",
+        "icu": "78.3",
+        "v8": "13.6.233.17-node.53",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "selections": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js"
+      ],
+      "counts": {
+        "files": 4,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 8,
+        "passed": 8,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "harnessHashes": {
+        "assert.js": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+        "assertRelativeDateMs.js": "5113bc0c6d87018bb372da7eb589ca5912b0b7664563262169e3336ad96ad3cc",
+        "asyncHelpers.js": "9afd9a18e080f30b998fa3b9c3e2303fc85fb1ebae664a532a58d56d86d3bcc9",
+        "atomicsHelper.js": "9486ad9ca3bef4672180553a5ba66e2d44d33139905c48629c080ff590db6cca",
+        "byteConversionValues.js": "33d19f8bec615dcaf7a99298035df4f7155fe371ff33e54fef2fdb78b658c3da",
+        "compareArray.js": "3330423fe116cd96db70077d194471319ae9767ba1c8e2f73d7c133c5204509d",
+        "compareIterator.js": "ce41ebea8f4a3514d2412aea139e2961521a6c4534215a37d664fc93c8d311d3",
+        "dateConstants.js": "f7cafff2ac96601232c801568bb357eff1a515b849211b230e1b16a41bc786ce",
+        "decimalToHexString.js": "bc8786436987220b53cbc28443697f1fb61d5818fbf4f0741fd80a736d1d4ff5",
+        "deepEqual.js": "b884b27b927d91c62eb9fc7d2ff9d76050d524d8179b9993eda3d5a2d9f86525",
+        "detachArrayBuffer.js": "d487a9c3c7d51b7e9d66c5fce89929ab3d09a6341d21a833e38f9caba6bf2e0e",
+        "doneprintHandle.js": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add",
+        "features.yml": "53227230ea262fa4584fd798f0d798e13f09a1165d181f86a1d01526df65a0e6",
+        "fnGlobalObject.js": "c1cdfdd80333c70a2567377331788555c10fefc50c4cb0c573170baa8864ac1a",
+        "isConstructor.js": "68e1a3e4565a8d33ea7fc918627fbbf446bcf14d7a939777616b2b545a5e7d32",
+        "iteratorZipUtils.js": "225712bd535058c9e60000dbda45759be56b8e1e1d3999a531e44254ae46c94f",
+        "nans.js": "cfc08a1415d798879d544b58e11bee1e368f7ca52e1bbf3652c77737050bc90d",
+        "nativeErrors.js": "601b5841cc3df18b72c3b5ce35c4d737acb3843c733b786991461ec5a6184508",
+        "nativeFunctionMatcher.js": "277e156a46d4f200e92c0f0d89aebbf5c6e94ca3eae8638f7802365819db0954",
+        "promiseHelper.js": "76cf933b2a7069dc22fcff70d6d4f082ab777b3485e08b79ab4d6a18aef9df9c",
+        "propertyHelper.js": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8",
+        "proxyTrapsHelper.js": "0fb687804ab799e320c5dc4a0d4316162e6a14c286873405d881a151cb15787a",
+        "regExpUtils.js": "76d46c1f38486ae94c4757646cefa64716b03fce3df7576be4c87d37b88c02f5",
+        "resizableArrayBufferUtils.js": "029aa552050861eb85fe9d848a52716dfd24747dcaf06f2a8937cb510ab31f50",
+        "sm/assertThrowsValue.js": "101f426e0b86f2b833248b509f09c55894865ea8aee41dc53748768ddab31b1a",
+        "sm/non262-Date-shell.js": "0e99cd29d9dfd26172a733cb336921bd9212667778f745702ff4c382febdfc5d",
+        "sm/non262-expressions-shell.js": "b7ebfbcdef5dcfe18994441efea440b26b45ba9a21ac167c6bf35b73371a568f",
+        "sm/non262-generators-shell.js": "a489ee0e718066080dae7766f4884e1f69ede4e6391b1372f022818e6c90bad6",
+        "sm/non262-JSON-shell.js": "6e044b591f99d9e7db383c58d2c9d68010aa613c97c06a72f5f0f839bde4204c",
+        "sm/non262-Math-shell.js": "79dea1172236685567e09da8c9e868e0f84686bf40cff728785223c5b43f5e7b",
+        "sm/non262-Reflect-shell.js": "aa9579bc7040fff7c7313becf5ad528d64b3e550497ff761dd3a3a4b6e1c3116",
+        "sm/non262-Set-shell.js": "b6cf757b362036e7768c0b29b0b6a4cc68a7d34a67dee57fed0e0fdb277e5ce6",
+        "sm/non262-strict-shell.js": "fe77ba782cbddebef6bc7f86f354f48c9b435557222ab585c6b2ee1b6c6804b6",
+        "sm/non262-Temporal-PlainMonthDay-shell.js": "00418c0b37f9eb472c49730ea149fda95db0cf8bbc2f42aee3f6d369e8b2bf8c",
+        "sm/non262-TypedArray-shell.js": "3798d277ac8f105b65ad26602b500b497af7f3361fd14a169c58a601c605bb2e",
+        "sta.js": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+        "tcoHelper.js": "a533b07378e41044c98199e250e1c78a28610a783ad0814cb467e9ea2f5de8fa",
+        "temporalHelpers.js": "4585c97b969b4a29cec0387a4981de7d0d210375c2a8a9a8360d6c18d3a9f359",
+        "testAtomics.js": "ebc1ca5e35a70941015a764968d46746ed51a6e37de6840e90d71efd4b7121df",
+        "testIntl.js": "dee1aeb19883536773990cb39a47e49b58511a6dc8ffe5952a4a2875e2f95d74",
+        "testIntlNumberFormat.js": "d2e52c1e2f37d67b3dce488e7da63d32ce35b9a0adb594fc060e6a0c4e03bd74",
+        "testTypedArray.js": "51eb50e53e6215f31f14d64d249bea2d08ad943c77835f63ba52ec694de2189a",
+        "typeCoercion.js": "b0864a0ead1fe13939a1dfa57986af004d0b7bf13f3ffd56060f36e9841b1e51",
+        "wellKnownIntrinsicObjects.js": "bf52f7cca33e62937a9f800b67f6c9d4e4a0bc5819115223f6782f8cb84536a4"
+      },
+      "completedAt": "2026-09-12T23:50:32.865Z"
+    },
+    {
+      "type": "summary",
+      "complete": true,
+      "manifestId": "cec663146983b2a9a6bdb59dc456a301794a5aa50bb480dfc6552c6b94846e22",
+      "selected": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js"
+      ],
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "runtime": {
+        "node": "v26.8.2",
+        "icu": "78.3",
+        "v8": "14.6.202.34-node.28",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "selections": [
+        "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+        "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+        "built-ins/Promise/promise.js",
+        "built-ins/Promise/property-order.js"
+      ],
+      "counts": {
+        "files": 4,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 8,
+        "passed": 8,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "harnessHashes": {
+        "assert.js": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+        "assertRelativeDateMs.js": "5113bc0c6d87018bb372da7eb589ca5912b0b7664563262169e3336ad96ad3cc",
+        "asyncHelpers.js": "9afd9a18e080f30b998fa3b9c3e2303fc85fb1ebae664a532a58d56d86d3bcc9",
+        "atomicsHelper.js": "9486ad9ca3bef4672180553a5ba66e2d44d33139905c48629c080ff590db6cca",
+        "byteConversionValues.js": "33d19f8bec615dcaf7a99298035df4f7155fe371ff33e54fef2fdb78b658c3da",
+        "compareArray.js": "3330423fe116cd96db70077d194471319ae9767ba1c8e2f73d7c133c5204509d",
+        "compareIterator.js": "ce41ebea8f4a3514d2412aea139e2961521a6c4534215a37d664fc93c8d311d3",
+        "dateConstants.js": "f7cafff2ac96601232c801568bb357eff1a515b849211b230e1b16a41bc786ce",
+        "decimalToHexString.js": "bc8786436987220b53cbc28443697f1fb61d5818fbf4f0741fd80a736d1d4ff5",
+        "deepEqual.js": "b884b27b927d91c62eb9fc7d2ff9d76050d524d8179b9993eda3d5a2d9f86525",
+        "detachArrayBuffer.js": "d487a9c3c7d51b7e9d66c5fce89929ab3d09a6341d21a833e38f9caba6bf2e0e",
+        "doneprintHandle.js": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add",
+        "features.yml": "53227230ea262fa4584fd798f0d798e13f09a1165d181f86a1d01526df65a0e6",
+        "fnGlobalObject.js": "c1cdfdd80333c70a2567377331788555c10fefc50c4cb0c573170baa8864ac1a",
+        "isConstructor.js": "68e1a3e4565a8d33ea7fc918627fbbf446bcf14d7a939777616b2b545a5e7d32",
+        "iteratorZipUtils.js": "225712bd535058c9e60000dbda45759be56b8e1e1d3999a531e44254ae46c94f",
+        "nans.js": "cfc08a1415d798879d544b58e11bee1e368f7ca52e1bbf3652c77737050bc90d",
+        "nativeErrors.js": "601b5841cc3df18b72c3b5ce35c4d737acb3843c733b786991461ec5a6184508",
+        "nativeFunctionMatcher.js": "277e156a46d4f200e92c0f0d89aebbf5c6e94ca3eae8638f7802365819db0954",
+        "promiseHelper.js": "76cf933b2a7069dc22fcff70d6d4f082ab777b3485e08b79ab4d6a18aef9df9c",
+        "propertyHelper.js": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8",
+        "proxyTrapsHelper.js": "0fb687804ab799e320c5dc4a0d4316162e6a14c286873405d881a151cb15787a",
+        "regExpUtils.js": "76d46c1f38486ae94c4757646cefa64716b03fce3df7576be4c87d37b88c02f5",
+        "resizableArrayBufferUtils.js": "029aa552050861eb85fe9d848a52716dfd24747dcaf06f2a8937cb510ab31f50",
+        "sm/assertThrowsValue.js": "101f426e0b86f2b833248b509f09c55894865ea8aee41dc53748768ddab31b1a",
+        "sm/non262-Date-shell.js": "0e99cd29d9dfd26172a733cb336921bd9212667778f745702ff4c382febdfc5d",
+        "sm/non262-expressions-shell.js": "b7ebfbcdef5dcfe18994441efea440b26b45ba9a21ac167c6bf35b73371a568f",
+        "sm/non262-generators-shell.js": "a489ee0e718066080dae7766f4884e1f69ede4e6391b1372f022818e6c90bad6",
+        "sm/non262-JSON-shell.js": "6e044b591f99d9e7db383c58d2c9d68010aa613c97c06a72f5f0f839bde4204c",
+        "sm/non262-Math-shell.js": "79dea1172236685567e09da8c9e868e0f84686bf40cff728785223c5b43f5e7b",
+        "sm/non262-Reflect-shell.js": "aa9579bc7040fff7c7313becf5ad528d64b3e550497ff761dd3a3a4b6e1c3116",
+        "sm/non262-Set-shell.js": "b6cf757b362036e7768c0b29b0b6a4cc68a7d34a67dee57fed0e0fdb277e5ce6",
+        "sm/non262-strict-shell.js": "fe77ba782cbddebef6bc7f86f354f48c9b435557222ab585c6b2ee1b6c6804b6",
+        "sm/non262-Temporal-PlainMonthDay-shell.js": "00418c0b37f9eb472c49730ea149fda95db0cf8bbc2f42aee3f6d369e8b2bf8c",
+        "sm/non262-TypedArray-shell.js": "3798d277ac8f105b65ad26602b500b497af7f3361fd14a169c58a601c605bb2e",
+        "sta.js": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+        "tcoHelper.js": "a533b07378e41044c98199e250e1c78a28610a783ad0814cb467e9ea2f5de8fa",
+        "temporalHelpers.js": "4585c97b969b4a29cec0387a4981de7d0d210375c2a8a9a8360d6c18d3a9f359",
+        "testAtomics.js": "ebc1ca5e35a70941015a764968d46746ed51a6e37de6840e90d71efd4b7121df",
+        "testIntl.js": "dee1aeb19883536773990cb39a47e49b58511a6dc8ffe5952a4a2875e2f95d74",
+        "testIntlNumberFormat.js": "d2e52c1e2f37d67b3dce488e7da63d32ce35b9a0adb594fc060e6a0c4e03bd74",
+        "testTypedArray.js": "51eb50e53e6215f31f14d64d249bea2d08ad943c77835f63ba52ec694de2189a",
+        "typeCoercion.js": "b0864a0ead1fe13939a1dfa57986af004d0b7bf13f3ffd56060f36e9841b1e51",
+        "wellKnownIntrinsicObjects.js": "bf52f7cca33e62937a9f800b67f6c9d4e4a0bc5819115223f6782f8cb84536a4"
+      },
+      "completedAt": "2026-09-12T23:51:04.538Z"
+    }
+  ],
+  "builtHashes": {
+    "packages/safe-js/dist/interp/host-bridge.js": "86bf880c22081ab7a997eba06df1284e2b753cf3375cc3434ca2d04e6db0738a",
+    "packages/safe-js/dist/interp/native-promise-properties.js": "915a9d625ec34ee88a3ab2e8bf54a922783f6ae370a4b0a73cbe18cc43f6408c"
+  },
+  "buildCommand": "npm run build:workspaces -- --workspace=@poe-code/safe-js",
+  "lintCommand": "npx eslint packages/safe-js/src/interp/host-bridge.ts packages/safe-js/src/interp/native-promise-admission-budgets.test.ts",
+  "focusedCommand": "npx vitest run packages/safe-js/src/interp/native-promise-admission.test.ts packages/safe-js/src/interp/native-promise-admission-budgets.test.ts packages/safe-js/src/interp/promise-import-properties.test.ts packages/safe-js/src/snapshot/input-symbol-references.test.ts packages/safe-js/test/final-async-proof-conversion.test.ts",
+  "finalCandidateSha": "671e42cf3c2ce98fc7f88cb3787721dd417544f3",
+  "finalCandidateSourceHashChecks": {
+    "packages/safe-js/src/core.ts": true,
+    "packages/safe-js/src/index.ts": true,
+    "packages/safe-js/src/interp/host-bridge.ts": true,
+    "packages/safe-js/src/interp/host-call.ts": true,
+    "packages/safe-js/src/interp/native-promise-properties.ts": true,
+    "packages/safe-js/src/interp/values.ts": true,
+    "packages/safe-js/src/run.ts": true,
+    "packages/safe-js/src/snapshot/replay-data.ts": true,
+    "packages/safe-js/src/snapshot/replay-inputs.ts": true,
+    "packages/safe-js/src/workerd.ts": true,
+    "packages/safe-js/src/interp/native-promise-admission.test.ts": true,
+    "packages/safe-js/src/interp/native-promise-admission-budgets.test.ts": true,
+    "packages/safe-js/src/interp/promise-import-properties.test.ts": true,
+    "packages/safe-js/src/snapshot/input-symbol-references.test.ts": true
+  },
+  "preservedUntrackedPackageTestHashes": {
+    "packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts": "71bfb95fec05d6f26985504621bb04ec516caf021cbb3984606d1c8a63093ada",
+    "packages/safe-js/src/interp/globals/proxy.test.ts": "4bb5a0a0e385d75c5406f7e18897c8ff3ab0f547d18c38bf6905f255e8425c4e",
+    "packages/safe-js/src/interp/globals/temporal-offset-validation.test.ts": "b576a06bcef4b5a7d10e9b4a508bb5b23ad7830afdd12e35d3bb9f161d099467",
+    "packages/safe-js/src/interp/globals/temporal-plain-date-relative.test.ts": "3b97062e0bbb3c3d7eef851078d47e9cdbcd0fcfd74038d11169c0393075c5cb",
+    "packages/safe-js/src/interp/globals/temporal-time-zone-string.test.ts": "1c1c84c30b560505f26a5b0f0567b3a0a14f0f70f9f602797b28e637b1018fd7",
+    "packages/safe-js/src/interp/globals/temporal-zoned-date-input.test.ts": "ebd10bee7799b280d93f38439a3f28cb0bf25934caecbdd1f2a2ad51f54d4868",
+    "packages/safe-js/src/interp/globals/weak-prototype-realms.test.ts": "d0b29809ab0b3e3dc24a8b12e9c7db7623efb34917938115d27dc7211ee6faf9",
+    "packages/safe-js/src/interp/weak-collection-cleanup.test.ts": "7f3981c8c52875d68568c2d2329b2a052c23cf7016326516a8bb0fb6294466f5",
+    "packages/safe-js/src/interp/weak-collection-well-known.test.ts": "633ef2f686927c83ab424d39df66400e188c829f55a97b1c6bd76cdcbc6175cb",
+    "packages/safe-js/src/lint/weak-globals.test.ts": "45711bacb53456828f20fb9e0aa761c423508a714ea852dd09af56bb105c9fa5",
+    "packages/safe-js/src/snapshot/temporal-extreme-transport.test.ts": "70ed8fd959ea02aa0ac756deb38d191599fd07f23f539ed620746313374263be"
+  },
+  "trackedSafeJsDiffExit": 0,
+  "finalPackage": {
+    "command": "npm test --workspace=@poe-code/safe-js",
+    "exit": 0,
+    "passedFiles": 1324,
+    "skippedFiles": 2,
+    "passedTests": 29262,
+    "skippedTests": 47,
+    "failedTests": 0,
+    "durationSeconds": 1770.33,
+    "log": "final-package-test.log"
+  },
+  "finalSourceHashChecks": {
+    "packages/safe-js/src/core.ts": true,
+    "packages/safe-js/src/index.ts": true,
+    "packages/safe-js/src/interp/host-bridge.ts": true,
+    "packages/safe-js/src/interp/host-call.ts": true,
+    "packages/safe-js/src/interp/native-promise-properties.ts": true,
+    "packages/safe-js/src/interp/values.ts": true,
+    "packages/safe-js/src/run.ts": true,
+    "packages/safe-js/src/snapshot/replay-data.ts": true,
+    "packages/safe-js/src/snapshot/replay-inputs.ts": true,
+    "packages/safe-js/src/workerd.ts": true,
+    "packages/safe-js/src/interp/native-promise-admission.test.ts": true,
+    "packages/safe-js/src/interp/native-promise-admission-budgets.test.ts": true,
+    "packages/safe-js/src/interp/promise-import-properties.test.ts": true,
+    "packages/safe-js/src/snapshot/input-symbol-references.test.ts": true,
+    "packages/safe-js/src/index.test.ts": true,
+    "packages/safe-js/src/core.test.ts": true
+  }
+}

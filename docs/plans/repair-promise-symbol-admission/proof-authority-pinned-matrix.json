@@ -1,0 +1,128 @@
+[
+  {
+    "runtime": "MIN",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v18.18.0/bin/node",
+      "node_modules/tsx/dist/cli.mjs",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/private/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/repair-promise-symbol-admission/proof-authority-pinned-MIN.jsonl",
+      "--include",
+      "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+      "--include",
+      "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+      "--include",
+      "built-ins/Promise/promise.js",
+      "--include",
+      "built-ins/Promise/property-order.js"
+    ],
+    "exit": 0
+  },
+  {
+    "runtime": "N18",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v18.20.8/bin/node",
+      "node_modules/tsx/dist/cli.mjs",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/private/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/repair-promise-symbol-admission/proof-authority-pinned-N18.jsonl",
+      "--include",
+      "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+      "--include",
+      "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+      "--include",
+      "built-ins/Promise/promise.js",
+      "--include",
+      "built-ins/Promise/property-order.js"
+    ],
+    "exit": 0
+  },
+  {
+    "runtime": "N20",
+    "command": [
+      "/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node",
+      "node_modules/tsx/dist/cli.mjs",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/private/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/repair-promise-symbol-admission/proof-authority-pinned-N20.jsonl",
+      "--include",
+      "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+      "--include",
+      "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+      "--include",
+      "built-ins/Promise/promise.js",
+      "--include",
+      "built-ins/Promise/property-order.js"
+    ],
+    "exit": 0
+  },
+  {
+    "runtime": "CI22",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+      "node_modules/tsx/dist/cli.mjs",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/private/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/repair-promise-symbol-admission/proof-authority-pinned-CI22.jsonl",
+      "--include",
+      "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+      "--include",
+      "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+      "--include",
+      "built-ins/Promise/promise.js",
+      "--include",
+      "built-ins/Promise/property-order.js"
+    ],
+    "exit": 0
+  },
+  {
+    "runtime": "N24",
+    "command": [
+      "/tmp/safejs-published-baseline.gM67xh/runtimes/node-24.21.0",
+      "node_modules/tsx/dist/cli.mjs",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/private/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/repair-promise-symbol-admission/proof-authority-pinned-N24.jsonl",
+      "--include",
+      "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+      "--include",
+      "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+      "--include",
+      "built-ins/Promise/promise.js",
+      "--include",
+      "built-ins/Promise/property-order.js"
+    ],
+    "exit": 0
+  },
+  {
+    "runtime": "N26",
+    "command": [
+      "/tmp/safejs-published-baseline.gM67xh/runtimes/node-26.8.2",
+      "node_modules/tsx/dist/cli.mjs",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/private/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/repair-promise-symbol-admission/proof-authority-pinned-N26.jsonl",
+      "--include",
+      "built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+      "--include",
+      "built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+      "--include",
+      "built-ins/Promise/promise.js",
+      "--include",
+      "built-ins/Promise/property-order.js"
+    ],
+    "exit": 0
+  }
+]

@@ -18,6 +18,14 @@ export type {
 } from "./contracts.js";
 export { OfficeError, type ByteErrorCode, type OfficeErrorCode } from "./errors.js";
 export {
+  readAccessibility,
+  mutateAccessibility,
+  type AccessibilityUpdate,
+  type AccessibilityProvenance,
+  type AccessibilityObject,
+  type AccessibilitySlideCheck
+} from "./accessibility.js";
+export {
   readAnimations,
   type AnimationRecord,
   type AnimationNode,

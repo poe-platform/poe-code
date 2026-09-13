@@ -1,0 +1,1636 @@
+{
+  "schemaVersion": 1,
+  "feature": "F52",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "purpose": "Research/provenance only. Exact nearby model cases remain visible; no live-model parity inferred from detached inspection.",
+  "selection": {
+    "unit": "All shape-base identity/name/placeholder-format cases; shape-tree title lookup, sequence/index/count and keyed placeholder lookup cases, including every collected parameter variant.",
+    "bdd": "All expanded shape name/id examples, shape collection sequence scenarios, title lookup and title-slide text assignment.",
+    "excluded": "Chart/axis titles and core document title/description are different resources; generated shape IDs/names and placeholder cloning are creation behavior unchanged here. Geometry/style/text editing remains in existing ledgers.",
+    "directAccessibilityCases": "No collected unit/BDD case names describe alt text or decorative flags. The one description match is dc:description core comments, not drawing metadata. F52 requires original format/security cases."
+  },
+  "counts": {
+    "unit": 49,
+    "bdd": 24,
+    "implementedUpstreamParity": 0
+  },
+  "cases": [
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1717",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 56,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1718",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 56,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1719",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture2]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 56,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1720",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture3]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 56,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1721",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_shape_id[id_fixture4]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 56,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1722",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_name",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 60,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1723",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 64,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1724",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 64,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1725",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture2]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 64,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1726",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture3]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 64,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1727",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_name[name_set_fixture4]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 64,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1775",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_whether_it_is_a_placeholder[True]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 154,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1776",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_whether_it_is_a_placeholder[False]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 154,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1777",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_placeholder_format",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 158,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1778",
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_raises_when_shape_is_not_a_placeholder",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 164,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1782",
+      "sourceId": "tests/shapes/test_base.py::Describe_PlaceholderFormat::it_knows_its_idx[idx_get_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 594,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1783",
+      "sourceId": "tests/shapes/test_base.py::Describe_PlaceholderFormat::it_knows_its_idx[idx_get_fixture1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 594,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1784",
+      "sourceId": "tests/shapes/test_base.py::Describe_PlaceholderFormat::it_knows_its_type[type_get_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 598,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1785",
+      "sourceId": "tests/shapes/test_base.py::Describe_PlaceholderFormat::it_knows_its_type[type_get_fixture1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 598,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1983",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_knows_how_many_shapes_it_contains",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 115,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1984",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_iterate_over_the_shapes_it_contains",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 119,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1985",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_iterates_shape_elements_to_help__iter__",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 124,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1986",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_supports_indexed_access",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 128,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/1987",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_raises_on_shape_index_out_of_range",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 134,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2017",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 439,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2018",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 439,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2019",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture2]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 439,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2020",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture3]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 439,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2021",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture4]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 439,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2022",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture5]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 439,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2023",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 443,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2024",
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 443,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2040",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 977,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2041",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 977,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2042",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture2]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 977,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2043",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture3]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 977,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2044",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture4]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 977,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2045",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_iterate_over_its_placeholders[iter_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 986,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2046",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 995,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2047",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 995,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2048",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture2]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 995,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2049",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture3]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 995,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2064",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_find_the_title_placeholder[title_fixture0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1236,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2065",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_find_the_title_placeholder[title_fixture1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1236,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2077",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeLayoutPlaceholders::it_can_find_a_placeholder_by_idx_value[0]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1546,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2078",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeLayoutPlaceholders::it_can_find_a_placeholder_by_idx_value[1]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1546,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2085",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeMasterPlaceholders::it_can_find_a_placeholder_by_type[title]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1704,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2086",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeMasterPlaceholders::it_can_find_a_placeholder_by_type[body]",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1704,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/unit_cases/2087",
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeMasterPlaceholders::it_returns_default_on_ph_type_not_found",
+      "kind": "unit",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1708,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/615",
+      "sourceId": "features/shp-placeholder.feature:6:Set the title of a title slide",
+      "kind": "bdd",
+      "sourceFile": "features/shp-placeholder.feature",
+      "sourceLine": 6,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/619",
+      "sourceId": "features/shp-shapes.feature:19:GroupShapes is a sequence",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 19,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/627",
+      "sourceId": "features/shp-shapes.feature:75:LayoutPlaceholders is a sequence",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 75,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/628",
+      "sourceId": "features/shp-shapes.feature:83:LayoutShapes is a sequence",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 83,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/629",
+      "sourceId": "features/shp-shapes.feature:90:MasterPlaceholders is a sequence",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 90,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/630",
+      "sourceId": "features/shp-shapes.feature:98:MasterShapes is a sequence",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 98,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/631",
+      "sourceId": "features/shp-shapes.feature:105:SlideShapes is a sequence",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 105,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/694",
+      "sourceId": "features/shp-shapes.feature:339:SlideShapes.title",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 339,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/695",
+      "sourceId": "features/shp-shapes.feature:344:SlidePlaceholders is a sequence",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 344,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/735",
+      "sourceId": "features/shp-shared.feature:92:Get shape.name -- @1.1 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 92,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/736",
+      "sourceId": "features/shp-shared.feature:93:Get shape.name -- @1.2 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 93,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/737",
+      "sourceId": "features/shp-shared.feature:94:Get shape.name -- @1.3 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 94,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/738",
+      "sourceId": "features/shp-shared.feature:95:Get shape.name -- @1.4 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 95,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/739",
+      "sourceId": "features/shp-shared.feature:96:Get shape.name -- @1.5 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 96,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/740",
+      "sourceId": "features/shp-shared.feature:106:Set shape.name -- @1.1 Expected results of changing shape.name",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 106,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/741",
+      "sourceId": "features/shp-shared.feature:107:Set shape.name -- @1.2 Expected results of changing shape.name",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 107,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/742",
+      "sourceId": "features/shp-shared.feature:108:Set shape.name -- @1.3 Expected results of changing shape.name",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 108,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/743",
+      "sourceId": "features/shp-shared.feature:109:Set shape.name -- @1.4 Expected results of changing shape.name",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 109,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/744",
+      "sourceId": "features/shp-shared.feature:110:Set shape.name -- @1.5 Expected results of changing shape.name",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 110,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/765",
+      "sourceId": "features/shp-shared.feature:177:Get shape.shape_id -- @1.1 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 177,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/766",
+      "sourceId": "features/shp-shared.feature:178:Get shape.shape_id -- @1.2 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 178,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/767",
+      "sourceId": "features/shp-shared.feature:179:Get shape.shape_id -- @1.3 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 179,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/768",
+      "sourceId": "features/shp-shared.feature:180:Get shape.shape_id -- @1.4 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 180,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    },
+    {
+      "source": "upstream-test-inventory.json#/bdd_cases/769",
+      "sourceId": "features/shp-shared.feature:181:Get shape.shape_id -- @1.5 Shape types",
+      "kind": "bdd",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 181,
+      "status": "deferred-live-model-parity",
+      "originalTests": [],
+      "reason": "F52 returns detached structural records, not this live property, collection protocol, placeholder handle or title-text mutation. This exact parameter/example remains an unfulfilled parity obligation.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J03",
+        "J06",
+        "J07"
+      ]
+    }
+  ],
+  "originalF52Cases": [
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 50,
+      "testName": "reports missing and duplicate placeholder titles independently of object metadata titles",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 85,
+      "testName": "exposes layout fallback provenance and keeps explicit empty descriptions",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 106,
+      "testName": "edits occurrence metadata with independent XML assertions and preserves opaque extensions",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 156,
+      "testName": "rejects invalid metadata updates before reading input",
+      "parameter": {
+        "update": {}
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 156,
+      "testName": "rejects invalid metadata updates before reading input",
+      "parameter": {
+        "update": {
+          "decorative": "true"
+        }
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 156,
+      "testName": "rejects invalid metadata updates before reading input",
+      "parameter": {
+        "update": {
+          "altText": "\u0001"
+        }
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 156,
+      "testName": "rejects invalid metadata updates before reading input",
+      "parameter": {
+        "update": {
+          "altText": "x",
+          "description": "y"
+        }
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 156,
+      "testName": "rejects invalid metadata updates before reading input",
+      "parameter": {
+        "update": {
+          "unexpected": true
+        }
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 167,
+      "testName": "reads and edits metadata for structural %s objects",
+      "parameter": {
+        "kind": "sp"
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 167,
+      "testName": "reads and edits metadata for structural %s objects",
+      "parameter": {
+        "kind": "pic"
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 167,
+      "testName": "reads and edits metadata for structural %s objects",
+      "parameter": {
+        "kind": "cxnSp"
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 167,
+      "testName": "reads and edits metadata for structural %s objects",
+      "parameter": {
+        "kind": "graphicFrame"
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 167,
+      "testName": "reads and edits metadata for structural %s objects",
+      "parameter": {
+        "kind": "grpSp"
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 182,
+      "testName": "keeps per-picture alternative text when media bytes are shared",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 228,
+      "testName": "reports nested objects in depth-first structural order",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 237,
+      "testName": "rejects conflicting selectors and accessor updates before reading",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 255,
+      "testName": "scopes title checks to selected slide owners and resolves inherited title placeholder types",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 270,
+      "testName": "rejects ambiguous layout metadata rather than inventing a fallback",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 284,
+      "testName": "preserves unrelated extensions and ignores same-name decorative elements in foreign namespaces",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 296,
+      "testName": "rejects duplicate supported decorative nodes without publishing partial updates",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 307,
+      "testName": "treats a present decorative element without a value as unknown and prevents layout fallback",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 318,
+      "testName": "reports slides affected by edits to shared layout metadata",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 330,
+      "testName": "rejects mixing a token with explicit scope before reading input",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 342,
+      "testName": "returns fresh selection tokens after metadata edits",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 359,
+      "testName": "reads decorative booleans with XML whitespace %s",
+      "parameter": {
+        "xmlValue": " true ",
+        "expected": true
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 359,
+      "testName": "reads decorative booleans with XML whitespace %s",
+      "parameter": {
+        "xmlValue": "&#x9;0&#xA;",
+        "expected": false
+      },
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 377,
+      "testName": "snapshots validated metadata before invoking the byte capability",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 392,
+      "testName": "snapshots validated read selections before invoking the byte capability",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/accessibility.test.ts",
+      "line": 405,
+      "testName": "retains stored nonenumerable selections and rejects accessor selections",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/command-accessibility.test.ts",
+      "line": 80,
+      "testName": "publishes alternative text and decorative metadata with closed result schemas",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/command-accessibility.test.ts",
+      "line": 128,
+      "testName": "requires explicit edits and selectors before reading input",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/command-accessibility.test.ts",
+      "line": 142,
+      "testName": "keeps dry runs unchanged and rejects ambiguous get or implicit bulk edits",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/command-accessibility.test.ts",
+      "line": 186,
+      "testName": "advertises structural limits and all accessibility operations without I/O",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/command-accessibility.test.ts",
+      "line": 201,
+      "testName": "rejects shared scope consistently in discovery and parsing before input reads",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/pptx/src/command-accessibility.test.ts",
+      "line": 210,
+      "testName": "edits a shared layout object through its opaque token and reports affected slides",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/safe-bash/tests/commands/pptx/accessibility.test.ts",
+      "line": 97,
+      "testName": "accessibility metadata survives quoted virtual script edits and SDK inspection",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    },
+    {
+      "file": "packages/safe-bash/tests/commands/pptx/accessibility.test.ts",
+      "line": 145,
+      "testName": "accessibility rejects invalid intent and preserves input during dry run",
+      "parameter": null,
+      "status": "implemented-original-case",
+      "upstreamParity": false,
+      "evidence": "Test identity verified against current source. Domain worker reports 29 focused passes; final command/Shell and maintained results belong to docs/plans/pptx-accessibility-qa.md."
+    }
+  ],
+  "wholeApiCoverage": false,
+  "originalF52Counts": {
+    "packages/pptx/src/accessibility.test.ts": 29,
+    "packages/pptx/src/command-accessibility.test.ts": 6,
+    "packages/safe-bash/tests/commands/pptx/accessibility.test.ts": 2
+  }
+}

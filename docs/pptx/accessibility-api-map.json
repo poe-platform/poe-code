@@ -1,0 +1,4112 @@
+{
+  "schemaVersion": 1,
+  "feature": "F52",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "purpose": "Bounded research receipt; no model parity or certification claim.",
+  "selection": "Every inherited shape identity/name/placeholder property; complete inventoried _PlaceholderFormat interface; shape collection title/index/iteration/count/lookup protocols.",
+  "count": 103,
+  "implementedUpstreamParity": 0,
+  "objects": [
+    {
+      "source": "upstream-api-inventory.json#/objects/1581",
+      "sourceId": "pptx.shapes.autoshape.Shape.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1581",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1584",
+      "sourceId": "pptx.shapes.autoshape.Shape.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1584",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1586",
+      "sourceId": "pptx.shapes.autoshape.Shape.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1586",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1589",
+      "sourceId": "pptx.shapes.autoshape.Shape.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1589",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1604",
+      "sourceId": "pptx.shapes.base.BaseShape.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1604",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1606",
+      "sourceId": "pptx.shapes.base.BaseShape.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1606",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1608",
+      "sourceId": "pptx.shapes.base.BaseShape.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1608",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1611",
+      "sourceId": "pptx.shapes.base.BaseShape.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1611",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1615",
+      "sourceId": "pptx.shapes.base._PlaceholderFormat",
+      "declaredOn": null,
+      "sourceSignature": "(element: 'CT_Placeholder')",
+      "jsSignature": "interface _PlaceholderFormat",
+      "targetMember": "_PlaceholderFormat",
+      "mappingRules": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1615",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1616",
+      "sourceId": "pptx.shapes.base._PlaceholderFormat.__eq__",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "sourceSignature": "(self, other: object) -> bool",
+      "jsSignature": "equals(other: ModelComparable): boolean",
+      "targetMember": "equals",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1616",
+      "plannedArguments": [
+        {
+          "name": "other",
+          "ts_type": "ModelComparable",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1617",
+      "sourceId": "pptx.shapes.base._PlaceholderFormat.__init__",
+      "declaredOn": null,
+      "sourceSignature": "(self, element: CT_Placeholder)",
+      "jsSignature": "type Acquired = _PlaceholderFormat",
+      "targetMember": "constructor",
+      "mappingRules": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1617",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1618",
+      "sourceId": "pptx.shapes.base._PlaceholderFormat.element",
+      "declaredOn": "pptx.shapes.base._PlaceholderFormat",
+      "sourceSignature": "(self) -> CT_Placeholder",
+      "jsSignature": "get element(): XmlElementView",
+      "targetMember": "element",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1618",
+      "plannedArguments": [],
+      "plannedReturn": "XmlElementView",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1619",
+      "sourceId": "pptx.shapes.base._PlaceholderFormat.idx",
+      "declaredOn": "pptx.shapes.base._PlaceholderFormat",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get idx(): number",
+      "targetMember": "idx",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1619",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1620",
+      "sourceId": "pptx.shapes.base._PlaceholderFormat.type",
+      "declaredOn": "pptx.shapes.base._PlaceholderFormat",
+      "sourceSignature": "(self) -> PP_PLACEHOLDER",
+      "jsSignature": "get type(): PP_PLACEHOLDER_TYPE",
+      "targetMember": "type",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1620",
+      "plannedArguments": [],
+      "plannedReturn": "PP_PLACEHOLDER_TYPE",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1636",
+      "sourceId": "pptx.shapes.connector.Connector.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1636",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1639",
+      "sourceId": "pptx.shapes.connector.Connector.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1639",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1641",
+      "sourceId": "pptx.shapes.connector.Connector.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1641",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1644",
+      "sourceId": "pptx.shapes.connector.Connector.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1644",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1682",
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1682",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1684",
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1684",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1687",
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1687",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1690",
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1690",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1713",
+      "sourceId": "pptx.shapes.group.GroupShape.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1713",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1715",
+      "sourceId": "pptx.shapes.group.GroupShape.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1715",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1717",
+      "sourceId": "pptx.shapes.group.GroupShape.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1717",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1720",
+      "sourceId": "pptx.shapes.group.GroupShape.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1720",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1739",
+      "sourceId": "pptx.shapes.picture.Movie.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1739",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1745",
+      "sourceId": "pptx.shapes.picture.Movie.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1745",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1747",
+      "sourceId": "pptx.shapes.picture.Movie.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1747",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1751",
+      "sourceId": "pptx.shapes.picture.Movie.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1751",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1770",
+      "sourceId": "pptx.shapes.picture.Picture.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1770",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1773",
+      "sourceId": "pptx.shapes.picture.Picture.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1773",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1775",
+      "sourceId": "pptx.shapes.picture.Picture.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1775",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1778",
+      "sourceId": "pptx.shapes.picture.Picture.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1778",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1802",
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.is_placeholder",
+      "declaredOn": "pptx.shapes.placeholder._BaseSlidePlaceholder",
+      "sourceSignature": "(self)",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1802",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1806",
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1806",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1808",
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1808",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1811",
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1811",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1829",
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1829",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1832",
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1832",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1834",
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1834",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1837",
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1837",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1856",
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1856",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1859",
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1859",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1863",
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1863",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1866",
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1866",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1885",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1885",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1888",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1888",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1890",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1890",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1893",
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1893",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1913",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.is_placeholder",
+      "declaredOn": "pptx.shapes.placeholder._BaseSlidePlaceholder",
+      "sourceSignature": "(self)",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1913",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1917",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1917",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1919",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1919",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1922",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1922",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1939",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.is_placeholder",
+      "declaredOn": "pptx.shapes.placeholder.PlaceholderGraphicFrame",
+      "sourceSignature": "(self)",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1939",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1941",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1941",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1944",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1944",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1947",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1947",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1967",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> bool",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1967",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1970",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1970",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1972",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1972",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1975",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1975",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1991",
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.is_placeholder",
+      "declaredOn": "pptx.shapes.placeholder._BaseSlidePlaceholder",
+      "sourceSignature": "(self)",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1991",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1994",
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1994",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1996",
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1996",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1999",
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/1999",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2019",
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.is_placeholder",
+      "declaredOn": "pptx.shapes.placeholder._BaseSlidePlaceholder",
+      "sourceSignature": "(self)",
+      "jsSignature": "get is_placeholder(): boolean",
+      "targetMember": "is_placeholder",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2019",
+      "plannedArguments": [],
+      "plannedReturn": "boolean",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2023",
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> str",
+      "jsSignature": "get name(): string; set name(value: string)",
+      "targetMember": "name",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2023",
+      "plannedArguments": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "string",
+      "plannedEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "plannedErrors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2025",
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> _PlaceholderFormat",
+      "jsSignature": "get placeholder_format(): _PlaceholderFormat",
+      "targetMember": "placeholder_format",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2025",
+      "plannedArguments": [],
+      "plannedReturn": "_PlaceholderFormat",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2028",
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "get shape_id(): number",
+      "targetMember": "shape_id",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2028",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2036",
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__getitem__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self, idx: int) -> BaseShape",
+      "jsSignature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+      "targetMember": "numeric lookup / at",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2036",
+      "plannedArguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "BaseShape",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2038",
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__iter__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> Iterator[BaseShape]",
+      "jsSignature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+      "targetMember": "Symbol.iterator",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2038",
+      "plannedArguments": [],
+      "plannedReturn": "IterableIterator<BaseShape>",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2039",
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__len__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "readonly length: number",
+      "targetMember": "length",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2039",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2049",
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.index",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "sourceSignature": "(self, shape: BaseShape) -> int",
+      "jsSignature": "index(shape: BaseShape): number",
+      "targetMember": "index",
+      "mappingRules": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2049",
+      "plannedArguments": [
+        {
+          "name": "shape",
+          "target_binding": "shape",
+          "ts_type": "BaseShape",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2055",
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.__getitem__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self, idx: int) -> BaseShape",
+      "jsSignature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+      "targetMember": "numeric lookup / at",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2055",
+      "plannedArguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "BaseShape",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2057",
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.__iter__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> Iterator[BaseShape]",
+      "jsSignature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+      "targetMember": "Symbol.iterator",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2057",
+      "plannedArguments": [],
+      "plannedReturn": "IterableIterator<BaseShape>",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2058",
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.__len__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "readonly length: number",
+      "targetMember": "length",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2058",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2060",
+      "sourceId": "pptx.shapes.shapetree.LayoutPlaceholders.get",
+      "declaredOn": "pptx.shapes.shapetree.LayoutPlaceholders",
+      "sourceSignature": "(self, idx: int, default: LayoutPlaceholder | None=None) -> LayoutPlaceholder | None",
+      "jsSignature": "get(idx: number, default_value?: LayoutPlaceholder | null): LayoutPlaceholder | null",
+      "targetMember": "get",
+      "mappingRules": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2060",
+      "plannedArguments": [
+        {
+          "name": "idx",
+          "target_binding": "idx",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "default",
+          "target_binding": "default_value",
+          "ts_type": "LayoutPlaceholder | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        }
+      ],
+      "plannedReturn": "LayoutPlaceholder | null",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2066",
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.__getitem__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self, idx: int) -> BaseShape",
+      "jsSignature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+      "targetMember": "numeric lookup / at",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2066",
+      "plannedArguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "BaseShape",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2068",
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.__iter__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> Iterator[BaseShape]",
+      "jsSignature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+      "targetMember": "Symbol.iterator",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2068",
+      "plannedArguments": [],
+      "plannedReturn": "IterableIterator<BaseShape>",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2069",
+      "sourceId": "pptx.shapes.shapetree.LayoutShapes.__len__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "readonly length: number",
+      "targetMember": "length",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2069",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2076",
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.__getitem__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self, idx: int) -> BaseShape",
+      "jsSignature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+      "targetMember": "numeric lookup / at",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2076",
+      "plannedArguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "BaseShape",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2078",
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.__iter__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> Iterator[BaseShape]",
+      "jsSignature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+      "targetMember": "Symbol.iterator",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2078",
+      "plannedArguments": [],
+      "plannedReturn": "IterableIterator<BaseShape>",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2079",
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.__len__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "readonly length: number",
+      "targetMember": "length",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2079",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2081",
+      "sourceId": "pptx.shapes.shapetree.MasterPlaceholders.get",
+      "declaredOn": "pptx.shapes.shapetree.MasterPlaceholders",
+      "sourceSignature": "(self, ph_type: PP_PLACEHOLDER, default: MasterPlaceholder | None=None)",
+      "jsSignature": "get(ph_type: PP_PLACEHOLDER_TYPE, default_value?: MasterPlaceholder | null): MasterPlaceholder | null",
+      "targetMember": "get",
+      "mappingRules": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2081",
+      "plannedArguments": [
+        {
+          "name": "ph_type",
+          "target_binding": "ph_type",
+          "ts_type": "PP_PLACEHOLDER_TYPE",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "default",
+          "target_binding": "default_value",
+          "ts_type": "MasterPlaceholder | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        }
+      ],
+      "plannedReturn": "MasterPlaceholder | null",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2087",
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.__getitem__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self, idx: int) -> BaseShape",
+      "jsSignature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+      "targetMember": "numeric lookup / at",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2087",
+      "plannedArguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "BaseShape",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2089",
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.__iter__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> Iterator[BaseShape]",
+      "jsSignature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+      "targetMember": "Symbol.iterator",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2089",
+      "plannedArguments": [],
+      "plannedReturn": "IterableIterator<BaseShape>",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2090",
+      "sourceId": "pptx.shapes.shapetree.MasterShapes.__len__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "readonly length: number",
+      "targetMember": "length",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2090",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2097",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__getitem__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self, idx: int) -> BaseShape",
+      "jsSignature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+      "targetMember": "numeric lookup / at",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2097",
+      "plannedArguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "BaseShape",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2099",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__iter__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> Iterator[BaseShape]",
+      "jsSignature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+      "targetMember": "Symbol.iterator",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2099",
+      "plannedArguments": [],
+      "plannedReturn": "IterableIterator<BaseShape>",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2100",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.__len__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "readonly length: number",
+      "targetMember": "length",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2100",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2102",
+      "sourceId": "pptx.shapes.shapetree.NotesSlidePlaceholders.get",
+      "declaredOn": "pptx.shapes.shapetree.MasterPlaceholders",
+      "sourceSignature": "(self, ph_type: PP_PLACEHOLDER, default: MasterPlaceholder | None=None)",
+      "jsSignature": "get(ph_type: PP_PLACEHOLDER_TYPE, default_value?: MasterPlaceholder | null): NotesSlidePlaceholder | MasterPlaceholder | null",
+      "targetMember": "get",
+      "mappingRules": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2102",
+      "plannedArguments": [
+        {
+          "name": "ph_type",
+          "target_binding": "ph_type",
+          "ts_type": "PP_PLACEHOLDER_TYPE",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "default",
+          "target_binding": "default_value",
+          "ts_type": "MasterPlaceholder | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        }
+      ],
+      "plannedReturn": "NotesSlidePlaceholder | MasterPlaceholder | null",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2108",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__getitem__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self, idx: int) -> BaseShape",
+      "jsSignature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+      "targetMember": "numeric lookup / at",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2108",
+      "plannedArguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "BaseShape",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2110",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__iter__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> Iterator[BaseShape]",
+      "jsSignature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+      "targetMember": "Symbol.iterator",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2110",
+      "plannedArguments": [],
+      "plannedReturn": "IterableIterator<BaseShape>",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2111",
+      "sourceId": "pptx.shapes.shapetree.NotesSlideShapes.__len__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "readonly length: number",
+      "targetMember": "length",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2111",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2118",
+      "sourceId": "pptx.shapes.shapetree.SlidePlaceholders.__getitem__",
+      "declaredOn": "pptx.shapes.shapetree.SlidePlaceholders",
+      "sourceSignature": "(self, idx: int)",
+      "jsSignature": "readonly [index: number]: SlidePlaceholder | PicturePlaceholder | TablePlaceholder | ChartPlaceholder | PlaceholderPicture | PlaceholderGraphicFrame",
+      "targetMember": "numeric lookup / at",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2118",
+      "plannedArguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "SlidePlaceholder | PicturePlaceholder | TablePlaceholder | ChartPlaceholder | PlaceholderPicture | PlaceholderGraphicFrame",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "KeyError",
+            "class": "KeyError",
+            "code": "missing-key",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "KeyError",
+            "code": "missing-key",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2120",
+      "sourceId": "pptx.shapes.shapetree.SlidePlaceholders.__iter__",
+      "declaredOn": "pptx.shapes.shapetree.SlidePlaceholders",
+      "sourceSignature": "(self)",
+      "jsSignature": "[Symbol.iterator](): IterableIterator<SlidePlaceholder | PicturePlaceholder | TablePlaceholder | ChartPlaceholder | PlaceholderPicture | PlaceholderGraphicFrame>",
+      "targetMember": "Symbol.iterator",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2120",
+      "plannedArguments": [],
+      "plannedReturn": "IterableIterator<SlidePlaceholder | PicturePlaceholder | TablePlaceholder | ChartPlaceholder | PlaceholderPicture | PlaceholderGraphicFrame>",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "KeyError",
+            "code": "missing-key",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2121",
+      "sourceId": "pptx.shapes.shapetree.SlidePlaceholders.__len__",
+      "declaredOn": "pptx.shapes.shapetree.SlidePlaceholders",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "readonly length: number",
+      "targetMember": "length",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2121",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "KeyError",
+            "code": "missing-key",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2127",
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.__getitem__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self, idx: int) -> BaseShape",
+      "jsSignature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+      "targetMember": "numeric lookup / at",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2127",
+      "plannedArguments": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "plannedReturn": "BaseShape",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2129",
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.__iter__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> Iterator[BaseShape]",
+      "jsSignature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+      "targetMember": "Symbol.iterator",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2129",
+      "plannedArguments": [],
+      "plannedReturn": "IterableIterator<BaseShape>",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2130",
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.__len__",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "sourceSignature": "(self) -> int",
+      "jsSignature": "readonly length: number",
+      "targetMember": "length",
+      "mappingRules": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2130",
+      "plannedArguments": [],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2142",
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.index",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "sourceSignature": "(self, shape: BaseShape) -> int",
+      "jsSignature": "index(shape: BaseShape): number",
+      "targetMember": "index",
+      "mappingRules": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2142",
+      "plannedArguments": [
+        {
+          "name": "shape",
+          "target_binding": "shape",
+          "ts_type": "BaseShape",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "plannedReturn": "number",
+      "plannedEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/2146",
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.title",
+      "declaredOn": "pptx.shapes.shapetree.SlideShapes",
+      "sourceSignature": "(self) -> Shape | None",
+      "jsSignature": "get title(): Shape | null",
+      "targetMember": "title",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "status": "deferred-live-model-parity",
+      "reason": "Detached accessibility records do not implement this live model property, returned interface, constructor or collection. Inherited members and underscore-prefixed documented types remain public obligations.",
+      "originalTests": [],
+      "plannedTargetRegister": "public-api-map.json#/rows/2146",
+      "plannedArguments": [],
+      "plannedReturn": "Shape | null",
+      "plannedEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "plannedErrors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "plannedCli": "See referenced target register; these model routes remain proposed and are not claimed as implemented accessibility routes."
+    }
+  ],
+  "operationMappings": {
+    "readAccessibility": "readAccessibility(input: BinaryInput, options: ShapeSelection, context: SelectionContext): Promise<{objects: AccessibilityObject[]; slides: AccessibilitySlideCheck[]; order: \"structural\"; limitations: string[]}>. Detached noncreating records, not live shape collections.",
+    "mutateAccessibility": "mutateAccessibility(input: BinaryInput, options: ShapeSelection & {update: AccessibilityUpdate}, context: SelectionContext): Promise<{bytes: Uint8Array; affected: number; affectedSlides: number[]; records: readonly SelectionRecord[]}>. Update fields are altText?: string, title?: string, decorative?: boolean. description is an output alias, not a supported update key.",
+    "cli": "accessibility list/get/set; --alt-text, --title, --decorative per appendix. Both SDK and CLI expose description as an output alias of altText. CLI scopes are slides/layouts/masters; SDK shared+part targets the same shared object that CLI addresses by the opaque token returned by layouts/masters inspection.",
+    "security": "No ambient host I/O, time, native runtime, network, renderer or embedded-content execution; input and publication use caller capabilities. Validated own data-property values, including nonenumerable selection fields, are captured before asynchronous admission; accessor fields are rejected without invocation. Byte-capability callbacks cannot change accepted selections or metadata. Unknown XML is retained; external relationships are not followed.",
+    "null": "Absent metadata remains null; empty text is explicit; omitted updates preserve existing attributes. Missing optional decorative val has no schema default and must not be promoted to true.",
+    "collections": "Detached arrays follow deterministic structural XML traversal. They are not live model sequence implementations; CLI slide positions are one-based and opaque selectors retain owner fingerprints.",
+    "errors": "Stored keys/types/XML characters are validated before admission; description as an update key is rejected. OfficeError codes feed shared version-1 envelopes; selection ambiguity/staleness and publication retain common semantics."
+  },
+  "drift": [
+    {
+      "finding": "Historical test-audit statement that adaptation has not started is a checkpoint.",
+      "resolution": "This bounded receipt records F52 evidence without overwriting baseline ledgers."
+    },
+    {
+      "finding": "SlideShapes.title means a title placeholder object; accessibility title means cNvPr metadata.",
+      "resolution": "Slide-title diagnostics inspect title/ctrTitle placeholder text, independently of cNvPr metadata and core title."
+    },
+    {
+      "finding": "Placeholder idx establishes correspondence, not proven per-property renderer inheritance.",
+      "resolution": "Expose provenance and document metadata fallback as structural policy; no visual or assistive-technology claim."
+    }
+  ],
+  "wholeApiCoverage": false
+}

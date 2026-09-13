@@ -2,6 +2,8 @@ import { commentSchemas, commentsUsage } from "./comments-schema.js";
 import { validateCommentsCommand, executeCommentsCommand, type CommentsArguments } from "./command-comments.js";
 import { noteSchemas, notesUsage } from "./notes-schema.js";
 import { metadataSchemas, metadataUsage } from "./metadata-schema.js";
+import { accessibilitySchemas, accessibilityUsage } from "./accessibility-schema.js";
+import { validateAccessibilityCommand, executeAccessibilityCommand, type AccessibilityArguments } from "./command-accessibility.js";
 import { validateMetadataCommand, executeMetadataCommand } from "./command-metadata.js";
 import { validateNotesCommand, executeNotesCommand } from "./command-notes.js";
 import { linkSchemas, linksUsage } from "./links-schema.js";
@@ -359,6 +361,7 @@ const help =
   "                       [--name TEXT] [--color-slot SLOT --color RRGGBB] [--font-slot SLOT --font TEXT]\n" +
   "       pptx transitions list|get|add|set|remove INPUT [--slide N] [options]\n" +
   "       pptx links list|get|add|set|remove INPUT [--slide N --shape NAME] [options]\n" +
+  "       pptx accessibility list|get|set INPUT [--slide N --shape NAME] [options]\n" +
   "       pptx animations list|get|add|set|remove INPUT [--slide N --shape NAME] [options]\n" +
   "       pptx backgrounds list|get INPUT [--slide N | --part URI] [--scope SCOPE] [--json]\n" +
   "       pptx backgrounds set INPUT [--slide N | --part URI | --select TOKEN] [--scope SCOPE]\n" +
@@ -408,6 +411,7 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  accessibilityEdit?: AccessibilityArguments["accessibilityEdit"];
   commentEdit?: NonNullable<CommentsArguments["commentEdit"]>;
   noteText?: string;
   metadataName?: string;
@@ -443,6 +447,7 @@ interface Arguments {
   opsFile?: string;
   linkEdit?: NonNullable<LinkArguments["linkEdit"]>;
   operation:
+    | `accessibility.${"list" | "get" | "set"}`
     | `comments.${"list" | "get" | "add" | "set" | "remove"}`
     | `notes.${"list" | "get" | "add" | "set" | "remove"}`
     | `properties.${"list" | "get" | "set" | "remove"}`
@@ -704,6 +709,7 @@ const imageSetFlags = [
   "--alt-text"
 ];
 const scalarOptions = [
+  "--decorative",
   "--trigger", "--delay", "--target", "--ops-json", "--ops-file",
   "--duration",
   "--advance-after",
@@ -881,6 +887,7 @@ function parse(
       index === 1 &&
       [
         "animations",
+        "accessibility",
         "transitions",
         "equations",
         "links",
@@ -928,6 +935,10 @@ function parse(
     }
   }
   if (invalidUtf8) usage("Arguments must be UTF-8.");
+  if (args[0] === "accessibility" && ["--help", "-h"].includes(args[1]!)) {
+    if (args.slice(2).some(argument => argument !== "--json")) usage("Unexpected help option.");
+    return { operation: "help", json: output.json, schemaPath: "accessibility" };
+  }
   if (
     args[0] === "text" &&
     ["runs", "paragraphs", "frames"].includes(args[1]!) &&
@@ -957,6 +968,7 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "accessibility",
     "properties",
     "tags",
     "animations",
@@ -1002,6 +1014,7 @@ function parse(
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
       ...Object.keys(metadataSchemas),
+      ...Object.keys(accessibilitySchemas),
       ...Object.keys(commentSchemas),
       ...Object.keys(chartSchemas),
       ...Object.keys(fieldSchemas),
@@ -1065,6 +1078,7 @@ function parse(
         operation.startsWith("links.") ||
         operation.startsWith("notes.") ||
         Object.hasOwn(metadataSchemas, operation) ||
+        Object.hasOwn(accessibilitySchemas, operation) ||
         operation.startsWith("comments.") ||
         operation.startsWith("charts.") ||
         operation.startsWith("tables.") ||
@@ -1354,6 +1368,20 @@ function parse(
       const key = argument === "--author-id" ? "authorId" : argument.slice(2);
       const parsed = ["left", "top"].includes(key) ? commandLength(value, -Number.MAX_SAFE_INTEGER) : key === "timestamp" ? commandTimestamp(value).toISOString() : value;
       result.commentEdit = {...result.commentEdit, [key]: parsed};
+      continue;
+    }
+    if (Object.hasOwn(accessibilitySchemas, operation) && ["--title", "--alt-text", "--decorative"].includes(argument)) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Accessibility option requires a value.");
+      if (argument === "--decorative") {
+        if (value !== "true" && value !== "false") usage("Decorative requires true or false.");
+        result.accessibilityEdit = { ...result.accessibilityEdit, decorative: value === "true" };
+      } else {
+        const key = argument === "--alt-text" ? "altText" : "title";
+        result.accessibilityEdit = { ...result.accessibilityEdit, [key]: value };
+      }
       continue;
     }
     if (Object.hasOwn(metadataSchemas, operation) && ["--name", "--value", "--type", "--remove"].includes(argument)) {
@@ -2555,6 +2583,10 @@ function parse(
     validateMetadataCommand(result, positionals, seen);
     return result;
   }
+  if (Object.hasOwn(accessibilitySchemas, operation)) {
+    validateAccessibilityCommand(result, positionals, seen);
+    return result;
+  }
   if (Object.hasOwn(linkSchemas, operation)) {
     validateLinkCommand(result, positionals, seen);
     return result;
@@ -3463,6 +3495,7 @@ function parse(
       (operation === "schema" || operation === "help") &&
       [
         "batch",
+        "accessibility",
         ...Object.keys(animationSchemas),
         ...Object.keys(transitionSchemas),
         ...Object.keys(mediaSchemas),
@@ -3472,6 +3505,7 @@ function parse(
       ...Object.keys(noteSchemas),
       ...Object.keys(metadataSchemas),
       ...Object.keys(commentSchemas),
+      ...Object.keys(accessibilitySchemas),
         ...Object.keys(chartSchemas),
         ...Object.keys(fieldSchemas),
         ...Object.keys(connectorSchemas),
@@ -3890,6 +3924,7 @@ async function execute(
       if (args.schemaPath?.startsWith("comments.")) resolvedUsage = commentsUsage;
       if (args.schemaPath?.startsWith("notes.")) resolvedUsage = notesUsage;
       if (args.schemaPath && Object.hasOwn(metadataSchemas, args.schemaPath)) resolvedUsage = metadataUsage;
+      if (args.schemaPath === "accessibility" || (args.schemaPath && Object.hasOwn(accessibilitySchemas, args.schemaPath))) resolvedUsage = accessibilityUsage;
       if (args.schemaPath?.startsWith("links.")) resolvedUsage = linksUsage;
       if (args.schemaPath?.startsWith("transitions.")) resolvedUsage = transitionsUsage;
       if (args.schemaPath?.startsWith("animations.")) resolvedUsage = animationsUsage;
@@ -4001,6 +4036,7 @@ async function execute(
             ...linkSchemas,
             ...noteSchemas,
             ...metadataSchemas,
+            ...accessibilitySchemas,
             ...commentSchemas,
             ...fieldSchemas,
             ...membershipSchemas,
@@ -4033,7 +4069,7 @@ async function execute(
             "slides.split": slidesSplitSchema,
             "xml.get": xmlGetSchema,
             "xml.set": xmlSetSchema
-          }).filter(([path]) => !args.schemaPath || path === args.schemaPath)
+          }).filter(([path]) => !args.schemaPath || path === args.schemaPath || (args.schemaPath === "accessibility" && Object.hasOwn(accessibilitySchemas, path)))
         )
       });
     else if (args.operation === "capabilities")
@@ -4112,6 +4148,10 @@ async function execute(
           properties: {
             supported: true, level: "edit", operations: Object.keys(metadataSchemas).filter(operation => operation.startsWith("properties.")),
             subset: "F51: core and typed custom properties with explicit dates; unknown types, namespaces and custom XML associations are preserved."
+          },
+          accessibility: {
+            supported: true, level: "edit", operations: Object.keys(accessibilitySchemas),
+            subset: "F52: per-object titles, descriptions and supported decorative metadata; layout provenance, missing/duplicate slide titles and structural object order. No accessibility certification, visual reading order or contrast assessment."
           },
           tags: {
             supported: true, level: "edit", operations: Object.keys(metadataSchemas).filter(operation => operation.startsWith("tags.")),
@@ -4448,6 +4488,9 @@ async function execute(
     } else if (Object.hasOwn(metadataSchemas, args.operation)) {
       const metadata = await executeMetadataCommand(args, request, options);
       result = metadata.result; human = metadata.human; binary = metadata.binary; publication = metadata.publication;
+    } else if (Object.hasOwn(accessibilitySchemas, args.operation)) {
+      const accessibility = await executeAccessibilityCommand(args, request, options);
+      result = accessibility.result; human = accessibility.human; binary = accessibility.binary; publication = accessibility.publication;
     } else if (Object.hasOwn(noteSchemas, args.operation)) {
       const notes = await executeNotesCommand(args, request, options);
       result = notes.result; human = notes.human; binary = notes.binary; publication = notes.publication;

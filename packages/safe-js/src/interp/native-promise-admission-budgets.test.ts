@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { admitNativePromiseProperties, Budget, dump, restore, run } from "../index.js";
 import { deepCopyToSandbox, measureSandboxData } from "./values.js";
 import { HostCallJournal } from "./host-call.js";
-import { wrapCallerInjectedBindings } from "./host-bridge.js";
+import { copyHostValueToSandbox, wrapCallerInjectedBindings } from "./host-bridge.js";
 
 it.each(["binding", "host", "replay", "rebind"])("enforces admitted symbol and value string limits through %s", async surface => {
   for (const target of ["key", "value"] as const) for (const length of [128, 129]) {
@@ -44,4 +44,12 @@ it("charges admitted symbol data and rolls back a rejected host outcome", () => 
   const baseline = acceptedBudget.currentDataSize;
   acceptedJournal.settle(accepted, { status: "fulfilled", value });
   expect(acceptedBudget.currentDataSize - baseline).toBeGreaterThanOrEqual(size);
+});
+
+it.each([Symbol("proof"), Symbol.for("proof"), Symbol.iterator])("does not widen callback proof authority to symbol values: %s", key => {
+  const options = { budget: new Budget(), proofFunctions: new WeakMap() };
+  expect(() => copyHostValueToSandbox({ nested: [key] }, [], options, { seen: new WeakMap() }, "<root>"))
+    .toThrow("Unsupported proof value at <root>.nested[0]: symbol");
+  expect(copyHostValueToSandbox(key, [], { budget: new Budget() }, { seen: new WeakMap() }, "<root>"))
+    .toBe(key);
 });

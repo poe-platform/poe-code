@@ -992,6 +992,8 @@ export function copyHostValueToSandbox(
   }
 
   if (typeof value === "symbol") {
+    if (options.proofFunctions !== undefined)
+      throw new TypeError(`Unsupported proof value at ${path}: symbol`);
     if (value.description !== undefined) budget.allocateString(value.description);
     return value;
   }

@@ -103,3 +103,16 @@ controls, not the specification or a symbol-ownership oracle.
 Current commands, red/green receipts, limitations, and delivery disposition are
 in [the gap evidence](safejs-gap-closure-evidence.md) and
 [task artifacts](repair-promise-symbol-admission/).
+
+### Callback-resume proof authority
+
+Symbol admission for native Promise data does not broaden
+`HostCallResumeContext.toSandboxValue`. That converter still rejects symbol
+values, unresolved native Promises, ordinary functions and foreign callback
+adapters. A package-gate regression exposed the shared converter accepting
+symbol values in proofs after general symbol import was enabled. The repair
+checks the existing proof-conversion context before admitting a symbol;
+unique, global and well-known symbol negative controls reproduce the failure.
+Normal host/binding imports still preserve those primitives and admitted
+Promise key/value/settlement aliases. This is a host proof-capability contract,
+not a claim about ECMAScript symbol support.

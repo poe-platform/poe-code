@@ -69,3 +69,38 @@ same Promise. Bind that Promise, invoke both properties and await it, and repeat
 from a completed dump with the binding supplied. Require `[3, 4, 7]` on both
 runs (`callable-collision.log`); equal descriptions or string spellings must not
 merge capability identities.
+
+## Admission replacement and realm lifetime controls
+
+Run this independent public API control from the repository root. An invalid
+replacement must retain previous authority; revocation affects future imports
+but cannot revoke a graph already imported into a persistent realm. The guest
+symbol registry must not acquire the host global symbol's registration.
+
+```sh
+node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import { admitNativePromiseProperties, createRealm, run } from './packages/safe-js/dist/index.js';
+const first = Symbol.for('admission-independent-control');
+const second = Symbol('admission-independent-control');
+const input = Promise.resolve(3);
+let invoked = 0;
+Object.defineProperty(input, first, { value: 11 });
+Object.defineProperty(input, second, { get() { invoked++; return 99; } });
+admitNativePromiseProperties(input, [first, first]);
+assert.throws(() => admitNativePromiseProperties(input, [second]), TypeError);
+const source = '{ const keys = Object.getOwnPropertySymbols(input); return [keys.length, input[keys[0]], Symbol.keyFor(keys[0]), await input]; }';
+const original = await run(source, { bindings: { input } });
+assert.equal(original.ok, true);
+assert.deepEqual(original.returnValue, [1, 11, undefined, 3]);
+const realm = createRealm({ bindings: { input } });
+try {
+  assert.deepEqual((await realm.evaluate(source)).returnValue, [1, 11, undefined, 3]);
+  admitNativePromiseProperties(input, []);
+  assert.deepEqual((await realm.evaluate(source)).returnValue, [1, 11, undefined, 3]);
+  assert.deepEqual((await run('return Object.getOwnPropertySymbols(input).length', { bindings: { input } })).returnValue, 0);
+  assert.equal(invoked, 0);
+} finally { await realm.close(); }
+console.log('atomic replacement, deduplication, registry isolation, realm lifetime, revocation, getter noninvocation: passed');
+JS
+```

@@ -63,6 +63,19 @@ All 25 registered enum families are available; absent live slide/placeholder,
 chart and freeform collections remain explicitly outstanding. These receipts
 supersede the historical not-implemented labels only for their tested members.
 
+Current adjustments and builder members: [exact language/security mappings and
+original tests](adjustments-freeform-evidence-20260913.md) cover all registered
+preset defaults, numeric guide assignment, returned drawing operations, collection
+protocols and live offsets. Two missing public source offset properties are now
+appended to the inventory; older unrelated rows keep their historical status.
+Owner insertion and shared command integration have separate receipts.
+
+Current bounded chart handle: [live appearance and first-plot type mapping](chart-handle-evidence-20260913.md)
+provides `chart_type`, nullable `chart_style`, `has_legend` and bounded XML access
+for returned graphic frames. Full titles/axes/series/plots/legend object graphs
+remain incomplete. These newer receipts supersede earlier absent-builder/handle
+statements only for the tested members; they do not claim whole-public-API parity.
+
 ## Sources and baseline
 
 - [Published API and user guides](https://python-pptx.readthedocs.io/en/latest/).

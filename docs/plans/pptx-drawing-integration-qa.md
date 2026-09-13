@@ -40,3 +40,5 @@ used by these tests or by the product implementation.
 Final package verification: 6096 tests in 223 files, maintained lint, and selected
 pptx build closure passed. Built public exports passed an original grouped
 adjustment/freeform save/reopen check. No remote push or release was performed.
+
+Public integration delivery: exported and tested all 15 newly exposed drawing model/helper names. API inventory retains inherited and unsupported public obligations; underscore spelling does not remove an API from the ledger. Local drawing commits preserve unrelated working-tree changes.

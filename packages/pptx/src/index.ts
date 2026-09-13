@@ -1,3 +1,9 @@
+export { Chart } from "./chart-model.js";
+export { SlidePlaceholder, SlidePlaceholders, SlideShapes, Slide, Slides, Picture, GraphicFrame } from "./slide-model.js";
+export { GroupShape } from "./group-model.js";
+export { Adjustment, AdjustmentCollection } from "./shape-adjustments.js";
+export { FreeformBuilder, FreeformPath, DrawingOperation, type FreeformGeometry, type FreeformCommand } from "./freeform-builder.js";
+export { insertPlaceholder, type PlaceholderContent } from "./command-placeholder.js";
 export type {
   BinaryInput,
   BinaryOutput,

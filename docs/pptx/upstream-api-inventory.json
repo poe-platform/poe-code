@@ -5,7 +5,7 @@
   "retrieved_at": "2026-09-13T01:49:35.442369+00:00",
   "method": "Static Python AST declarations/import resolution/C3 inheritance, RST API and user-guide review, enum name-set comparison, returned-interface and collection-protocol review; no reference runtime executed.",
   "limitations": "Reconciled research inventory, not exact Sphinx output, implemented coverage, or a numerical completeness certificate. Source annotations can be absent or wrong; corrected returns and documented-only writes are explicit. Concrete TS declarations and operation schemas remain the next define-mirrored-js-api task. Published pages were opened through the web tool; direct HTTP acquisition was denied, so no byte-equality claim is made.",
-  "object_count": 2407,
+  "object_count": 2409,
   "objects": [
     {
       "source_id": "pptx.Presentation",
@@ -54833,6 +54833,60 @@
       "disposition": "language-mapped",
       "target_member": "pt",
       "acceptance_status": "original-tests-required; not run"
+    },
+    {
+      "source_id": "pptx.shapes.freeform.FreeformBuilder.shape_offset_x",
+      "documentation_file": "docs/api/shapes.rst",
+      "discovery": "source-public-property-reconciliation",
+      "adaptation_status": "original_tests_passed",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false,
+      "declared_on": "pptx.shapes.freeform.FreeformBuilder",
+      "source_evidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 119,
+        "end_line": 131
+      },
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "implementation_status": "implemented",
+      "js_signature": "readonly shape_offset_x: Length",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "language-mapped",
+      "target_member": "shape_offset_x",
+      "acceptance_status": "passed: packages/pptx/src/freeform-builder.test.ts; exposes live local offsets and applies operations relative to the current builder bounds",
+      "evidence": "docs/pptx/adjustments-freeform-evidence-20260913.md"
+    },
+    {
+      "source_id": "pptx.shapes.freeform.FreeformBuilder.shape_offset_y",
+      "documentation_file": "docs/api/shapes.rst",
+      "discovery": "source-public-property-reconciliation",
+      "adaptation_status": "original_tests_passed",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false,
+      "declared_on": "pptx.shapes.freeform.FreeformBuilder",
+      "source_evidence": {
+        "file": "src/pptx/shapes/freeform.py",
+        "line": 134,
+        "end_line": 146
+      },
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "implementation_status": "implemented",
+      "js_signature": "readonly shape_offset_y: Length",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "language-mapped",
+      "target_member": "shape_offset_y",
+      "acceptance_status": "passed: packages/pptx/src/freeform-builder.test.ts; exposes live local offsets and applies operations relative to the current builder bounds",
+      "evidence": "docs/pptx/adjustments-freeform-evidence-20260913.md"
     }
   ],
   "documentation_files": [

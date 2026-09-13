@@ -3372,7 +3372,9 @@ class Parser {
 
     if (this.consumePunctuator(".") !== undefined) {
       const target = this.currentToken();
-      if (target.value !== "target" || !this.lexicalContext.newTarget)
+      if (target.type !== "identifier" || target.value !== "target" ||
+          target.end.offset - target.start.offset !== target.value.length ||
+          !this.lexicalContext.newTarget)
         throw new DisallowedSyntaxError(newToken.value, newToken.start);
       this.index++;
       return { node: { type: "NewTargetExpression", span: createSpan(newToken.start, target.end) }, parenthesized: false };

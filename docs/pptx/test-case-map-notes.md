@@ -1,7 +1,10 @@
 # Presentation case accounting
 
-Status: Complete source-row and parameter accounting; semantic adaptation remains
-partial. No product implementation or passing target tests.
+Status: Historical source-row and parameter accounting checkpoint; semantic
+adaptation remains partial. The no-implementation statements below describe that
+checkpoint, not the current package. Later bounded receipts are indexed in the
+[API audit](upstream-api-audit.md); the current text/drawing reconciliation is
+recorded [separately](text-drawing-reconciliation.md).
 
 [The ledger](test-case-map.json) retains one row for each of 2,700 collected unit
 nodes and 973 expanded BDD scenarios/examples. Every row has its source revision,
@@ -44,7 +47,7 @@ The ledger distinguishes:
 - 2,611 unit cases with exact source contracts and assigned TypeScript tasks whose
   original semantic designs remain required.
 
-Thus all source cases are accounted for, but the requirement to adapt every
+Thus all source cases were assigned at this checkpoint, but the requirement to adapt every
 applicable behavior is **not complete**. The pipeline's map-every-upstream-case
 task must stay open. Neither drafts nor task assignments are counted as adapted,
 implemented or passing cases. No blanket skips, architecture-only exclusions or
@@ -94,8 +97,10 @@ and capabilities. Whole-text setters remain distinct from preserving replacement
 
 Source baseline passes and declaration counts provide no target runtime evidence.
 The historical input hashes in the ledger remain historical; current evidence
-hashes identify the new behavior register and language notes. All execution and
-implementation flags remain false.
+hashes identify the new behavior register and language notes. The historical
+ledger's execution and implementation flags remain false; later receipts must
+be assessed individually and do not retroactively change what this checkpoint
+verified.
 
 ## Corpus and legal boundary
 

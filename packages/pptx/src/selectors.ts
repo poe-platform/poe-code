@@ -7,6 +7,7 @@ import { asciiKey, partName } from "./package-uri.js";
 import { readRelationshipGraph, type RelationshipLimits } from "./relationships.js";
 import { parseXmlPart, type XmlElement, type XmlLimits } from "./xml.js";
 import { interpretCompatibility } from "./compatibility.js";
+import { inspectInventory, type PresentationInventory } from "./inventory.js";
 
 export interface SelectionContext extends PackageContext {
   readonly xmlLimits: XmlLimits;
@@ -39,6 +40,7 @@ export interface SelectionQuery {
 }
 export interface SelectionIndex {
   readonly fingerprint: string;
+  readonly inventory: PresentationInventory;
   readonly slides: readonly SelectionRecord[];
   readonly parts: readonly SelectionRecord[];
   readonly objects: readonly SelectionRecord[];
@@ -374,6 +376,13 @@ export async function readSelectionIndex(
   const records = [...slides, ...parts, ...objects];
   return Object.freeze({
     fingerprint,
+    inventory: inspectInventory(
+      reader,
+      graph,
+      { slides, objects },
+      (part) => view(part).part.root,
+      context
+    ),
     slides: Object.freeze(slides),
     parts: Object.freeze(parts),
     objects: Object.freeze(objects),

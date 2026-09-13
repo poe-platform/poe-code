@@ -18,6 +18,7 @@ export type {
 } from "./contracts.js";
 export { OfficeError, type ByteErrorCode, type OfficeErrorCode } from "./errors.js";
 export { selectionQuerySchema } from "./selector-schema.js";
+export type { PresentationInventory, SlideInventory, PartInventory } from "./inventory.js";
 
 export {
   readSelectionIndex,

@@ -251,6 +251,11 @@ async function execute(
       result = success(operation, {
         features: {
           selectors: { level: "read", subset: "slide, part and drawing object locations" },
+          inventory: {
+            level: "read",
+            subset:
+              "ordered slides, owner graph, part hashes, media parts and slide visibility; semantic content remains uninspected"
+          },
           editing: { level: "reject", reason: "This command profile exposes inspection only." }
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
@@ -275,7 +280,11 @@ async function execute(
       }
       const index = await readSelectionIndex(bytes, { ...options.context, signal: request.signal });
       const records = selected(index, args);
-      result = success(operation, { fingerprint: index.fingerprint, records }, records);
+      result = success(
+        operation,
+        { fingerprint: index.fingerprint, records, inventory: index.inventory },
+        records
+      );
       human = records
         .map(
           (record) =>

@@ -235,6 +235,27 @@ describe("presentation command engine", () => {
       decode((await engine.execute(request(["inspect", "-", "--json"]))).stdout)
     );
     expect(compileJsonSchema(schema.result).validate(result).ok).toBe(true);
+    expect(result.data.inventory.counts).toEqual({
+      slides: 1,
+      masters: 0,
+      layouts: 0,
+      themes: 0,
+      slideShapes: 1,
+      parts: 2,
+      media: 0
+    });
+    expect(
+      compileJsonSchema(schema.result).validate({
+        ...result,
+        data: {
+          ...result.data,
+          inventory: {
+            ...result.data.inventory,
+            counts: { ...result.data.inventory.counts, slides: -1 }
+          }
+        }
+      }).ok
+    ).toBe(false);
     expect(compileJsonSchema(schema.options).validate({ slide: 0 }).ok).toBe(false);
     expect(invocation.readInput).not.toHaveBeenCalled();
     const capabilities = JSON.parse(

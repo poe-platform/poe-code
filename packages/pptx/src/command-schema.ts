@@ -1,4 +1,5 @@
 import { selectionQuerySchema } from "./selector-schema.js";
+import { inventorySchema, inventoryPartSchema } from "./inventory-schema.js";
 
 export const inspectSchema = {
   input: { type: "string", minLength: 1, description: "Explicit VFS path, or - for stdin." },
@@ -58,10 +59,11 @@ export const inspectSchema = {
           {
             type: "object",
             additionalProperties: false,
-            required: ["fingerprint", "records"],
+            required: ["fingerprint", "records", "inventory"],
             properties: {
               fingerprint: { type: "string" },
-              records: { type: "array", items: { $ref: "#/$defs/record" } }
+              records: { type: "array", items: { $ref: "#/$defs/record" } },
+              inventory: inventorySchema
             }
           }
         ]
@@ -84,6 +86,7 @@ export const inspectSchema = {
       }
     ],
     $defs: {
+      inventoryPart: inventoryPartSchema,
       location: {
         type: "object",
         additionalProperties: false,

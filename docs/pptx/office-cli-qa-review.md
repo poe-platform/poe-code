@@ -1,6 +1,10 @@
 # Paired Office QA contract review
 
-Status: Documentation evidence only; all product recipes remain proposed/unrun.
+Status: Historical documentation review with a later
+[bounded built-command execution](office-cli-execution-20260913.md). The original
+counts, hashes and unrun statements below describe this earlier checkpoint only.
+Current parsed registers contain 2,409 API records, 2,426 target rows, 2,700 unit
+variants and 973 BDD examples. Neither checkpoint establishes whole-API coverage.
 
 The [paired agent QA plan](../plans/office-cli-qa.md) applies the shared
 [CLI](../specs/office-cli.md) and [SDK](../specs/office-sdk.md) contracts. No scoped

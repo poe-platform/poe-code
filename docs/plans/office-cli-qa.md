@@ -1,6 +1,9 @@
 # Paired Office CLI agent QA
 
-Status: Proposed; no recipe has been executed against an implementation.
+Status: Partially executed for PPTX on 2026-09-13; DOCX not run. See the
+[execution receipt](../pptx/office-cli-execution-20260913.md) for exact scope,
+failures and unrun cases. The historical documentation-only checkpoint below is
+retained; it is not the current execution status.
 
 Authority: [shared CLI](../specs/office-cli.md), [shared SDK](../specs/office-sdk.md),
 [PPTX](../specs/pptx.md) and [DOCX](../specs/docx.md). Shared contracts govern
@@ -12,7 +15,8 @@ PPTX arguments; it is not a released schema. See
 ## Execution boundary and preparation
 
 This is an agent-executed Markdown procedure, not a runner script. All rows are
-`proposed_not_run` until an implementation executes them. Documentation checks,
+`proposed_not_run` until an implementation executes them; subsequent receipts
+assign only the actually observed checks. Documentation checks,
 source test passes and acquisition inventories never promote a row to passed.
 
 For future execution, supply an explicit rooted in-memory VFS and bounded byte
@@ -237,7 +241,7 @@ run installed scoped Prettier and `git diff --check`, then inspect staged paths.
 Commit only this plan and its companion review using a Conventional Commit on
 main. Preserve unrelated work; no README/product edits, push or release.
 
-## Documentation check results
+## Historical documentation check results
 
 - Passed the installed repository Prettier check scoped to this plan and its
   companion review; `git diff --check` passed.
@@ -258,3 +262,36 @@ main. Preserve unrelated work; no README/product edits, push or release.
   acceptance remains proposed. The owned commit contains only this plan and
   `docs/pptx/office-cli-qa-review.md`; report its local hash after committing.
   No push or release is authorized.
+
+## 2026-09-13 bounded execution and follow-up
+
+Executed the available built PPTX commands interactively against an explicit
+MemoryFileSystem rooted at `/work`, using original SDK-created inputs. No saved
+QA runner or screenshot test suite was introduced. Product code and tests remain
+unchanged under this task's documentation/research-only boundary. The receipt
+records observed defects, rather than changing the contracts to bless them.
+
+Future implementation work must first add focused failing original memfs tests
+for B2 cell addressing (Q11/Q12), shared property batches (Q18/Q25), missing
+validation (Q01), and actionable legacy-name diagnostics (Q41). Template creation
+(Q02) remains explicitly unsupported. Confirm each against the then-current
+build before editing. Do not count the working `2,2` alternative as passing B2.
+
+Continue Q06–Q10/Q17/Q31/Q35 with the exact authored image/template/merged-table
+fixtures above, and repeat simplified text cases with styled split runs,
+hyperlinks and excluded notes/master text. Complete counterpart DOCX cases,
+adapter failure/cancellation tests and per-operation schema/capability comparison.
+The receipt's successful simplified probes do not waive those requirements.
+
+PPTX is a virtual command rather than a root poe-code subcommand. This run used
+the maintained `terminal-png` renderer used by `scripts/screenshot.ts` on captured
+built Shell output; screenshots are disposable under
+`screenshots/office-qa-20260913`. Inspect root/nested help, errors and selector/edit
+output. This is not a fixed-width terminal, application render or font-fidelity
+test. Keep the actual output text in `docs/pptx`, not a replacement runner.
+
+The maintained `npm run screenshot` route additionally executed built nested
+help with the explicit in-memory adapter; its output was visually inspected.
+Scoped Prettier, local-link checks, complete inventory destination checks,
+recorded JSON envelope checks and `git diff --check` passed. No product unit
+suite, counterpart run, native rendering or release verification is claimed.

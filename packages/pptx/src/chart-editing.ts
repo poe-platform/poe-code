@@ -1,3 +1,4 @@
+import { writePackageArchive, type ArchiveMember } from "./package-writer.js";
 import { ShapeIdAllocator } from "./shape-id.js";
 import type { BinaryInput } from "./contracts.js";
 import { OfficeError } from "./errors.js";
@@ -12,6 +13,7 @@ import {
   chartWorkbookRange,
   workbookColumn,
   createChartWorkbook,
+  prepareChartWorkbookMembers,
   validateChartWorkbook,
   validateWorkbookOwnership,
   type WorkbookRange
@@ -396,11 +398,7 @@ export function createChartXml(
             : `<c:grouping val="${v.grouping === "clustered" ? "standard" : v.grouping}"/>`;
   return `<c:chartSpace xmlns:c="${c}" xmlns:a="${a}" xmlns:r="${r}">${date1904 ? '<c:date1904 val="1"/>' : ""}${properties.style === undefined ? "" : `<c:style val="${properties.style}"/>`}<c:chart>${properties.title === undefined ? "" : titleXml(properties.title, a, c)}<c:autoTitleDeleted val="${properties.title === undefined ? 1 : 0}"/><c:plotArea><c:layout/><c:${plot}>${setup}<c:varyColors val="${v.pie ? 1 : 0}"/>${data.series.map((_, i) => seriesXml(type, data, i, sheetName, date1904)).join("")}${v.bar ? `<c:gapWidth val="150"/>${v.grouping !== "clustered" ? '<c:overlap val="100"/>' : ""}` : ""}${v.bubble ? '<c:bubbleScale val="100"/><c:showNegBubbles val="0"/>' : ""}${v.doughnut ? '<c:firstSliceAng val="0"/><c:holeSize val="50"/>' : v.pie ? '<c:firstSliceAng val="0"/>' : '<c:axId val="1"/><c:axId val="2"/>'}</c:${plot}>${v.pie ? "" : axis(1, 2, v.horizontal ? "l" : "b", !v.scatter) + axis(2, 1, v.horizontal ? "b" : "l", false)}</c:plotArea>${properties.legend ? '<c:legend><c:legendPos val="r"/><c:overlay val="0"/></c:legend>' : ""}<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart><c:externalData r:id="rId1"><c:autoUpdate val="0"/></c:externalData></c:chartSpace>`;
 }
-export async function addChart(
-  input: BinaryInput,
-  options: AddChartOptions,
-  context: SelectionContext
-): Promise<Uint8Array> {
+function validateAddChartOptions(options: AddChartOptions): void {
   object(options, [
     "slide",
     "type",
@@ -420,16 +418,59 @@ export async function addChart(
     invalid("Chart creation requires a positive slide position.");
   for (const key of ["left", "top", "width", "height"] as const)
     if (options[key] === undefined) invalid("Chart creation requires explicit geometry.");
+}
+export async function addChart(
+  input: BinaryInput,
+  options: AddChartOptions,
+  context: SelectionContext
+): Promise<Uint8Array> {
+  validateAddChartOptions(options);
   options = structuredClone(options);
-  const s = await loadShared(input, context),
-    target = s.index.inventory.slides.find((x) => x.position === slide);
+  const state = await loadShared(input, context);
+  const workbooks = new Map<string, readonly ArchiveMember[]>();
+  insertChartIntoState(state, options, context, (part, members) => {
+    workbooks.set(part, members);
+  });
+  for (const [part, members] of workbooks)
+    state.changes.set(part, await writePackageArchive(members, context, { compression: "store" }));
+  const target = state.index.inventory.slides.find((slide) => slide.position === options.slide)!;
+  return (await state.finish(target.part, [options.slide])).bytes;
+}
+export function insertChartIntoState(
+  original: Awaited<ReturnType<typeof loadShared>>,
+  options: AddChartOptions,
+  context: SelectionContext,
+  registerWorkbook: (part: string, members: readonly ArchiveMember[]) => void
+): number {
+  validateAddChartOptions(options);
+  if (context.signal?.aborted)
+    throw new OfficeError("cancelled", "Chart insertion cancelled.", "mutate");
+  options = structuredClone(options);
+  const { slide, type, ...update } = options;
+  const members = prepareChartWorkbookMembers(
+    normalizedData(options.data),
+    variant(type).scatter,
+    context,
+    { date1904: options.data.date1904 ?? false }
+  );
+  const changes = new Map(original.changes);
+  const s = {
+    ...original,
+    changes,
+    doc: (part: string) =>
+      parseXmlPart(changes.get(part) ?? original.reader.get(part), context.xmlLimits),
+    save: (part: string, xml: XmlPart) => {
+      changes.set(part, xml.bytes());
+    }
+  };
+  const target = s.index.inventory.slides.find((x) => x.position === slide);
   if (!target) throw new SelectionError("missing-selection");
   const doc = s.doc(target.part),
     tree = required(required(doc.root, "cSld"), "spTree");
   const id = new ShapeIdAllocator(() => doc).next();
   let n = 1;
   while (
-    s.reader.names.some(
+    [...s.reader.names, ...s.changes.keys()].some(
       (x) =>
         x.toLowerCase() === `/ppt/charts/chart${n}.xml` ||
         x.toLowerCase() === `/ppt/embeddings/chart${n}.xlsx` ||
@@ -441,12 +482,13 @@ export async function addChart(
     workbookPart = `/ppt/embeddings/chart${n}.xlsx`,
     relns = "http://schemas.openxmlformats.org/package/2006/relationships",
     slideRelPart = relPart(target.part),
-    rels = s.reader.names.includes(slideRelPart)
-      ? s.doc(slideRelPart)
-      : parseXmlPart(
-          new TextEncoder().encode(`<Relationships xmlns="${relns}"/>`),
-          context.xmlLimits
-        ),
+    rels =
+      s.reader.names.includes(slideRelPart) || s.changes.has(slideRelPart)
+        ? s.doc(slideRelPart)
+        : parseXmlPart(
+            new TextEncoder().encode(`<Relationships xmlns="${relns}"/>`),
+            context.xmlLimits
+          ),
     rid = nextRel(rels);
   s.save(
     slideRelPart,
@@ -454,18 +496,12 @@ export async function addChart(
       `<Relationship xmlns="${relns}" Id="${rid}" Type="${s.r}/chart" Target="${escape(relativePartReference(chartPart, target.part.slice(0, target.part.lastIndexOf("/"))))}"/>`
     ])
   );
-  s.changes.set(
-    chartPart,
-    new TextEncoder().encode(
-      createChartXml(type, options.data, update, s.p.includes("purl.oclc.org"))
-    )
+  const chartBytes = new TextEncoder().encode(
+    createChartXml(type, options.data, update, s.p.includes("purl.oclc.org"))
   );
-  s.changes.set(
-    workbookPart,
-    await createChartWorkbook(normalizedData(options.data), variant(type).scatter, context, {
-      date1904: options.data.date1904 ?? false
-    })
-  );
+  parseXmlPart(chartBytes, context.xmlLimits);
+  s.changes.set(chartPart, chartBytes);
+  s.changes.set(workbookPart, new Uint8Array());
   s.changes.set(
     relPart(chartPart),
     new TextEncoder().encode(
@@ -489,7 +525,10 @@ export async function addChart(
     target.part,
     doc.spliceChildren(tree, ext ? tree.children.indexOf(ext) : tree.children.length, 0, [xml])
   );
-  return (await s.finish(target.part, [slide])).bytes;
+  registerWorkbook(workbookPart, members);
+  for (const [part, bytes] of changes)
+    if (original.changes.get(part) !== bytes) original.changes.set(part, bytes);
+  return id;
 }
 function replaceChild(
   doc: XmlPart,
@@ -547,9 +586,10 @@ function replaceChild(
     xml === undefined ? [] : [xml]
   );
 }
-function existingType(doc: XmlPart): CreatableChartType {
+export function readChartType(doc: XmlPart, firstPlot = false): CreatableChartType {
   const info = inspectChart(doc);
-  if (info.plots.length !== 1) unsupported("Combination chart data is preserve-only.");
+  if (!info.plots.length || (!firstPlot && info.plots.length !== 1))
+    unsupported("Combination chart data is preserve-only.");
   const plot = info.plots[0]!,
     group = plot.properties.grouping,
     suffix = group === "percentStacked" ? "_STACKED_100" : group === "stacked" ? "_STACKED" : "";
@@ -560,8 +600,14 @@ function existingType(doc: XmlPart): CreatableChartType {
       .val;
     return `LINE${marker && marker !== "none" ? "_MARKERS" : ""}${suffix}` as CreatableChartType;
   }
-  if (plot.type === "pieChart") return "PIE";
-  if (plot.type === "doughnutChart") return "DOUGHNUT";
+  if (plot.type === "pieChart" || plot.type === "doughnutChart") {
+    const plotNode = required(required(required(doc.root, "chart"), "plotArea"), plot.type);
+    const exploded = plotNode.children.some((series) => {
+      const explosion = series.name.localName === "ser" && child(series, "explosion");
+      return explosion && Number(attr(explosion, "val") ?? 0) > 0;
+    });
+    return `${plot.type === "pieChart" ? "PIE" : "DOUGHNUT"}${exploded ? "_EXPLODED" : ""}`;
+  }
   if (plot.type === "areaChart") return `AREA${suffix}` as CreatableChartType;
   if (plot.type === "radarChart") {
     if (plot.properties.radarStyle === "filled") return "RADAR_FILLED";
@@ -592,6 +638,41 @@ function existingType(doc: XmlPart): CreatableChartType {
     return type;
   }
   return unsupported("Chart data reconstruction is unsupported for this plot.");
+}
+export function applyChartAppearance(
+  doc: XmlPart,
+  update: { readonly style?: number | null; readonly legend?: boolean }
+): XmlPart {
+  if (
+    update.style !== undefined &&
+    update.style !== null &&
+    (!Number.isInteger(update.style) || update.style < 1 || update.style > 48)
+  )
+    invalid("Chart style requires an integer from 1 to 48.");
+  if (update.legend !== undefined && typeof update.legend !== "boolean")
+    invalid("Chart legend requires a boolean.");
+  const ns = doc.root.name.namespace;
+  if (update.style !== undefined)
+    doc = replaceChild(
+      doc,
+      doc.root,
+      "style",
+      update.style === null ? undefined : `<c:style xmlns:c="${ns}" val="${update.style}"/>`
+    );
+  if (
+    update.legend !== undefined &&
+    (!update.legend || !child(required(doc.root, "chart"), "legend"))
+  ) {
+    doc = replaceChild(
+      doc,
+      required(doc.root, "chart"),
+      "legend",
+      update.legend
+        ? `<c:legend xmlns:c="${ns}"><c:legendPos val="r"/><c:overlay val="0"/></c:legend>`
+        : undefined
+    );
+  }
+  return doc;
 }
 export async function setCharts(
   input: BinaryInput,
@@ -639,7 +720,7 @@ export async function setCharts(
     )
       unsupported("Conditional chart style dependencies prevent an unambiguous style edit.");
     if (update.data !== undefined) {
-      const type = existingType(doc);
+      const type = readChartType(doc);
       validateChartData(update.data, type);
       const inspection = inspectChart(doc);
       if (inspection.unsupported.length)
@@ -812,13 +893,6 @@ export async function setCharts(
         )
       );
     }
-    if (update.style !== undefined)
-      doc = replaceChild(
-        doc,
-        doc.root,
-        "style",
-        `<c:style xmlns:c="${ns}" val="${update.style}"/>`
-      );
     if (update.title !== undefined) {
       const title = child(required(doc.root, "chart"), "title");
       const replacement = parseXmlPart(
@@ -848,18 +922,7 @@ export async function setCharts(
         `<c:autoTitleDeleted xmlns:c="${ns}" val="0"/>`
       );
     }
-    if (
-      update.legend !== undefined &&
-      (!update.legend || !child(required(doc.root, "chart"), "legend"))
-    )
-      doc = replaceChild(
-        doc,
-        required(doc.root, "chart"),
-        "legend",
-        update.legend
-          ? `<c:legend xmlns:c="${ns}"><c:legendPos val="r"/><c:overlay val="0"/></c:legend>`
-          : undefined
-      );
+    doc = applyChartAppearance(doc, update);
     s.save(record.chartPart, doc);
     const geometry = Object.fromEntries(
       Object.entries(update).filter(([k]) => ["left", "top", "width", "height"].includes(k))

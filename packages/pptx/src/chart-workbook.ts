@@ -1,7 +1,7 @@
 import { parseContentTypes } from "./content-types.js";
 import { OfficeError } from "./errors.js";
 import { readPackage, type PackageReader } from "./package-reader.js";
-import { writePackageArchive } from "./package-writer.js";
+import { writePackageArchive, type ArchiveMember } from "./package-writer.js";
 import { readRelationshipGraph } from "./relationships.js";
 import type { SelectionContext } from "./selectors.js";
 import { parseXmlPart, type XmlElement } from "./xml.js";
@@ -387,6 +387,24 @@ export async function createChartWorkbook(
   options: { readonly date1904?: boolean; readonly source?: Uint8Array } = {}
 ): Promise<Uint8Array> {
   const source = options.source ? await readPackage(options.source, context) : undefined;
+  return writePackageArchive(
+    prepareChartWorkbookMembers(data, scatter, context, {
+      ...(options.date1904 === undefined ? {} : { date1904: options.date1904 }),
+      ...(source ? { source } : {})
+    }),
+    context,
+    { compression: "store" }
+  );
+}
+export function prepareChartWorkbookMembers(
+  data: WorkbookData,
+  scatter: boolean,
+  context: SelectionContext,
+  options: { readonly date1904?: boolean; readonly source?: PackageReader } = {}
+): readonly ArchiveMember[] {
+  if (context.signal?.aborted)
+    throw new OfficeError("cancelled", "Workbook preparation cancelled.", "serialize");
+  const source = options.source;
   const info = source ? inspectWorkbook(source, context) : undefined;
   const columns: (readonly (string | number | null)[])[] = scatter
     ? data.series.flatMap((series) => [
@@ -493,13 +511,12 @@ export async function createChartWorkbook(
       }
       entries.set(stylesPart, styles.bytes);
     }
-    return writePackageArchive(
+    return admitPreparedWorkbook(
       [...entries].map(([name, bytes]) => ({ name: name.slice(1), bytes })),
-      context,
-      { compression: "store" }
+      context
     );
   }
-  return writePackageArchive(
+  return admitPreparedWorkbook(
     [
       {
         name: "[Content_Types].xml",
@@ -528,7 +545,38 @@ export async function createChartWorkbook(
       { name: "xl/worksheets/sheet1.xml", bytes: worksheet },
       ...(styles.bytes ? [{ name: "xl/styles.xml", bytes: styles.bytes }] : [])
     ],
-    context,
-    { compression: "store" }
+    context
   );
+}
+
+function admitPreparedWorkbook(
+  members: readonly ArchiveMember[],
+  context: SelectionContext
+): readonly ArchiveMember[] {
+  let bytes = 22,
+    total = 0;
+  const limits = context.archiveLimits;
+  if (members.length > Math.min(limits.maxMembers, 65534))
+    throw new OfficeError("resource-limit", "Chart workbook member limit exceeded.", "serialize");
+  for (const member of members) {
+    const pathBytes = new TextEncoder().encode(member.name).length;
+    total += member.bytes.length;
+    bytes += 76 + pathBytes * 2 + member.bytes.length;
+    if (
+      member.bytes.length > limits.maxEntryBytes ||
+      pathBytes > limits.maxPathBytes ||
+      member.name.split("/").length > limits.maxDepth
+    )
+      throw new OfficeError(
+        "resource-limit",
+        "Chart workbook member budget exceeded.",
+        "serialize"
+      );
+  }
+  if (
+    total > limits.maxTotalBytes ||
+    bytes > Math.min(limits.maxArchiveBytes, context.limits.maxBytes, 0xfffffffe)
+  )
+    throw new OfficeError("resource-limit", "Chart workbook byte budget exceeded.", "serialize");
+  return members;
 }

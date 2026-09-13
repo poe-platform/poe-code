@@ -76,7 +76,7 @@ export function validateMediaEditingCommand(
   if (args.poster && !args.posterContentType) {
     const extension = args.poster.slice(args.poster.lastIndexOf(".") + 1).toLowerCase();
     const inferred = (
-      { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif" } as Record<
+      { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff", wmf: "image/x-wmf" } as Record<
         string,
         string
       >

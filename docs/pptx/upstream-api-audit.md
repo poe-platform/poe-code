@@ -82,6 +82,11 @@ older absent-live-chart/builder labels only for their tested members. The case
 ledgers retain fixture-payload uncertainty and explicit language/security mappings;
 no complete format or literal source-runtime parity is inferred.
 
+Current media public interfaces: [image/movie/OLE integration receipt](media-public-integration-evidence.md)
+links exact metadata, inert-byte insertion and returned-interface mappings.
+These supersede historical image-only limitations for their tested members;
+whole-public-API coverage remains incomplete.
+
 ## Sources and baseline
 
 - [Published API and user guides](https://python-pptx.readthedocs.io/en/latest/).

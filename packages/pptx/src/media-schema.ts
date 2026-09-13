@@ -162,7 +162,7 @@ for (const action of ["add", "replace", "extract"]) {
       : {
           file: { type: "string", minLength: 1 },
           poster: { type: "string", minLength: 1 },
-          posterContentType: { enum: ["image/png", "image/jpeg", "image/gif"] },
+          posterContentType: { enum: ["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff", "image/x-wmf"] },
           mimeType: { type: "string" },
           kind: { enum: ["audio", "video"] },
           output: { type: "string" },

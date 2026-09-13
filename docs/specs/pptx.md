@@ -793,8 +793,11 @@ one validated OMML document from file, with DTD/entities prohibited. Media inser
 requires explicit MIME type and geometry, admitted local bytes and supplied poster
 for video; audio uses an original inert icon when poster is absent. Replacement
 retains timing metadata and requires explicit poster. Unsupported codecs remain
-opaque, never transcoded. Objects require explicit program metadata/bytes, supplied
-icon or original inert default icon, and positive dimensions (default 1in square).
+opaque, never transcoded. Objects require explicit program metadata/bytes, an
+explicit caller-supplied icon, and positive dimensions (default 1in square for
+string program IDs; registered program enums retain their documented dimensions).
+The explicit icon requirement is the bounded byte-capability mapping for default
+artwork; insertion never discovers or loads a host icon.
 Accessibility setters report structure only. Relationship edits require a selected
 source part, existing unique ID for set and new ID for add, and full graph validation.
 
@@ -810,11 +813,16 @@ box/transform/crop unless changed. `--shared` reports and updates every occurren
 of the resource; conflicting per-occurrence geometry with shared replacement fails.
 
 Crop is a signed fraction quantized to 1/100000 with ties away from zero, within
-[-21474.83648,21474.83647]. Negative crops and values greater than one remain valid
-if both `1-left-right` and `1-top-bottom` are positive. No clamping is allowed.
+[-21474.83648,21474.83647]. CLI crop edits require both `1-left-right` and
+`1-top-bottom` to be positive. Live model crop properties retain documented signed
+fractions, including values greater than one even when the resulting visible area
+is nonpositive. No clamping is allowed.
 Opacity does not modify source pixels. Extract returns original bytes, never a
-rendered crop. PNG/JPEG/GIF/BMP/TIFF receive bounded dimension/DPI characterization;
-other admitted vector/animated bytes remain preserve/extract-only unless explicitly
+rendered crop. PNG/JPEG/GIF/BMP/TIFF receive bounded dimension/DPI characterization.
+Placeable WMF is characterized by a bounded inert header/record parser: its
+logical bounding box and units-per-inch map to a 72-DPI pixel-equivalent size;
+records are never executed or rendered. Non-placeable WMF, EMF and other
+admitted vector/animated bytes remain preserve/extract-only unless explicitly
 covered by a typed API characterization capability. No decoder process is implied.
 
 SVG add/replace requires an admitted PNG or JPEG fallback through `--fallback`.
@@ -1565,7 +1573,7 @@ schemas, not extra undocumented direct flags.
 | `objects list` / `objects.list`       | 1      | none                                                                                                 | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; collection; omitted filter means all in scope; none        |
 | `objects get` / `objects.get`         | 1      | none                                                                                                 | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; one; ambiguity fails; none                                 |
 | `objects set` / `objects.set`         | 1      | `--file?: Input`; `--icon?: Input`; `--program-id?: string`; `--width?: Length`; `--height?: Length` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `objects add` / `objects.add`         | 1      | `--file: Input`; `--icon?: Input`; `--program-id: string`; `--width?: Length`; `--height?: Length`   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `objects add` / `objects.add`         | 1      | `--file: Input`; `--icon: Input`; one of `--program-id: string` / `--program: DOCX\|PPTX\|XLSX`; `--width?: Length`; `--height?: Length`   | `--json`, `--limit`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run` | slides; operation-specific in format contract; package             |
 | `objects remove` / `objects.remove`   | 1      | none                                                                                                 | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `objects extract` / `objects.extract` | 1      | none                                                                                                 | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output-dir`, `--force`, `--allow-partial-output`                        | slides; operation-specific in format contract; output-directory    |
 

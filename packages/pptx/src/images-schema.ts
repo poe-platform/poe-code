@@ -300,7 +300,7 @@ export const imageSchemas = {
         slide: textGetSchema.options.properties.slide,
         placeholder: { type: "integer", minimum: 0, maximum: 4294967295 },
         file: { type: "string", minLength: 1 },
-        contentType: { enum: ["image/png", "image/jpeg", "image/gif"] },
+        contentType: { enum: ["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff", "image/x-wmf"] },
         left: imageLength,
         top: imageLength,
         width: imageLength,

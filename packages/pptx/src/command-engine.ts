@@ -1,3 +1,5 @@
+import { PROG_ID } from "./ole-enum.js";
+import { objectsAddSchema, objectsAddUsage, validateObjectsAddCommand, executeObjectsAddCommand, type ObjectsAddArguments } from "./command-objects-add.js";
 import { insertPlaceholder } from "./command-placeholder.js";
 import { packageToolsSchemas, packageToolsUsage } from "./package-tools-schema.js";
 import { validatePackageCommand, executePackageCommand } from "./command-package-tools.js";
@@ -475,6 +477,7 @@ interface Arguments {
     | `links.${"list" | "get" | "add" | "set" | "remove"}`
     | "batch"
     | `equations.${"list" | "get" | "add"}`
+    | "objects.add"
     | "objects.list"
     | "objects.extract"
     | "fonts.list"
@@ -615,6 +618,9 @@ interface Arguments {
   input?: string;
   slide?: number;
   placeholder?: number;
+  icon?: string;
+  iconContentType?: string;
+  objectAdd?: ObjectsAddArguments["objectAdd"];
   image?: number;
   imageAdd?: Partial<AddImageOptions>;
   mediaEdit?: NonNullable<MediaEditingArguments["mediaEdit"]>;
@@ -737,6 +743,7 @@ const imageSetFlags = [
   "--alt-text"
 ];
 const scalarOptions = [
+  "--icon", "--icon-content-type", "--program", "--program-id", "--icon-width", "--icon-height",
   "--adjustments",
   "--data-json", "--data-file",
   "--decorative",
@@ -1055,6 +1062,7 @@ function parse(
       ...Object.keys(equationSchemas),
       ...Object.keys(packageToolsSchemas),
       ...Object.keys(opaqueSchemas),
+        "objects.add",
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
       ...Object.keys(metadataSchemas),
@@ -1119,7 +1127,7 @@ function parse(
         operation.startsWith("transitions.") ||
         operation.startsWith("images.") ||
         operation.startsWith("equations.") ||
-        Object.hasOwn(opaqueSchemas, operation) ||
+        Object.hasOwn(opaqueSchemas, operation) || operation === "objects.add" ||
         operation.startsWith("links.") ||
         operation.startsWith("notes.") ||
         Object.hasOwn(metadataSchemas, operation) ||
@@ -1555,6 +1563,20 @@ function parse(
       }
       continue;
     }
+    if (operation === "objects.add" && ["--icon", "--icon-content-type", "--program", "--program-id", "--name", "--left", "--top", "--width", "--height", "--icon-width", "--icon-height"].includes(argument)) {
+      if (argument === "--program") {
+        if (!Object.hasOwn(PROG_ID, value)) usage("Unknown registered program.");
+        result.objectAdd = {...result.objectAdd, progId: PROG_ID[value as keyof typeof PROG_ID]};
+      }
+      else if (argument === "--icon") result.icon = value;
+      else if (argument === "--icon-content-type") result.iconContentType = value;
+      else {
+        const key = argument === "--program-id" ? "progId" : argument.slice(2).split("-").map((part, i) => i ? part[0]!.toUpperCase() + part.slice(1) : part).join("");
+        const parsed = ["left", "top", "width", "height", "iconWidth", "iconHeight"].includes(key) ? commandLength(value, ["left", "top"].includes(key) ? -27273042316900 : 1) : value;
+        result.objectAdd = {...result.objectAdd, [key]: parsed};
+      }
+      continue;
+    }
     if (["media.add", "media.replace"].includes(operation) && ["--poster", "--poster-content-type", "--mime-type", "--kind", "--left", "--top", "--width", "--height", "--trim-start", "--trim-end", "--loop", "--volume"].includes(argument)) {
       if (argument === "--poster") result.poster = value;
       else if (argument === "--poster-content-type") result.posterContentType = value;
@@ -1601,7 +1623,7 @@ function parse(
             : argument.slice(2);
       if (key === "fit" && !["contain", "cover", "stretch"].includes(value))
         usage("Invalid image fit.");
-      if (key === "contentType" && !["image/png", "image/jpeg", "image/gif"].includes(value))
+      if (key === "contentType" && !["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff", "image/x-wmf"].includes(value))
         usage("Unsupported image content type.");
       const parsed = ["left", "top", "width", "height"].includes(key)
         ? commandLength(value, key === "left" || key === "top" ? -27273042316900 : 1)
@@ -2631,7 +2653,7 @@ function parse(
     if (!result.imageAdd?.contentType) {
       const extension = result.file.slice(result.file.lastIndexOf(".") + 1).toLowerCase();
       const contentType = (
-        { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif" } as Record<
+        { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff", wmf: "image/x-wmf" } as Record<
           string,
           string
         >
@@ -2688,6 +2710,10 @@ function parse(
   }
   if (Object.hasOwn(equationSchemas, operation)) {
     validateEquationCommand(result, positionals, seen);
+    return result;
+  }
+  if (operation === "objects.add") {
+    validateObjectsAddCommand(result, positionals, seen);
     return result;
   }
   if (Object.hasOwn(opaqueSchemas, operation)) {
@@ -3605,6 +3631,7 @@ function parse(
         ...Object.keys(equationSchemas),
       ...Object.keys(packageToolsSchemas),
         ...Object.keys(opaqueSchemas),
+        "objects.add",
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
       ...Object.keys(metadataSchemas),
@@ -3899,6 +3926,7 @@ async function execute(
       const usage =
         args.schemaPath && Object.hasOwn(packageToolsSchemas, args.schemaPath)
           ? packageToolsUsage
+          : args.schemaPath === "objects.add" ? objectsAddUsage
           : args.schemaPath && Object.hasOwn(opaqueSchemas, args.schemaPath)
           ? opaqueUsage
           : args.schemaPath?.startsWith("equations.")
@@ -4056,7 +4084,7 @@ async function execute(
           "Signed crop fractions retain positive visible area; stored extended crop is preserved.\n";
       if (args.schemaPath === "images.add")
         resolvedUsage =
-          "Usage: pptx images add INPUT --slide N --file PATH [--placeholder IDX] [--content-type image/png|image/jpeg|image/gif]\n" +
+          "Usage: pptx images add INPUT --slide N --file PATH [--placeholder IDX] [--content-type image/png|image/jpeg|image/gif|image/bmp|image/tiff|image/x-wmf]\n" +
           "  [--left LENGTH --top LENGTH] [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
           "  [--alt-text TEXT] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
           "Placeholder IDX is a nonnegative sparse key; PNG/JPEG only, inherited box with cover fit; no geometry/fit flags.\n" +
@@ -4158,6 +4186,7 @@ async function execute(
             ...equationSchemas,
             ...packageToolsSchemas,
             ...opaqueSchemas,
+            "objects.add": objectsAddSchema,
             ...linkSchemas,
             ...noteSchemas,
             ...metadataSchemas,
@@ -4221,7 +4250,7 @@ async function execute(
             level: "edit",
             operations: Object.keys(imageSchemas),
             subset:
-              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. F35: original image extraction by occurrence or hash with safe names, bounded bytes/counts and explicit transaction or partial publication. F31/F33: insert explicit PNG/JPEG/GIF bytes with bounded intrinsic dimensions, sizing and contain/cover/stretch. F33 also edits crop, rotation, flips, opacity, solid picture borders and alt text. Crop edits require positive visible area after quantization. Other edits preserve extended crop. Links are never fetched; decoding and other formats are not provided."
+              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. F35: original image extraction by occurrence or hash with safe names, bounded bytes/counts and explicit transaction or partial publication. F31/F33: insert explicit PNG/JPEG/GIF/BMP/TIFF/placeable-WMF bytes with bounded intrinsic dimensions, sizing and contain/cover/stretch. F33 also edits crop, rotation, flips, opacity, solid picture borders and alt text. Crop edits require positive visible area after quantization. Other edits preserve extended crop. Links are never fetched; decoding is not provided; other vector types remain preserve-only."
           },
           drawing: {
             level: "edit",
@@ -4424,9 +4453,9 @@ async function execute(
             subset: "F41: inspect and extract OMML; insert one validated caller-authored equation into a selected text body. Existing equations and fallbacks remain preserved. Set/remove, rendering and evaluation are unavailable."
           },
           objects: {
-            level: "preserve",
-            operations: ["objects.list", "objects.extract"],
-            subset: "Shared package-part inventory and exact-byte extraction with relationship closure for OLE, embedded packages, controls, web extensions and 3D models. Active payload indicators are metadata, not a safety verdict. No activation, recursive parsing, creation or unsupported object-reference import."
+            level: "edit",
+            operations: ["objects.list", "objects.extract", "objects.add"],
+            subset: "Shared package-part inventory and exact-byte extraction with relationship closure for OLE, embedded packages, controls, web extensions and 3D models. Active payload indicators are metadata, not a safety verdict. Explicit inert OLE byte insertion with supplied icon/program metadata. No activation, recursive parsing or unsupported object-reference import."
           },
           packageTools: { level: "edit", operations: Object.keys(packageToolsSchemas), subset: "Bounded explicit extraction and hash-verified packing of complete validated package graphs. No directory scans, implicit filesystem access or active resource execution." },
           fonts: {
@@ -4643,6 +4672,9 @@ async function execute(
       const packed = await executePackageCommand(args, request, options);
       result = packed.result; human = packed.human; binary = packed.binary; publication = packed.publication;
       publications = packed.publications; opaqueManifest = packed.manifest; allowPartialOutput = packed.allowPartialOutput ?? false;
+    } else if (args.operation === "objects.add") {
+      const inserted = await executeObjectsAddCommand(args, request, options);
+      result = inserted.result; human = inserted.human; binary = inserted.binary; publication = inserted.publication;
     } else if (Object.hasOwn(opaqueSchemas, args.operation)) {
       const opaque = await executeOpaqueCommand(args, request, options);
       result = opaque.result;

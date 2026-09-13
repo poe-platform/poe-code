@@ -1696,3 +1696,63 @@ Commands, source/configuration for manual artifact controls, failures/skips and 
 Source `f323b061349f26d08abccdef39ee22627273b0b4`, Node 22.23.2 / ICU 78.2: full maintained `npm test` passed, including 29,262 SafeJS tests / 47 declared skips, all declared workspace stages and the root posttest stress checks. [Terminal receipt](repair-promise-symbol-admission/delivery-20260912/root-test-final.json) binds the compressed raw log to the source; [qualification details](repair-promise-symbol-admission/delivery-20260912/followup-qualification.md) retain all failed/interrupted attempts and commands. The independent committed archive check passed. An intervening ENOSPC attempt was interrupted and is not counted as passing; only task-owned temporary consumers were removed before the successful complete retry. Candidate source hashes and unrelated staged changes remain unchanged. Full build, full lint and package lint also passed. The published-edition target remains unchanged.
 
 The first root workflow [34728929036](https://github.com/poe-platform/poe-code/actions/runs/34728929036) succeeded, publishing `poe-code@15.0.29` from `11a7a80571a633cd452fde83a3fd57290fc019a4`; the scoped workflow published all three safe packages at `0.1.564`. Separate registry receipts verify every tarball integrity and SLSA subject/source/workflow. Installed root admission/replay smoke passed all six entrypoint/surface controls; npm verified 207 signatures / 37 attestations. The first scoped receipt and independent installed controls remain recorded. These first releases do not resolve the published Workerd barrel issue; the locally qualified `node/filesystem` follow-up requires its own verified remote delivery and successful publication. No explicitly associated issue was supplied.
+
+### qualify-module-authority — authorized audit delivery (2026-09-13 05:36 UTC)
+
+**Acceptance remains unmet.** Fresh verification of the inherited candidate at
+local HEAD `7856b19dac7f030e7b96e70885c8b77927d403a8` reproduced the authority and
+admission failures. The [receipt](qualify-module-authority/delivery-audit-20260913/receipt.json)
+records Node 22.23.2, ICU 78.2, source SHA-256 identities, fetched remote base and
+staged-diff fingerprint. The complete SafeJS source/test manifest digest is
+`4c47b7d060cdbdf4a406df0567eee067c40be65c247126acc2feb3c57ead266d`;
+HEAD alone does not identify this dirty candidate. ECMA-262 edition 16 and
+ECMA-402 edition 12 (June 2025), Test262
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and the ledger's explicitly tracked
+newer APIs remain unchanged.
+
+[Exact commands and fresh terminal outputs](qualify-module-authority/delivery-audit-20260913/results.json)
+record **138 passing tests / 18 files, zero failures or skips**, in 5.09 seconds.
+The selection exercises specifier classes, canonical identity, dot segments,
+encoded separators as literal filenames, file URLs and mocked redirects, aliases,
+concurrent duplicate loads, cycles, failed-load caching, revocation, linking and
+evaluation cancellation, top-level-await rejection, live namespace bindings,
+and rooted CLI/SDK parity. Fixtures use memfs and explicit mock capabilities.
+Five independent manual probe commands also terminated; their exit 0 means an
+observation completed, not that the acceptance criterion passed.
+
+| Acceptance area                | Fresh observation                                                                                                                                                                                    | Disposition                                                                                                                                             |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Root/grant confinement         | Stable inside source succeeds; persistent outside symlink denies with zero opens. A transient ancestor swap reads outside source under `/grant/sub/dep.js`. The acquired handle closes exactly once. | Failed. Atomic host confinement is absent; pathname rechecks or substituting safe-fs's similarly non-atomic real adapter cannot qualify this guarantee. |
+| Source bytes                   | The 26-byte control succeeds. All 20,024 bytes of the oversized source are read before `dataSize:5000` rejects registration.                                                                         | Failed. Retained UTF-16 accounting does not enforce a pre-acquisition transport byte ceiling.                                                           |
+| Module count/depth/concurrency | Width 64 starts 64 concurrent resolver operations. Depth 32 succeeds with 33 calls despite `maxCallDepth:2`. Gated work returns to zero after release.                                               | Failed. Dedicated graph admission contracts are absent; these are finite counterexamples, not claims of infinite capacity.                              |
+| Changed-source restore         | Dependencies with values 1 and 2 produce entry hash `621f4a91`; dump and restore reject unsupported recovery, with zero restore resolver calls.                                                      | Fail-closed unsupported capability. No corrupt restore is accepted; graph-aware recovery and changed-source validation are unavailable.                 |
+| Pending host work              | After graph rejection the signal is aborted but one noncooperative resolver operation is still active. Explicit host release returns active work to zero.                                            | Universal quiescence unqualified. AbortSignal cannot terminate arbitrary injected host operations. Cooperative cancellation tests pass.                 |
+
+Rooted URL transport, HTTP redirects, package lookup and arbitrary host imports
+remain intentionally unavailable. Explicit SDK resolvers may authorize opaque
+identifiers and return canonical redirect/alias identities. No implicit installer,
+ambient host import, string filter, runtime change, weakened budget/assertion,
+or timeout adjustment was introduced. Missing host/recovery capabilities are
+not ECMAScript defects. No repair or TDD repair claim is made in this audit.
+
+Recovery requires an atomic confined read capability on each supported host,
+pre-acquisition byte admission, graph count/depth/concurrency admission with
+CLI/SDK parity, and a cancellable host-work ownership contract. Qualify these
+with failing regression controls before implementation and preserve canonical
+resolver semantics. If graph recovery is introduced, bind checkpoints to the
+entire authorized source graph and reject changed dependencies before evaluation.
+Until these gaps are repaired and evidenced, this task stays open.
+
+Delivery is documentation only, prepared in a detached checkout of fetched
+remote main `60a6f594ec0f40467b61880a856a626d3b14de35`. Existing local commits,
+staged safe-bash work and all inherited source changes remain untouched; the
+resolver candidate is not being shipped. Documentation formatting and diff
+checks are the local delivery gates. Full package/runtime/build gates and CLI
+screenshots were not rerun for these documentation-only changes; historical
+receipts are not substituted. No explicitly associated GitHub issue was supplied
+or closed. Local commit, verified remote ancestry and workflow/publication
+outcomes will be recorded separately after delivery; none is claimed here.
+A docs-only successful workflow with no version is a no-release result, not a
+publication. If publication remains unresolved, fetch remote main, verify the
+delivered commit's ancestry in any successor, inspect failed jobs and registry
+receipts, then retry the required workflow through GitHub; never publish locally.

@@ -1,0 +1,92 @@
+[
+  {
+    "command": [
+      "npm",
+      "view",
+      "@poe-platform/safe-js",
+      "version",
+      "dependencies",
+      "dist",
+      "--json"
+    ],
+    "at": "2026-09-13T15:45:19.773041+00:00",
+    "exit": 0,
+    "stdout": "{\n  \"version\": \"0.1.570\",\n  \"dependencies\": {\n    \"jose\": \"^6.1.3\",\n    \"yaml\": \"^2.8.2\",\n    \"@types/node\": \"^25.2.2\",\n    \"temporal-polyfill\": \"1.0.4\",\n    \"@formatjs/bigdecimal\": \"0.2.7\",\n    \"@petamoriken/float16\": \"^3.9.3\",\n    \"@poe-platform/safe-fs\": \"0.1.570\",\n    \"@formatjs/intl-numberformat\": \"9.4.0\",\n    \"@formatjs/intl-localematcher\": \"0.8.13\",\n    \"@formatjs/intl-durationformat\": \"0.10.18\"\n  },\n  \"dist\": {\n    \"shasum\": \"f4fabacb3fbfe8367a000af47b9ba0c23106a0bc\",\n    \"tarball\": \"https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.570.tgz\",\n    \"fileCount\": 374,\n    \"integrity\": \"sha512-YDK1wRy4dxmZYrA9HwraPCowCopP62ADL3XqBfP//vdrmfDQ6WJFeWwYOfFC1dNTDyJ8IiwgPmbMP2/Z2zCf6Q==\",\n    \"signatures\": [\n      {\n        \"sig\": \"MEQCIAYpNs4aoJ8CiIiNpsfWOn63jEx3nBEzRszp6m5t/5GtAiAj+Pvq909YxtpKGKFPhhMzlol7ttxHFERPXAzfAoBpiw==\",\n        \"keyid\": \"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U\"\n      },\n      {\n        \"keyid\": \"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U\",\n        \"sig\": \"MEUCIQDAD9Nw0sCyiphaNONAPWfWCTD5df+b5qBiCthSJT9YAgIgKYtmmW8Ate8PGXNkBAlI8LouRA9vp4f8FBL4+SBvzDQ=\"\n      }\n    ],\n    \"attestations\": {\n      \"url\": \"https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.570\",\n      \"provenance\": {\n        \"predicateType\": \"https://slsa.dev/provenance/v1\"\n      }\n    },\n    \"unpackedSize\": 42945478\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "npm",
+      "view",
+      "@poe-platform/safe-js@0.1.571",
+      "version",
+      "dependencies",
+      "dist",
+      "--json"
+    ],
+    "at": "2026-09-13T15:45:20.244450+00:00",
+    "exit": 1,
+    "stdout": "{\n  \"error\": {\n    \"code\": \"E404\",\n    \"summary\": \"No match found for version 0.1.571\",\n    \"detail\": \"'@poe-platform/safe-js@0.1.571' is not in this registry.\\n\\nNote that you can also install from a\\ntarball, folder, http url, or git url.\"\n  }\n}\n",
+    "stderr": "npm error code E404\nnpm error 404 No match found for version 0.1.571\nnpm error 404\nnpm error 404  '@poe-platform/safe-js@0.1.571' is not in this registry.\nnpm error 404\nnpm error 404 Note that you can also install from a\nnpm error 404 tarball, folder, http url, or git url.\nnpm error A complete log of this run can be found in: /Users/kjopek/.npm/_logs/2026-09-13T15_45_19_862Z-debug-0.log\n"
+  },
+  {
+    "command": [
+      "npm",
+      "view",
+      "@poe-platform/safe-fs",
+      "version",
+      "dependencies",
+      "dist",
+      "--json"
+    ],
+    "at": "2026-09-13T15:45:20.706415+00:00",
+    "exit": 0,
+    "stdout": "{\n  \"version\": \"0.1.571\",\n  \"dependencies\": {\n    \"@types/node\": \"^25.2.2\"\n  },\n  \"dist\": {\n    \"integrity\": \"sha512-bgsL5j9EsAWGP9NN5OTaTsX87pGNp45DQ0KK8OO1+1lqja/eL1icRaPSFHWMu1UgWD3Qj08Jv6M9sAij/eiJMQ==\",\n    \"shasum\": \"319eb3b307f63bda00110d0467bc7c41d77a259e\",\n    \"tarball\": \"https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.571.tgz\",\n    \"fileCount\": 141,\n    \"unpackedSize\": 717171,\n    \"attestations\": {\n      \"url\": \"https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.571\",\n      \"provenance\": {\n        \"predicateType\": \"https://slsa.dev/provenance/v1\"\n      }\n    },\n    \"signatures\": [\n      {\n        \"keyid\": \"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U\",\n        \"sig\": \"MEQCIFDm5hEyuVdc+j8tDXMiqilKc0GpeAc1LY99rX0DKWhQAiBfwLTUQ4/xSO3yxMt4NBtIur3TlTP0duXs/+AvbmOyxw==\"\n      }\n    ]\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "npm",
+      "view",
+      "@poe-platform/safe-fs@0.1.571",
+      "version",
+      "dependencies",
+      "dist",
+      "--json"
+    ],
+    "at": "2026-09-13T15:45:21.176780+00:00",
+    "exit": 0,
+    "stdout": "{\n  \"version\": \"0.1.571\",\n  \"dependencies\": {\n    \"@types/node\": \"^25.2.2\"\n  },\n  \"dist\": {\n    \"integrity\": \"sha512-bgsL5j9EsAWGP9NN5OTaTsX87pGNp45DQ0KK8OO1+1lqja/eL1icRaPSFHWMu1UgWD3Qj08Jv6M9sAij/eiJMQ==\",\n    \"shasum\": \"319eb3b307f63bda00110d0467bc7c41d77a259e\",\n    \"tarball\": \"https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.571.tgz\",\n    \"fileCount\": 141,\n    \"unpackedSize\": 717171,\n    \"attestations\": {\n      \"url\": \"https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.571\",\n      \"provenance\": {\n        \"predicateType\": \"https://slsa.dev/provenance/v1\"\n      }\n    },\n    \"signatures\": [\n      {\n        \"keyid\": \"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U\",\n        \"sig\": \"MEQCIFDm5hEyuVdc+j8tDXMiqilKc0GpeAc1LY99rX0DKWhQAiBfwLTUQ4/xSO3yxMt4NBtIur3TlTP0duXs/+AvbmOyxw==\"\n      }\n    ]\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "npm",
+      "view",
+      "@poe-platform/safe-bash",
+      "version",
+      "dependencies",
+      "dist",
+      "--json"
+    ],
+    "at": "2026-09-13T15:45:21.629551+00:00",
+    "exit": 0,
+    "stdout": "{\n  \"version\": \"0.1.571\",\n  \"dependencies\": {\n    \"@poe-platform/safe-fs\": \"0.1.571\",\n    \"pako\": \"3.0.1\",\n    \"@noble/hashes\": \"2.4.0\",\n    \"@types/node\": \"^25.2.2\"\n  },\n  \"dist\": {\n    \"integrity\": \"sha512-7gpyZECE5yYc+zjx572GOW937QdcTnJ/evKU5CPvHTDWUd2gqibRV82x3lpspsNJ8b85YxiVURK5PKUoCXTaSg==\",\n    \"shasum\": \"533abc97c6773c45ce97d66ea7bf463438d81891\",\n    \"tarball\": \"https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.571.tgz\",\n    \"fileCount\": 1645,\n    \"unpackedSize\": 26143278,\n    \"attestations\": {\n      \"url\": \"https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.571\",\n      \"provenance\": {\n        \"predicateType\": \"https://slsa.dev/provenance/v1\"\n      }\n    },\n    \"signatures\": [\n      {\n        \"keyid\": \"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U\",\n        \"sig\": \"MEUCIDNtKm8srCC2BfW0SfSvgechCGAQ3Ge/aSDSMpbfXV77AiEA3HfjN7hcrSuTBHa5PCXHTHIW6yBjHJE7JoiXsirNFc0=\"\n      }\n    ]\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "npm",
+      "view",
+      "@poe-platform/safe-bash@0.1.571",
+      "version",
+      "dependencies",
+      "dist",
+      "--json"
+    ],
+    "at": "2026-09-13T15:45:22.176664+00:00",
+    "exit": 0,
+    "stdout": "{\n  \"version\": \"0.1.571\",\n  \"dependencies\": {\n    \"@poe-platform/safe-fs\": \"0.1.571\",\n    \"pako\": \"3.0.1\",\n    \"@noble/hashes\": \"2.4.0\",\n    \"@types/node\": \"^25.2.2\"\n  },\n  \"dist\": {\n    \"integrity\": \"sha512-7gpyZECE5yYc+zjx572GOW937QdcTnJ/evKU5CPvHTDWUd2gqibRV82x3lpspsNJ8b85YxiVURK5PKUoCXTaSg==\",\n    \"shasum\": \"533abc97c6773c45ce97d66ea7bf463438d81891\",\n    \"tarball\": \"https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.571.tgz\",\n    \"fileCount\": 1645,\n    \"unpackedSize\": 26143278,\n    \"attestations\": {\n      \"url\": \"https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.571\",\n      \"provenance\": {\n        \"predicateType\": \"https://slsa.dev/provenance/v1\"\n      }\n    },\n    \"signatures\": [\n      {\n        \"keyid\": \"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U\",\n        \"sig\": \"MEUCIDNtKm8srCC2BfW0SfSvgechCGAQ3Ge/aSDSMpbfXV77AiEA3HfjN7hcrSuTBHa5PCXHTHIW6yBjHJE7JoiXsirNFc0=\"\n      }\n    ]\n  }\n}\n",
+    "stderr": ""
+  }
+]

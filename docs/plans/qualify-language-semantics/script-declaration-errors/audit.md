@@ -36,10 +36,10 @@ sloppy contexts across Node18.18.0/ICU73.2,18.20.8/74.2,20.20.0/77.1,22.23.2/78.
 24.14.0/78.2,26.8.2/78.3 and Bun1.3.11/74.2. Public SDK/CLI function-body goals allow
 local shadowing of undefined; the SDK control passes original and three pending/completed
 replays with matching source and host-constructor denial. The inspected CLI screenshot
-returns[7,"undefined,undefined"]. Script goal is exercised through the maintained Script
+returns[7,"undefined,undefined"] with the expected AS-SHADOW-GLOBAL lint warning; the warning does not reject execution. Script goal is exercised through the maintained Script
 integration. The first screenshot attempt lacked delivery-built terminal-png; retained
 failure was resolved with npm run build:workspaces -- --workspace=terminal-png, then retried.
 
-Residual arithmetic becomes126 nonpasses. Whole-task acceptance and publication remain
+Residual arithmetic becomes124 nonpasses. Whole-task acceptance and publication remain
 open. A fresh integrated replay is required after sibling-workspace isolation. Local,
 remote and publication receipts remain distinct.

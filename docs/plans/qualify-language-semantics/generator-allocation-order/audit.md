@@ -37,6 +37,6 @@ SDK probes pass Node18.18.0/ICU73.2,18.20.8/74.2,20.20.0/77.1,22.23.2/78.2,
 replays, generator progress, exact saved source and dynamic-constructor host denial.
 The CLI screenshot was inspected and agrees with SDK. Commands/results are retained.
 
-Six original failures are repaired; residual arithmetic becomes132 nonpasses. Excluded
+Eight original variants are repaired; residual arithmetic becomes130 nonpasses. Excluded
 proposal cases remain failed/excluded, never passes. Whole-task acceptance and publication
 remain open, with shared dependency setup and separate delivery/publication receipts.

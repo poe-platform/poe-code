@@ -28,5 +28,5 @@ replay checks preserve subclass behavior, constructor rejection, exact class sou
 host-escape denial. CLI screenshot inspected; output agrees with SDK. Exact invocations
 and results are in runtime-sdk.json and screenshot.log.
 
-Residual arithmetic becomes128 nonpasses. Whole-task acceptance and publication remain
+Residual arithmetic becomes126 nonpasses. Whole-task acceptance and publication remain
 open. Local/remote/publication receipts are distinct; shared dependency setup applies.

@@ -2407,7 +2407,7 @@ select the instance prototype after parameter initialization as required by the 
 edition. Six independent red cases become96 focused passes. Existing native-oracle cases
 now explicitly assert the specification; retention budgets and assertions remain intact.
 Final lint/build and original upstream contexts pass. Seven runtime SDK replay/source/
-host-escape controls and inspected CLI output pass. Residual arithmetic is132 nonpasses;
+host-escape controls and inspected CLI output pass. Residual arithmetic is130 nonpasses;
 remaining categories and publication remain unresolved.
 
 ### qualify-language-semantics — Symbol construction, 2026-09-13
@@ -2417,7 +2417,7 @@ permit valid Symbol subclasses/newTarget use while construction itself throws. F
 cases/one control become197 focused passes. Existing descriptor regressions ensure the
 prototype remains immutable. Final lint/build and all original upstream contexts pass.
 Seven runtime SDK replay/source/host-escape checks and inspected CLI output pass. Residual
-arithmetic is128 nonpasses; remaining language categories and publication remain open.
+arithmetic is126 nonpasses; remaining language categories and publication remain open.
 
 ### qualify-language-semantics — Script declaration errors, 2026-09-13
 
@@ -2426,6 +2426,26 @@ keep declaration-validation SyntaxError/TypeError constructors in the guest real
 red cases/one negative control become107 focused passes after sibling-workspace isolation;
 lint/build pass. All five original/neighbor variants pass. Seven-runtime built Script
 identity and public SDK replay/authority controls pass; CLI screenshot inspected. Residual
-arithmetic is126 nonpasses. Earlier shared-sibling evidence remains qualified; the dependency
+arithmetic is124 nonpasses. Earlier shared-sibling evidence remains qualified; the dependency
 link receipt records the corrected resolution and matching external lock entries. Integrated
 replay, remaining language categories and publication remain open.
+
+### qualify-language-semantics — isolated replay and delivery receipts, 2026-09-13
+
+[Fresh integrated results and delivery/publication receipts](qualify-language-semantics/publication/isolated-replay-audit.md)
+verify the same531 variants at remote main3f965448d with sibling workspaces resolved to
+the delivery checkout:407 passed,124 failed, zero unsupported/errors.37 original failures
+improve since884ead8b7 and no prior pass regresses. This corrects the generator allocation
+repair's prose tally from six to eight upstream variants; raw reports were already complete.
+[Explicit edition exclusions](qualify-language-semantics/edition-exclusions/audit.md) qualify
+nine additional raw nonpasses.49 total nonpasses are outside-target/optional-extension
+oracle cases;75 target failures remain, including20 tracked resource-management cases.
+No exclusion is counted as a pass. Whole-task acceptance remains open.
+
+22 atomic code commits are verified on remote main. SafeFS/SafeBash0.1.571 and SafeJS
+0.1.575/0.1.577 have independent installed-artifact/signature/provenance receipts at their
+recorded commits. Root run34766290651 passed validation but skipped publication because
+its head was behind main; poe-code remains at the earlier15.0.33 in that registry receipt.
+Later containing successors and all final package publications remain required. Workflow
+URLs, exact heads/ancestry, failures, propagation observations and recovery are linked
+above. No local publication or issue closure is claimed.

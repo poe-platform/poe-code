@@ -1,0 +1,66 @@
+[
+  {
+    "_type": "https://in-toto.io/Statement/v0.1",
+    "subject": [
+      {
+        "name": "pkg:npm/%40poe-platform/safe-fs@0.1.571",
+        "digest": {
+          "sha512": "6e0b0be63f44b005863fd34de4e4da4ec5fcee918da78e4343428af0e3b5fb596a8dafde2f589c45a3d214758cbb5520583dd08f4f09bfa33db008a3fde88931"
+        }
+      }
+    ],
+    "predicateType": "https://github.com/npm/attestation/tree/main/specs/publish/v0.1",
+    "predicate": {
+      "name": "@poe-platform/safe-fs",
+      "version": "0.1.571",
+      "registry": "https://registry.npmjs.org"
+    }
+  },
+  {
+    "_type": "https://in-toto.io/Statement/v1",
+    "subject": [
+      {
+        "name": "pkg:npm/%40poe-platform/safe-fs@0.1.571",
+        "digest": {
+          "sha512": "6e0b0be63f44b005863fd34de4e4da4ec5fcee918da78e4343428af0e3b5fb596a8dafde2f589c45a3d214758cbb5520583dd08f4f09bfa33db008a3fde88931"
+        }
+      }
+    ],
+    "predicateType": "https://slsa.dev/provenance/v1",
+    "predicate": {
+      "buildDefinition": {
+        "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+        "externalParameters": {
+          "workflow": {
+            "ref": "refs/heads/main",
+            "repository": "https://github.com/poe-platform/poe-code",
+            "path": ".github/workflows/release-safe.yml"
+          }
+        },
+        "internalParameters": {
+          "github": {
+            "event_name": "push",
+            "repository_id": "1078492326",
+            "repository_owner_id": "129537891"
+          }
+        },
+        "resolvedDependencies": [
+          {
+            "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+            "digest": {
+              "gitCommit": "e9f684c8cb30d42cddbb77be78f2315f1e9d7c58"
+            }
+          }
+        ]
+      },
+      "runDetails": {
+        "builder": {
+          "id": "https://github.com/actions/runner/github-hosted"
+        },
+        "metadata": {
+          "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34766290514/attempts/1"
+        }
+      }
+    }
+  }
+]

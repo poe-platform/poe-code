@@ -4062,7 +4062,18 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "implementationReceipt": {
+        "status": "partial-implementation-original-tests-passed",
+        "evidence": "docs/pptx/input-capabilities-evidence.md",
+        "plan": "docs/plans/pptx-input-capabilities.md",
+        "executableSchema": ["pptx", "schema", "capabilities", "--json"],
+        "acceptanceTests": [
+          "packages/pptx/src/capabilities-discovery.test.ts",
+          "packages/safe-bash/tests/commands/pptx/capabilities-input.test.ts"
+        ],
+        "boundary": "Bounded discovery of actual declared support and optional input assessment. The existing feature-keyed response differs from the proposed Appendix C wire shape; no whole-format or public-model parity claim."
+      }
     },
     "version": {
       "path": ["version"],

@@ -1,3 +1,9 @@
+import {
+  assessCapabilities,
+  declaredFeatureCapabilities,
+  capabilitiesSchema,
+  capabilitiesUsage,
+} from "./capabilities-discovery.js";
 import { PROG_ID } from "./ole-enum.js";
 import { objectsAddSchema, objectsAddUsage, validateObjectsAddCommand, executeObjectsAddCommand, type ObjectsAddArguments } from "./command-objects-add.js";
 import { insertPlaceholder } from "./command-placeholder.js";
@@ -387,7 +393,7 @@ const help =
   "                       --kind style-reference --style-index N --style-color RRGGBB\n" +
   "       Shared mutations: [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx schema masters list|get|add|set | layouts list|get|add|set|remove|apply | shapes list|get|add|set|group|ungroup | backgrounds set [--json]\n" +
-  "       pptx capabilities [--json]\n" +
+  "       pptx capabilities [INPUT] [--json] [--limit NAME=VALUE]\n" +
   "       pptx settings list|get INPUT [--json]\n" +
   "       pptx settings set INPUT [--width LENGTH] [--height LENGTH]\n" +
   "                    [--orientation portrait|landscape] [--notes-width LENGTH]\n" +
@@ -3615,11 +3621,18 @@ function parse(
     if (result.scope !== undefined && result.scope !== "slides")
       usage("Slide mutations require slides scope.");
   } else if (operation !== "inspect" && !xml) {
-    if ([...seen].some((option) => option !== "--json"))
+    if ([...seen].some((option) => option !== "--json" && !(operation === "capabilities" && option === "--limit")))
       usage("Selection options require inspect.");
+    if (operation === "capabilities") {
+      if (result.limits && Object.hasOwn(result.limits, "maxOutputs")) usage("Output-count limits do not apply to capabilities.");
+      if (positionals.length > 1 || positionals[0] === "") usage("Capabilities accepts at most one nonempty input.");
+      if (positionals[0] !== undefined) result.input = positionals[0];
+      return result;
+    }
     if (
       (operation === "schema" || operation === "help") &&
       [
+        "capabilities",
         "diff",
         "template.apply",
         "batch",
@@ -3850,6 +3863,59 @@ async function transferLocations(bytes: Uint8Array, budget: SlideTransferBudget)
     });
   return { fingerprint, locations };
 }
+
+const declaredOperations = {
+  diff: diffSchema,
+  "template.apply": templateSchema,
+  ...animationSchemas,
+  batch: animationBatchSchema,
+  ...transitionSchemas,
+  ...imageSchemas,
+  ...chartSchemas,
+  ...mediaSchemas,
+  ...equationSchemas,
+  ...packageToolsSchemas,
+  ...opaqueSchemas,
+  "objects.add": objectsAddSchema,
+  ...linkSchemas,
+  ...noteSchemas,
+  ...metadataSchemas,
+  ...accessibilitySchemas,
+  ...commentSchemas,
+  ...fieldSchemas,
+  ...membershipSchemas,
+  ...settingsSchemas,
+  ...masterSchemas,
+  ...shapeSchemas,
+  ...connectorSchemas,
+  ...tableSchemas,
+  create: createSchema,
+  inspect: inspectSchema,
+  "text.get": textGetSchema,
+  "text.replace": textReplaceSchema,
+  "text.fit": textFitSchema,
+  "text.frames.set": textFramesSetSchema,
+  "text.frames.get": textFramesGetSchema,
+  "text.frames.list": textFramesListSchema,
+  "text.paragraphs.set": textParagraphsSetSchema,
+  "text.paragraphs.get": textParagraphsGetSchema,
+  "text.paragraphs.list": textParagraphsListSchema,
+  "text.runs.set": textRunsSetSchema,
+  "text.runs.get": textRunsGetSchema,
+  "text.runs.list": textRunsListSchema,
+  "slides.add": slidesAddSchema,
+  "slides.move": slidesMoveSchema,
+  "slides.set": slidesSetSchema,
+  "slides.remove": slidesRemoveSchema,
+  "slides.duplicate": slidesDuplicateSchema,
+  "slides.import": slidesImportSchema,
+  "slides.merge": slidesMergeSchema,
+  "slides.split": slidesSplitSchema,
+  "xml.get": xmlGetSchema,
+  "xml.set": xmlSetSchema,
+  capabilities: capabilitiesSchema,
+};
+
 
 async function execute(
   request: PptxCommandRequest,
@@ -4165,6 +4231,7 @@ async function execute(
           "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
           "Lengths require emu/in/cm/mm/pt. Unsupported layout settings remain unchanged.\n" +
           "No pagination or rendering is performed.\n";
+      if (args.schemaPath === "capabilities") resolvedUsage = capabilitiesUsage;
       result = success(operation, { usage: resolvedUsage });
       human = resolvedUsage;
     } else if (args.operation === "version") {
@@ -4174,61 +4241,12 @@ async function execute(
       result = success(operation, {
         version: 1,
         operations: Object.fromEntries(
-          Object.entries({
-            diff: diffSchema,
-            "template.apply": templateSchema,
-            ...animationSchemas,
-            batch: animationBatchSchema,
-            ...transitionSchemas,
-            ...imageSchemas,
-            ...chartSchemas,
-            ...mediaSchemas,
-            ...equationSchemas,
-            ...packageToolsSchemas,
-            ...opaqueSchemas,
-            "objects.add": objectsAddSchema,
-            ...linkSchemas,
-            ...noteSchemas,
-            ...metadataSchemas,
-            ...accessibilitySchemas,
-            ...commentSchemas,
-            ...fieldSchemas,
-            ...membershipSchemas,
-            ...settingsSchemas,
-            ...masterSchemas,
-            ...shapeSchemas,
-            ...connectorSchemas,
-            ...tableSchemas,
-            create: createSchema,
-            inspect: inspectSchema,
-            "text.get": textGetSchema,
-            "text.replace": textReplaceSchema,
-            "text.fit": textFitSchema,
-            "text.frames.set": textFramesSetSchema,
-            "text.frames.get": textFramesGetSchema,
-            "text.frames.list": textFramesListSchema,
-            "text.paragraphs.set": textParagraphsSetSchema,
-            "text.paragraphs.get": textParagraphsGetSchema,
-            "text.paragraphs.list": textParagraphsListSchema,
-            "text.runs.set": textRunsSetSchema,
-            "text.runs.get": textRunsGetSchema,
-            "text.runs.list": textRunsListSchema,
-            "slides.add": slidesAddSchema,
-            "slides.move": slidesMoveSchema,
-            "slides.set": slidesSetSchema,
-            "slides.remove": slidesRemoveSchema,
-            "slides.duplicate": slidesDuplicateSchema,
-            "slides.import": slidesImportSchema,
-            "slides.merge": slidesMergeSchema,
-            "slides.split": slidesSplitSchema,
-            "xml.get": xmlGetSchema,
-            "xml.set": xmlSetSchema
-          }).filter(([path]) => !args.schemaPath || path === args.schemaPath || (args.schemaPath === "accessibility" && Object.hasOwn(accessibilitySchemas, path)))
+          Object.entries(declaredOperations).filter(([path]) => !args.schemaPath || path === args.schemaPath || (args.schemaPath === "accessibility" && Object.hasOwn(accessibilitySchemas, path)))
         )
       });
     else if (args.operation === "capabilities")
       result = success(operation, {
-        features: {
+        features: declaredFeatureCapabilities({
           diff: { level: "read", operations: ["diff"], subset: "Ordered slide, text, property, geometry, hashed media, relationship and opaque changes with stable IDs and explicit raw formatting; no visual comparison." },
           effectiveFormattingDiff: { level: "reject", operations: ["diff"], subset: "Inherited effective formatting cannot yet be resolved; effective-formatting mode fails explicitly." },
           templates: { level: "edit", operations: ["template.apply"], subset: "Explicit slide-scoped literal text, fixed-grid tables and embedded image bindings. Repeat designated slides in record order with shared-media or isolated-instance policy; notes, charts and timings follow graph-aware duplication. Aggregate limits and atomic publication apply." },
@@ -4476,7 +4494,11 @@ async function execute(
               ? {}
               : { reason: "Explicit XML validation limits are unavailable." })
           }
-        },
+        }, declaredOperations),
+        ...(args.input === undefined ? {} : { assessment: await assessCapabilities(
+          await request.readInput(args.input, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes)),
+          { ...options.context, signal: request.signal }
+        ) }),
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
     else if (["media.add", "media.replace"].includes(args.operation)) {

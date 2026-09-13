@@ -74,6 +74,13 @@ for (const command of ["grep", "rg"]) {
       }
       assert.deepEqual(Object.keys(peer.entries).sort(), peer.profile === "checkout-root" ? ["poe-code/safe-fs", "poe-code/safe-fs/core"] : ["poe-code/safe-fs"]);
       const detailed = JSON.parse(result.stdout.trim()) as { imports: Record<string, string>; requiredPeer: { version: string; metadataSha256: string } };
+      for (const name of ["@poe-code/office-package", "pako"]) {
+        const dependency: { entries: Record<string, string>; files: Record<string, string> } | undefined = binding.manifest.runtimeDependencies.find(dependency => dependency.name === name);
+        assert.ok(dependency);
+        const path: string = name === "pako" ? dependency.entries.pako! : dependency.entries[`${name}/compression`]!;
+        assert.equal(typeof dependency.files[path], "string");
+        assert.equal(detailed.imports[path], dependency.files[path]);
+      }
       assert.equal(detailed.requiredPeer.version, peer.version);
       assert.equal(detailed.requiredPeer.metadataSha256, peer.metadataSha256);
       assert.equal(detailed.imports[peer.entries["poe-code/safe-fs"]!], peer.files[peer.entries["poe-code/safe-fs"]!]);
@@ -86,7 +93,7 @@ for (const command of ["grep", "rg"]) {
   }
 }
 
-for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "private-package-route", "redirected-public-entry", "redirected-peer-edge", "dependency-metadata-bytes", "dependency-runtime-bytes", "redirected-dependency-entry", "redirected-dependency-edge"] as const) {
+for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "private-package-route", "redirected-public-entry", "redirected-peer-edge", "dependency-metadata-bytes", "dependency-runtime-bytes", "redirected-dependency-entry", "redirected-dependency-edge", "redirected-shared-compression-edge", "redirected-shared-internal-edge"] as const) {
   test(`public cleanup refuses ${attack} before native worker creation`, { timeout: 15000 }, async context => {
     assert.ok(binding);
     assert.ok(snapshot);
@@ -110,6 +117,8 @@ for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "pri
       : attack === "dependency-runtime-bytes" ? { read: `${snapshot}/${dependencyEntry}`, expected: "Emitted identity" }
       : attack === "redirected-dependency-entry" ? { specifier: "@noble/hashes/sha2.js", redirect: fileUrl(`node_modules/${dependency.name}/utils.js`), expected: "Unadmitted dependency public route" }
       : attack === "redirected-dependency-edge" ? { specifier: "./_md.js", parent: fileUrl(dependencyEntry), redirect: fileUrl(`node_modules/${dependency.name}/utils.js`), expected: "Uncaptured dependency runtime edge" }
+      : attack === "redirected-shared-compression-edge" ? { specifier: "pako", parent: fileUrl("node_modules/@poe-code/office-package/dist/compression.js"), redirect: fileUrl(dependencyEntry), expected: "Dependency runtime must not escape its package" }
+      : attack === "redirected-shared-internal-edge" ? { specifier: "./runtime.js", parent: fileUrl("node_modules/@poe-code/office-package/dist/compression.js"), redirect: fileUrl(binding.manifest.runtimeDependencies.find(dependency => dependency.name === "pako")!.entries.pako!), expected: "Dependency runtime must not escape its package" }
       : { specifier: edges[0]![0], parent: fileUrl(entry), redirect: fileUrl(entry), expected: "Uncaptured peer runtime edge" };
     const preload = `
       import fs from "node:fs";

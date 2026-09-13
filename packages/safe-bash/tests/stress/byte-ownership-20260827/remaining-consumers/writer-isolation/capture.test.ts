@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 type CopyBoundaries = { heldSourceFiles: string[]; heldEvidenceDirectories: string[] };
 const { validateBoundaries }: { validateBoundaries(value: unknown): CopyBoundaries } = await import(new URL("../../../../../scripts/integration-inputs.mjs", import.meta.url).href);
 const { isHeldInputPath }: { isHeldInputPath(path: string, boundaries: CopyBoundaries): boolean } = await import(new URL("../../../../../scripts/typecheck-integration-inputs.mjs", import.meta.url).href);
-const { prepareArchiveDependencies, stageArchiveDependencies, assertArchiveDependencies, assertArchiveDependencyLock, resolveTools } = await import(new URL("../../../../integration/s3-http-exports/committed-archive.mjs", import.meta.url).href);
+const { prepareArchiveDependencies, stageArchiveDependencies, assertArchiveDependencies, assertArchiveDependencyLock, captureSharedArchiveSources, resolveTools } = await import(new URL("../../../../integration/s3-http-exports/committed-archive.mjs", import.meta.url).href);
 
 const root = fileURLToPath(new URL("../../../../../", import.meta.url));
 const base = "tests/stress/byte-ownership-20260827/remaining-consumers";
@@ -24,7 +24,7 @@ let dependencies: { name: string; files: { path: string; sha256: string }[] }[] 
 const dependencyLock = JSON.parse(readFileSync(join(root, "../../package-lock.json"), "utf8"));
 before(async () => {
   dependencyDirectory = realpathSync(mkdtempSync(join(tmpdir(), "virtual-bash-writer-dependencies-")));
-  dependencies = await prepareArchiveDependencies({ manifest: JSON.parse(readFileSync(join(root, "package.json"), "utf8")), lock: dependencyLock }, resolveTools(), dependencyDirectory);
+  dependencies = await prepareArchiveDependencies({ manifest: JSON.parse(readFileSync(join(root, "package.json"), "utf8")), lock: dependencyLock, files: captureSharedArchiveSources(resolve(root, "../..")) }, resolveTools(), dependencyDirectory);
 });
 after(() => { if (dependencyDirectory) rmSync(dependencyDirectory, { recursive: true, force: true }); });
 const sandbox = (sourceRoot = root) => {
@@ -126,7 +126,7 @@ test("copied writer fixtures retain public canonical identity and refuse a missi
 test("copied writer dependencies reject byte drift and never fall back when missing", () => {
   const directory = sandbox();
   try {
-    assert.deepEqual(dependencies.map(dependency => dependency.name), ["@noble/hashes", "pako"]);
+    assert.deepEqual(dependencies.map(dependency => dependency.name), ["@noble/hashes", "pako", "@poe-code/office-package"]);
     const runtime = join(directory, "node_modules/@noble/hashes/sha2.js");
     writeFileSync(runtime, "untrusted replacement");
     assert.throws(() => assertArchiveDependencies(dependencies, directory), /dependency bytes drift/);

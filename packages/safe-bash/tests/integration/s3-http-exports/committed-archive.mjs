@@ -11,6 +11,15 @@ import { assertAdmittedInputPath, assertLiteralInputPath, isHeldInputPath, readR
 
 export const packagePrefix = "packages/safe-bash";
 export const authority = fileURLToPath(new URL("../../../", import.meta.url));
+const sharedName = "@poe-code/office-package";
+const sharedPrefix = "packages/office-package";
+const sharedPaths = Object.freeze(["tsconfig.json", ...["package.json", "tsconfig.json", "LICENSE", "src/index.ts", "src/runtime.ts", "src/compression.ts", "src/zip.ts"].map(path => sharedPrefix + "/" + path)]);
+const sharedExports = Object.freeze({
+  ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+  "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
+  "./compression": { types: "./dist/compression.d.ts", import: "./dist/compression.js" },
+});
+const sharedArtifactBindings = new WeakSet();
 export const digest = bytes => createHash("sha256").update(bytes).digest("hex");
 export const contained = (root, filename) => {
   const local = relative(root, filename);
@@ -37,7 +46,10 @@ export function cleanEnvironment(directory) {
 }
 
 export function assertArchiveDependencyContract(manifest) {
-  if (Object.keys(manifest.dependencies ?? {}).length) assert.deepEqual(manifest.dependencies, Object.fromEntries(Object.entries(approvedDependencies).map(([name, entry]) => [name, entry.version])), "unapproved runtime dependency contract");
+  if (Object.keys(manifest.dependencies ?? {}).length) assert.deepEqual(manifest.dependencies, {
+    ...Object.fromEntries(Object.entries(approvedDependencies).map(([name, entry]) => [name, entry.version])),
+    ...(Object.hasOwn(manifest.dependencies, sharedName) ? { [sharedName]: "*" } : {}),
+  }, "unapproved runtime dependency contract");
   for (const key of ["optionalDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(manifest[key] ?? {}).length, 0, `runtime dependency: ${key}`);
   if (Object.keys(manifest.peerDependencies ?? {}).length === 0) {
     assert.equal(manifest.devDependencies?.["poe-code"], undefined, "canonical development peer requires its published peer contract");
@@ -58,14 +70,116 @@ export function assertArchiveDependencyLock(manifest, lock) {
   if (!Object.keys(manifest.dependencies ?? {}).length) return;
   assert.equal(lock?.lockfileVersion, 3, "dependency lock version");
   assert.deepEqual(lock.packages?.[packagePrefix]?.dependencies, manifest.dependencies, "dependency workspace lock drift");
+  if (Object.hasOwn(manifest.dependencies, sharedName)) {
+    assert.deepEqual(lock.packages["node_modules/" + sharedName], { resolved: sharedPrefix, link: true }, "shared archive workspace lock link");
+    const shared = lock.packages[sharedPrefix];
+    assert.equal(shared?.name, sharedName, "shared archive workspace lock identity");
+    assert.equal(shared.version, "0.0.1", "shared archive workspace lock version");
+    assert.deepEqual(shared.dependencies, { pako: "3.0.1" }, "shared archive workspace dependency closure");
+    for (const field of ["optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(shared[field] ?? {}).length, 0, "shared archive workspace dependency closure");
+    for (const prefix of [packagePrefix, "packages", sharedPrefix]) assert.equal(lock.packages[prefix + "/node_modules/" + sharedName], undefined, "shared archive shadowed workspace");
+  }
   for (const [name, approved] of Object.entries(approvedDependencies)) {
     const entry = lock.packages[`node_modules/${name}`];
     assert.ok(entry, `missing dependency lock: ${name}`);
     for (const field of ["version", "resolved", "integrity"]) assert.equal(entry[field], approved[field], `dependency lock ${field}: ${name}`);
     for (const field of ["dependencies", "optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(entry[field] ?? {}).length, 0, `transitive dependency ${field}: ${name}`);
     assert.ok(entry.link === undefined && entry.hasInstallScript !== true, `dependency link or install script: ${name}`);
-    for (const prefix of [packagePrefix, "packages"]) assert.equal(lock.packages[`${prefix}/node_modules/${name}`], undefined, `shadowed dependency lock: ${name}`);
+    for (const prefix of [packagePrefix, "packages", ...(Object.hasOwn(manifest.dependencies, sharedName) ? [sharedPrefix] : [])]) assert.equal(lock.packages[`${prefix}/node_modules/${name}`], undefined, `shadowed dependency lock: ${name}`);
   }
+}
+
+export function captureSharedArchiveSources(repository, fileSystem) {
+  assertCanonicalRoot(repository, fileSystem);
+  return new Map(sharedPaths.map(path => [path, Buffer.from(readRegularInput(repository, path, 300000, fileSystem))]));
+}
+
+function sharedSourceInputs(candidate) {
+  assert.ok(candidate.files instanceof Map, "shared archive captured sources are required");
+  const files = new Map();
+  for (const path of sharedPaths) {
+    const bytes = candidate.files.get(path);
+    assert.ok(Buffer.isBuffer(bytes) && bytes.length <= 300000, "shared archive missing or excessive source: " + path);
+    files.set(path, Buffer.from(bytes));
+  }
+  const metadata = JSON.parse(files.get(sharedPrefix + "/package.json"));
+  assert.equal(metadata.name, sharedName, "shared archive package identity");
+  assert.equal(metadata.version, "0.0.1", "shared archive package version");
+  assert.equal(metadata.type, "module", "shared archive module type");
+  assert.equal(metadata.private, true, "shared archive private package");
+  assert.deepEqual(metadata.dependencies, { pako: "3.0.1" }, "shared archive dependency closure");
+  assert.deepEqual(metadata.exports, sharedExports, "shared archive exported files");
+  assert.deepEqual(metadata.files, ["dist", "LICENSE"], "shared archive packed files");
+  for (const field of ["optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(metadata[field] ?? {}).length, 0, "shared archive dependency closure");
+  for (const name of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall"]) assert.equal(metadata.scripts?.[name], undefined, "shared archive lifecycle");
+  assert.equal(candidate.lock.packages[sharedPrefix].version, metadata.version, "shared archive source/lock version");
+  const configuration = JSON.parse(files.get(sharedPrefix + "/tsconfig.json"));
+  assert.equal(configuration.extends, "../../tsconfig.json", "shared archive root configuration");
+  assert.deepEqual(configuration.include, ["src"], "shared archive source selection");
+  assert.deepEqual(configuration.exclude, ["**/*.test.ts"], "shared archive test exclusion");
+  assert.equal(configuration.compilerOptions.rootDir, "src", "shared archive source root");
+  assert.equal(configuration.compilerOptions.outDir, "dist", "shared archive output root");
+  for (const value of [configuration, JSON.parse(files.get("tsconfig.json"))]) {
+    assert.equal(value.references, undefined, "shared archive references are unsupported");
+    assert.equal(value.compilerOptions?.plugins, undefined, "shared archive compiler plugins are unsupported");
+  }
+  return { files, metadata };
+}
+
+function buildSharedArchive(candidate, tools, dependencies, captured) {
+  const compilerRoot = tools.packages.typescript;
+  const metadataBytes = readRegularInput(compilerRoot, "package.json", 100000);
+  const compilerMetadata = JSON.parse(metadataBytes);
+  assert.equal(compilerMetadata.name, "typescript", "shared archive compiler identity");
+  assert.equal(digest(metadataBytes), tools.identities.typescript.manifestSha256, "shared archive compiler metadata drift");
+  assert.equal(candidate.lock.packages["node_modules/typescript"]?.version, compilerMetadata.version, "shared archive compiler lock");
+  const ts = createRequire(join(compilerRoot, "package.json"))("./lib/typescript.js");
+  const base = "/shared-archive-build";
+  const root = base + "/" + sharedPrefix;
+  const inputs = new Map([...captured.files].map(([path, bytes]) => [base + "/" + path, bytes.toString("utf8")]));
+  for (const binding of dependencies) for (const file of binding.files) inputs.set(base + "/node_modules/" + binding.name + "/" + file.path, file.bytes.toString("utf8"));
+  const lib = base + "/compiler-lib";
+  const read = path => {
+    if (inputs.has(path)) return inputs.get(path);
+    if (dirname(path) !== lib || !basename(path).startsWith("lib.") || !path.endsWith(".d.ts")) return undefined;
+    return readRegularInput(compilerRoot, "lib/" + basename(path), 2 * 1024 * 1024).toString("utf8");
+  };
+  const exists = path => inputs.has(path) || dirname(path) === lib && basename(path).startsWith("lib.") && path.endsWith(".d.ts") && existsSync(join(compilerRoot, "lib", basename(path)));
+  const directories = new Set([base, lib]);
+  for (const path of inputs.keys()) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) directories.add(parent);
+  const parseHost = {
+    useCaseSensitiveFileNames: true, fileExists: exists, readFile: read,
+    readDirectory: directory => [...inputs.keys()].filter(path => path.startsWith(directory + "/src/") && path.endsWith(".ts")),
+  };
+  const config = ts.readConfigFile(root + "/tsconfig.json", read);
+  assert.equal(config.error, undefined, "shared archive compiler configuration");
+  const parsed = ts.parseJsonConfigFileContent(config.config, parseHost, root, undefined, root + "/tsconfig.json");
+  assert.equal(parsed.errors.length, 0, "shared archive compiler configuration errors");
+  assert.deepEqual(parsed.fileNames.sort(), sharedPaths.filter(path => path.startsWith(sharedPrefix + "/src/")).map(path => base + "/" + path).sort(), "shared archive compiler input selection");
+  assert.equal(parsed.options.outDir, root + "/dist", "shared archive compiler output containment");
+  const output = new Map([
+    ["package.json", Buffer.from(JSON.stringify(captured.metadata) + "\n")],
+    ["LICENSE", captured.files.get(sharedPrefix + "/LICENSE")],
+  ]);
+  const host = {
+    getSourceFile(path, language) { const source = read(path); return source === undefined ? undefined : ts.createSourceFile(path, source, language); },
+    getDefaultLibFileName: () => lib + "/lib.es2022.full.d.ts",
+    writeFile(path, contents) {
+      assert.ok(path.startsWith(root + "/dist/") && [".js", ".d.ts", ".map"].some(suffix => path.endsWith(suffix)), "shared archive emitted output");
+      assert.ok(Buffer.byteLength(contents) <= 2 * 1024 * 1024 && output.size < 64, "shared archive output budget");
+      output.set(path.slice(root.length + 1), Buffer.from(contents));
+    },
+    getCurrentDirectory: () => root, getDirectories: directory => [...directories].filter(path => dirname(path) === directory),
+    fileExists: exists, readFile: read, directoryExists: directory => directories.has(directory),
+    getCanonicalFileName: path => path, useCaseSensitiveFileNames: () => true, getNewLine: () => "\n",
+    realpath: path => path,
+  };
+  const program = ts.createProgram(parsed.fileNames, parsed.options, host);
+  const diagnostics = ts.getPreEmitDiagnostics(program);
+  assert.equal(diagnostics.length, 0, "shared archive compiler diagnostics: " + diagnostics.map(item => ts.flattenDiagnosticMessageText(item.messageText, "\n")).join("\n"));
+  assert.equal(program.emit().emitSkipped, false, "shared archive compilation skipped");
+  for (const entry of Object.values(sharedExports)) for (const target of Object.values(entry)) assert.ok(output.has(target.slice(2)), "shared archive missing export output");
+  return output;
 }
 
 export function mirrorArchiveExportTargets(target) {
@@ -87,6 +201,7 @@ export function mirrorArchiveExportTargets(target) {
 export async function prepareArchiveDependencies(candidate, tools, directory, { artifacts = {}, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync } } = {}) {
   assertArchiveDependencyLock(candidate.manifest, candidate.lock);
   const names = Object.keys(candidate.manifest.dependencies ?? {});
+  const shared = names.includes(sharedName) ? sharedSourceInputs(candidate) : undefined;
   assert.ok(Object.keys(artifacts).every(name => names.includes(name)), "unapproved dependency artifact");
   if (!names.length) return Object.freeze([]);
   assertCanonicalRoot(directory, fileSystem);
@@ -135,13 +250,54 @@ export async function prepareArchiveDependencies(candidate, tools, directory, { 
     const files = [...contents].map(([path, payload]) => Object.freeze({ path: path.slice("package/".length), bytes: payload, sha256: digest(payload) }));
     bindings.push(Object.freeze({ name, ...approved, tarball, tarballSha256, entries: Object.freeze(entries), files: Object.freeze(files) }));
   }
+  if (shared) {
+    assert.equal(artifacts[sharedName], undefined, "shared archive cannot use an external artifact");
+    const output = buildSharedArchive(candidate, tools, bindings, shared);
+    const chunks = [];
+    for (const [path, bytes] of [...output].sort(([left], [right]) => left.localeCompare(right))) {
+      const header = new tools.tar.Header({ path: "package/" + path, type: "File", mode: 0o644, uid: 0, gid: 0, size: bytes.length, mtime: new Date(0) });
+      assert.equal(header.encode(), false, "shared archive unexpectedly needs extended tar metadata");
+      chunks.push(header.block, bytes, Buffer.alloc((512 - bytes.length % 512) % 512));
+    }
+    chunks.push(Buffer.alloc(1024));
+    const bytes = Buffer.concat(chunks);
+    assert.ok(bytes.length <= 8 * 1024 * 1024, "shared archive artifact budget");
+    const tarball = join(ownedRoot, "office-package.tgz");
+    fileSystem.writeFileSync(tarball, bytes, { flag: "wx" });
+    const tarballSha256 = digest(bytes);
+    const contents = await readArchive(tools.tar, tarball, tarballSha256, path => assert.ok(output.has(path.slice("package/".length)), "shared archive unexpected packed path"), fileSystem);
+    assert.deepEqual([...contents.keys()].sort(), [...output.keys()].map(path => "package/" + path).sort(), "shared archive packed inventory");
+    for (const [path, payload] of output) assert.deepEqual(contents.get("package/" + path), payload, "shared archive packed bytes");
+    const sources = Object.freeze([...shared.files].map(([path, payload]) => Object.freeze({ path, sha256: digest(payload) })));
+    const files = Object.freeze([...output].map(([path, payload]) => Object.freeze({ path, bytes: Buffer.from(payload), sha256: digest(payload) })));
+    const binding = Object.freeze({
+      name: sharedName, version: "0.0.1", resolved: "workspace:" + sharedPrefix,
+      kind: "captured-workspace", sourceCommit: candidate.sourceCommit ?? null,
+      sources, sourceHash: digest(JSON.stringify(sources)), tarball, tarballSha256,
+      integrity: "sha512-" + createHash("sha512").update(bytes).digest("base64"),
+      entries: Object.freeze(Object.fromEntries(Object.entries(sharedExports).map(([route, entry]) => [sharedName + (route === "." ? "" : route.slice(1)), entry.import.slice(2)]))),
+      files,
+    });
+    sharedArtifactBindings.add(binding);
+    bindings.push(binding);
+  }
   return Object.freeze(bindings);
 }
 
 export function assertArchiveDependencyArtifacts(bindings, fileSystem) {
   for (const binding of bindings) {
-    assert.ok(Object.hasOwn(approvedDependencies, binding.name), "unapproved dependency binding");
-    for (const key of ["version", "resolved", "integrity"]) assert.equal(binding[key], approvedDependencies[binding.name][key], `dependency binding ${key}`);
+    if (binding.name === sharedName) {
+      assert.ok(sharedArtifactBindings.has(binding), "shared archive binding must originate from captured compilation");
+      assert.equal(binding.kind, "captured-workspace", "shared archive binding kind");
+      assert.equal(binding.version, "0.0.1", "shared archive binding version");
+      assert.equal(binding.resolved, "workspace:" + sharedPrefix, "shared archive binding origin");
+      assert.deepEqual(binding.sources.map(source => source.path), sharedPaths, "shared archive source inventory");
+      assert.equal(digest(JSON.stringify(binding.sources)), binding.sourceHash, "shared archive source identity");
+      assert.deepEqual(binding.entries, Object.fromEntries(Object.entries(sharedExports).map(([route, entry]) => [sharedName + (route === "." ? "" : route.slice(1)), entry.import.slice(2)])), "shared archive bound entrypoints");
+    } else {
+      assert.ok(Object.hasOwn(approvedDependencies, binding.name), "unapproved dependency binding");
+      for (const key of ["version", "resolved", "integrity"]) assert.equal(binding[key], approvedDependencies[binding.name][key], `dependency binding ${key}`);
+    }
     const stat = (fileSystem?.lstatSync ?? lstatSync)(binding.tarball);
     assert.ok(stat.isFile() && stat.nlink === 1, `dependency artifact must be regular single-link: ${binding.name}`);
     const bytes = readRegularInput(dirname(binding.tarball), basename(binding.tarball), 8 * 1024 * 1024, fileSystem);
@@ -294,7 +450,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   const admit = (path, maximum = 16 * 1024 * 1024) => {
     assertLiteralInputPath(path);
     if (path.startsWith(`${packagePrefix}/`)) assertAdmittedInputPath(path.slice(packagePrefix.length + 1), boundaries);
-    else assert.ok(["package.json", "package-lock.json", "scripts/guard-package-dist.mjs"].includes(path), `unadmitted root archive path: ${path}`);
+    else assert.ok(["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths].includes(path), `unadmitted root archive path: ${path}`);
     const entry = tree.get(path);
     assert.ok(entry, `missing committed input: ${path}`);
     assert.ok(entry.type === "blob" && ["100644", "100755"].includes(entry.mode), `not a regular committed input: ${path}`);
@@ -310,6 +466,12 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   admit("package.json", 300000);
   admit("package-lock.json");
   admit(`${packagePrefix}/README.md`);
+  if (tree.has(sharedPrefix + "/package.json")) {
+    for (const path of sharedPaths) admit(path, 300000);
+    for (const path of tree.keys()) if (path.startsWith(sharedPrefix + "/src/") && !path.endsWith(".test.ts")) {
+      assert.ok(sharedPaths.includes(path), "unreviewed shared archive source: " + path);
+    }
+  }
   const bootstrapCount = admitted.size;
   const withheldPaths = [];
   const heldCode = [];
@@ -372,6 +534,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       }
       assert.deepEqual(lock.packages["node_modules/virtual-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
       assertArchiveDependencyLock(manifest, lock);
+      if (Object.hasOwn(manifest.dependencies ?? {}, sharedName)) sharedSourceInputs({ files: bootstrap, lock });
     },
   });
   const blobReads = [...files.keys()];

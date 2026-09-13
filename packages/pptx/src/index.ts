@@ -16,4 +16,4 @@ export type {
   VfsPath,
   WriteOptions
 } from "./contracts.js";
-export { OfficeError, type ByteErrorCode } from "./errors.js";
+export { OfficeError, type ByteErrorCode, type OfficeErrorCode } from "./errors.js";

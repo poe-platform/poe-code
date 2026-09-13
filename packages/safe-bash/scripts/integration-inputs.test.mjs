@@ -2446,7 +2446,14 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   assert.equal(source.engines.node, ">=22");
   assert.equal(source.name, "virtual-bash");
   assert.equal(source.private, true);
-  assert.deepEqual(source.dependencies, { "@noble/hashes": "2.4.0", pako: "3.0.1" });
+  assert.deepEqual(source.dependencies, { "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" });
+  const archive = JSON.parse(readFileSync(new URL("../../office-package/package.json", import.meta.url), "utf8"));
+  assert.equal(archive.name, "@poe-code/office-package");
+  assert.deepEqual(archive.dependencies, { pako: "3.0.1" });
+  assert.equal(root.devDependencies["@poe-code/office-package"], "*");
+  assert.equal(root.dependencies.pako, "3.0.1");
+  assert.ok(root.files.includes("packages/office-package/dist"));
+  assert.ok(root.files.includes("packages/office-package/LICENSE"));
   assert.equal(root.dependencies["virtual-bash"], undefined);
   assert.equal(root.devDependencies["virtual-bash"], "*");
   assert.ok(root.files.includes("packages/safe-bash/dist"));

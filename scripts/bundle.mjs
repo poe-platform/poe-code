@@ -20,6 +20,7 @@ import {
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { setBinExecutable } from "./set-bin-executable.mjs";
 import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
+import { rewriteWorkspaceRuntime } from "./rewrite-workspace-runtime.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -251,6 +252,16 @@ await publishBundleOutputs(shellBundle, {
   workingDirectory: rootDir
 });
 consumerBuilds.push(shellBundle);
+
+const officePackage = packageJsons.find(({ dir }) => dir === "office-package");
+assert(officePackage, "Missing shared office package workspace");
+const officeRoutes = Object.fromEntries(
+  Object.entries(officePackage.pkg.exports).map(([key, value]) => [
+    officePackage.pkg.name + (key === "." ? "" : key.slice(1)),
+    path.resolve(packagesDir, officePackage.dir, value.import)
+  ])
+);
+await rewriteWorkspaceRuntime(path.join(packagesDir, "safe-bash/dist"), officeRoutes);
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
 // don't need @poe-code/* workspace deps at runtime.

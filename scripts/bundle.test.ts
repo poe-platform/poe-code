@@ -100,6 +100,12 @@ it.each([
         JSON.stringify({ name: `@poe-code/${name}` })
       );
     }
+    volume.mkdirSync(path.join(root, "packages/office-package/dist"), { recursive: true });
+    volume.writeFileSync(path.join(root, "packages/office-package/package.json"), JSON.stringify({
+      name: "@poe-code/office-package", exports: { "./zip": { import: "./dist/zip.js" } }
+    }));
+    volume.writeFileSync(path.join(root, "packages/office-package/dist/zip.js"), "export const crc = 1;");
+    volume.writeFileSync(path.join(root, "packages/safe-bash/dist/codec.js"), 'export { crc } from "@poe-code/office-package/zip";');
     addNativeFixture(root, volume);
     const files = createFsFromVolume(volume).promises;
     const build = vi.fn(async (options: BuildOptions) => {
@@ -169,6 +175,8 @@ it.each([
       expect(volume.existsSync(path.join(root, "dist/metafile.json"))).toBe(false);
     } else {
       await import("./bundle.mjs");
+      expect(volume.readFileSync(path.join(root, "packages/safe-bash/dist/codec.js"), "utf8"))
+        .toBe('export { crc } from "../../office-package/dist/zip.js";');
       for (const suffix of [".js", ".js.map", ".d.ts", ".d.ts.map"]) {
         expect(volume.existsSync(path.join(root, `dist/providers/retired${suffix}`))).toBe(false);
       }

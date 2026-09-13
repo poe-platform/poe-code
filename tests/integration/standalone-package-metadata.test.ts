@@ -271,10 +271,16 @@ describe("standalone package publish metadata", () => {
   it("declares portable byte dependencies for the root safe-bash entry", () => {
     const rootPackage = readPackageJson("package.json");
     const shellPackage = readPackageJson("packages/safe-bash/package.json");
-    for (const [name, version] of Object.entries(shellPackage.dependencies ?? {})) {
+    for (const [name, version] of Object.entries({ "@noble/hashes": "2.4.0", pako: "3.0.1" })) {
       expect(rootPackage.dependencies?.[name]).toBe(version);
     }
-    expect(shellPackage.dependencies).toEqual({ "@noble/hashes": "2.4.0", pako: "3.0.1" });
+    expect(shellPackage.dependencies).toEqual({
+      "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*"
+    });
+    expect(readPackageJson("packages/office-package/package.json").dependencies).toEqual({ pako: "3.0.1" });
+    expect(rootPackage.dependencies?.["@poe-code/office-package"]).toBeUndefined();
+    expect(rootPackage.files).toContain("packages/office-package/dist");
+    expect(rootPackage.files).toContain("packages/office-package/LICENSE");
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {

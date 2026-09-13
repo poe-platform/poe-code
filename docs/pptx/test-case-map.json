@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "status": "Complete source-row and unit-parameter accounting; original designs and adaptation tasks recorded; semantic adaptation partial; no product implementation",
-  "scope": "Research/provenance only. Reserved case IDs are obligations, not implemented tests or reviewed equivalence.",
+  "status": "Complete source-row and parameter accounting; 12 original byte-reader rows executed; remaining semantic adaptation and public API work pending",
+  "scope": "Research/provenance ledger. Passing targets are explicitly linked; reserved IDs and proposed designs remain obligations.",
   "authorities": ["../specs/pptx.md", "../specs/office-cli.md", "../specs/office-sdk.md"],
   "input_sha256": {
     "docs/specs/pptx.md": "33cba39addc63a343000bc5f2c2bbe7858fced4c9e857acb17e83b5bf8056b9d",
@@ -24,7 +24,7 @@
     "identity": "Source identities/expanded steps remain research only. Original test names, assets and assertions must not copy project identity.",
     "case_identity": "One stable SHA-256-derived neutral ID per full source identity. No parameter/example collapse.",
     "pending": "A reserved target ID with original_case null has a specific adaptation task and exact source contract but still requires an original semantic design. Proposed designs also require step-definition reconciliation; neither is an adapted or passing TypeScript case.",
-    "equivalence": "No architecture-only exemptions or source-row deletion. Reviewed designs can replace private mechanics with visible assertions; proposed designs and task-only rows remain unverified. No many-to-one source-row merger is approved.",
+    "equivalence": "No architecture-only exemptions or source-row deletion. Reviewed designs can replace private mechanics with visible assertions; proposed designs and task-only rows remain unverified. No many-to-one source-row merger is approved. The ZIP-reader receipt reviews the exact byte-reader mappings and authored shared assertions for 12 rows; no other merger is approved.",
     "evidence": "Only original passing TypeScript cases can close adaptation. Source passes, declaration counts, BDD counts and format coverage have separate denominators.",
     "fixtures": "Original in-memory fixtures and memfs only; no downloaded/cloned binaries, network, implicit host I/O or native runtime in the product."
   },
@@ -34,10 +34,10 @@
     "source_rows": 3673,
     "unit_without_prior_candidate": 875,
     "bdd_without_prior_candidate": 307,
-    "reviewed_original_designs": 167,
-    "semantic_review_required": 2611,
-    "implemented": 0,
-    "executed": 0,
+    "reviewed_original_designs": 179,
+    "semantic_review_required": 2599,
+    "implemented": 12,
+    "executed": 12,
     "shared_counterpart_obligations": 391,
     "api_records": 2407,
     "api_target_rows": 2424,
@@ -95347,10 +95347,20 @@
         "case_id": "presentation-unit-31e3517b988f",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "provides exact bytes, presence and absent-member errors"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-31e3517b988f.adapt",
           "title": "Specify the observable contract for presentation case 31e3517b988f",
@@ -95360,20 +95370,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded result/error and pre/post state distinction through original public-entry assertions, with the declared JS/security differences.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::DescribePackageReader::it_knows_whether_it_contains_a_partname",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-31e3517b988f",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::DescribePackageReader.it_knows_whether_it_contains_a_partname",
@@ -95415,10 +95430,20 @@
         "case_id": "presentation-unit-321d51a314e5",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "provides exact bytes, presence and absent-member errors"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-321d51a314e5.adapt",
           "title": "Specify the observable contract for presentation case 321d51a314e5",
@@ -95428,20 +95453,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded result/error and pre/post state distinction through original public-entry assertions, with the declared JS/security differences.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::DescribePackageReader::it_can_get_a_blob_by_partname",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-321d51a314e5",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::DescribePackageReader.it_can_get_a_blob_by_partname",
@@ -95479,10 +95509,20 @@
         "case_id": "presentation-unit-c449714c735a",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "returns relationship bytes or null without creating parts"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-c449714c735a.adapt",
           "title": "Specify the observable contract for presentation case c449714c735a",
@@ -95492,20 +95532,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded result/error and pre/post state distinction through original public-entry assertions, with the declared JS/security differences.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::DescribePackageReader::it_can_get_the_rels_xml_for_a_partname",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-c449714c735a",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::DescribePackageReader.it_can_get_the_rels_xml_for_a_partname",
@@ -95543,10 +95588,20 @@
         "case_id": "presentation-unit-d722248c746c",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "returns relationship bytes or null without creating parts"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-d722248c746c.adapt",
           "title": "Specify the observable contract for presentation case d722248c746c",
@@ -95556,20 +95611,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded result/error and pre/post state distinction through original public-entry assertions, with the declared JS/security differences.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::DescribePackageReader::but_it_returns_None_when_the_part_has_no_rels",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-d722248c746c",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::DescribePackageReader.but_it_returns_None_when_the_part_has_no_rels",
@@ -95607,10 +95667,20 @@
         "case_id": "presentation-unit-ba82e2a9572b",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "reads a memfs capability once and retains data across producer reuse"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-ba82e2a9572b.adapt",
           "title": "Specify the observable contract for presentation case ba82e2a9572b",
@@ -95623,20 +95693,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded assertion. Replace each recorded delegation expectation with an explicit owned-object, state, error or publication assertion; do not add a private helper solely to copy the mock topology.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and delegation expectations and the nonparameterized setup are retained in the behavior evidence. Delegation mechanics require an observable replacement for these particular calls; no architecture-only exemption is granted. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::DescribePackageReader::it_constructs_its_blob_reader_to_help",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-ba82e2a9572b",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::DescribePackageReader.it_constructs_its_blob_reader_to_help",
@@ -96027,10 +96102,20 @@
         "case_id": "presentation-unit-260ffed0138b",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "accepts a direct pull source and finishes it before returning"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-260ffed0138b.adapt",
           "title": "Specify the observable contract for presentation case 260ffed0138b",
@@ -96043,20 +96128,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded assertion. Replace each recorded delegation expectation with an explicit owned-object, state, error or publication assertion; do not add a private helper solely to copy the mock topology.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and delegation expectations and the nonparameterized setup are retained in the behavior evidence. Delegation mechanics require an observable replacement for these particular calls; no architecture-only exemption is granted. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::Describe_PhysPkgReader::it_constructs_ZipPkgReader_when_pkg_is_file_like",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-260ffed0138b",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::Describe_PhysPkgReader.it_constructs_ZipPkgReader_when_pkg_is_file_like",
@@ -96170,10 +96260,20 @@
         "case_id": "presentation-unit-26dc72c6d363",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "reads a memfs capability once and retains data across producer reuse"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-26dc72c6d363.adapt",
           "title": "Specify the observable contract for presentation case 26dc72c6d363",
@@ -96186,20 +96286,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded assertion. Replace each recorded delegation expectation with an explicit owned-object, state, error or publication assertion; do not add a private helper solely to copy the mock topology.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and delegation expectations and the nonparameterized setup are retained in the behavior evidence. Delegation mechanics require an observable replacement for these particular calls; no architecture-only exemption is granted. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::Describe_PhysPkgReader::and_it_constructs_ZipPkgReader_when_pkg_is_a_zip_file_path",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-26dc72c6d363",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::Describe_PhysPkgReader.and_it_constructs_ZipPkgReader_when_pkg_is_a_zip_file_path",
@@ -96243,10 +96348,20 @@
         "case_id": "presentation-unit-df5fad432b6c",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "rejects non-archives and implicit host paths"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-df5fad432b6c.adapt",
           "title": "Specify the observable contract for presentation case df5fad432b6c",
@@ -96256,20 +96371,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded result/error and pre/post state distinction through original public-entry assertions, with the declared JS/security differences.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and failure assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Explicit bytes/pull source or memfs VfsPath replaces ambient filesystem paths and Python file objects. Plain host path strings fail before I/O; the capability is invoked once and the admitted bytes survive source removal."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::Describe_PhysPkgReader::but_it_raises_when_pkg_path_is_not_a_package",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-df5fad432b6c",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::Describe_PhysPkgReader.but_it_raises_when_pkg_path_is_not_a_package",
@@ -96511,10 +96631,20 @@
         "case_id": "presentation-unit-d6ced90911ab",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "provides exact bytes, presence and absent-member errors"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-d6ced90911ab.adapt",
           "title": "Specify the observable contract for presentation case d6ced90911ab",
@@ -96524,20 +96654,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded result/error and pre/post state distinction through original public-entry assertions, with the declared JS/security differences.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::Describe_ZipPkgReader::it_knows_whether_it_contains_a_partname",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-d6ced90911ab",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::Describe_ZipPkgReader.it_knows_whether_it_contains_a_partname",
@@ -96579,10 +96714,20 @@
         "case_id": "presentation-unit-2cd2c92afa3e",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "provides exact bytes, presence and absent-member errors"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-2cd2c92afa3e.adapt",
           "title": "Specify the observable contract for presentation case 2cd2c92afa3e",
@@ -96592,20 +96737,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded result/error and pre/post state distinction through original public-entry assertions, with the declared JS/security differences.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::Describe_ZipPkgReader::it_can_get_a_blob_by_partname",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-2cd2c92afa3e",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::Describe_ZipPkgReader.it_can_get_a_blob_by_partname",
@@ -96643,10 +96793,20 @@
         "case_id": "presentation-unit-f1bfabd8e14d",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "provides exact bytes, presence and absent-member errors"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-f1bfabd8e14d.adapt",
           "title": "Specify the observable contract for presentation case f1bfabd8e14d",
@@ -96656,20 +96816,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded result/error and pre/post state distinction through original public-entry assertions, with the declared JS/security differences.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and failure assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Original four-member byte package; exact bytes and absent-member semantics replace fixture-specific asset hashes and mock/private delegation. Admission is eager and always async; no runtime class-topology promise."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::Describe_ZipPkgReader::but_it_raises_KeyError_when_requested_member_is_not_present",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-f1bfabd8e14d",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::Describe_ZipPkgReader.but_it_raises_KeyError_when_requested_member_is_not_present",
@@ -96712,10 +96877,20 @@
         "case_id": "presentation-unit-1a49f2877baa",
         "language": "TypeScript",
         "task_id": "upstream-package-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "tests": [
+            {
+              "file": "packages/pptx/src/package-reader.test.ts",
+              "name": "provides exact bytes, presence and absent-member errors"
+            }
+          ],
+          "arrange": "Original independently encoded in-memory ZIP members; explicit bounded byte context.",
+          "act": "Admit the full archive and query owned part bytes through the internal reader.",
+          "expected": "Eager validation replaces private lazy blob-cache access: enumeration is complete before return, every member CRC is checked, and future lookups need no input access. Original package has four authored members instead of 38 copied fixture assets."
+        },
+        "implemented_test_files": ["packages/pptx/src/package-reader.test.ts"],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-1a49f2877baa.adapt",
           "title": "Specify the observable contract for presentation case 1a49f2877baa",
@@ -96725,20 +96900,25 @@
           "parameter_policy": "Use precisely this row’s selected parameter binding; retain all boundary values and branches. The referenced fixture closure defines inputs and expected results, including transformations after parameter binding.",
           "assertion_policy": "Retain each recorded result/error and pre/post state distinction through original public-entry assertions, with the declared JS/security differences.",
           "fixture_policy": "original authored in-memory graph; see adaptation_rules.fixtures",
-          "completion": "Original arrange/action/expected design reviewed, target TypeScript case implemented, relevant maintained checks passed, evidence linked. No product implementation in this task."
+          "completion": "Original bounded byte-reader assertions executed with the maintained pptx tests; see scoped receipt for exact equivalence and remaining OPC/model obligations."
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_original_byte_behavior",
+        "rationale": "Eager validation replaces private lazy blob-cache access: enumeration is complete before return, every member CRC is checked, and future lookups need no input access. Original package has four authored members instead of 38 copied fixture assets."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No byte-reader gap for this mapped behavior. This does not implement public Presentation, OPC graphs or complete BDD scenarios.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1opc~1test_serialized.py::Describe_ZipPkgReader::it_loads_the_package_blobs_on_first_access_to_help",
-        "target_execution": null
+        "target_execution": {
+          "receipt": "zip-reader-evidence.json",
+          "case_id": "presentation-unit-1a49f2877baa",
+          "command": "npx vitest run packages/pptx",
+          "result": "passed"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1opc~1test_serialized.py::Describe_ZipPkgReader.it_loads_the_package_blobs_on_first_access_to_help",

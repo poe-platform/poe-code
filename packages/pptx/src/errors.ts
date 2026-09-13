@@ -7,11 +7,18 @@ export type ByteErrorCode =
   | "cancelled"
   | "io-failure";
 
+export type OfficeErrorCode =
+  | ByteErrorCode
+  | "invalid-archive"
+  | "invalid-opc"
+  | "unsafe-path"
+  | "missing-binding";
+
 export class OfficeError extends Error {
   override readonly name = "OfficeError";
 
   constructor(
-    readonly code: ByteErrorCode,
+    readonly code: OfficeErrorCode,
     message: string,
     readonly phase: Phase
   ) {

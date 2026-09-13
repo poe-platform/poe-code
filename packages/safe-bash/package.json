@@ -316,7 +316,8 @@
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",
-    "pako": "3.0.1"
+    "pako": "3.0.1",
+    "@poe-code/office-package": "*"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

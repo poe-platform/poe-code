@@ -255,7 +255,8 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
       }
       if (Object.keys(manifest.dependencies ?? {}).length) {
         const dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
-        assert.deepEqual(manifest.dependencies, dependencies, "portable dependency contract");
+        const sharedArchive = Object.hasOwn(manifest.dependencies, "@poe-code/office-package");
+        assert.deepEqual(manifest.dependencies, { ...dependencies, ...(sharedArchive ? { "@poe-code/office-package": "*" } : {}) }, "portable dependency contract");
         const dependencyBase = manifest.poeCode?.integration?.peerProfile === "checkout-root" ? resolve(root, "../..") : root;
         peerPaths ??= {};
         for (const [name, version] of Object.entries(dependencies)) {
@@ -269,6 +270,26 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           toolRoots.push(dependencyRoot);
           if (name === "pako") peerPaths[name] = [join(dependencyRoot, "dist/pako.d.ts")];
           else peerPaths[name + "/*"] = [join(dependencyRoot, "*")];
+        }
+        if (sharedArchive) {
+          const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
+          const dependencyRoot = checkout ? join(dependencyBase, "packages/office-package") : join(root, "node_modules/@poe-code/office-package");
+          const metadataPath = join(dependencyRoot, "package.json");
+          peerMetadata.add(metadataPath);
+          const dependency = JSON.parse(read(metadataPath, 64 * 1024));
+          assert.equal(dependency.name, "@poe-code/office-package", "shared archive dependency identity");
+          assert.equal(dependency.version, "0.0.1", "shared archive dependency version");
+          assert.deepEqual(dependency.dependencies, { pako: "3.0.1" }, "shared archive dependency closure");
+          const exports = {
+            ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+            "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
+            "./compression": { types: "./dist/compression.d.ts", import: "./dist/compression.js" },
+          };
+          assert.deepEqual(dependency.exports, exports, "shared archive declaration exports");
+          toolRoots.push(join(dependencyRoot, "dist"));
+          for (const [name, entry] of Object.entries(exports)) {
+            peerPaths["@poe-code/office-package" + (name === "." ? "" : name.slice(1))] = [resolve(dependencyRoot, entry.types)];
+          }
         }
       }
       return peerPaths;

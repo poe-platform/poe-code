@@ -96,6 +96,49 @@ for (const defect of ["none", "version", "name", "dependency", "link", "unapprov
   assert.equal(owned.descriptors.size, 0);
 });
 
+for (const defect of ["none", "version", "dependency", "export", "link", "source-import"]) test(`build shared archive declaration admission: ${defect}`, async () => {
+  const shared = "node_modules/@poe-code/office-package";
+  const metadata = {
+    name: "@poe-code/office-package", version: "0.0.1", type: "module",
+    dependencies: { pako: "3.0.1" },
+    exports: {
+      ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+      "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
+      "./compression": { types: "./dist/compression.d.ts", import: "./dist/compression.js" },
+    },
+  };
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", dependencies: { "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" } }),
+    "src/index.ts": 'export { archive } from "@poe-code/office-package/zip";',
+    "node_modules/@noble/hashes/package.json": JSON.stringify({ name: "@noble/hashes", version: "2.4.0" }),
+    "node_modules/pako/package.json": JSON.stringify({ name: "pako", version: "3.0.1" }),
+    [shared + "/package.json"]: JSON.stringify(metadata),
+    [shared + "/dist/index.d.ts"]: 'export { archive } from "./zip.js";',
+    [shared + "/dist/zip.d.ts"]: "export declare const archive: number;",
+    [shared + "/dist/compression.d.ts"]: "export declare const compression: number;",
+    [shared + "/src/private.d.ts"]: "export declare const hidden: number;",
+  });
+  if (defect === "version") metadata.version = "0.0.2";
+  if (defect === "dependency") metadata.dependencies.extra = "1.0.0";
+  if (defect === "export") metadata.exports["./zip"].types = "./src/private.d.ts";
+  if (["version", "dependency", "export"].includes(defect)) {
+    owned.memory.writeFileSync(root + "/" + shared + "/package.json", JSON.stringify(metadata));
+    await assert.rejects(owned.run(), /shared archive/);
+  } else if (defect === "link") {
+    owned.memory.unlinkSync(root + "/" + shared + "/dist/zip.d.ts");
+    owned.memory.symlinkSync(root + "/" + shared + "/src/private.d.ts", root + "/" + shared + "/dist/zip.d.ts");
+    await assert.rejects(owned.run(), /symlink/);
+  } else if (defect === "source-import") {
+    owned.memory.writeFileSync(root + "/" + shared + "/dist/zip.d.ts", 'export { hidden } from "../src/private.js";');
+    assert.notEqual((await owned.run()).status, 0);
+    assert.equal(owned.reads.some(path => path.endsWith("/src/private.d.ts")), false);
+  } else {
+    assert.equal((await owned.run()).status, 0, owned.output.join(""));
+    assert.ok(owned.reads.includes(root + "/" + shared + "/dist/zip.d.ts"));
+  }
+  assert.equal(owned.descriptors.size, 0);
+});
+
 for (const defect of ["none", "declaration", "runtime"]) test(`build portable SafeFS declaration admission: ${defect}`, async () => {
   const owned = fixture({
     "package.json": JSON.stringify({ name: "virtual-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } }),

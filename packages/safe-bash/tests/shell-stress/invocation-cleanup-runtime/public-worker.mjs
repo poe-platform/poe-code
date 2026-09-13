@@ -29,7 +29,13 @@ const event = (name, detail = {}) => { const recorded = { sequence: ++sequence, 
 assert.equal(digest(readFileSync(fileURLToPath(import.meta.url))), manifest.probeHash);
 assert.equal(digest(readFileSync(join(snapshot, "package.json"))), manifest.packageHash);
 const packageManifest = JSON.parse(readFileSync(join(snapshot, "package.json"), "utf8"));
-assert.deepEqual(Object.fromEntries(manifest.runtimeDependencies.map(dependency => [dependency.name, dependency.version])), packageManifest.dependencies ?? {});
+assert.deepEqual(Object.fromEntries(manifest.runtimeDependencies.map(dependency => {
+  if (dependency.name === "@poe-code/office-package") {
+    assert.equal(dependency.version, JSON.parse(readFileSync(join(snapshot, `node_modules/${dependency.name}/package.json`), "utf8")).version);
+    return [dependency.name, "*"];
+  }
+  return [dependency.name, dependency.version];
+})), packageManifest.dependencies ?? {});
 const publicEntry = realpathSync(join(snapshot, packageManifest.exports["."].import));
 assert.equal(publicEntry, join(snapshot, "dist/index.js"));
 
@@ -69,9 +75,12 @@ function runtimeResolution(specifier, context, nextResolve) {
     assert.ok(parent, "Dependency import must have an admitted parent");
     emitted(join(snapshot, parent));
     if (fromDependency) {
-      assert.equal(fromDependency, dependency, "Dependency runtime must not escape its package");
-      assert.ok(specifier.startsWith("./") || specifier.startsWith("../"), "Dependency runtime requires relative internal edges");
-      assert.equal(target.path, posix.normalize(posix.join(posix.dirname(parent), specifier)), `Uncaptured dependency runtime edge: ${specifier}`);
+      const sharedCompression = fromDependency.name === "@poe-code/office-package" && parent === "node_modules/@poe-code/office-package/dist/compression.js" && dependency.name === "pako" && specifier === "pako" && target.path === dependency.entries.pako;
+      if (!sharedCompression) {
+        assert.equal(fromDependency, dependency, "Dependency runtime must not escape its package");
+        assert.ok(specifier.startsWith("./") || specifier.startsWith("../"), "Dependency runtime requires relative internal edges");
+        assert.equal(target.path, posix.normalize(posix.join(posix.dirname(parent), specifier)), `Uncaptured dependency runtime edge: ${specifier}`);
+      }
     } else {
       assert.ok(parent.startsWith("dist/"), "Dependency public import must originate in admitted shell output");
       assert.equal(dependency.entries[specifier], target.path, `Unadmitted dependency public route: ${specifier}`);

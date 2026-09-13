@@ -13,8 +13,16 @@ import { assertArchiveDependencies, assertArchiveDependencyArtifacts, assertCano
 const fixtureRoot = dirname(fileURLToPath(import.meta.url));
 const actualRepository = resolve(authority, "../..");
 
-export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, fileSystem = { readdirSync, lstatSync, readFileSync } } = {}) {
+export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, dependencies = [], fileSystem = { readdirSync, lstatSync, readFileSync } } = {}) {
   const expected = new Map([...committedFiles].map(([path, bytes]) => [path, digest(bytes)]));
+  assertArchiveDependencyArtifacts(dependencies, fileSystem);
+  for (const dependency of dependencies) if (dependency.name === "@poe-code/office-package") {
+    for (const { path, sha256 } of dependency.files) if (path.startsWith("dist/") && path.endsWith(".d.ts")) {
+      const destination = "packages/office-package/" + path;
+      assert.ok(!expected.has(destination), "shared archive declaration conflicts with committed input");
+      expected.set(destination, sha256);
+    }
+  }
   for (const { path, sha256 } of peer?.files ?? []) {
     assertLiteralInputPath(path);
     for (const destination of [path, `${packagePrefix}/node_modules/poe-code/${path}`]) {
@@ -54,6 +62,7 @@ export function committedPeerImports(committedFiles, compiler) {
 }
 
 export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts, fileSystem, dependencies = []) {
+  assertArchiveDependencyArtifacts(dependencies, fileSystem);
   const facts = Object.hasOwn(peer, "profile") ? capturePeerRuntimeFacts(peer, consumer) : undefined;
   const binding = { files: {}, metadata: ["node_modules/virtual-bash/package.json", "node_modules/poe-code/package.json"], entries: {
     "virtual-bash": "node_modules/virtual-bash/dist/index.js", "virtual-bash/fs/s3/http": "node_modules/virtual-bash/dist/fs/s3/http/index.js",
@@ -108,7 +117,10 @@ export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts
       if (local.startsWith("node_modules/poe-code/")) assert.ok(target.startsWith("node_modules/poe-code/"), "Canonical peer dependency escaped its package");
       for (const dependency of dependencies) {
         const prefix = `node_modules/${dependency.name}/`;
-        if (local.startsWith(prefix)) assert.ok(target.startsWith(prefix), "Runtime dependency escaped its authenticated package");
+        if (local.startsWith(prefix)) {
+          const sharedCompression = dependency.name === "@poe-code/office-package" && local === prefix + "dist/compression.js" && specifier === "pako" && target === dependencyEntries.pako;
+          assert.ok(target.startsWith(prefix) || sharedCompression, "Runtime dependency escaped its authenticated package");
+        }
       }
       if (Object.hasOwn(dependencyEntries, specifier)) binding.entries[specifier] = target;
       edges[specifier] = target; pending.push(target);
@@ -194,8 +206,15 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       writeFileSync(join(snapshotRoot, path), bytes);
     }
     stageArchiveDependencies(dependencies, snapshotRoot);
+    for (const dependency of dependencies) if (dependency.name === "@poe-code/office-package") {
+      for (const { path, bytes } of dependency.files) if (path.startsWith("dist/") && path.endsWith(".d.ts")) {
+        const destination = join(snapshotRoot, "packages/office-package", path);
+        mkdirSync(dirname(destination), { recursive: true });
+        writeFileSync(destination, bytes, { flag: "wx" });
+      }
+    }
     const assertSnapshot = stagedPeer => {
-      assertSnapshotInputs(snapshotRoot, candidate.files, { peer: stagedPeer });
+      assertSnapshotInputs(snapshotRoot, candidate.files, { peer: stagedPeer, dependencies });
       assertArchiveDependencies(dependencies, snapshotRoot);
       assert.equal(digest(readRegularInput(tempRoot, "committed-source.tar", 128 * 1024 * 1024)), report.archive.sha256);
     };

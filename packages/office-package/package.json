@@ -1,5 +1,5 @@
 {
-  "name": "pptx",
+  "name": "@poe-code/office-package",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -11,9 +11,13 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./bytes": {
-      "types": "./dist/bytes.d.ts",
-      "import": "./dist/bytes.js"
+    "./zip": {
+      "types": "./dist/zip.d.ts",
+      "import": "./dist/zip.js"
+    },
+    "./compression": {
+      "types": "./dist/compression.d.ts",
+      "import": "./dist/compression.js"
     }
   },
   "files": [
@@ -22,16 +26,16 @@
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run packages/pptx",
-    "test:unit": "cd ../.. && vitest run packages/pptx",
+    "test": "cd ../.. && vitest run packages/office-package",
+    "test:unit": "cd ../.. && vitest run packages/office-package",
     "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "pako": "3.0.1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/pptx"
-  },
-  "dependencies": {
-    "@poe-code/office-package": "*"
+    "directory": "packages/office-package"
   }
 }

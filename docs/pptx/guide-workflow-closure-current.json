@@ -1,0 +1,3067 @@
+{
+  "schema_version": 1,
+  "status": "partial-original-execution-not-full-guide-parity",
+  "source": "workflow-example-accounting.json#/guide_rows",
+  "denominator": {
+    "topics": 15,
+    "headings": 83,
+    "snippets": 74,
+    "rows": 157
+  },
+  "counts": {
+    "partial-original-sdk-equivalent-executed": 137,
+    "contextual-reviewed-no-runtime-equivalent": 10,
+    "unsupported-public-owner-graph": 9,
+    "original-sdk-and-cli-bounded-equivalent-executed": 1
+  },
+  "new_test_cases": 11,
+  "isolated_namespace_regression_cases": 4,
+  "full_coverage": false,
+  "language_security_mappings": "guide-workflows-current.md#exact-mappings-and-remaining-gaps",
+  "rows": [
+    {
+      "id": "guide-0-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0/headings/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 2,
+      "heading": "Working with AutoShapes",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0/headings/1",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 15,
+      "heading": "Adding an auto shape",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0/headings/2",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 35,
+      "heading": "Understanding English Metric Units",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0/headings/3",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 71,
+      "heading": "Shape position and dimensions",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-4",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0/headings/4",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 92,
+      "heading": "Fill",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-5",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0/headings/5",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 143,
+      "heading": "Line",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-6",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0/headings/6",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 173,
+      "heading": "Line width",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-7",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0/headings/7",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 187,
+      "heading": "Adjusting an autoshape",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-8",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0/headings/8",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 196,
+      "heading": "Shape Adjustment Concepts",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-19",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 21,
+      "source_end_line": 28,
+      "snippet_sha256": "b3d0ad3674960554bfdcbb21ddeb1cff1a1200bd8f33a7f252d53f3ffebebe11",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-51",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 53,
+      "source_end_line": 66,
+      "snippet_sha256": "22bff82dfcfd7b832f538902851813b707fc4b7fa721c207b71453f73beb3a81",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-76",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 78,
+      "source_end_line": 91,
+      "snippet_sha256": "d0bfb700c53e35747ebbf47b5acd96739b0858f131bc90b60095b9495506687d",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-106",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 108,
+      "source_end_line": 111,
+      "snippet_sha256": "17f50065b27851fac511290fd61567db0a92b8588868967a42e87de37e96c2e3",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-113",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 115,
+      "source_end_line": 120,
+      "snippet_sha256": "06a3be179b16de5cca8c136641779fbb72812c37389e4715fec9c362d8bed683",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-122",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 124,
+      "source_end_line": 125,
+      "snippet_sha256": "7d98e63df7d5b781af6a718bfd5a432d8089945777f01929350f8879254e27a2",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-130",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 132,
+      "source_end_line": 142,
+      "snippet_sha256": "a6d408550963fdc1930888bd3beed618b6fc6bd56e1e46f3915136ecf2e5257b",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-149",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 151,
+      "source_end_line": 155,
+      "snippet_sha256": "d491916f0f776040e3f9d22fae13837b1461bd3db11b2c5bd40abc4332c2a549",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-156",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 158,
+      "source_end_line": 159,
+      "snippet_sha256": "00d7420d0bcd807afe8a17f8f52cfa9db109b7ebdccc1f6add98f835321711a1",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-161",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 163,
+      "source_end_line": 165,
+      "snippet_sha256": "60941c7b4d2927e428f1554d6e49df5b67820ee0bc1778f9696bbd18fda62017",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-168",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 170,
+      "source_end_line": 172,
+      "snippet_sha256": "2faf6e77335fb0d5adb0deaa7b221cd472830691cecbae4a88db21e9fc9b4586",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-176",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 178,
+      "source_end_line": 186,
+      "snippet_sha256": "5346e80d067866ff182d0e254ffb10bff94decec3ca4c6df92d0864c84dda0fb",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-0-snippet-230",
+      "source": "upstream-api-inventory.json#/user_guide_topics/0",
+      "source_file": "docs/user/autoshapes.rst",
+      "source_line": 232,
+      "source_end_line": 247,
+      "snippet_sha256": "1e6b78d5acf9eca02a975b913a07a24b89e5c47f84342d1390ede442c416a223",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats preset geometry, themed fills, lines and callout adjustments with explicit units",
+      "cli_route_candidates": [
+        "drawing set",
+        "shapes add",
+        "shapes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-1-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/0",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 2,
+      "heading": "Working with charts",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 9,
+      "heading": "Adding a chart",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/2",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 39,
+      "heading": "Customizing things a bit",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/3",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 72,
+      "heading": "XY and Bubble charts",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-4",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/4",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 125,
+      "heading": "Axes",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-5",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/5",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 156,
+      "heading": "Data Labels",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-6",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/6",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 189,
+      "heading": "Legend",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-7",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/7",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 206,
+      "heading": "Line Chart",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-8",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/8",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 234,
+      "heading": "Pie Chart",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-9",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/9",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 260,
+      "heading": "Odds & Ends",
+      "kind": "heading",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-10",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1/headings/10",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 268,
+      "heading": "About colors",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-snippet-12",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 14,
+      "source_end_line": 35,
+      "snippet_sha256": "8bfea433732dbbfaa709b3c6a715e71e7fdd611afc493df0d1401903dc56cfc4",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-snippet-45",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 47,
+      "source_end_line": 58,
+      "snippet_sha256": "5b3714bd0f54e0d5b2ebde073201d4b52600a92fc33a65dacea0f3d1c7832815",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-snippet-88",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 90,
+      "source_end_line": 105,
+      "snippet_sha256": "9e51b022721443c3b0f0956f2f3b8baf77d51860800f7487db3ac046384513e1",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-snippet-108",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 110,
+      "source_end_line": 120,
+      "snippet_sha256": "ccdacfad50d18d7ef84fab2396654f0166e95b53b0a15a18c6a53ae092dd8105",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-snippet-128",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 130,
+      "source_end_line": 148,
+      "snippet_sha256": "3a90b6f0fcb5a865423f7fb3ff7c6e71ec98d530e0d0f59dd5beefae6849a649",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-snippet-160",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 162,
+      "source_end_line": 172,
+      "snippet_sha256": "c43e17e076d956c85ecbe33775a1a8191733c1eeed5d907219df8d466a2dfa18",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-snippet-193",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 195,
+      "source_end_line": 200,
+      "snippet_sha256": "c17eaed57bc88acec343f8065bfb8b5c3664bc719695b2d94d494528129e14e3",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-snippet-210",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 212,
+      "source_end_line": 226,
+      "snippet_sha256": "5c0e8509462fd8f3cd59d666b456872aff12cfb5ab7fd8c996000d129251b141",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-1-snippet-238",
+      "source": "upstream-api-inventory.json#/user_guide_topics/1",
+      "source_file": "docs/user/charts.rst",
+      "source_line": 240,
+      "source_end_line": 256,
+      "snippet_sha256": "57e5c6664f9bad3b86c436189aec99589839d9ef065871ba8a677d89759f2cde",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors category chart / authors independent XY and bubble series through public builders",
+      "cli_route_candidates": [
+        "charts add",
+        "charts set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live SlideShapes.add_chart now exercised with category/XY/bubble builders, labels, axes, legend and LINE smoothing. Exact multi-series/per-guide formatting and CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2/headings/0",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 1,
+      "heading": "Concepts",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2/headings/1",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 33,
+      "heading": "Slide masters",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2/headings/2",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 57,
+      "heading": "Slide layouts",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2/headings/3",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 73,
+      "heading": "Slides",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-4",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2/headings/4",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 83,
+      "heading": "Adding a slide",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-snippet-11",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 13,
+      "source_end_line": 17,
+      "snippet_sha256": "0b6ef6331431a191344024c7e2cd136885dbff16d2d1ffdd2e5f56c5bbe6b914",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-snippet-21",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 23,
+      "source_end_line": 25,
+      "snippet_sha256": "de303ffc1d4cc8a6d283f8a9d9a45e5b2a0f3b66ef337f4283301697f3266d0e",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-snippet-49",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 51,
+      "source_end_line": 56,
+      "snippet_sha256": "120de8c8c4825ba176a4ed297f52370701dbdeb8a123f15f3a357114b934c39c",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-snippet-65",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 67,
+      "source_end_line": 72,
+      "snippet_sha256": "71a675b883f8906e65aa7e9cf1061c77f4bdc471feafe6016430abacb2c5bb71",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-snippet-77",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 79,
+      "source_end_line": 82,
+      "snippet_sha256": "c3ff2b0887119b8c9eb2f9db6fb5f1d85cc23ac0273e25339d8c6e6f55c47620",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-2-snippet-88",
+      "source": "upstream-api-inventory.json#/user_guide_topics/2",
+      "source_file": "docs/user/concepts.rst",
+      "source_line": 90,
+      "source_end_line": 92,
+      "snippet_sha256": "d146f7b37fdb7af2d8a0d7017aca69bf809efdcbebd6c0d2320722bc26cb9d74",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "masters list",
+        "layouts list",
+        "layouts add",
+        "slides add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-3-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/3/headings/0",
+      "source_file": "docs/user/install.rst",
+      "source_line": 3,
+      "heading": "Installing",
+      "kind": "heading",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": null,
+      "original_test_case": null,
+      "cli_route_candidates": [],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Contextual installation, legal, or use-case prose; not counted as executable parity."
+    },
+    {
+      "id": "guide-3-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/3/headings/1",
+      "source_file": "docs/user/install.rst",
+      "source_line": 19,
+      "heading": "Dependencies",
+      "kind": "heading",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": null,
+      "original_test_case": null,
+      "cli_route_candidates": [],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Contextual installation, legal, or use-case prose; not counted as executable parity."
+    },
+    {
+      "id": "guide-3-snippet-6",
+      "source": "upstream-api-inventory.json#/user_guide_topics/3",
+      "source_file": "docs/user/install.rst",
+      "source_line": 8,
+      "source_end_line": 9,
+      "snippet_sha256": "35342b8cd6a40d4c4739c4007eb8e02a3bf26329175b99eec4e4b54dc62f9ca5",
+      "kind": "snippet",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": null,
+      "original_test_case": null,
+      "cli_route_candidates": [],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Contextual installation, legal, or use-case prose; not counted as executable parity."
+    },
+    {
+      "id": "guide-4-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/4/headings/0",
+      "source_file": "docs/user/intro.rst",
+      "source_line": 3,
+      "heading": "Introduction",
+      "kind": "heading",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": null,
+      "original_test_case": null,
+      "cli_route_candidates": [],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Contextual installation, legal, or use-case prose; not counted as executable parity."
+    },
+    {
+      "id": "guide-4-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/4/headings/1",
+      "source_file": "docs/user/intro.rst",
+      "source_line": 22,
+      "heading": "python-pptx License",
+      "kind": "heading",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": null,
+      "original_test_case": null,
+      "cli_route_candidates": [],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Contextual installation, legal, or use-case prose; not counted as executable parity."
+    },
+    {
+      "id": "guide-5-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/5/headings/0",
+      "source_file": "docs/user/notes.rst",
+      "source_line": 2,
+      "heading": "Working with Notes Slides",
+      "kind": "heading",
+      "current_status": "unsupported-public-owner-graph",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "runs SDK-backed command creation, replacement, table merge and speaker-note workflows in memory",
+      "cli_route_candidates": [
+        "notes list",
+        "notes add",
+        "notes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Slide.has_notes_slide, notes_slide, notes_text_frame, notes_placeholder and notes shape/placeholder owners are absent; explicit notes command is a narrower equivalent."
+    },
+    {
+      "id": "guide-5-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/5/headings/1",
+      "source_file": "docs/user/notes.rst",
+      "source_line": 28,
+      "heading": "The Notes Master",
+      "kind": "heading",
+      "current_status": "unsupported-public-owner-graph",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "runs SDK-backed command creation, replacement, table merge and speaker-note workflows in memory",
+      "cli_route_candidates": [
+        "notes list",
+        "notes add",
+        "notes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Slide.has_notes_slide, notes_slide, notes_text_frame, notes_placeholder and notes shape/placeholder owners are absent; explicit notes command is a narrower equivalent."
+    },
+    {
+      "id": "guide-5-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/5/headings/2",
+      "source_file": "docs/user/notes.rst",
+      "source_line": 55,
+      "heading": "Notes Slide basics",
+      "kind": "heading",
+      "current_status": "unsupported-public-owner-graph",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "runs SDK-backed command creation, replacement, table merge and speaker-note workflows in memory",
+      "cli_route_candidates": [
+        "notes list",
+        "notes add",
+        "notes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Slide.has_notes_slide, notes_slide, notes_text_frame, notes_placeholder and notes shape/placeholder owners are absent; explicit notes command is a narrower equivalent."
+    },
+    {
+      "id": "guide-5-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/5/headings/3",
+      "source_file": "docs/user/notes.rst",
+      "source_line": 95,
+      "heading": "Notes Slide Placeholders",
+      "kind": "heading",
+      "current_status": "unsupported-public-owner-graph",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "runs SDK-backed command creation, replacement, table merge and speaker-note workflows in memory",
+      "cli_route_candidates": [
+        "notes list",
+        "notes add",
+        "notes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Slide.has_notes_slide, notes_slide, notes_text_frame, notes_placeholder and notes shape/placeholder owners are absent; explicit notes command is a narrower equivalent."
+    },
+    {
+      "id": "guide-5-snippet-59",
+      "source": "upstream-api-inventory.json#/user_guide_topics/5",
+      "source_file": "docs/user/notes.rst",
+      "source_line": 61,
+      "source_end_line": 63,
+      "snippet_sha256": "22ae47fea4788a79f23e9049acde3c3da936dfba197c19180dab51963143d6a6",
+      "kind": "snippet",
+      "current_status": "unsupported-public-owner-graph",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "runs SDK-backed command creation, replacement, table merge and speaker-note workflows in memory",
+      "cli_route_candidates": [
+        "notes list",
+        "notes add",
+        "notes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Slide.has_notes_slide, notes_slide, notes_text_frame, notes_placeholder and notes shape/placeholder owners are absent; explicit notes command is a narrower equivalent."
+    },
+    {
+      "id": "guide-5-snippet-64",
+      "source": "upstream-api-inventory.json#/user_guide_topics/5",
+      "source_file": "docs/user/notes.rst",
+      "source_line": 66,
+      "source_end_line": 69,
+      "snippet_sha256": "36e9978cfd4f7a262f38e7c7267974c60993a5337787abf20b44955d4a3a4c6c",
+      "kind": "snippet",
+      "current_status": "unsupported-public-owner-graph",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "runs SDK-backed command creation, replacement, table merge and speaker-note workflows in memory",
+      "cli_route_candidates": [
+        "notes list",
+        "notes add",
+        "notes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Slide.has_notes_slide, notes_slide, notes_text_frame, notes_placeholder and notes shape/placeholder owners are absent; explicit notes command is a narrower equivalent."
+    },
+    {
+      "id": "guide-5-snippet-99",
+      "source": "upstream-api-inventory.json#/user_guide_topics/5",
+      "source_file": "docs/user/notes.rst",
+      "source_line": 101,
+      "source_end_line": 102,
+      "snippet_sha256": "19d05d5a8927321546eeec59b4c62b92a3ad32ea65b7c67e702bf1e5a54b2581",
+      "kind": "snippet",
+      "current_status": "unsupported-public-owner-graph",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "runs SDK-backed command creation, replacement, table merge and speaker-note workflows in memory",
+      "cli_route_candidates": [
+        "notes list",
+        "notes add",
+        "notes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Slide.has_notes_slide, notes_slide, notes_text_frame, notes_placeholder and notes shape/placeholder owners are absent; explicit notes command is a narrower equivalent."
+    },
+    {
+      "id": "guide-5-snippet-107",
+      "source": "upstream-api-inventory.json#/user_guide_topics/5",
+      "source_file": "docs/user/notes.rst",
+      "source_line": 109,
+      "source_end_line": 115,
+      "snippet_sha256": "e853af948eb842fea749d18d523254a01398d851619f11b9974a728810c5fb62",
+      "kind": "snippet",
+      "current_status": "unsupported-public-owner-graph",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "runs SDK-backed command creation, replacement, table merge and speaker-note workflows in memory",
+      "cli_route_candidates": [
+        "notes list",
+        "notes add",
+        "notes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Slide.has_notes_slide, notes_slide, notes_text_frame, notes_placeholder and notes shape/placeholder owners are absent; explicit notes command is a narrower equivalent."
+    },
+    {
+      "id": "guide-5-snippet-116",
+      "source": "upstream-api-inventory.json#/user_guide_topics/5",
+      "source_file": "docs/user/notes.rst",
+      "source_line": 118,
+      "source_end_line": 124,
+      "snippet_sha256": "f5a00b4d9b177b80e75ff54fe37625140b1ab065936063622f7e145b6645b311",
+      "kind": "snippet",
+      "current_status": "unsupported-public-owner-graph",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "runs SDK-backed command creation, replacement, table merge and speaker-note workflows in memory",
+      "cli_route_candidates": [
+        "notes list",
+        "notes add",
+        "notes set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Slide.has_notes_slide, notes_slide, notes_text_frame, notes_placeholder and notes shape/placeholder owners are absent; explicit notes command is a narrower equivalent."
+    },
+    {
+      "id": "guide-6-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/6/headings/0",
+      "source_file": "docs/user/placeholders-understanding.rst",
+      "source_line": 2,
+      "heading": "Understanding placeholders",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-6-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/6/headings/1",
+      "source_file": "docs/user/placeholders-understanding.rst",
+      "source_line": 20,
+      "heading": "A placeholder is a shape",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-6-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/6/headings/2",
+      "source_file": "docs/user/placeholders-understanding.rst",
+      "source_line": 32,
+      "heading": "Placeholder types",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-6-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/6/headings/3",
+      "source_file": "docs/user/placeholders-understanding.rst",
+      "source_line": 71,
+      "heading": "Unpopulated vs. populated",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-6-4",
+      "source": "upstream-api-inventory.json#/user_guide_topics/6/headings/4",
+      "source_file": "docs/user/placeholders-understanding.rst",
+      "source_line": 90,
+      "heading": "Placholders inherit",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-6-5",
+      "source": "upstream-api-inventory.json#/user_guide_topics/6/headings/5",
+      "source_file": "docs/user/placeholders-understanding.rst",
+      "source_line": 116,
+      "heading": "Glossary",
+      "kind": "heading",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Navigation or terminology heading; not counted as executable parity."
+    },
+    {
+      "id": "guide-7-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7/headings/0",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 3,
+      "heading": "Working with placeholders",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7/headings/1",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 19,
+      "heading": "Access a placeholder",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7/headings/2",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 66,
+      "heading": "Identify and Characterize a placeholder",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7/headings/3",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 103,
+      "heading": "Insert content into a placeholder",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-4",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7/headings/4",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 111,
+      "heading": ":meth:`.PicturePlaceholder.insert_picture`",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-5",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7/headings/5",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 143,
+      "heading": ":meth:`.TablePlaceholder.insert_table`",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-6",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7/headings/6",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 183,
+      "heading": ":meth:`.ChartPlaceholder.insert_chart`",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-7",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7/headings/7",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 234,
+      "heading": "Setting the slide title",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-snippet-34",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 36,
+      "source_end_line": 44,
+      "snippet_sha256": "dd15a520d0c2dfddebcaea3098d3132e43d94d130239f628b76bcd274e21f59d",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-snippet-45",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 47,
+      "source_end_line": 51,
+      "snippet_sha256": "60f2f526ec00e8b0c8b08f8248fa03943d4f5b39820abef7d055e0f34b10a9b1",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-snippet-72",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 74,
+      "source_end_line": 82,
+      "snippet_sha256": "eda7a24ff100948465194690ad34c52cd581c531f801ab9e20f83f6de50e367a",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-snippet-87",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 89,
+      "source_end_line": 97,
+      "snippet_sha256": "70cfef5d72d9c96e92c1554d253e59ce4a74e599d309cb08d24493b2f0efbf77",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-snippet-115",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 117,
+      "source_end_line": 125,
+      "snippet_sha256": "78751f2a1a9ecd9872b03d0800cfa3eb529fa0c2cc60f28dde5a1c3dc93b34c4",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-snippet-150",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 152,
+      "source_end_line": 163,
+      "snippet_sha256": "4b620f52e357c0fc4bd05ef4c84ab41c904a7dc1fa39931aa6641bc3d90a174b",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-snippet-190",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 192,
+      "source_end_line": 212,
+      "snippet_sha256": "beccdbf3d66a612167cfa5294f75f129cb8cab04eb8ba39b61c2f5cf646570b1",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-7-snippet-240",
+      "source": "upstream-api-inventory.json#/user_guide_topics/7",
+      "source_file": "docs/user/placeholders-using.rst",
+      "source_line": 242,
+      "source_end_line": 243,
+      "snippet_sha256": "edb901e9c3a0b667bfcf25e565fd7320aa7594a03f930db9b2ded8d08335d0a4",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "inserts explicitly supplied pictures and replaces rich-content placeholders without retaining old handles",
+      "cli_route_candidates": [
+        "placeholders list",
+        "placeholders insert"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-8-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/8/headings/0",
+      "source_file": "docs/user/presentations.rst",
+      "source_line": 2,
+      "heading": "Working with Presentations",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "opens original bytes and explicit streams and saves through a memory publication capability",
+      "cli_route_candidates": [
+        "create",
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-8-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/8/headings/1",
+      "source_file": "docs/user/presentations.rst",
+      "source_line": 17,
+      "heading": "Opening a presentation",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "opens original bytes and explicit streams and saves through a memory publication capability",
+      "cli_route_candidates": [
+        "create",
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-8-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/8/headings/2",
+      "source_file": "docs/user/presentations.rst",
+      "source_line": 48,
+      "heading": "REALLY opening a presentation",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "opens original bytes and explicit streams and saves through a memory publication capability",
+      "cli_route_candidates": [
+        "create",
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-8-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/8/headings/3",
+      "source_file": "docs/user/presentations.rst",
+      "source_line": 73,
+      "heading": "Opening a 'file-like' presentation",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "opens original bytes and explicit streams and saves through a memory publication capability",
+      "cli_route_candidates": [
+        "create",
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-8-snippet-21",
+      "source": "upstream-api-inventory.json#/user_guide_topics/8",
+      "source_file": "docs/user/presentations.rst",
+      "source_line": 23,
+      "source_end_line": 27,
+      "snippet_sha256": "b433a4d77729d88271faa25b9ad29710fcb064c85132bfafe967b282be4544af",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "opens original bytes and explicit streams and saves through a memory publication capability",
+      "cli_route_candidates": [
+        "create",
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-8-snippet-53",
+      "source": "upstream-api-inventory.json#/user_guide_topics/8",
+      "source_file": "docs/user/presentations.rst",
+      "source_line": 55,
+      "source_end_line": 57,
+      "snippet_sha256": "79e34d8fb3623b521cb1896909e067c30c4e08e4cbcda089a208d1c4830ae283",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "opens original bytes and explicit streams and saves through a memory publication capability",
+      "cli_route_candidates": [
+        "create",
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-8-snippet-81",
+      "source": "upstream-api-inventory.json#/user_guide_topics/8",
+      "source_file": "docs/user/presentations.rst",
+      "source_line": 83,
+      "source_end_line": 97,
+      "snippet_sha256": "0b64ad3f48d1b53958b6d6e6250822b2391665472fdef43b40615cffe6507dfd",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "opens original bytes and explicit streams and saves through a memory publication capability",
+      "cli_route_candidates": [
+        "create",
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9/headings/0",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 3,
+      "heading": "Getting Started",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9/headings/2",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 17,
+      "heading": "Hello World! example",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-4",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9/headings/4",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 42,
+      "heading": "Bullet slide example",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-6",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9/headings/6",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 91,
+      "heading": "``add_textbox()`` example",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-8",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9/headings/8",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 126,
+      "heading": "``add_picture()`` example",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-10",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9/headings/10",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 157,
+      "heading": "``add_shape()`` example",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-12",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9/headings/12",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 204,
+      "heading": "``add_table()`` example",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-14",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9/headings/14",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 247,
+      "heading": "Extract all text from slides in presentation",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-snippet-24",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 26,
+      "source_end_line": 39,
+      "snippet_sha256": "99a7752e620fe43a7f6e85c2d1eecdd4bde8d411344f49ee24225f36ffce0c7d",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-snippet-49",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 51,
+      "source_end_line": 76,
+      "snippet_sha256": "a1d40ebb4011e139ca4787019a481faf14e21da2624d49db735573c067ec1df8",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-snippet-98",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 100,
+      "source_end_line": 123,
+      "snippet_sha256": "db62f6dbd77470223930155255449ebecfc8fc8888773dfa75ceceac58f8c062",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-snippet-133",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 135,
+      "source_end_line": 153,
+      "snippet_sha256": "438bb2f53bb90142d8553092eee4a06f2a28941ae903779bc206b9f8a57c61f0",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-snippet-164",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 166,
+      "source_end_line": 195,
+      "snippet_sha256": "e2e33986a5cd450f949d70f39f5f068eb3376670324c97ad8b55cfcc2d1fbebb",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-snippet-211",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 213,
+      "source_end_line": 244,
+      "snippet_sha256": "d75f7534cbd959393c3c2c733ed2f1105766df1b673cb819b468a75c76dfe768",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-9-snippet-250",
+      "source": "upstream-api-inventory.json#/user_guide_topics/9",
+      "source_file": "docs/user/quickstart.rst",
+      "source_line": 252,
+      "source_end_line": 267,
+      "snippet_sha256": "8479aae31e4ced9cc294419e33139ec171c67ed3584ab20299b4da8840b56dfd",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text paragraphs set",
+        "images add",
+        "shapes add",
+        "tables add"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-10-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/10/headings/0",
+      "source_file": "docs/user/slides.rst",
+      "source_line": 2,
+      "heading": "Working with Slides",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "slides add",
+        "slides list"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-10-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/10/headings/1",
+      "source_file": "docs/user/slides.rst",
+      "source_line": 11,
+      "heading": "Slide layout basics",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "slides add",
+        "slides list"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-10-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/10/headings/2",
+      "source_file": "docs/user/slides.rst",
+      "source_line": 55,
+      "heading": "Adding a slide",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "slides add",
+        "slides list"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-10-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/10/headings/3",
+      "source_file": "docs/user/slides.rst",
+      "source_line": 90,
+      "heading": "Doing other things with slides",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "slides add",
+        "slides list"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-10-4",
+      "source": "upstream-api-inventory.json#/user_guide_topics/10/headings/4",
+      "source_file": "docs/user/slides.rst",
+      "source_line": 100,
+      "heading": "Up next ...",
+      "kind": "heading",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "slides add",
+        "slides list"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-10-snippet-58",
+      "source": "upstream-api-inventory.json#/user_guide_topics/10",
+      "source_file": "docs/user/slides.rst",
+      "source_line": 60,
+      "source_end_line": 65,
+      "snippet_sha256": "ede1a3487d9e1c1daaf9888844361d54d4f8f7a603ee95c8ec1c95cfb5515fcd",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "authors a title and nested paragraphs from a named original layout with sparse placeholders",
+      "cli_route_candidates": [
+        "slides add",
+        "slides list"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Live slide_layouts/add_slide now exercised with a named original layout. Presentation master owner graph and exact source-span/CLI pairing remain incomplete."
+    },
+    {
+      "id": "guide-11-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11/headings/0",
+      "source_file": "docs/user/table.rst",
+      "source_line": 2,
+      "heading": "Working with tables",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11/headings/1",
+      "source_file": "docs/user/table.rst",
+      "source_line": 12,
+      "heading": "Concepts",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11/headings/2",
+      "source_file": "docs/user/table.rst",
+      "source_line": 77,
+      "heading": "Adding a table",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11/headings/3",
+      "source_file": "docs/user/table.rst",
+      "source_line": 115,
+      "heading": "Inserting a table into a table placeholder",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-4",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11/headings/4",
+      "source_file": "docs/user/table.rst",
+      "source_line": 166,
+      "heading": "Accessing a cell",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-5",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11/headings/5",
+      "source_file": "docs/user/table.rst",
+      "source_line": 193,
+      "heading": "Merging cells",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-6",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11/headings/6",
+      "source_file": "docs/user/table.rst",
+      "source_line": 245,
+      "heading": "Un-merging a cell",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-7",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11/headings/7",
+      "source_file": "docs/user/table.rst",
+      "source_line": 270,
+      "heading": "A few snippets that might be handy",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-80",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 82,
+      "source_end_line": 100,
+      "snippet_sha256": "f9d67f12a6a61336b5bc46b4506f70e708d69090d6619399b877c4273da70613",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-138",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 140,
+      "source_end_line": 142,
+      "snippet_sha256": "a0056d24e499fca510552870cbfa89841e5922d7949cb4585f4a452b020b8c7b",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-146",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 148,
+      "source_end_line": 149,
+      "snippet_sha256": "15d7b4d55fb5f8033e6373fea5393644540a80b0973ef589de267a200be601f8",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-152",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 154,
+      "source_end_line": 155,
+      "snippet_sha256": "6fb3d4e422e91abcc560a866a89a23e14449069bc4384840fc8732524982df37",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-158",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 160,
+      "source_end_line": 161,
+      "snippet_sha256": "a9f066a1381c74297d2acadf0724a590caa8663323553d96b923ea998369f476",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-170",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 172,
+      "source_end_line": 176,
+      "snippet_sha256": "9c6a21ef53118f227bf79b3449dae65926f6d23bcd23af46349b2c5b2ba8963d",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-204",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 206,
+      "source_end_line": 219,
+      "snippet_sha256": "e5ad3f68bfe23f3168c5a538b63f9fea8e6750ab3d5b0a0a79aecf803f3d6171",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-251",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 253,
+      "source_end_line": 261,
+      "snippet_sha256": "3832b6e3adcf81e3fc1b4b2ea2ecd3ba63af745e6e54e25e29eb2834accb70b4",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-273",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 275,
+      "source_end_line": 293,
+      "snippet_sha256": "6a535d104b4f009865c7c84a774422eedef02eb11941517336b4f5337f7cef21",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Original explicit row/column traversal replaces erroneous cell.row_idx/col_idx documentation. Merge-origin geometry tested; exact CLI report pairing pending."
+    },
+    {
+      "id": "guide-11-snippet-294",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 296,
+      "source_end_line": 299,
+      "snippet_sha256": "2aa0edbdc322f1fe34e5e3b57b617cd316b3f82154035a7bf5c6ef08b19c05ab",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-300",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 302,
+      "source_end_line": 304,
+      "snippet_sha256": "0ad6fd9fab55b8d673165ae2473f4a4c685a950641e6065b7c279c3376d0ad7c",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-11-snippet-305",
+      "source": "upstream-api-inventory.json#/user_guide_topics/11",
+      "source_file": "docs/user/table.rst",
+      "source_line": 307,
+      "source_end_line": 311,
+      "snippet_sha256": "83e9209fcb93eefdbd963e037b500711dc5bea54b2aaf155f462d5c3780cda23",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "merges and splits cells while retaining row-major text and reporting visible grid coordinates",
+      "cli_route_candidates": [
+        "tables add",
+        "tables merge",
+        "tables split",
+        "tables get"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12/headings/0",
+      "source_file": "docs/user/text.rst",
+      "source_line": 2,
+      "heading": "Working with text",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12/headings/1",
+      "source_file": "docs/user/text.rst",
+      "source_line": 33,
+      "heading": "Accessing the text frame",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12/headings/2",
+      "source_file": "docs/user/text.rst",
+      "source_line": 48,
+      "heading": "Accessing paragraphs",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-3",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12/headings/3",
+      "source_file": "docs/user/text.rst",
+      "source_line": 72,
+      "heading": "Adding text",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-4",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12/headings/4",
+      "source_file": "docs/user/text.rst",
+      "source_line": 91,
+      "heading": "Applying text frame-level formatting",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-5",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12/headings/5",
+      "source_file": "docs/user/text.rst",
+      "source_line": 117,
+      "heading": "Applying paragraph formatting",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-6",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12/headings/6",
+      "source_file": "docs/user/text.rst",
+      "source_line": 145,
+      "heading": "Applying character formatting",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-snippet-38",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12",
+      "source_file": "docs/user/text.rst",
+      "source_line": 40,
+      "source_end_line": 47,
+      "snippet_sha256": "2ac787855052127609986ff55a62bba99559573d03e11fc5f45c8e7a214fb8c6",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-snippet-53",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12",
+      "source_file": "docs/user/text.rst",
+      "source_line": 55,
+      "source_end_line": 71,
+      "snippet_sha256": "1397403d7f4fb4b9bcf9408dbea4b7a2c22dbdbb7c423e124d205731e0f48e0a",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-snippet-78",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12",
+      "source_file": "docs/user/text.rst",
+      "source_line": 80,
+      "source_end_line": 90,
+      "snippet_sha256": "918107c9041fed48a6b0e5d292fbebda353ff02aa2252193c27abb8bad500574",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-snippet-99",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12",
+      "source_file": "docs/user/text.rst",
+      "source_line": 101,
+      "source_end_line": 111,
+      "snippet_sha256": "3f4fd6bd7e5d8c87024bf656bc65d81f8d557e93df03dc8a3178293d316792ba",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-snippet-121",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12",
+      "source_file": "docs/user/text.rst",
+      "source_line": 123,
+      "source_end_line": 144,
+      "snippet_sha256": "f2f0dc3b6f9e298e650f2b500c7e046067660cf0469f76f456b3bb7abed0d53a",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-snippet-152",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12",
+      "source_file": "docs/user/text.rst",
+      "source_line": 154,
+      "source_end_line": 171,
+      "snippet_sha256": "86e1188187047452f4279b375d6de704c68a98f365af1c39d783bd7f8fa766e3",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-snippet-173",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12",
+      "source_file": "docs/user/text.rst",
+      "source_line": 175,
+      "source_end_line": 176,
+      "snippet_sha256": "b57b508ee219021c302bd60946a0fe948d6e9c66dfdf884025f1f8b673733c45",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "text get",
+        "text frames set",
+        "text paragraphs set",
+        "text runs set"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-12-snippet-177",
+      "source": "upstream-api-inventory.json#/user_guide_topics/12",
+      "source_file": "docs/user/text.rst",
+      "source_line": 179,
+      "source_end_line": 179,
+      "snippet_sha256": "35908775d98eae11c6a4e5b2bcef1a115abbe892648be95afe3f2c44474ea8b9",
+      "kind": "snippet",
+      "current_status": "original-sdk-and-cli-bounded-equivalent-executed",
+      "original_test_file": "packages/pptx/src/run-hyperlink-owner.test.ts",
+      "original_test_case": "shares run link edits with the SDK-backed command route through explicit memory I/O",
+      "cli_route_candidates": [
+        "links set",
+        "links get"
+      ],
+      "exact_cli_pairing": "executed-for-live-slide-run-URL-assignment",
+      "full_workflow_closed": false,
+      "remaining": "Ordinary slide-shape/placeholder run assignment is paired. Table-cell/chart-title/notes run owners remain unsupported; retain whole-public-owner obligations."
+    },
+    {
+      "id": "guide-13-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/13/headings/0",
+      "source_file": "docs/user/understanding-shapes.rst",
+      "source_line": 2,
+      "heading": "Understanding Shapes",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-13-1",
+      "source": "upstream-api-inventory.json#/user_guide_topics/13/headings/1",
+      "source_file": "docs/user/understanding-shapes.rst",
+      "source_line": 71,
+      "heading": "Accessing the shapes on a slide",
+      "kind": "heading",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-13-2",
+      "source": "upstream-api-inventory.json#/user_guide_topics/13/headings/2",
+      "source_file": "docs/user/understanding-shapes.rst",
+      "source_line": 85,
+      "heading": "Up next ...",
+      "kind": "heading",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Navigation or terminology heading; not counted as executable parity."
+    },
+    {
+      "id": "guide-13-snippet-78",
+      "source": "upstream-api-inventory.json#/user_guide_topics/13",
+      "source_file": "docs/user/understanding-shapes.rst",
+      "source_line": 80,
+      "source_end_line": 81,
+      "snippet_sha256": "d43142af598a672c3146103a8e32e5ea8a51c38bfcdb0bb849ec3527ca100184",
+      "kind": "snippet",
+      "current_status": "partial-original-sdk-equivalent-executed",
+      "original_test_file": "packages/pptx/src/guide-workflows-original.test.ts",
+      "original_test_case": "formats textbox paragraphs and runs and extracts only text-bearing slide shapes",
+      "cli_route_candidates": [
+        "inspect"
+      ],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Exact source-span operation/assertion equivalence and corresponding CLI pairing remain to be closed; topic-level evidence is not full snippet coverage."
+    },
+    {
+      "id": "guide-14-0",
+      "source": "upstream-api-inventory.json#/user_guide_topics/14/headings/0",
+      "source_file": "docs/user/use-cases.rst",
+      "source_line": 1,
+      "heading": "Use cases",
+      "kind": "heading",
+      "current_status": "contextual-reviewed-no-runtime-equivalent",
+      "original_test_file": null,
+      "original_test_case": null,
+      "cli_route_candidates": [],
+      "exact_cli_pairing": "not-established-for-this-source-row",
+      "full_workflow_closed": false,
+      "remaining": "Contextual installation, legal, or use-case prose; not counted as executable parity."
+    }
+  ]
+}

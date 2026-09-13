@@ -79,7 +79,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     const iteratorBoundary = representedAsync && node.type === "ForOfStatement" && node.await === true &&
       ["next", "close"].includes((record.expressionStates as Record<string, {phase:string}> | undefined)?.[String(node.nodeId)]?.phase ?? "");
     const delegateBoundary = representedAsync && node.type === "YieldExpression" && node.delegate === true &&
-      ["await", "close"].includes((record.expressionStates as Record<string, {phase:string}> | undefined)?.[String(node.nodeId)]?.phase ?? "");
+      ["await", "close", "return"].includes((record.expressionStates as Record<string, {phase:string}> | undefined)?.[String(node.nodeId)]?.phase ?? "");
     if ((node.type === "YieldExpression" || (representedAsync && node.type === "AwaitExpression") ||
         (record.awaitPhase === "return" && node.type === "ReturnStatement") || resourceBoundary || iteratorBoundary) && node.nodeId === record.yieldNodeId) {
       if (record.awaitPhase !== undefined) {

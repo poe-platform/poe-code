@@ -6,7 +6,7 @@ import type { SandboxIterator, IteratorSnapshot, IteratorAwaitState } from "./it
 export type GeneratorExpressionState<T = SandboxValue, S = Scope, I = SandboxIterator | IteratorSnapshot> =
   | { kind: "switch"; phase: "test" | "body"; index: number; statementIndex: number; value: T; scope: S }
   | { kind: "yield-delegate"; async: boolean; value: T; current: T; iterator: I;
-      phase?: "await" | "close"; awaitState?: IteratorAwaitState; completion?: {type:"normal"|"return"|"throw";value:T} }
+      phase?: "await" | "close" | "return"; awaitState?: IteratorAwaitState; completion?: {type:"normal"|"return"|"throw";value:T} }
   | { kind: "declaration"; index: number }
   | { kind: "pattern-source"; value: T }
   | { kind: "object-pattern"; phase: "key" | "reference" | "binding"; index: number; excludedKeys: T[]; key: T; current: T; referenceObject?: T; referenceKey?: T; privateName?: string; referenceScope?: S; referenceUnresolvable?: true }

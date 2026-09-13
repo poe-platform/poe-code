@@ -2865,6 +2865,10 @@ async function evaluateYieldDelegate(
     state.current
   ]);
   try {
+    if (saved?.phase === "return") {
+      const value = await suspendAsyncFunctionValue(undefined, node, context, undefined, createCoercionContext(context));
+      return generatorCompletionResult({ type: "return", value });
+    }
     let completion: { type: "normal" | "return" | "throw"; value: SandboxValue } = saved?.completion ?? {
       type: "normal",
       value: undefined
@@ -2895,6 +2899,14 @@ async function evaluateYieldDelegate(
             await closeIterator(iterator, false, context.asyncGeneratorFrame === undefined ? suspendJob
               : async pending => await suspendAsyncFunctionValue(createSandboxPromise(pending as Promise<SandboxValue>), node, context, undefined, createCoercionContext(context)) as Awaited<typeof pending>);
             throw new TypeError("Delegated iterator does not provide a throw method.");
+          }
+          if (context.asyncGenerator && completion.type === "return") {
+            state.phase = "return";
+            state.completion = completion;
+            const value = context.asyncGeneratorFrame === undefined
+              ? await suspendJob(awaitSandboxValue(completion.value, context.signal, context.budget, createCoercionContext(context)))
+              : await suspendAsyncFunctionValue(completion.value, node, context, undefined, createCoercionContext(context));
+            return generatorCompletionResult({ type: "return", value });
           }
           return generatorCompletionResult(completion);
         }

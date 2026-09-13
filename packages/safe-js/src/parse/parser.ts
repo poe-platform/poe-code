@@ -4192,9 +4192,7 @@ class Parser {
 
     const paramToken = this.peekToken(1);
     if (hasLineBreakBetween(token, paramToken)) {
-      throw new Error(
-        `Unexpected line break after 'async' at line ${paramToken.start.line}, column ${paramToken.start.column}.`
-      );
+      return false;
     }
 
     const arrowToken = this.peekToken(2);

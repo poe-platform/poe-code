@@ -1,0 +1,205 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/parse/async-arrow-linebreak.test.ts (8 tests | 5 failed) 66ms
+   × ends the async identifier statement at "\n" 5ms
+   × ends the async identifier statement at "\r\n" 1ms
+   × ends the async identifier statement at " " 1ms
+   × ends the async identifier statement at "/*\n*/" 0ms
+   ✓ preserves invalid arrow grammar: "async\nx\n=>x" 0ms
+   ✓ preserves invalid arrow grammar: "async x\n=>x" 0ms
+   ✓ preserves invalid arrow grammar: "async\n(x)=>x" 0ms
+   × preserves ReferenceError phase, ordinary arrow source and replay 58ms
+FAIL packages/safe-js/src/parse/async-arrow-linebreak.test.ts > ends the async identifier statement at "\n"
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected line break af…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected line break after 'async' at line 2, column 1."
+
+ ❯ packages/safe-js/src/parse/async-arrow-linebreak.test.ts:12:45
+     10|   const source = `let async=7; async${separator}x=>x;`;
+     11|   expect(typeof new Script(source).runInNewContext()).toBe("function");
+     12|   expect(() => parseEvalScript(source)).not.toThrow();
+       |                                             ^
+     13|   expect(lint(source).filter(d=>d.severity==="error")).toEqual([]);
+     14| });
+
+FAIL packages/safe-js/src/parse/async-arrow-linebreak.test.ts > ends the async identifier statement at "\r\n"
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected line break af…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected line break after 'async' at line 2, column 1."
+
+ ❯ packages/safe-js/src/parse/async-arrow-linebreak.test.ts:12:45
+     10|   const source = `let async=7; async${separator}x=>x;`;
+     11|   expect(typeof new Script(source).runInNewContext()).toBe("function");
+     12|   expect(() => parseEvalScript(source)).not.toThrow();
+       |                                             ^
+     13|   expect(lint(source).filter(d=>d.severity==="error")).toEqual([]);
+     14| });
+
+FAIL packages/safe-js/src/parse/async-arrow-linebreak.test.ts > ends the async identifier statement at " "
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected line break af…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected line break after 'async' at line 2, column 1."
+
+ ❯ packages/safe-js/src/parse/async-arrow-linebreak.test.ts:12:45
+     10|   const source = `let async=7; async${separator}x=>x;`;
+     11|   expect(typeof new Script(source).runInNewContext()).toBe("function");
+     12|   expect(() => parseEvalScript(source)).not.toThrow();
+       |                                             ^
+     13|   expect(lint(source).filter(d=>d.severity==="error")).toEqual([]);
+     14| });
+
+FAIL packages/safe-js/src/parse/async-arrow-linebreak.test.ts > ends the async identifier statement at "/*\n*/"
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected line break af…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected line break after 'async' at line 2, column 3."
+
+ ❯ packages/safe-js/src/parse/async-arrow-linebreak.test.ts:12:45
+     10|   const source = `let async=7; async${separator}x=>x;`;
+     11|   expect(typeof new Script(source).runInNewContext()).toBe("function");
+     12|   expect(() => parseEvalScript(source)).not.toThrow();
+       |                                             ^
+     13|   expect(lint(source).filter(d=>d.severity==="error")).toEqual([]);
+     14| });
+
+FAIL packages/safe-js/src/parse/async-arrow-linebreak.test.ts > preserves ReferenceError phase, ordinary arrow source and replay
+AssertionError: expected { …(10) } to match object { ok: true, returnValue: [ …(5) ] }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "returnValue": [
+-     [
+-       "ReferenceError",
+-       true,
+-     ],
+-     4,
+-     "x=>x",
+-     8,
+-     "undefined,undefined",
+-   ],
++   "caret": "  | ^",
++   "column": 1,
++   "excerpt": "1 | let async=7;async
++ 2 | x=>x",
++   "filename": "<eval>",
++   "kind": "ParseError",
++   "line": 2,
++   "name": "SyntaxError",
+  }
+
+ ❯ packages/safe-js/src/parse/async-arrow-linebreak.test.ts:30:75
+     28|   for(let i=0;i<3;i++){
+     29|     const settled=pending.catch(error=>error);
+     30|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     31|       pending=run(source,{snapshot:restore(saved,{source})});}finally{…
+     32|   }
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/parse/async-arrow-linebreak.test.ts > ends the async identifier statement at "\n"
+ FAIL  packages/safe-js/src/parse/async-arrow-linebreak.test.ts > ends the async identifier statement at "\r\n"
+ FAIL  packages/safe-js/src/parse/async-arrow-linebreak.test.ts > ends the async identifier statement at " "
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected line break af…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected line break after 'async' at line 2, column 1."
+
+ ❯ packages/safe-js/src/parse/async-arrow-linebreak.test.ts:12:45
+     10|   const source = `let async=7; async${separator}x=>x;`;
+     11|   expect(typeof new Script(source).runInNewContext()).toBe("function");
+     12|   expect(() => parseEvalScript(source)).not.toThrow();
+       |                                             ^
+     13|   expect(lint(source).filter(d=>d.severity==="error")).toEqual([]);
+     14| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  packages/safe-js/src/parse/async-arrow-linebreak.test.ts > ends the async identifier statement at "/*\n*/"
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected line break af…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected line break after 'async' at line 2, column 3."
+
+ ❯ packages/safe-js/src/parse/async-arrow-linebreak.test.ts:12:45
+     10|   const source = `let async=7; async${separator}x=>x;`;
+     11|   expect(typeof new Script(source).runInNewContext()).toBe("function");
+     12|   expect(() => parseEvalScript(source)).not.toThrow();
+       |                                             ^
+     13|   expect(lint(source).filter(d=>d.severity==="error")).toEqual([]);
+     14| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  packages/safe-js/src/parse/async-arrow-linebreak.test.ts > preserves ReferenceError phase, ordinary arrow source and replay
+AssertionError: expected { …(10) } to match object { ok: true, returnValue: [ …(5) ] }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "returnValue": [
+-     [
+-       "ReferenceError",
+-       true,
+-     ],
+-     4,
+-     "x=>x",
+-     8,
+-     "undefined,undefined",
+-   ],
++   "caret": "  | ^",
++   "column": 1,
++   "excerpt": "1 | let async=7;async
++ 2 | x=>x",
++   "filename": "<eval>",
++   "kind": "ParseError",
++   "line": 2,
++   "name": "SyntaxError",
+  }
+
+ ❯ packages/safe-js/src/parse/async-arrow-linebreak.test.ts:30:75
+     28|   for(let i=0;i<3;i++){
+     29|     const settled=pending.catch(error=>error);
+     30|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     31|       pending=run(source,{snapshot:restore(saved,{source})});}finally{…
+     32|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 3 passed (8)
+   Start at  10:59:02
+   Duration  1.98s (transform 1.44s, setup 37ms, import 1.79s, tests 66ms, environment 0ms)
+

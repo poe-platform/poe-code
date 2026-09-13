@@ -2345,3 +2345,15 @@ Built Node18/20/22/24/26 and Bun SDK pending/completed replay, saved class sourc
 dynamic functions and host-escape controls pass; the CLI screenshot was inspected.
 The two earlier static-block control failures now pass; their unsuccessful report
 is preserved. Whole-task qualification, remaining categories and publication stay open.
+
+### qualify-language-semantics — async identifier line breaks, 2026-09-13
+
+[Atomic repair and commands](qualify-language-semantics/async-arrow-linebreak/audit.md)
+restore ASI after a standalone async identifier before an ordinary single-parameter
+arrow. The original expected runtime ReferenceError was incorrectly a parse error.
+Independent red **five failures/three passing controls →87 focused passes**; scoped
+lint/build pass. Recorded original fixture/neighbor: **four/four variants pass**.
+Node18/20/22/24/26 and Bun SDK replay/source/host-escape controls pass; CLI screenshot
+was inspected. Original source hashes, edition pins, deadlines and budgets remain.
+Residual accounting is159 nonpasses after this two-case repair; whole-task acceptance
+and required publication remain open, not replaced by passing selected cases.

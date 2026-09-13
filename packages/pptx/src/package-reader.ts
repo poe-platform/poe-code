@@ -68,10 +68,9 @@ export async function readPackage(
     const entries = archive.entries.map((entry) => {
       if (entry.symlink)
         throw new OfficeError("unsafe-path", "Invalid package part name.", "index");
-      if (entry.directory) return { entry, name: null, key: null };
-      const name = partName(entry.name, true);
+      const name = partName(entry.directory && entry.name.endsWith("/") ? entry.name.slice(0, -1) : entry.name, true);
       const key = asciiKey(name);
-      if (identities.has(key) || parents.has(key)) {
+      if (identities.has(key) || (!entry.directory && parents.has(key))) {
         throw new OfficeError("invalid-opc", "Colliding package part names.", "index");
       }
       let parent = key.slice(0, key.lastIndexOf("/"));
@@ -81,6 +80,10 @@ export async function readPackage(
         }
         parents.add(parent);
         parent = parent.slice(0, parent.lastIndexOf("/"));
+      }
+      if (entry.directory) {
+        parents.add(key);
+        return { entry, name: null, key: null };
       }
       identities.add(key);
       return { entry, name, key };

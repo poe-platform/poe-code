@@ -36,6 +36,7 @@ export type Comment = {
 
 export type TokenizeOptions = {
   allowRegexLiterals?: boolean;
+  statementList?: boolean;
   allowLegacyNumbers?: boolean;
   allowLegacyEscapes?: boolean;
   allowHtmlComments?: boolean;
@@ -82,7 +83,7 @@ const KEYWORDS = new Set([
 
 const EXPRESSION_ENDING_KEYWORDS = new Set(["true", "false", "null"]);
 export const RESERVED_IDENTIFIER_SPELLINGS = new Set(["case", "default", "debugger", "enum", "export", "new", "switch", "var"]);
-const CONTROL_FLOW_PAREN_KEYWORDS = new Set(["if", "while", "with", "for", "catch"]);
+const CONTROL_FLOW_PAREN_KEYWORDS = new Set(["if", "while", "with", "for", "catch", "switch"]);
 const MAX_UNICODE_CODE_POINT = 0x10ffff;
 const IDENTIFIER_START_PATTERN = /^\p{ID_Start}$/u;
 const IDENTIFIER_PART_PATTERN = /^\p{ID_Continue}$/u;
@@ -156,13 +157,15 @@ export function tokenize(source: string, options: TokenizeOptions = {}): Token[]
 
 export function collectComments(source: string): Comment[] {
   const comments: Comment[] = [];
-  tokenize(source, { allowRegexLiterals: true, comments });
+  tokenize(source, { allowRegexLiterals: true, statementList: true, comments });
   return comments;
 }
 
 type GroupingContext = {
   value: "(" | "[" | "{";
   isControlCondition?: boolean;
+  statementList?: boolean;
+  closesStatement?: boolean;
 };
 
 class Lexer {
@@ -171,7 +174,7 @@ class Lexer {
   private column = 1;
   private readonly tokens: Token[] = [];
   private readonly groupingStack: GroupingContext[] = [];
-  private lastClosedControlParenthesis = false;
+  private lastClosedStatementBoundary = false;
   private legacyStringEscape = false;
   private lineHasToken = false;
 
@@ -394,7 +397,7 @@ class Lexer {
     let depth = 1;
     const tokens: Array<Pick<Token, "type" | "value">> = [];
     const groupingStack: GroupingContext[] = [];
-    let lastClosedControlParenthesis = false;
+    let lastClosedStatementBoundary = false;
 
     while (!this.isAtEnd() && depth > 0) {
       this.skipTrivia();
@@ -408,14 +411,14 @@ class Lexer {
       if (char === "'" || char === '"') {
         this.skipQuotedString(char);
         tokens.push({ type: "string", value: char });
-        lastClosedControlParenthesis = false;
+        lastClosedStatementBoundary = false;
         continue;
       }
 
       if (char === "`") {
         this.skipNestedTemplate();
         tokens.push({ type: "template", value: "`" });
-        lastClosedControlParenthesis = false;
+        lastClosedStatementBoundary = false;
         continue;
       }
 
@@ -469,7 +472,7 @@ class Lexer {
         }
 
         tokens.push({ type: KEYWORDS.has(value) ? "keyword" : "identifier", value });
-        lastClosedControlParenthesis = false;
+        lastClosedStatementBoundary = false;
         continue;
       }
 
@@ -477,16 +480,16 @@ class Lexer {
         const start = this.position();
         const value = this.scanNumber(start);
         tokens.push({ type: "numeric", value });
-        lastClosedControlParenthesis = false;
+        lastClosedStatementBoundary = false;
         continue;
       }
 
       if (char === "{") {
         depth += 1;
         this.advance();
-        groupingStack.push({ value: "{" });
+        updateGroupingState(groupingStack, tokens[tokens.length - 1], "{", lastClosedStatementBoundary);
         tokens.push({ type: "punctuator", value: "{" });
-        lastClosedControlParenthesis = false;
+        lastClosedStatementBoundary = false;
         continue;
       }
 
@@ -498,15 +501,14 @@ class Lexer {
           return;
         }
 
-        popGroupingContext(groupingStack, "{");
+        lastClosedStatementBoundary = updateGroupingState(groupingStack, tokens[tokens.length - 1], "}", lastClosedStatementBoundary);
         tokens.push({ type: "punctuator", value: "}" });
-        lastClosedControlParenthesis = false;
         continue;
       }
 
       if (
         char === "/" &&
-        shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedControlParenthesis, tokens)
+        shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedStatementBoundary, tokens)
       ) {
         if (!this.options.allowRegexLiterals) {
           this.syntaxError("Regular expression literals are not supported", this.position());
@@ -515,7 +517,7 @@ class Lexer {
         const start = this.position();
         const value = this.scanRegexLiteral(start);
         tokens.push({ type: "regex", value });
-        lastClosedControlParenthesis = false;
+        lastClosedStatementBoundary = false;
         continue;
       }
 
@@ -524,10 +526,13 @@ class Lexer {
         const previousToken = tokens[tokens.length - 1];
         this.advanceBy(punctuator.length);
         tokens.push({ type: "punctuator", value: punctuator });
-        lastClosedControlParenthesis = updateGroupingState(
+        lastClosedStatementBoundary = updateGroupingState(
           groupingStack,
           previousToken,
-          punctuator
+          punctuator,
+          lastClosedStatementBoundary,
+          false,
+          tokens[tokens.length - 3]
         );
         continue;
       }
@@ -856,7 +861,7 @@ class Lexer {
   private readSlashOrPunctuator(start: Position): void {
     if (
       this.currentChar() === "/" &&
-      shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedControlParenthesis, this.tokens)
+      shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedStatementBoundary, this.tokens)
     ) {
       if (!this.options.allowRegexLiterals) {
         this.syntaxError("Regular expression literals are not supported", start);
@@ -952,15 +957,18 @@ class Lexer {
     this.tokens.push(token);
 
     if (type === "punctuator") {
-      this.lastClosedControlParenthesis = updateGroupingState(
+      this.lastClosedStatementBoundary = updateGroupingState(
         this.groupingStack,
         previousToken,
-        value
+        value,
+        this.lastClosedStatementBoundary,
+        this.options.statementList === true,
+        this.tokens[this.tokens.length - 3]
       );
       return;
     }
 
-    this.lastClosedControlParenthesis = false;
+    this.lastClosedStatementBoundary = false;
   }
 
   private currentChar(): string {
@@ -1225,7 +1233,7 @@ function matchPunctuator(source: string, index: number): string | undefined {
 
 function shouldRejectRegexLiteral(
   previousToken: Pick<Token, "type" | "value"> | undefined,
-  lastClosedControlParenthesis: boolean,
+  lastClosedStatementBoundary: boolean,
   tokens: ReadonlyArray<Pick<Token, "type" | "value">>
 ): boolean {
   if (previousToken === undefined) {
@@ -1247,8 +1255,8 @@ function shouldRejectRegexLiteral(
     return !EXPRESSION_ENDING_KEYWORDS.has(previousToken.value);
   }
 
-  if (previousToken.value === ")") {
-    return lastClosedControlParenthesis;
+  if (previousToken.value === ")" || previousToken.value === "}") {
+    return lastClosedStatementBoundary;
   }
 
   return !isExpressionEndingPunctuator(previousToken.value);
@@ -1287,13 +1295,19 @@ function endsWithForOfSeparator(tokens: ReadonlyArray<Pick<Token, "type" | "valu
 function updateGroupingState(
   groupingStack: GroupingContext[],
   previousToken: Pick<Token, "type" | "value"> | undefined,
-  punctuator: string
+  punctuator: string,
+  previousStatementBoundary: boolean,
+  initialStatementList = false,
+  beforePreviousToken?: Pick<Token, "type" | "value">
 ): boolean {
   if (punctuator === "(") {
     groupingStack.push({
       value: "(",
       isControlCondition:
-        previousToken?.type === "keyword" && CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value)
+        (previousToken?.type === "keyword" || previousToken?.type === "identifier") &&
+        (CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value) ||
+          (previousToken.value === "await" && beforePreviousToken?.type === "keyword" && beforePreviousToken.value === "for")) &&
+        beforePreviousToken?.value !== "." && beforePreviousToken?.value !== "?."
     });
     return false;
   }
@@ -1304,7 +1318,13 @@ function updateGroupingState(
   }
 
   if (punctuator === "{") {
-    groupingStack.push({ value: "{" });
+    const parent = groupingStack[groupingStack.length - 1];
+    const closesStatement = previousToken === undefined ? initialStatementList
+      : previousStatementBoundary ||
+        (["{", ";"].includes(previousToken.value) && (parent === undefined || parent.statementList === true)) ||
+        (previousToken.type === "keyword" && ["else", "do", "try", "finally"].includes(previousToken.value));
+    groupingStack.push({ value: "{", closesStatement,
+      statementList: closesStatement || previousToken?.value === ")" || previousToken?.value === "=>" || previousToken?.value === "static" });
     return false;
   }
 
@@ -1318,8 +1338,7 @@ function updateGroupingState(
   }
 
   if (punctuator === "}") {
-    popGroupingContext(groupingStack, "{");
-    return false;
+    return popGroupingContext(groupingStack, "{")?.closesStatement === true;
   }
 
   return false;

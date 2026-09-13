@@ -681,7 +681,7 @@ export function parseModule(source: string, filename = "<input>", owner?: Compil
   try {
     const result = assignIds(
       new Parser(
-        tokenize(source, { allowRegexLiterals: true, compilation }),
+        tokenize(source, { allowRegexLiterals: true, statementList: true, compilation }),
         source,
         compilation
       ).parseModule()
@@ -710,7 +710,7 @@ export function parseExecutableModule(
   try {
     const result = assignIds(
       new Parser(
-        tokenize(source, { allowRegexLiterals: true, compilation }),
+        tokenize(source, { allowRegexLiterals: true, statementList: true, compilation }),
         source,
         compilation,
         "top-level",
@@ -755,7 +755,7 @@ export function parseEvalScript(
     if (owner !== undefined) for (let index = 0; index < source.length; index++) owner.budget.visitNode();
     const grammar = {await: false, yield: false, strict: context.strict === true};
     const parser = new Parser(tokenize(source, {
-      allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true,
+      allowRegexLiterals: true, statementList: true, allowLegacyNumbers: true, allowLegacyEscapes: true,
       allowHtmlComments: true, compilation
     }), source, compilation, "normal", {
       grammar, newTarget: context.newTarget === true,
@@ -793,15 +793,15 @@ export function parseDynamicFunction(
     const parameterSource = `(${parameters}\n)`;
     const bodySource = `{\n${body}\n}`;
     const source = `${prefix} anonymous(${parameters}\n) ${bodySource}`;
-    const createParser = (text: string) => new Parser(
-      tokenize(text, {allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true, allowHtmlComments: true, compilation}), text, compilation,
+    const createParser = (text: string, statementList = false) => new Parser(
+      tokenize(text, {allowRegexLiterals: true, statementList, allowLegacyNumbers: true, allowLegacyEscapes: true, allowHtmlComments: true, compilation}), text, compilation,
       kind, {...ordinaryFunctionContext, grammar: {
         await: kind === "async" || kind === "async-generator",
         yield: kind === "generator" || kind === "async-generator", strict: false
       }}, false
     );
     createParser(parameterSource).parseDynamicParameters();
-    createParser(bodySource).parseDynamicBody();
+    createParser(bodySource, true).parseDynamicBody();
     const node = assignIds(createParser(source).parseDynamicExpression());
     if (source.includes("#")) validatePrivateNames(node);
     return node;

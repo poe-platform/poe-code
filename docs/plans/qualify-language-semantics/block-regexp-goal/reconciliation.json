@@ -1,0 +1,393 @@
+{
+  "sourceSHA": "16f07352f27990afec4f486a8317b6e0d82f959f",
+  "patch": "diff --git a/packages/safe-js/src/parse/parser.ts b/packages/safe-js/src/parse/parser.ts\nindex 9e5290e07..843b07901 100644\n--- a/packages/safe-js/src/parse/parser.ts\n+++ b/packages/safe-js/src/parse/parser.ts\n@@ -681,7 +681,7 @@ export function parseModule(source: string, filename = \"<input>\", owner?: Compil\n   try {\n     const result = assignIds(\n       new Parser(\n-        tokenize(source, { allowRegexLiterals: true, compilation }),\n+        tokenize(source, { allowRegexLiterals: true, statementList: true, compilation }),\n         source,\n         compilation\n       ).parseModule()\n@@ -710,7 +710,7 @@ export function parseExecutableModule(\n   try {\n     const result = assignIds(\n       new Parser(\n-        tokenize(source, { allowRegexLiterals: true, compilation }),\n+        tokenize(source, { allowRegexLiterals: true, statementList: true, compilation }),\n         source,\n         compilation,\n         \"top-level\",\n@@ -755,7 +755,7 @@ export function parseEvalScript(\n     if (owner !== undefined) for (let index = 0; index < source.length; index++) owner.budget.visitNode();\n     const grammar = {await: false, yield: false, strict: context.strict === true};\n     const parser = new Parser(tokenize(source, {\n-      allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true,\n+      allowRegexLiterals: true, statementList: true, allowLegacyNumbers: true, allowLegacyEscapes: true,\n       allowHtmlComments: true, compilation\n     }), source, compilation, \"normal\", {\n       grammar, newTarget: context.newTarget === true,\n@@ -793,15 +793,15 @@ export function parseDynamicFunction(\n     const parameterSource = `(${parameters}\\n)`;\n     const bodySource = `{\\n${body}\\n}`;\n     const source = `${prefix} anonymous(${parameters}\\n) ${bodySource}`;\n-    const createParser = (text: string) => new Parser(\n-      tokenize(text, {allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true, allowHtmlComments: true, compilation}), text, compilation,\n+    const createParser = (text: string, statementList = false) => new Parser(\n+      tokenize(text, {allowRegexLiterals: true, statementList, allowLegacyNumbers: true, allowLegacyEscapes: true, allowHtmlComments: true, compilation}), text, compilation,\n       kind, {...ordinaryFunctionContext, grammar: {\n         await: kind === \"async\" || kind === \"async-generator\",\n         yield: kind === \"generator\" || kind === \"async-generator\", strict: false\n       }}, false\n     );\n     createParser(parameterSource).parseDynamicParameters();\n-    createParser(bodySource).parseDynamicBody();\n+    createParser(bodySource, true).parseDynamicBody();\n     const node = assignIds(createParser(source).parseDynamicExpression());\n     if (source.includes(\"#\")) validatePrivateNames(node);\n     return node;\ndiff --git a/packages/safe-js/src/parse/tokenizer.ts b/packages/safe-js/src/parse/tokenizer.ts\nindex d24106e11..2eb3e4fe3 100644\n--- a/packages/safe-js/src/parse/tokenizer.ts\n+++ b/packages/safe-js/src/parse/tokenizer.ts\n@@ -36,6 +36,7 @@ export type Comment = {\n \n export type TokenizeOptions = {\n   allowRegexLiterals?: boolean;\n+  statementList?: boolean;\n   allowLegacyNumbers?: boolean;\n   allowLegacyEscapes?: boolean;\n   allowHtmlComments?: boolean;\n@@ -82,7 +83,7 @@ const KEYWORDS = new Set([\n \n const EXPRESSION_ENDING_KEYWORDS = new Set([\"true\", \"false\", \"null\"]);\n export const RESERVED_IDENTIFIER_SPELLINGS = new Set([\"case\", \"default\", \"debugger\", \"enum\", \"export\", \"new\", \"switch\", \"var\"]);\n-const CONTROL_FLOW_PAREN_KEYWORDS = new Set([\"if\", \"while\", \"with\", \"for\", \"catch\"]);\n+const CONTROL_FLOW_PAREN_KEYWORDS = new Set([\"if\", \"while\", \"with\", \"for\", \"catch\", \"switch\"]);\n const MAX_UNICODE_CODE_POINT = 0x10ffff;\n const IDENTIFIER_START_PATTERN = /^\\p{ID_Start}$/u;\n const IDENTIFIER_PART_PATTERN = /^\\p{ID_Continue}$/u;\n@@ -156,13 +157,15 @@ export function tokenize(source: string, options: TokenizeOptions = {}): Token[]\n \n export function collectComments(source: string): Comment[] {\n   const comments: Comment[] = [];\n-  tokenize(source, { allowRegexLiterals: true, comments });\n+  tokenize(source, { allowRegexLiterals: true, statementList: true, comments });\n   return comments;\n }\n \n type GroupingContext = {\n   value: \"(\" | \"[\" | \"{\";\n   isControlCondition?: boolean;\n+  statementList?: boolean;\n+  closesStatement?: boolean;\n };\n \n class Lexer {\n@@ -171,7 +174,7 @@ class Lexer {\n   private column = 1;\n   private readonly tokens: Token[] = [];\n   private readonly groupingStack: GroupingContext[] = [];\n-  private lastClosedControlParenthesis = false;\n+  private lastClosedStatementBoundary = false;\n   private legacyStringEscape = false;\n   private lineHasToken = false;\n \n@@ -394,7 +397,7 @@ class Lexer {\n     let depth = 1;\n     const tokens: Array<Pick<Token, \"type\" | \"value\">> = [];\n     const groupingStack: GroupingContext[] = [];\n-    let lastClosedControlParenthesis = false;\n+    let lastClosedStatementBoundary = false;\n \n     while (!this.isAtEnd() && depth > 0) {\n       this.skipTrivia();\n@@ -408,14 +411,14 @@ class Lexer {\n       if (char === \"'\" || char === '\"') {\n         this.skipQuotedString(char);\n         tokens.push({ type: \"string\", value: char });\n-        lastClosedControlParenthesis = false;\n+        lastClosedStatementBoundary = false;\n         continue;\n       }\n \n       if (char === \"`\") {\n         this.skipNestedTemplate();\n         tokens.push({ type: \"template\", value: \"`\" });\n-        lastClosedControlParenthesis = false;\n+        lastClosedStatementBoundary = false;\n         continue;\n       }\n \n@@ -469,7 +472,7 @@ class Lexer {\n         }\n \n         tokens.push({ type: KEYWORDS.has(value) ? \"keyword\" : \"identifier\", value });\n-        lastClosedControlParenthesis = false;\n+        lastClosedStatementBoundary = false;\n         continue;\n       }\n \n@@ -477,16 +480,16 @@ class Lexer {\n         const start = this.position();\n         const value = this.scanNumber(start);\n         tokens.push({ type: \"numeric\", value });\n-        lastClosedControlParenthesis = false;\n+        lastClosedStatementBoundary = false;\n         continue;\n       }\n \n       if (char === \"{\") {\n         depth += 1;\n         this.advance();\n-        groupingStack.push({ value: \"{\" });\n+        updateGroupingState(groupingStack, tokens[tokens.length - 1], \"{\", lastClosedStatementBoundary);\n         tokens.push({ type: \"punctuator\", value: \"{\" });\n-        lastClosedControlParenthesis = false;\n+        lastClosedStatementBoundary = false;\n         continue;\n       }\n \n@@ -498,15 +501,14 @@ class Lexer {\n           return;\n         }\n \n-        popGroupingContext(groupingStack, \"{\");\n+        lastClosedStatementBoundary = updateGroupingState(groupingStack, tokens[tokens.length - 1], \"}\", lastClosedStatementBoundary);\n         tokens.push({ type: \"punctuator\", value: \"}\" });\n-        lastClosedControlParenthesis = false;\n         continue;\n       }\n \n       if (\n         char === \"/\" &&\n-        shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedControlParenthesis, tokens)\n+        shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedStatementBoundary, tokens)\n       ) {\n         if (!this.options.allowRegexLiterals) {\n           this.syntaxError(\"Regular expression literals are not supported\", this.position());\n@@ -515,7 +517,7 @@ class Lexer {\n         const start = this.position();\n         const value = this.scanRegexLiteral(start);\n         tokens.push({ type: \"regex\", value });\n-        lastClosedControlParenthesis = false;\n+        lastClosedStatementBoundary = false;\n         continue;\n       }\n \n@@ -524,10 +526,13 @@ class Lexer {\n         const previousToken = tokens[tokens.length - 1];\n         this.advanceBy(punctuator.length);\n         tokens.push({ type: \"punctuator\", value: punctuator });\n-        lastClosedControlParenthesis = updateGroupingState(\n+        lastClosedStatementBoundary = updateGroupingState(\n           groupingStack,\n           previousToken,\n-          punctuator\n+          punctuator,\n+          lastClosedStatementBoundary,\n+          false,\n+          tokens[tokens.length - 3]\n         );\n         continue;\n       }\n@@ -856,7 +861,7 @@ class Lexer {\n   private readSlashOrPunctuator(start: Position): void {\n     if (\n       this.currentChar() === \"/\" &&\n-      shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedControlParenthesis, this.tokens)\n+      shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedStatementBoundary, this.tokens)\n     ) {\n       if (!this.options.allowRegexLiterals) {\n         this.syntaxError(\"Regular expression literals are not supported\", start);\n@@ -952,15 +957,18 @@ class Lexer {\n     this.tokens.push(token);\n \n     if (type === \"punctuator\") {\n-      this.lastClosedControlParenthesis = updateGroupingState(\n+      this.lastClosedStatementBoundary = updateGroupingState(\n         this.groupingStack,\n         previousToken,\n-        value\n+        value,\n+        this.lastClosedStatementBoundary,\n+        this.options.statementList === true,\n+        this.tokens[this.tokens.length - 3]\n       );\n       return;\n     }\n \n-    this.lastClosedControlParenthesis = false;\n+    this.lastClosedStatementBoundary = false;\n   }\n \n   private currentChar(): string {\n@@ -1225,7 +1233,7 @@ function matchPunctuator(source: string, index: number): string | undefined {\n \n function shouldRejectRegexLiteral(\n   previousToken: Pick<Token, \"type\" | \"value\"> | undefined,\n-  lastClosedControlParenthesis: boolean,\n+  lastClosedStatementBoundary: boolean,\n   tokens: ReadonlyArray<Pick<Token, \"type\" | \"value\">>\n ): boolean {\n   if (previousToken === undefined) {\n@@ -1247,8 +1255,8 @@ function shouldRejectRegexLiteral(\n     return !EXPRESSION_ENDING_KEYWORDS.has(previousToken.value);\n   }\n \n-  if (previousToken.value === \")\") {\n-    return lastClosedControlParenthesis;\n+  if (previousToken.value === \")\" || previousToken.value === \"}\") {\n+    return lastClosedStatementBoundary;\n   }\n \n   return !isExpressionEndingPunctuator(previousToken.value);\n@@ -1287,13 +1295,19 @@ function endsWithForOfSeparator(tokens: ReadonlyArray<Pick<Token, \"type\" | \"valu\n function updateGroupingState(\n   groupingStack: GroupingContext[],\n   previousToken: Pick<Token, \"type\" | \"value\"> | undefined,\n-  punctuator: string\n+  punctuator: string,\n+  previousStatementBoundary: boolean,\n+  initialStatementList = false,\n+  beforePreviousToken?: Pick<Token, \"type\" | \"value\">\n ): boolean {\n   if (punctuator === \"(\") {\n     groupingStack.push({\n       value: \"(\",\n       isControlCondition:\n-        previousToken?.type === \"keyword\" && CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value)\n+        (previousToken?.type === \"keyword\" || previousToken?.type === \"identifier\") &&\n+        (CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value) ||\n+          (previousToken.value === \"await\" && beforePreviousToken?.type === \"keyword\" && beforePreviousToken.value === \"for\")) &&\n+        beforePreviousToken?.value !== \".\" && beforePreviousToken?.value !== \"?.\"\n     });\n     return false;\n   }\n@@ -1304,7 +1318,13 @@ function updateGroupingState(\n   }\n \n   if (punctuator === \"{\") {\n-    groupingStack.push({ value: \"{\" });\n+    const parent = groupingStack[groupingStack.length - 1];\n+    const closesStatement = previousToken === undefined ? initialStatementList\n+      : previousStatementBoundary ||\n+        ([\"{\", \";\"].includes(previousToken.value) && (parent === undefined || parent.statementList === true)) ||\n+        (previousToken.type === \"keyword\" && [\"else\", \"do\", \"try\", \"finally\"].includes(previousToken.value));\n+    groupingStack.push({ value: \"{\", closesStatement,\n+      statementList: closesStatement || previousToken?.value === \")\" || previousToken?.value === \"=>\" || previousToken?.value === \"static\" });\n     return false;\n   }\n \n@@ -1318,8 +1338,7 @@ function updateGroupingState(\n   }\n \n   if (punctuator === \"}\") {\n-    popGroupingContext(groupingStack, \"{\");\n-    return false;\n+    return popGroupingContext(groupingStack, \"{\")?.closesStatement === true;\n   }\n \n   return false;\n",
+  "header": {
+    "type": "header",
+    "manifestId": "eeaa1a65687c4a01476a04479a0f663ecf9035627da275d9967f00ed22c926a4",
+    "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+    "sourceSha": "16f07352f27990afec4f486a8317b6e0d82f959f",
+    "sourceHash": "741f9eca619a087488752b0a46d2beea2d939b4c8616274a6e05e84086778db7",
+    "runtime": {
+      "node": "v22.23.2",
+      "icu": "78.2",
+      "v8": "12.4.254.21-node.56",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "execution": {
+      "timeoutMs": 3000,
+      "budget": {},
+      "effectiveBudget": {
+        "maxSteps": "unlimited",
+        "maxCallDepth": "unlimited",
+        "stringLength": "unlimited",
+        "arrayLength": "unlimited",
+        "dataSize": "unlimited"
+      },
+      "deadline": "per-variant timeout",
+      "isolation": {
+        "kind": "persistent-child-process",
+        "startupTimeoutMs": 10000,
+        "wallTimeoutMs": 3000,
+        "timerStarts": "before-dispatch",
+        "recovery": "kill-and-replace-without-retrying-variant"
+      }
+    },
+    "selected": [
+      "language/statementList/block-let-declaration.js",
+      "language/statementList/block-regexp-literal-flags.js",
+      "language/statementList/block-regexp-literal.js",
+      "language/statementList/block-with-statment-let-declaration.js",
+      "language/statementList/block-with-statment-regexp-literal-flags.js",
+      "language/statementList/block-with-statment-regexp-literal.js",
+      "language/statementList/eval-block-let-declaration.js",
+      "language/statementList/eval-block-regexp-literal-flags.js",
+      "language/statementList/eval-block-regexp-literal.js",
+      "language/statementList/eval-block-with-statment-let-declaration.js",
+      "language/statementList/eval-block-with-statment-regexp-literal-flags.js",
+      "language/statementList/eval-block-with-statment-regexp-literal.js"
+    ],
+    "command": [
+      "--corpus",
+      "/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "docs/plans/qualify-language-semantics/block-regexp-goal/upstream-final.jsonl",
+      "--include",
+      "language/statementList/block-let-declaration.js",
+      "--include",
+      "language/statementList/block-regexp-literal-flags.js",
+      "--include",
+      "language/statementList/block-regexp-literal.js",
+      "--include",
+      "language/statementList/block-with-statment-let-declaration.js",
+      "--include",
+      "language/statementList/block-with-statment-regexp-literal-flags.js",
+      "--include",
+      "language/statementList/block-with-statment-regexp-literal.js",
+      "--include",
+      "language/statementList/eval-block-let-declaration.js",
+      "--include",
+      "language/statementList/eval-block-regexp-literal-flags.js",
+      "--include",
+      "language/statementList/eval-block-regexp-literal.js",
+      "--include",
+      "language/statementList/eval-block-with-statment-let-declaration.js",
+      "--include",
+      "language/statementList/eval-block-with-statment-regexp-literal-flags.js",
+      "--include",
+      "language/statementList/eval-block-with-statment-regexp-literal.js"
+    ],
+    "startedAt": "2026-09-13T16:53:04.902Z"
+  },
+  "summary": {
+    "type": "summary",
+    "complete": true,
+    "manifestId": "eeaa1a65687c4a01476a04479a0f663ecf9035627da275d9967f00ed22c926a4",
+    "selected": [
+      "language/statementList/block-let-declaration.js",
+      "language/statementList/block-regexp-literal-flags.js",
+      "language/statementList/block-regexp-literal.js",
+      "language/statementList/block-with-statment-let-declaration.js",
+      "language/statementList/block-with-statment-regexp-literal-flags.js",
+      "language/statementList/block-with-statment-regexp-literal.js",
+      "language/statementList/eval-block-let-declaration.js",
+      "language/statementList/eval-block-regexp-literal-flags.js",
+      "language/statementList/eval-block-regexp-literal.js",
+      "language/statementList/eval-block-with-statment-let-declaration.js",
+      "language/statementList/eval-block-with-statment-regexp-literal-flags.js",
+      "language/statementList/eval-block-with-statment-regexp-literal.js"
+    ],
+    "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+    "runtime": {
+      "node": "v22.23.2",
+      "icu": "78.2",
+      "v8": "12.4.254.21-node.56",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "execution": {
+      "timeoutMs": 3000,
+      "budget": {},
+      "effectiveBudget": {
+        "maxSteps": "unlimited",
+        "maxCallDepth": "unlimited",
+        "stringLength": "unlimited",
+        "arrayLength": "unlimited",
+        "dataSize": "unlimited"
+      },
+      "deadline": "per-variant timeout",
+      "isolation": {
+        "kind": "persistent-child-process",
+        "startupTimeoutMs": 10000,
+        "wallTimeoutMs": 3000,
+        "timerStarts": "before-dispatch",
+        "recovery": "kill-and-replace-without-retrying-variant"
+      }
+    },
+    "selections": [
+      "language/statementList/block-let-declaration.js",
+      "language/statementList/block-regexp-literal-flags.js",
+      "language/statementList/block-regexp-literal.js",
+      "language/statementList/block-with-statment-let-declaration.js",
+      "language/statementList/block-with-statment-regexp-literal-flags.js",
+      "language/statementList/block-with-statment-regexp-literal.js",
+      "language/statementList/eval-block-let-declaration.js",
+      "language/statementList/eval-block-regexp-literal-flags.js",
+      "language/statementList/eval-block-regexp-literal.js",
+      "language/statementList/eval-block-with-statment-let-declaration.js",
+      "language/statementList/eval-block-with-statment-regexp-literal-flags.js",
+      "language/statementList/eval-block-with-statment-regexp-literal.js"
+    ],
+    "counts": {
+      "files": 12,
+      "fixtures": 0,
+      "metadataErrors": 0,
+      "executionErrors": 0,
+      "variants": 24,
+      "passed": 24,
+      "failed": 0,
+      "unsupported": 0
+    },
+    "harnessHashes": {
+      "assert.js": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+      "assertRelativeDateMs.js": "5113bc0c6d87018bb372da7eb589ca5912b0b7664563262169e3336ad96ad3cc",
+      "asyncHelpers.js": "9afd9a18e080f30b998fa3b9c3e2303fc85fb1ebae664a532a58d56d86d3bcc9",
+      "atomicsHelper.js": "9486ad9ca3bef4672180553a5ba66e2d44d33139905c48629c080ff590db6cca",
+      "byteConversionValues.js": "33d19f8bec615dcaf7a99298035df4f7155fe371ff33e54fef2fdb78b658c3da",
+      "compareArray.js": "3330423fe116cd96db70077d194471319ae9767ba1c8e2f73d7c133c5204509d",
+      "compareIterator.js": "ce41ebea8f4a3514d2412aea139e2961521a6c4534215a37d664fc93c8d311d3",
+      "dateConstants.js": "f7cafff2ac96601232c801568bb357eff1a515b849211b230e1b16a41bc786ce",
+      "decimalToHexString.js": "bc8786436987220b53cbc28443697f1fb61d5818fbf4f0741fd80a736d1d4ff5",
+      "deepEqual.js": "b884b27b927d91c62eb9fc7d2ff9d76050d524d8179b9993eda3d5a2d9f86525",
+      "detachArrayBuffer.js": "d487a9c3c7d51b7e9d66c5fce89929ab3d09a6341d21a833e38f9caba6bf2e0e",
+      "doneprintHandle.js": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add",
+      "features.yml": "53227230ea262fa4584fd798f0d798e13f09a1165d181f86a1d01526df65a0e6",
+      "fnGlobalObject.js": "c1cdfdd80333c70a2567377331788555c10fefc50c4cb0c573170baa8864ac1a",
+      "isConstructor.js": "68e1a3e4565a8d33ea7fc918627fbbf446bcf14d7a939777616b2b545a5e7d32",
+      "iteratorZipUtils.js": "225712bd535058c9e60000dbda45759be56b8e1e1d3999a531e44254ae46c94f",
+      "nans.js": "cfc08a1415d798879d544b58e11bee1e368f7ca52e1bbf3652c77737050bc90d",
+      "nativeErrors.js": "601b5841cc3df18b72c3b5ce35c4d737acb3843c733b786991461ec5a6184508",
+      "nativeFunctionMatcher.js": "277e156a46d4f200e92c0f0d89aebbf5c6e94ca3eae8638f7802365819db0954",
+      "promiseHelper.js": "76cf933b2a7069dc22fcff70d6d4f082ab777b3485e08b79ab4d6a18aef9df9c",
+      "propertyHelper.js": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8",
+      "proxyTrapsHelper.js": "0fb687804ab799e320c5dc4a0d4316162e6a14c286873405d881a151cb15787a",
+      "regExpUtils.js": "76d46c1f38486ae94c4757646cefa64716b03fce3df7576be4c87d37b88c02f5",
+      "resizableArrayBufferUtils.js": "029aa552050861eb85fe9d848a52716dfd24747dcaf06f2a8937cb510ab31f50",
+      "sm/assertThrowsValue.js": "101f426e0b86f2b833248b509f09c55894865ea8aee41dc53748768ddab31b1a",
+      "sm/non262-Date-shell.js": "0e99cd29d9dfd26172a733cb336921bd9212667778f745702ff4c382febdfc5d",
+      "sm/non262-expressions-shell.js": "b7ebfbcdef5dcfe18994441efea440b26b45ba9a21ac167c6bf35b73371a568f",
+      "sm/non262-generators-shell.js": "a489ee0e718066080dae7766f4884e1f69ede4e6391b1372f022818e6c90bad6",
+      "sm/non262-JSON-shell.js": "6e044b591f99d9e7db383c58d2c9d68010aa613c97c06a72f5f0f839bde4204c",
+      "sm/non262-Math-shell.js": "79dea1172236685567e09da8c9e868e0f84686bf40cff728785223c5b43f5e7b",
+      "sm/non262-Reflect-shell.js": "aa9579bc7040fff7c7313becf5ad528d64b3e550497ff761dd3a3a4b6e1c3116",
+      "sm/non262-Set-shell.js": "b6cf757b362036e7768c0b29b0b6a4cc68a7d34a67dee57fed0e0fdb277e5ce6",
+      "sm/non262-strict-shell.js": "fe77ba782cbddebef6bc7f86f354f48c9b435557222ab585c6b2ee1b6c6804b6",
+      "sm/non262-Temporal-PlainMonthDay-shell.js": "00418c0b37f9eb472c49730ea149fda95db0cf8bbc2f42aee3f6d369e8b2bf8c",
+      "sm/non262-TypedArray-shell.js": "3798d277ac8f105b65ad26602b500b497af7f3361fd14a169c58a601c605bb2e",
+      "sta.js": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+      "tcoHelper.js": "a533b07378e41044c98199e250e1c78a28610a783ad0814cb467e9ea2f5de8fa",
+      "temporalHelpers.js": "4585c97b969b4a29cec0387a4981de7d0d210375c2a8a9a8360d6c18d3a9f359",
+      "testAtomics.js": "ebc1ca5e35a70941015a764968d46746ed51a6e37de6840e90d71efd4b7121df",
+      "testIntl.js": "dee1aeb19883536773990cb39a47e49b58511a6dc8ffe5952a4a2875e2f95d74",
+      "testIntlNumberFormat.js": "d2e52c1e2f37d67b3dce488e7da63d32ce35b9a0adb594fc060e6a0c4e03bd74",
+      "testTypedArray.js": "51eb50e53e6215f31f14d64d249bea2d08ad943c77835f63ba52ec694de2189a",
+      "typeCoercion.js": "b0864a0ead1fe13939a1dfa57986af004d0b7bf13f3ffd56060f36e9841b1e51",
+      "wellKnownIntrinsicObjects.js": "bf52f7cca33e62937a9f800b67f6c9d4e4a0bc5819115223f6782f8cb84536a4"
+    },
+    "completedAt": "2026-09-13T16:53:07.484Z"
+  },
+  "results": [
+    {
+      "type": "result",
+      "filename": "language/statementList/block-let-declaration.js",
+      "sourceHash": "6e0ed3c51f364f25af62df0b63a87c2526f546906dbee0a2b22092b4c51b0964",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/block-regexp-literal-flags.js",
+      "sourceHash": "3b5444282d82e283606b98d7eb7e003b3664914f8c07f98f6b103d237d63e986",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/block-regexp-literal.js",
+      "sourceHash": "67538cc364ebe05578030feab53f6e2fe2acaa001caef08d1c115b604149cc8e",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/block-with-statment-let-declaration.js",
+      "sourceHash": "bd7e07608a15002a81a5c332ddfd3c3ea5aec009394c822bcda47ced156aa870",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/block-with-statment-regexp-literal-flags.js",
+      "sourceHash": "d87e227f3bb3ecccd3234434649f57566e1a5f8fa0c4a04064847b8880eddc76",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/block-with-statment-regexp-literal.js",
+      "sourceHash": "f296d5224a62c0aa212540bf161ae62d6a68e5d4a400b400d06d98281930acc5",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/eval-block-let-declaration.js",
+      "sourceHash": "c3a9710c6583d4c41ccbebb289ac8c302fde4dac4cdc25687297f1d64167a627",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/eval-block-regexp-literal-flags.js",
+      "sourceHash": "7ac7d3fe28a043de1197dd558dd0151471fe0ccd622d62e8b583499ef6880b57",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/eval-block-regexp-literal.js",
+      "sourceHash": "aded25ecd4f0a2e82e8d5ff852d90e9a7320be83fa875b99adc89b8e306d1183",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/eval-block-with-statment-let-declaration.js",
+      "sourceHash": "b3dae5b1845eb7828f80c01372ce4f3d09820fc220420740d04be9d14fae2c50",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/eval-block-with-statment-regexp-literal-flags.js",
+      "sourceHash": "9da87e2f7a8e8b72867b80494712cbb929c1901e41d8b4d67a09641daed08f49",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statementList/eval-block-with-statment-regexp-literal.js",
+      "sourceHash": "e94f774e21dee120760e9e52b4298529648150e213ec2bf4ae2f050ba99e003f",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

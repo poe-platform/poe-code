@@ -2449,3 +2449,14 @@ its head was behind main; poe-code remains at the earlier15.0.33 in that registr
 Later containing successors and all final package publications remain required. Workflow
 URLs, exact heads/ancestry, failures, propagation observations and recovery are linked
 above. No local publication or issue closure is claimed.
+
+### qualify-language-semantics — regexp after statement blocks, 2026-09-13
+
+[Atomic repair and evidence](qualify-language-semantics/block-regexp-goal/audit.md)
+track statement-block lexical goals while preserving expression division. Independent
+red cases cover templates, keyword-named methods, dynamic bodies and for-await blocks.
+Final149 focused tests, lint/build and24 original/neighbor variants pass. The broader
+parser/lint audit passed2505 tests with one existing opt-in fuzz skip, explicitly retained.
+Seven runtime SDK replay/source/authority/budget controls pass; CLI screenshot inspected.
+Residual arithmetic is108 raw nonpasses (49 exclusions,59 target failures). Declaration/
+regexp contexts, other target categories and final publication remain unresolved.

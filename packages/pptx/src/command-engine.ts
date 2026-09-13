@@ -1,3 +1,5 @@
+import { noteSchemas, notesUsage } from "./notes-schema.js";
+import { validateNotesCommand, executeNotesCommand } from "./command-notes.js";
 import { linkSchemas, linksUsage } from "./links-schema.js";
 import { validateLinkCommand, executeLinkCommand, type LinkArguments } from "./command-links.js";
 import {
@@ -290,6 +292,9 @@ const help =
   "       pptx text fit INPUT --metrics JSON [--min-size N --max-size N] [selection] [output]\n" +
   "       pptx text frames list|get|set INPUT [--vertical-anchor top|middle|bottom] [--autofit none|shape|text]\n" +
   "       pptx text paragraphs list|get|set INPUT [--paragraph N] [--alignment left|center|right] [--json]\n" +
+  "       pptx notes list|get INPUT [--slide N | --select TOKEN] [--json]\n" +
+  "       pptx notes add|set INPUT --text TEXT [--slide N | --select TOKEN | --all] [output]\n" +
+  "       pptx notes remove INPUT [--slide N | --select TOKEN | --all] [output]\n" +
   "       pptx text get INPUT [--slide N] [--shape NAME] [--scope SCOPE] [--json]\n" +
   "       pptx text runs set INPUT --slide N --shape NAME --font NAME --size 18pt --output PATH\n" +
   "       pptx text replace INPUT --find TEXT --with TEXT --first|--all|--occurrence N\n" +
@@ -395,6 +400,7 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  noteText?: string;
   tableStructure?: TableStructureOperation;
   tableFrom?: string;
   tableTo?: string;
@@ -424,6 +430,7 @@ interface Arguments {
   opsFile?: string;
   linkEdit?: NonNullable<LinkArguments["linkEdit"]>;
   operation:
+    | `notes.${"list" | "get" | "add" | "set" | "remove"}`
     | `links.${"list" | "get" | "add" | "set" | "remove"}`
     | "batch"
     | `equations.${"list" | "get" | "add"}`
@@ -855,6 +862,7 @@ function parse(
         "transitions",
         "equations",
         "links",
+        "notes",
         "charts",
         "media",
         "images",
@@ -929,6 +937,7 @@ function parse(
     "media",
     "equations",
         "links",
+        "notes",
     "charts",
     "images",
     "tables",
@@ -963,6 +972,7 @@ function parse(
       ...Object.keys(imageSchemas),
       ...Object.keys(equationSchemas),
       ...Object.keys(linkSchemas),
+      ...Object.keys(noteSchemas),
       ...Object.keys(chartSchemas),
       ...Object.keys(fieldSchemas),
       ...Object.keys(connectorSchemas),
@@ -1023,6 +1033,7 @@ function parse(
         operation.startsWith("images.") ||
         operation.startsWith("equations.") ||
         operation.startsWith("links.") ||
+        operation.startsWith("notes.") ||
         operation.startsWith("charts.") ||
         operation.startsWith("tables.") ||
         operation.startsWith("connectors.") ||
@@ -1300,6 +1311,14 @@ function parse(
       if (!value) usage("Batch option requires a value.");
       if (argument === "--ops-json") result.animationBatch = parseAnimationBatch(commandJson(value));
       else result.opsFile = value;
+      continue;
+    }
+    if (operation.startsWith("notes.") && argument === "--text") {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Notes text requires a value.");
+      result.noteText = value;
       continue;
     }
     if (operation.startsWith("links.") && ["--url", "--target-slide", "--action", "--trigger", "--sanitize", "--path"].includes(argument)) {
@@ -2463,6 +2482,10 @@ function parse(
     validateMediaEditingCommand(result, positionals, seen);
     return result;
   }
+  if (Object.hasOwn(noteSchemas, operation)) {
+    validateNotesCommand(result, positionals, seen);
+    return result;
+  }
   if (Object.hasOwn(linkSchemas, operation)) {
     validateLinkCommand(result, positionals, seen);
     return result;
@@ -3377,6 +3400,7 @@ function parse(
         ...Object.keys(imageSchemas),
         ...Object.keys(equationSchemas),
       ...Object.keys(linkSchemas),
+      ...Object.keys(noteSchemas),
         ...Object.keys(chartSchemas),
         ...Object.keys(fieldSchemas),
         ...Object.keys(connectorSchemas),
@@ -3792,6 +3816,7 @@ async function execute(
                             "No field evaluation, automatic numbering or inherited-content flattening.\n" +
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
+      if (args.schemaPath?.startsWith("notes.")) resolvedUsage = notesUsage;
       if (args.schemaPath?.startsWith("links.")) resolvedUsage = linksUsage;
       if (args.schemaPath?.startsWith("transitions.")) resolvedUsage = transitionsUsage;
       if (args.schemaPath?.startsWith("animations.")) resolvedUsage = animationsUsage;
@@ -3890,6 +3915,7 @@ async function execute(
             ...mediaSchemas,
             ...equationSchemas,
             ...linkSchemas,
+            ...noteSchemas,
             ...fieldSchemas,
             ...membershipSchemas,
             ...settingsSchemas,
@@ -3988,6 +4014,10 @@ async function execute(
           batch: {
             supported: true, level: "edit", operations: ["batch"],
             subset: "Version 1 ordered animation add/set/remove operations only; validate every item before mutation and publish once. No model handles or arbitrary operation dispatch."
+          },
+          notes: {
+            supported: true, level: "edit", operations: Object.keys(noteSchemas),
+            subset: "F48: associated speaker body read/create/set/remove; notes shapes and master text use explicit text scopes. Other placeholders and unsupported note content remain distinct. Competing notes-master import is rejected; live notes model APIs remain unavailable."
           },
           transitions: {
             supported: true,
@@ -4310,6 +4340,9 @@ async function execute(
           publication = { inputPath: args.input!, outputPath: destination, bytes: changed.bytes, originalBytes: bytes, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
         }
       }
+    } else if (Object.hasOwn(noteSchemas, args.operation)) {
+      const notes = await executeNotesCommand(args, request, options);
+      result = notes.result; human = notes.human; binary = notes.binary; publication = notes.publication;
     } else if (Object.hasOwn(linkSchemas, args.operation)) {
       const links = await executeLinkCommand(args, request, options);
       result = links.result; human = links.human; binary = links.binary; publication = links.publication;

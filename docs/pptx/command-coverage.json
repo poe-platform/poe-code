@@ -1409,20 +1409,46 @@
       "featureId": "F48",
       "family": "Notes",
       "requiredSubset": "Read/create/edit speaker text, notes shapes/master and slide association without conflating slide placeholders with speaker text",
-      "status": "proposed_not_implemented",
-      "operationIds": ["notes.get", "notes.set", "masters.set"],
-      "levels": ["read", "edit", "preserve"],
+      "status": "implemented_bounded_operations_live_model_incomplete",
+      "operationIds": [
+        "notes.list",
+        "notes.get",
+        "notes.add",
+        "notes.set",
+        "notes.remove",
+        "text.frames.list",
+        "text.frames.set",
+        "text.replace"
+      ],
+      "levels": [
+        "read",
+        "edit",
+        "preserve"
+      ],
       "inspection": {
-        "operation": "inspect",
-        "arguments": {
-          "feature": "F48"
-        }
+        "operation": "notes.list",
+        "arguments": {}
       },
-      "tests": ["feature.F48.behavior", "feature.F48.retention"],
+      "tests": [
+        "speaker notes",
+        "notes relationship graph",
+        "safe-bash notes"
+      ],
       "evidence": {
-        "existingProductTests": [],
-        "formatSpec": "docs/specs/pptx.md#5-feature-coverage-contract"
-      }
+        "existingProductTests": [
+          "packages/pptx/src/notes.test.ts",
+          "packages/pptx/src/notes-graph.test.ts",
+          "packages/safe-bash/tests/commands/pptx/notes.test.ts"
+        ],
+        "formatSpec": "docs/specs/pptx.md#5-feature-coverage-contract",
+        "receipt": "docs/pptx/notes-evidence.md"
+      },
+      "limitations": [
+        "Notes shape/master text uses explicit notes or notes-master scope; masters.set edits slide masters, not notes masters.",
+        "Unsupported inline speaker content rejects destructive replacement; unrelated content is retained.",
+        "Competing notes masters cannot be imported without a future explicit reconciliation policy.",
+        "Detached note records do not implement the documented live notes model."
+      ]
     },
     {
       "featureId": "F49",

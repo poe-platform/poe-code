@@ -457,3 +457,5 @@ export {
   type ReplaceMediaResult,
   type MediaPoster
 } from "./media-editing.js";
+
+export { readNotes, mutateNotes, validateNotesOptions, type NotesRecord, type MutateNotesOptions } from "./notes.js";

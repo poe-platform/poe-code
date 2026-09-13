@@ -166,3 +166,10 @@ Current verification and input hashes are recorded in
 [the documentation receipt](format-contract-evidence.json). Historical checks
 above remain historical; expanded signatures and schemas do not turn prior
 research counts into product passes.
+
+Current F48 notes operations are recorded in [notes evidence](notes-evidence.md),
+[case accounting](notes-case-map.json) and [draft usage](notes-usage.md). The F48
+feature row now distinguishes speaker notes from explicit notes/notes-master text
+scopes. Historical model routes remain proposed: masters.set addresses slide
+masters and is not a notes-master text command. Detached notes records do not
+implement the remaining live model API.

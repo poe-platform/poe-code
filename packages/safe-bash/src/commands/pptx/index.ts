@@ -1,4 +1,6 @@
-import { collectBytes, FsError, getCommandArguments, writeBytes, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
+import { collectBytes, FsError, getCommandArguments, writeBytes, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "../../contracts/index.js";
+import { writeFileOutput } from "../../contracts/filesystem-output.js";
+import { compareObservedEntries } from "../copy-identity.js";
 import { pathOf } from "../internal.js";
 import { inputRequirements } from "../portable-requirements.js";
 
@@ -7,6 +9,15 @@ export interface PptxCommandEngine {
     readonly args: readonly Uint8Array[];
     readonly signal: AbortSignal;
     readonly readInput: (path: string, maxBytes: number) => Promise<Uint8Array>;
+    readonly publishOutput?: (publication: {
+      readonly inputPath: string;
+      readonly outputPath: string;
+      readonly bytes: Uint8Array;
+      readonly originalBytes: Uint8Array;
+      readonly inPlace: boolean;
+      readonly force: boolean;
+      readonly dryRun: boolean;
+    }) => Promise<void>;
   }): Promise<{
     readonly exitCode: number;
     readonly stdout: Uint8Array;
@@ -25,6 +36,7 @@ export function createPptxCommands(options: PptxCommandsOptions): readonly Comma
   const engine = options.engine;
   return [{ name: "pptx", filesystemRequirements: inputRequirements, async execute(context) {
     const arguments_ = getCommandArguments(context);
+    const snapshots = new Map<string, FileStat>();
     const result = await engine.execute({
       args: arguments_.args.map((_, index) => arguments_.bytes(index)!),
       signal: context.signal,
@@ -33,6 +45,10 @@ export function createPptxCommands(options: PptxCommandsOptions): readonly Comma
           context.signal.throwIfAborted();
           if (path === "-") return await collectBytes(context.stdin, { maxBytes, signal: context.signal });
           const resolved = pathOf(context, path);
+          if (!snapshots.has(resolved)) {
+            try { snapshots.set(resolved, await context.fs.lstat(resolved, { signal: context.signal })); }
+            catch { context.signal.throwIfAborted(); }
+          }
           const capabilities = await context.fs.capabilitiesFor?.(resolved, { signal: context.signal }) ?? context.fs.capabilities;
           context.signal.throwIfAborted();
           if (context.fs.readStream && capabilities.streamingRead !== false) {
@@ -58,6 +74,53 @@ export function createPptxCommands(options: PptxCommandsOptions): readonly Comma
         } catch (error) {
           context.signal.throwIfAborted();
           throw Object.assign(new Error("Input could not be read."), { code: error instanceof FsError && error.code === "EFBIG" ? "resource-limit" : "io-failure" });
+        }
+      },
+      async publishOutput(publication) {
+        try {
+          const { fs, signal } = context;
+          signal.throwIfAborted();
+          const input = publication.inputPath === "-" ? undefined : pathOf(context, publication.inputPath);
+          const output = pathOf(context, publication.outputPath);
+          if (publication.inPlace ? !input || input !== output : input === output) throw new FsError("EINVAL");
+          const capabilities = await fs.capabilitiesFor?.(output, { signal }) ?? fs.capabilities;
+          signal.throwIfAborted();
+          if (capabilities.readOnly === true || capabilities.write === false || !capabilities.atomicFileMutation || !fs.writeFileConditional) throw new FsError("ENOTSUP");
+          let destination: FileStat | null;
+          try { destination = await fs.lstat(output, { signal }); }
+          catch (error) {
+            signal.throwIfAborted();
+            if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+            destination = null;
+          }
+          if (destination && destination.type !== "file") throw new FsError("EINVAL");
+          if (destination && !publication.inPlace) {
+            if (!publication.force) throw new FsError("EEXIST");
+            if (input && await compareObservedEntries(fs, input, await fs.stat(input, { signal }), fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");
+          }
+          const parentPath = output.slice(0, output.lastIndexOf("/")) || "/";
+          const parent = await fs.stat(parentPath, { signal });
+          if (parent.type !== "directory") throw new FsError("ENOTDIR");
+          if (publication.inPlace) {
+            const original = snapshots.get(input!);
+            if (!original || original.type !== "file" || !destination || original.revision === undefined
+              || original.revision !== destination.revision || original.size !== destination.size
+              || original.mode !== destination.mode || original.nlink !== destination.nlink
+              || original.mtimeMs !== destination.mtimeMs || original.ctimeMs !== destination.ctimeMs
+              || await compareObservedEntries(fs, input!, original, fs, output, destination, { signal }) !== "same") throw new FsError("EAGAIN");
+            const current = await fs.readFile(input!, { maxBytes: publication.originalBytes.length, signal });
+            if (current.length !== publication.originalBytes.length || current.some((byte, index) => byte !== publication.originalBytes[index])) throw new FsError("EAGAIN");
+            destination = original;
+          }
+          signal.throwIfAborted();
+          if (!publication.dryRun) await writeFileOutput(context, publication.bytes, async bytes => {
+            await fs.writeFileConditional!(output, bytes, { parent, expected: destination, signal });
+          });
+        } catch (error) {
+          context.signal.throwIfAborted();
+          const code = error instanceof FsError && error.code === "EAGAIN" ? "stale-input"
+            : error instanceof FsError && error.code === "ENOTSUP" ? "publication-unsupported" : "io-failure";
+          throw Object.assign(new Error("Output could not be published."), { code });
         }
       }
     });

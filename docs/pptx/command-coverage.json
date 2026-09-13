@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "status": "proposed-documentation-only",
   "implementedThrough": null,
-  "scope": "All F01–F60 format features, all 2,407 reconciled upstream API records, and all 17 additive bounded-view members in the existing public API map. Proposed command design only; no implemented support or executed product tests.",
+  "scope": "All F01–F60 format features, all 2,407 reconciled upstream API records, and all 17 additive bounded-view members in the existing public API map. Full command design remains proposed; current direct XML operation evidence is recorded separately from unimplemented batch/model contracts.",
   "authority": ["docs/specs/office-cli.md", "docs/specs/office-sdk.md", "docs/specs/pptx.md"],
   "inputEvidence": {
     "docs/specs/pptx.md": {
@@ -3994,7 +3994,7 @@
       "path": ["xml", "get"],
       "sdkOperationId": "xml.get",
       "version": 1,
-      "status": "proposed_not_implemented",
+      "status": "partial-direct-implementation",
       "transport": "direct-and-batch",
       "arguments": {
         "type": "object",
@@ -4050,13 +4050,24 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "implementation": {
+        "surface": "direct-command-and-operation-sdk",
+        "usage": "docs/pptx/xml-operations.md",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "sdkTests": "packages/pptx/src/xml-parts.test.ts",
+        "commandTests": "packages/pptx/src/command-xml.test.ts",
+        "adapterTests": "packages/safe-bash/tests/commands/pptx/selectors.test.ts",
+        "verification": "docs/plans/pptx-xml-part-operations.md",
+        "boundary": "Original bounded bytes and explicitly labeled pretty display; exact metadata URI reads require explicit shared scope. Live model views and batch remain unimplemented.",
+        "designSchemaStatus": "Existing arguments/options/batch schemas below retain the broader proposed design; executable command-schema.ts is authoritative for the implemented profile."
+      }
     },
     "xml.set": {
       "path": ["xml", "set"],
       "sdkOperationId": "xml.set",
       "version": 1,
-      "status": "proposed_not_implemented",
+      "status": "partial-direct-implementation",
       "transport": "direct-and-batch",
       "arguments": {
         "type": "object",
@@ -4154,7 +4165,18 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "implementation": {
+        "surface": "direct-command-and-operation-sdk",
+        "usage": "docs/pptx/xml-operations.md",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "sdkTests": "packages/pptx/src/xml-parts.test.ts",
+        "commandTests": "packages/pptx/src/command-xml.test.ts",
+        "adapterTests": "packages/safe-bash/tests/commands/pptx/selectors.test.ts",
+        "verification": "docs/plans/pptx-xml-part-operations.md",
+        "boundary": "Presentation/main and slide parts with unchanged expanded element structure, namespace declarations, namespaced attributes, resource bindings and opaque payloads. Explicit atomic publication; signed/protected/macro and unsupported edits rejected. Full schema validation, live model views and batch remain unimplemented.",
+        "designSchemaStatus": "Existing arguments/options/batch schemas below retain the broader proposed design; executable command-schema.ts is authoritative for the implemented profile."
+      }
     },
     "extract": {
       "path": ["extract"],

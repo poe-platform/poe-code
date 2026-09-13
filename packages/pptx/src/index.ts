@@ -36,5 +36,8 @@ export {
   type PptxCommandEngine,
   type PptxCommandEngineOptions,
   type PptxCommandRequest,
-  type PptxCommandOutput
+  type PptxCommandOutput,
+  type PptxPublicationRequest
 } from "./command-engine.js";
+
+export { getXmlPart, replaceXmlPart, type XmlPartContext, type XmlPartData } from "./xml-parts.js";

@@ -1,6 +1,10 @@
 # PPTX command coverage register
 
-Status: Proposed command design; no product implementation or executed product tests.
+Status: Proposed full command design. Implemented subsets are documented separately
+in [inventory usage](inventory-usage.md) and [XML operations](xml-operations.md);
+the register's proposed batch/model routes are not available merely because a
+related direct operation exists. Executable `schema` and `capabilities` describe
+the current command profile.
 
 [command-coverage.json](command-coverage.json) maps F01–F60 and all 2,424 rows of
 the existing [public API map](public-api-map.json): the 2,407 reconciled upstream

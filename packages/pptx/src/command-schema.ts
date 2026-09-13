@@ -136,3 +136,109 @@ export const inspectSchema = {
     }
   }
 } as const;
+
+const xmlSelection = {
+  limit: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      maxBytes: { type: "integer", minimum: 1 },
+      maxNodes: { type: "integer", minimum: 1 },
+      maxDepth: { type: "integer", minimum: 1 },
+      maxOutputBytes: { type: "integer", minimum: 512 }
+    },
+    description:
+      "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
+  },
+  part: { type: "string", minLength: 1 },
+  select: { type: "string", minLength: 1 },
+  scope: selectionQuerySchema.properties.scope,
+  json: { type: "boolean", default: false }
+} as const;
+const xmlSelectionRules = [
+  { oneOf: [{ required: ["part"] }, { required: ["select"] }] },
+  { if: { required: ["select"] }, then: { not: { required: ["scope"] } } }
+];
+function xmlResult(operation: string, mutation: boolean) {
+  return {
+    ...inspectSchema.result,
+    properties: {
+      ...inspectSchema.result.properties,
+      operation: { const: operation },
+      affected: mutation ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: mutation ? ["part", "dryRun"] : ["part", "format", "xml"],
+            properties: mutation
+              ? { part: { type: "string" }, dryRun: { type: "boolean" } }
+              : {
+                  part: { type: "string" },
+                  format: { enum: ["original", "pretty"] },
+                  xml: { type: "string" }
+                }
+          }
+        ]
+      }
+    }
+  };
+}
+export const xmlGetSchema = {
+  description:
+    "Original XML bytes or explicitly labeled pretty text. Existing manifest and relationship metadata requires an exact part URI and explicit shared scope; metadata locations do not introduce selector tokens.",
+  input: inspectSchema.input,
+  options: {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    type: "object",
+    additionalProperties: false,
+    properties: { ...xmlSelection, pretty: { type: "boolean", default: false } },
+    allOf: xmlSelectionRules
+  },
+  result: xmlResult("xml.get", false)
+};
+export const xmlSetSchema = {
+  input: inspectSchema.input,
+  options: {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    type: "object",
+    additionalProperties: false,
+    required: ["file"],
+    properties: {
+      ...xmlSelection,
+      file: { type: "string", minLength: 1 },
+      output: { type: "string", minLength: 1 },
+      inPlace: { type: "boolean", default: false },
+      force: { type: "boolean", default: false },
+      dryRun: { type: "boolean", default: false }
+    },
+    allOf: [
+      ...xmlSelectionRules,
+      {
+        if: { required: ["inPlace"], properties: { inPlace: { const: true } } },
+        then: { not: { required: ["output"] } }
+      },
+      {
+        if: { required: ["force"], properties: { force: { const: true } } },
+        then: { required: ["output"] }
+      },
+      {
+        anyOf: [
+          { required: ["output"] },
+          { required: ["inPlace"], properties: { inPlace: { const: true } } },
+          { required: ["dryRun"], properties: { dryRun: { const: true } } }
+        ]
+      },
+      {
+        if: {
+          required: ["output", "json"],
+          properties: { output: { const: "-" }, json: { const: true } }
+        },
+        then: { required: ["dryRun"], properties: { dryRun: { const: true } } }
+      }
+    ]
+  },
+  result: xmlResult("xml.set", true)
+};

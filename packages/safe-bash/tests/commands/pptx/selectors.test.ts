@@ -13,6 +13,7 @@ const context = {
   archiveLimits: { maxArchiveBytes: 65536, maxEntryBytes: 8192, maxTotalBytes: 32768, maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxPaxBytes: 1024, maxTextBytes: 8192, chunkSize: 512 },
   xmlLimits: { maxBytes: 8192, maxNodes: 1000, maxDepth: 32 },
   relationshipLimits: { maxBytes: 8192, maxParts: 32, maxRelationships: 64 },
+  validationLimits: { maxBytes: 8192, maxNodes: 1000, maxDepth: 32, maxParts: 32, maxRelationships: 64, maxEntries: 32 },
 };
 
 function deck(reversed = false) {
@@ -39,13 +40,24 @@ function fixture(register = true) {
   volume.writeFileSync("/work/\uFEFFdeck.pptx", deck(true));
   volume.writeFileSync("/work/inspect.sh", "pptx inspect deck.pptx --slide 2 --json\n");
   const fs: FileSystem = new MemoryFileSystem();
+  const identityScope = {};
   fs.stat = async path => {
     try {
       const stat = volume.statSync(path);
-      return { type: stat.isDirectory() ? "directory" : "file", size: Number(stat.size), mode: Number(stat.mode), atimeMs: Number(stat.atimeMs), mtimeMs: Number(stat.mtimeMs), ctimeMs: Number(stat.ctimeMs) };
+      return { type: stat.isSymbolicLink() ? "symlink" : stat.isDirectory() ? "directory" : "file", size: Number(stat.size), mode: Number(stat.mode), atimeMs: Number(stat.atimeMs), mtimeMs: Number(stat.mtimeMs), ctimeMs: Number(stat.ctimeMs), identityScope, dev: Number(stat.dev), ino: Number(stat.ino), revision: Number(stat.mtimeMs), nlink: Number(stat.nlink) };
     } catch (error) { throw new FsError((error as FsError).code); }
   };
-  fs.lstat = fs.stat;
+  fs.lstat = async path => {
+    const observed = await fs.stat(path);
+    return volume.lstatSync(path).isSymbolicLink() ? { ...observed, type: "symlink" } : observed;
+  };
+  fs.writeFileConditional = async (path, bytes, options) => {
+    options.signal?.throwIfAborted();
+    const current = volume.existsSync(path) ? await fs.lstat(path) : null;
+    if (current?.ino !== options.expected?.ino || current?.size !== options.expected?.size || current?.revision !== options.expected?.revision) throw new FsError("EAGAIN");
+    volume.writeFileSync(path, bytes);
+    return fs.stat(path);
+  };
   fs.access = async (path, mode) => {
     try { volume.accessSync(path, mode); } catch (error) { throw new FsError((error as FsError).code); }
   };
@@ -65,6 +77,87 @@ function fixture(register = true) {
   if (register) shell.use(pptxCommands({ engine: createPptxCommandEngine({ context, maxOutputBytes: 65536, maxArgumentBytes: 8192 }) }));
   return { shell, volume, fs };
 }
+
+test("pptx adapter publishes atomically and refuses alias, stale and unavailable destinations", async () => {
+  for (const scenario of ["new", "existing", "force", "alias", "hardlink", "symlink", "unknown", "stale", "unsupported", "dry-run", "dry-alias", "race"]) {
+    const { shell, volume, fs } = fixture(false);
+    const original = deck();
+    const output = new Uint8Array([21, 34, 55]);
+    if (["existing", "force", "unknown"].includes(scenario)) volume.writeFileSync("/work/out.pptx", "old");
+    if (scenario === "hardlink") volume.linkSync("/work/deck.pptx", "/work/out.pptx");
+    if (scenario === "symlink") volume.symlinkSync("/work/deck.pptx", "/work/out.pptx");
+    if (scenario === "unknown") {
+      const stat = fs.stat;
+      fs.stat = fs.lstat = async path => {
+        const observed = await stat(path);
+        return { type: observed.type, size: observed.size, mode: observed.mode, atimeMs: observed.atimeMs, mtimeMs: observed.mtimeMs, ctimeMs: observed.ctimeMs };
+      };
+      fs.compareEntry = async () => "unknown";
+    }
+    if (scenario === "unsupported") fs.capabilitiesFor = async () => ({ ...fs.capabilities, atomicFileMutation: false });
+    if (scenario === "race") fs.writeFileConditional = async () => { throw new FsError("EAGAIN"); };
+    let failure: unknown;
+    shell.use(pptxCommands({ engine: { async execute(request) {
+      await request.readInput("deck.pptx", 65536);
+      if (scenario === "stale") volume.writeFileSync("/work/deck.pptx", "changed");
+      try {
+        assert.equal(typeof request.publishOutput, "function");
+        await request.publishOutput!({ inputPath: "deck.pptx", outputPath: ["alias", "stale", "dry-alias"].includes(scenario) ? "deck.pptx" : "out.pptx", originalBytes: original, bytes: output, inPlace: scenario === "stale", force: ["force", "hardlink", "unknown"].includes(scenario), dryRun: ["dry-run", "dry-alias"].includes(scenario) });
+      } catch (error) { failure = error; }
+      return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() };
+    } } }));
+    await shell.exec("pptx");
+    if (["new", "force", "dry-run"].includes(scenario)) assert.equal(failure, undefined, scenario);
+    else assert.equal((failure as { code?: string })?.code, ["stale", "race"].includes(scenario) ? "stale-input" : scenario === "unsupported" ? "publication-unsupported" : "io-failure", scenario);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), scenario === "stale" ? new TextEncoder().encode("changed") : original, scenario);
+    if (["new", "force"].includes(scenario)) assert.deepEqual(new Uint8Array(volume.readFileSync("/work/out.pptx") as Buffer), output);
+    else if (["existing", "unknown"].includes(scenario)) assert.equal(volume.readFileSync("/work/out.pptx", "utf8"), "old");
+    else if (!["hardlink", "symlink"].includes(scenario)) assert.equal(volume.existsSync("/work/out.pptx"), false, scenario);
+  }
+});
+
+test("pptx XML commands read original bytes and validate before virtual file publication", async () => {
+  const namespace = "http://schemas.openxmlformats.org/presentationml/2006/main";
+  const originalXml = `<?xml version="1.0"?><show:presentation xmlns:show="${namespace}">\n<show:notesSz cx="5000000" cy="9000000"/>\n</show:presentation>`;
+  const changedXml = `<show:presentation xmlns:show="${namespace}"><show:notesSz cx="6000000" cy="8000000"/></show:presentation>`;
+  const original = storedArchive(Object.entries({
+    "[Content_Types].xml": '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Override PartName="/show.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/></Types>',
+    "_rels/.rels": '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="entry" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="show.xml"/></Relationships>',
+    "show.xml": originalXml
+  }).map(([name, xml]) => ({ name, bytes: new TextEncoder().encode(xml) })));
+  for (const scenario of ["new", "in-place", "dry-run", "invalid", "unsupported", "alias", "exists", "force", "race", "dry-readonly", "dry-write-disabled", "readonly", "write-disabled"]) {
+    const { shell, volume, fs } = fixture();
+    volume.writeFileSync("/work/deck.pptx", original);
+    volume.writeFileSync("/work/change.xml", scenario === "invalid" ? "<broken>" : changedXml);
+    if (["invalid", "unsupported", "exists", "force"].includes(scenario)) volume.writeFileSync("/work/out.pptx", "keep");
+    if (scenario === "unsupported") fs.capabilitiesFor = async () => ({ ...fs.capabilities, atomicFileMutation: false });
+    if (["dry-readonly", "readonly"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, readOnly: true });
+    if (["dry-write-disabled", "write-disabled"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, write: false });
+    if (scenario === "race") fs.writeFileConditional = async () => { throw new FsError("EAGAIN"); };
+    const read = await shell.exec("pptx xml get deck.pptx --part /show.xml --scope presentation");
+    assert.equal(read.exitCode, 0, read.stderr);
+    assert.equal(read.stdout, originalXml);
+    const pretty = await shell.exec("pptx xml get deck.pptx --part /show.xml --scope presentation --pretty");
+    assert.equal(pretty.exitCode, 0, pretty.stderr);
+    assert.ok(pretty.stdout.startsWith("Pretty XML (not original bytes)"));
+    const flags = scenario === "in-place" ? "--in-place" : `--output ${scenario === "alias" ? "./deck.pptx" : "out.pptx"}${["force", "invalid", "unsupported", "alias"].includes(scenario) ? " --force" : ""}${["dry-run", "dry-readonly", "dry-write-disabled"].includes(scenario) ? " --dry-run" : ""}`;
+    const result = await shell.exec(`pptx xml set deck.pptx --part /show.xml --scope presentation --file change.xml ${flags} --json`);
+    const envelope = JSON.parse(result.stdout);
+    const success = ["new", "in-place", "dry-run", "force"].includes(scenario);
+    assert.equal(result.exitCode, success ? 0 : ["invalid", "race", "unsupported", "dry-readonly", "dry-write-disabled", "readonly", "write-disabled"].includes(scenario) ? 1 : 3, `${scenario}: ${result.stdout}`);
+    assert.equal(envelope.ok, success, scenario);
+    assert.equal(envelope.affected, success ? 1 : 0, scenario);
+    assert.equal(result.stderr, "");
+    if (scenario !== "in-place") assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), original);
+    if (["new", "in-place", "force"].includes(scenario)) {
+      const output = scenario === "in-place" ? "deck.pptx" : "out.pptx";
+      const verified = await shell.exec(`pptx xml get ${output} --part /show.xml --scope presentation`);
+      assert.equal(verified.exitCode, 0, verified.stderr);
+      assert.equal(verified.stdout, changedXml);
+    } else if (["invalid", "unsupported", "exists"].includes(scenario)) assert.equal(volume.readFileSync("/work/out.pptx", "utf8"), "keep");
+    else assert.equal(volume.existsSync("/work/out.pptx"), false);
+  }
+});
 
 test("pptx validates empty input and preserves output mode and operation on grammar failures", async () => {
   const { shell, fs } = fixture();

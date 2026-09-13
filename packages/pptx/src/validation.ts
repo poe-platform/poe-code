@@ -132,7 +132,15 @@ export function validatePresentation(
       fail("required-structure", name);
       continue;
     }
-    const view = interpretCompatibility(part, [dialect.p, dialect.a, dialect.r]);
+    const view = interpretCompatibility(
+      part,
+      [dialect.p, dialect.a, dialect.r],
+      [
+        { namespace: dialect.a, localName: "graphicData" },
+        { namespace: dialect.a, localName: "ext" },
+        { namespace: dialect.p, localName: "ext" }
+      ]
+    );
     documents.set(name, { root: part.root, view, dialect });
   }
   for (const [name, { root, view, dialect: d }] of documents) {

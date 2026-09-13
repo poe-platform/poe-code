@@ -2126,7 +2126,7 @@ class Parser {
 
   private parseClassBody(declaration: boolean): ClassNode {
     const start = this.expectKeyword("class");
-    const id = isIdentifierLikeToken(this.currentToken()) && this.currentToken().value !== "extends"
+    const id = (isIdentifierLikeToken(this.currentToken()) || this.isContextualIdentifier(this.currentToken())) && this.currentToken().value !== "extends"
       ? this.parseBindingIdentifier()
       : undefined;
     if (declaration && id === undefined) throw unexpectedTokenError(this.currentToken());

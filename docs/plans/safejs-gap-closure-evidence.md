@@ -2331,3 +2331,17 @@ static coverage. The source grammar preserves function boundaries and separately
 tracked resource-management contexts. Original fixture hashes, Node22.23.2/ICU78.2,
 deadlines, budgets, support and host authority remain unchanged. CLI screenshot
 was inspected. Full language qualification and publication remain open.
+
+### qualify-language-semantics — contextual class binding repair, 2026-09-13
+
+[Independent repair and commands](qualify-language-semantics/class-await-delivery/audit.md)
+close the contextual class-name defect exposed by the prior static-block controls.
+`class await {}` and its escaped spelling are valid in ordinary Script contexts;
+the class binding lookahead now uses the existing contextual-identifier predicate.
+**Six red failures/four controls →123 focused passes**; scoped lint and maintained
+build pass. Combined original static-block/class-name contexts: **44 files/88 variants,
+88 passed**, zero failures/unsupported/errors, original hashes/modes/deadlines intact.
+Built Node18/20/22/24/26 and Bun SDK pending/completed replay, saved class source,
+dynamic functions and host-escape controls pass; the CLI screenshot was inspected.
+The two earlier static-block control failures now pass; their unsuccessful report
+is preserved. Whole-task qualification, remaining categories and publication stay open.

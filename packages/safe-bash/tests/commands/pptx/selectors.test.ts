@@ -566,3 +566,26 @@ test("pptx text reads Unicode, empty bodies and hidden slides through the regist
   assert.equal(selected.stdout, "雪 café\nNext paragraph");
   assert.deepEqual(new Uint8Array(volume.readFileSync("/work/text.pptx") as Buffer), source);
 });
+
+test("pptx text replacement runs in a VFS script with explicit match and publication controls", async () => {
+  const { shell, volume } = fixture();
+  const input = await createPresentation({ slides: [{ shapes: [{ name: "Caption", x: 0, y: 0, width: 100, height: 100, text: "雪 café 雪" }] }] }, context);
+  volume.writeFileSync("/work/input.pptx", input);
+  volume.writeFileSync("/work/replace.sh", "pptx text replace input.pptx --find '雪' --with '海 breeze' --first --output edited.pptx --json\npptx text edited.pptx\n");
+  const edited = await shell.exec("sh replace.sh");
+  assert.equal(edited.exitCode, 0, edited.stdout + edited.stderr);
+  assert.equal(edited.stdout.split("\n")[1], "海 breeze café 雪");
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/input.pptx") as Buffer), input);
+  const conflict = await shell.exec("pptx text replace input.pptx --find '雪' --with '' --all --output edited.pptx --json");
+  assert.equal(conflict.exitCode, 3, conflict.stdout + conflict.stderr);
+  const outputBefore = new Uint8Array(volume.readFileSync("/work/edited.pptx") as Buffer);
+  const dry = await shell.exec("pptx text replace edited.pptx --find '雪' --with '' --all --in-place --dry-run --json");
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/edited.pptx") as Buffer), outputBefore);
+  const missing = await shell.exec("pptx text replace edited.pptx --find absent --with '' --all --in-place --json");
+  assert.equal(missing.exitCode, 1, missing.stdout + missing.stderr);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/edited.pptx") as Buffer), outputBefore);
+  const inplace = await shell.exec("pptx text replace edited.pptx --find '雪' --with '' --all --in-place --json");
+  assert.equal(inplace.exitCode, 0, inplace.stdout + inplace.stderr);
+  assert.equal((await readPresentationText(new Uint8Array(volume.readFileSync("/work/edited.pptx") as Buffer), {}, context)).text, "海 breeze café ");
+});

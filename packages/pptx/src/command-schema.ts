@@ -1762,3 +1762,78 @@ export const textGetSchema = {
     }
   }
 };
+
+export const textReplaceSchema = {
+  description:
+    "Replace literal Unicode text across adjacent runs. Paragraphs, fields and breaks stop matches. Replacement inherits the first affected run style. No Unicode normalization or fine-grained range selectors.",
+  input: inspectSchema.input,
+  options: {
+    ...textGetSchema.options,
+    required: ["find", "with"],
+    properties: {
+      ...textGetSchema.options.properties,
+      style: {
+        type: "object",
+        additionalProperties: false,
+        minProperties: 1,
+        description:
+          "CLI --style-json; override only replacement run bold/italic, retaining first-run other style properties.",
+        properties: { bold: { type: "boolean" }, italic: { type: "boolean" } }
+      },
+      find: { type: "string", minLength: 1 },
+      with: { type: "string" },
+      first: { type: "boolean" },
+      all: { type: "boolean" },
+      occurrence: { type: "integer", minimum: 1, maximum: 9007199254740991 },
+      allowEmpty: { type: "boolean" },
+      output: { type: "string", minLength: 1 },
+      inPlace: { type: "boolean" },
+      force: { type: "boolean" },
+      dryRun: { type: "boolean" }
+    },
+    allOf: [
+      ...textGetSchema.options.allOf,
+      ...xmlSetSchema.options.allOf.slice(xmlSelectionRules.length),
+      {
+        oneOf: [
+          {
+            required: ["first"],
+            properties: { first: { const: true } },
+            not: { anyOf: [{ required: ["all"] }, { required: ["occurrence"] }] }
+          },
+          {
+            required: ["all"],
+            properties: { all: { const: true } },
+            not: { anyOf: [{ required: ["first"] }, { required: ["occurrence"] }] }
+          },
+          {
+            required: ["occurrence"],
+            not: { anyOf: [{ required: ["first"] }, { required: ["all"] }] }
+          }
+        ]
+      }
+    ]
+  },
+  result: {
+    ...inspectSchema.result,
+    properties: {
+      ...inspectSchema.result.properties,
+      operation: { const: "text.replace" },
+      affected: { type: "integer", minimum: 0 },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["replacements", "dryRun"],
+            properties: {
+              replacements: { type: "integer", minimum: 0 },
+              dryRun: { type: "boolean" }
+            }
+          }
+        ]
+      }
+    }
+  }
+};

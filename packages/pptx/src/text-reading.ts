@@ -10,7 +10,7 @@ import {
   type SelectionQuery
 } from "./selectors.js";
 import { interpretCompatibility } from "./compatibility.js";
-import { parseXmlPart, type XmlElement } from "./xml.js";
+import { parseXmlPart, type XmlElement, type XmlPart } from "./xml.js";
 
 export type TextScope =
   | "slides"
@@ -80,11 +80,7 @@ function attr(element: XmlElement, name: string): string | null {
     null
   );
 }
-export async function readPresentationText(
-  input: BinaryInput,
-  options: ReadPresentationTextOptions,
-  context: SelectionContext
-): Promise<PresentationText> {
+export function validateTextReadingOptions(options: ReadPresentationTextOptions): void {
   if (
     !options ||
     typeof options !== "object" ||
@@ -102,6 +98,36 @@ export async function readPresentationText(
       options.select.all)
   )
     throw new SelectionError("invalid-selection");
+}
+export interface TextBodyStructure {
+  readonly part: string;
+  readonly document: XmlPart;
+  readonly node: XmlElement;
+  readonly segment: TextSegment;
+  readonly paragraphs: readonly {
+    readonly node: XmlElement;
+    readonly inlines: readonly XmlElement[];
+  }[];
+}
+export async function readPresentationText(
+  input: BinaryInput,
+  options: ReadPresentationTextOptions,
+  context: SelectionContext
+): Promise<PresentationText> {
+  const bodies = await readTextBodies(input, options, context);
+  const segments = bodies.map((body) => body.segment);
+  return {
+    text: segments.map((segment) => segment.text).join("\n"),
+    order: "structural",
+    segments
+  };
+}
+export async function readTextBodies(
+  input: BinaryInput,
+  options: ReadPresentationTextOptions,
+  context: SelectionContext
+): Promise<readonly TextBodyStructure[]> {
+  validateTextReadingOptions(options);
   const scope = options.scope ?? "slides";
   const bytes = await readBinary(input, context, {
     maxBytes: Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
@@ -157,7 +183,7 @@ export async function readPresentationText(
       named.length ? "ambiguous-selection" : "missing-selection",
       named.slice(0, 20).map((item) => item.location)
     );
-  const segments: TextSegment[] = [];
+  const bodies: TextBodyStructure[] = [];
   for (const owner of owners) {
     const part = parseXmlPart(reader.get(owner), context.xmlLimits);
     const view = interpretCompatibility(
@@ -197,7 +223,8 @@ export async function readPresentationText(
     const body = (node: XmlElement, location: Location, cell?: TextSegment["cell"]) => {
       const bodyChildren = (node: XmlElement, local: string) =>
         view.children(node).filter((child) => is(child, local, drawingNamespaces));
-      const paragraphs = bodyChildren(node, "p").map((paragraph, index): TextParagraph => {
+      const paragraphNodes = bodyChildren(node, "p");
+      const paragraphs = paragraphNodes.map((paragraph, index): TextParagraph => {
         const inlines: TextInline[] = [];
         for (const inline of view.children(paragraph)) {
           if (is(inline, "br", drawingNamespaces)) inlines.push({ kind: "break", text: "\v" });
@@ -224,11 +251,17 @@ export async function readPresentationText(
           inlines
         };
       });
-      segments.push({
-        location,
-        text: paragraphs.map((paragraph) => paragraph.text).join("\n"),
-        paragraphs,
-        ...(cell ? { cell } : {})
+      bodies.push({
+        part: owner,
+        document: part,
+        node,
+        paragraphs: paragraphNodes.map((node) => ({ node, inlines: view.children(node) })),
+        segment: {
+          location,
+          text: paragraphs.map((paragraph) => paragraph.text).join("\n"),
+          paragraphs,
+          ...(cell ? { cell } : {})
+        }
       });
     };
     const visit = (parent: XmlElement, inheritedSelection = false): void => {
@@ -295,9 +328,5 @@ export async function readPresentationText(
     for (const common of children(part.root, "cSld"))
       for (const tree of children(common, "spTree")) visit(tree);
   }
-  return {
-    text: segments.map((segment) => segment.text).join("\n"),
-    order: "structural",
-    segments
-  };
+  return bodies;
 }

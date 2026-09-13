@@ -31,7 +31,7 @@ export interface XmlPart {
   readonly nodeCount: number;
   readonly root: XmlElement;
   bytes(): Uint8Array;
-  markup(element: XmlElement): string;
+  markup(element: XmlElement, standalone?: boolean): string;
   resolveNamespace(element: XmlElement, prefix: string): string | undefined;
   reorderChildren(element: XmlElement, children: readonly XmlElement[]): XmlPart;
   spliceChildren(
@@ -40,6 +40,7 @@ export interface XmlPart {
     deleteCount: number,
     children: readonly string[]
   ): XmlPart;
+  setText(element: XmlElement, text: string): XmlPart;
   merge(element: XmlElement, update: XmlMerge): XmlPart;
 }
 interface AttributeSpan {
@@ -57,6 +58,7 @@ interface ElementSpan {
   readonly empty: boolean;
   readonly depth: number;
   readonly bindings: ReadonlyMap<string, string>;
+  readonly declaredBindings: ReadonlySet<string>;
   readonly attributes: ReadonlyMap<string, AttributeSpan>;
   closeStart: number;
   end: number;
@@ -187,6 +189,7 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
   }
   const spans = new Map<XmlElement, ElementSpan>();
   const stack: ElementSpan[] = [];
+  const annotated = new Set<XmlElement>();
   let root: XmlElement | undefined;
   let start = 0;
   let nodes = 0;
@@ -204,8 +207,13 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
     )
       fail("invalid-xml");
   });
-  for (const event of ["text", "cdata", "comment", "processinginstruction"] as const)
-    parser.on(event, countNode);
+  for (const event of ["text", "cdata"] as const) parser.on(event, countNode);
+  for (const event of ["comment", "processinginstruction"] as const)
+    parser.on(event, () => {
+      countNode();
+      const parent = stack.at(-1);
+      if (parent) annotated.add(parent.element);
+    });
   parser.on("opentagstart", () => {
     start = source.lastIndexOf("<", parser.position - 1);
   });
@@ -262,6 +270,7 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
       empty: tag.isSelfClosing,
       depth,
       bindings,
+      declaredBindings: new Set(Object.keys(tag.ns)),
       attributes: lexical,
       closeStart: parser.position,
       end: parser.position
@@ -307,10 +316,33 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
     nodeCount: nodes,
     root,
     bytes: () => Uint8Array.from(original),
-    markup(element: XmlElement): string {
+    markup(element: XmlElement, standalone = false): string {
       const span = spans.get(element);
       if (!span) fail("invalid-value");
-      return source.slice(span.start, span.end);
+      if (!standalone) return source.slice(span.start, span.end);
+      let declarations = "";
+      for (const [prefix, uri] of span.bindings) {
+        if (prefix === "xml" || span.declaredBindings.has(prefix)) continue;
+        declarations += ` xmlns${prefix ? `:${prefix}` : ""}="${escape(uri, '"', limits.maxBytes)}"`;
+      }
+      const insertion = span.start + 1 + span.qname.length;
+      const result =
+        source.slice(span.start, insertion) + declarations + source.slice(insertion, span.end);
+      if (result.length > limits.maxBytes) fail("resource-limit");
+      return result;
+    },
+    setText(element: XmlElement, text: string): XmlPart {
+      const span = spans.get(element);
+      if (!span || element.children.length || annotated.has(element) || typeof text !== "string")
+        fail("invalid-value");
+      const value = escape(text, '"', limits.maxBytes).split("]]>").join("]]&gt;");
+      const patch = span.empty
+        ? { start: span.openEnd - 2, end: span.end, value: `>${value}</${span.qname}>` }
+        : { start: span.openEnd, end: span.closeStart, value };
+      return parseXmlPart(
+        encode(apply(source, 0, source.length, [patch], limits.maxBytes)),
+        limits
+      );
     },
     resolveNamespace(element: XmlElement, prefix: string): string | undefined {
       const span = spans.get(element);
@@ -586,6 +618,7 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
                 empty: true,
                 depth: depth + 1,
                 bindings,
+                declaredBindings: new Set(),
                 attributes: new Map(),
                 closeStart: workingSource.length - 2,
                 end: workingSource.length

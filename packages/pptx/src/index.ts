@@ -139,3 +139,9 @@ export {
   type TextSegment,
   type PresentationText
 } from "./text-reading.js";
+
+export {
+  replacePresentationText,
+  type ReplacePresentationTextOptions,
+  type TextReplacementResult
+} from "./text-replacement.js";

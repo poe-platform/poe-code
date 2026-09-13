@@ -6,6 +6,7 @@ import {
   type MutateThemeOptions
 } from "./themes.js";
 import { readBackgrounds, mutateBackground, type MutateBackgroundOptions } from "./backgrounds.js";
+import { replacePresentationText } from "./text-replacement.js";
 import { readPresentationText, type TextScope } from "./text-reading.js";
 import { OfficeError } from "./errors.js";
 import { sha256 } from "@noble/hashes/sha2.js";
@@ -26,6 +27,7 @@ import {
   createSchema,
   inspectSchema,
   textGetSchema,
+  textReplaceSchema,
   slidesAddSchema,
   slidesMoveSchema,
   slidesDuplicateSchema,
@@ -144,6 +146,9 @@ const help =
   "                       [--slide N | --select TOKEN | --all] [--allow-empty]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx text get INPUT [--slide N] [--shape NAME] [--scope SCOPE] [--json]\n" +
+  "       pptx text replace INPUT --find TEXT --with TEXT --first|--all|--occurrence N\n" +
+  "                         [--slide N --shape NAME | --select TOKEN] [--scope SCOPE]\n" +
+  "                         [--style-json JSON] [--allow-empty] [--dry-run] [--output PATH | --in-place] [--force] [--json]\n" +
   "       pptx text INPUT | pptx text get INPUT --select TOKEN [--json]\n" +
   "       pptx schema text get [--json]\n" +
   "       Text uses structural shape-tree order, including hidden slides, cached fields and empty paragraphs.\n" +
@@ -248,6 +253,7 @@ interface Arguments {
     | "slides.merge"
     | "slides.split"
     | "text.get"
+    | "text.replace"
     | "inspect"
     | "xml.get"
     | "xml.set"
@@ -293,6 +299,11 @@ interface Arguments {
   referencePolicy?: "remove";
   selection?: SelectionQuery | readonly SelectionQuery[];
   template?: string;
+  style?: { bold?: boolean; italic?: boolean };
+  first?: boolean;
+  occurrence?: number;
+  find?: string;
+  with?: string;
   pretty?: boolean;
   file?: string;
   output?: string;
@@ -316,6 +327,10 @@ function usage(message: string): never {
 }
 
 const scalarOptions = [
+  "--style-json",
+  "--find",
+  "--with",
+  "--occurrence",
   "--color-slot",
   "--font-slot",
   "--font",
@@ -415,6 +430,8 @@ function parse(
       if (command === "text") output.operation = "text.get";
       if (["create", "inspect", "schema", "capabilities", "help", "version"].includes(command))
         output.operation = command;
+    } else if (index === 1 && args[0] === "text" && ["get", "replace"].includes(argument)) {
+      output.operation = `text.${argument}`;
     } else if (index === 1 && args[0] === "xml" && ["get", "set"].includes(argument)) {
       output.operation = `xml.${argument}`;
     } else if (
@@ -441,7 +458,7 @@ function parse(
     }
   }
   if (invalidUtf8) usage("Arguments must be UTF-8.");
-  if (args[0] === "text" && args[1] !== "get") args.splice(1, 0, "get");
+  if (args[0] === "text" && !["get", "replace"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
     "text",
     "xml",
@@ -479,6 +496,7 @@ function parse(
       "slides.split",
       "inspect",
       "text.get",
+      "text.replace",
       "xml.get",
       "xml.set",
       "schema",
@@ -524,6 +542,11 @@ function parse(
       result.allowPartialOutput = true;
       continue;
     }
+    if (argument === "--first") {
+      if (operation !== "text.replace") usage("First requires text replace.");
+      result.first = true;
+      continue;
+    }
     if (argument === "--all") {
       result.all = true;
       continue;
@@ -533,11 +556,47 @@ function parse(
     if (
       value === undefined ||
       (value.length === 0 &&
-        !["--author", "--name", "--title", "--body", "--text", "--matching-name"].includes(
-          argument
-        ))
+        ![
+          "--author",
+          "--name",
+          "--title",
+          "--body",
+          "--text",
+          "--matching-name",
+          "--with"
+        ].includes(argument))
     )
       usage("Missing option value.");
+    if (argument === "--style-json") {
+      if (operation !== "text.replace") usage("Style override requires text replace.");
+      const style = commandJson(value);
+      if (
+        !style ||
+        typeof style !== "object" ||
+        Array.isArray(style) ||
+        Object.keys(style).length === 0 ||
+        Object.entries(style).some(
+          ([key, field]) => !["bold", "italic"].includes(key) || typeof field !== "boolean"
+        )
+      )
+        usage("Style requires explicit bold or italic boolean values.");
+      result.style = style;
+      continue;
+    }
+    if (["--find", "--with", "--occurrence"].includes(argument)) {
+      if (operation !== "text.replace") usage("Match options require text replace.");
+      if (argument === "--occurrence") {
+        if (
+          ![...value].every((c) => c >= "0" && c <= "9") ||
+          !Number.isSafeInteger(Number(value)) ||
+          Number(value) < 1
+        )
+          usage("Occurrence must be a positive integer.");
+        result.occurrence = Number(value);
+      } else if (argument === "--find") result.find = value;
+      else result.with = value;
+      continue;
+    }
     if (
       operation.startsWith("layouts.") &&
       [
@@ -1056,13 +1115,36 @@ function parse(
     operation === "slides.set" ||
     operation === "slides.remove";
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
-  if (operation === "text.get") {
-    const allowed = ["--json", "--limit", "--select", "--scope", "--slide", "--shape"];
+  if (operation === "text.get" || operation === "text.replace") {
+    const mutation = operation === "text.replace";
+    const allowed = [
+      "--json",
+      "--limit",
+      "--select",
+      "--scope",
+      "--slide",
+      "--shape",
+      ...(mutation
+        ? [
+            "--style-json",
+            "--find",
+            "--with",
+            "--first",
+            "--all",
+            "--occurrence",
+            "--allow-empty",
+            "--output",
+            "--in-place",
+            "--force",
+            "--dry-run"
+          ]
+        : [])
+    ];
     if ([...seen].some((flag) => !allowed.includes(flag)))
-      usage("Option does not apply to text get.");
-    if (positionals.length !== 1 || !positionals[0]) usage("Text get requires one input.");
+      usage("Option does not apply to this text operation.");
+    if (positionals.length !== 1 || !positionals[0]) usage("Text operation requires one input.");
     if (result.scope === "presentation" || result.scope === "shared")
-      usage("Text get requires a text-bearing scope.");
+      usage("Text operation requires a text-bearing scope.");
     if (result.token && ["--scope", "--slide", "--shape"].some((flag) => seen.has(flag)))
       usage("Opaque and simple selectors cannot be combined.");
     if (
@@ -1073,6 +1155,25 @@ function parse(
     if (result.shape && result.slide === undefined)
       usage("Shape selection requires an owning slide.");
     result.input = positionals[0];
+    if (mutation) {
+      if (result.find === undefined || result.with === undefined)
+        usage("Text replace requires find and with.");
+      if (
+        [result.first === true, result.all === true, result.occurrence !== undefined].filter(
+          Boolean
+        ).length !== 1
+      )
+        usage("Text replace requires exactly one of first, all or occurrence.");
+      if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+      if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+      if (!result.dryRun && !result.inPlace && !result.output)
+        usage("Mutation requires a destination.");
+      if (result.force && !result.output) usage("Force requires an explicit output destination.");
+      if (result.output === result.input && result.output !== "-")
+        usage("Replacing input requires --in-place.");
+      if (result.output === "-" && result.json && !result.dryRun)
+        usage("Binary stdout cannot be combined with JSON.");
+    }
     return result;
   }
   if (Object.hasOwn(masterSchemas, operation)) {
@@ -1470,6 +1571,7 @@ function parse(
         "slides.merge",
         "slides.split",
         "text.get",
+        "text.replace",
         "xml.get",
         "xml.set"
       ].includes(positionals.join("."))
@@ -1731,6 +1833,7 @@ async function execute(
             create: createSchema,
             inspect: inspectSchema,
             "text.get": textGetSchema,
+            "text.replace": textReplaceSchema,
             "slides.add": slidesAddSchema,
             "slides.move": slidesMoveSchema,
             "slides.set": slidesSetSchema,
@@ -1747,10 +1850,15 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          textReplace: {
+            level: "edit",
+            subset:
+              "Literal Unicode-safe replacement across adjacent runs within paragraphs; field and break boundaries stop matches. Explicit first/all/occurrence, first-run style inheritance with optional bold/italic overrides, unaffected formatting and hyperlinks retained; no normalization or fine-grained selectors."
+          },
           text: {
             level: "read",
             subset:
-              "Paragraphs, runs, soft breaks and cached fields in structural slide-list and shape-tree order, including groups, table cells, hidden slides and empty strings. Explicit notes, layouts and masters scopes do not imply visual reading order. Fine-grained table/cell/paragraph/run selectors and text mutation are unavailable."
+              "Paragraphs, runs, soft breaks and cached fields in structural slide-list and shape-tree order, including groups, table cells, hidden slides and empty strings. Explicit notes, layouts and masters scopes do not imply visual reading order. Fine-grained table/cell/paragraph/run selectors are unavailable."
           },
           layouts: {
             level: "edit",
@@ -1825,7 +1933,63 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (args.operation === "text.get") {
+    else if (args.operation === "text.replace") {
+      const context = { ...options.context, signal: request.signal };
+      const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const changed = await replacePresentationText(
+        bytes,
+        {
+          ...(args.style === undefined ? {} : { style: args.style }),
+          find: args.find!,
+          with: args.with!,
+          ...(args.first ? { first: true } : {}),
+          ...(args.all ? { all: true } : {}),
+          ...(args.occurrence === undefined ? {} : { occurrence: args.occurrence }),
+          ...(args.allowEmpty ? { allowEmpty: true } : {}),
+          ...(scope === undefined ? {} : { scope: scope as TextScope }),
+          ...(args.token
+            ? { select: { token: args.token } }
+            : args.slide === undefined
+              ? {}
+              : {
+                  select: {
+                    kind: "slide",
+                    position: { coordinateSystem: "one-based", value: args.slide }
+                  }
+                }),
+          ...(args.shape === undefined ? {} : { shape: args.shape })
+        },
+        context
+      );
+      const dryRun = args.dryRun ?? false;
+      result = {
+        ...success(operation, { replacements: changed.affected, dryRun }),
+        affected: changed.affected,
+        locations: changed.locations
+      };
+      human = `${dryRun ? "Validated" : "Replaced"} ${changed.affected} text match(es)\n`;
+      const destination = args.inPlace ? args.input! : args.output;
+      if (destination === "-" && !dryRun) binary = changed.bytes;
+      else if (destination && destination !== "-") {
+        if (!request.publishOutput)
+          throw Object.assign(new Error("Output publication capability is unavailable."), {
+            code: "publication-unsupported"
+          });
+        publication = {
+          inputPath: args.input!,
+          outputPath: destination,
+          bytes: changed.bytes,
+          originalBytes: bytes,
+          inPlace: args.inPlace ?? false,
+          force: args.force ?? false,
+          dryRun
+        };
+      }
+    } else if (args.operation === "text.get") {
       const context = { ...options.context, signal: request.signal };
       const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
       const bytes = await request.readInput(

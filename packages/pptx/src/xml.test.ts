@@ -524,3 +524,34 @@ describe("preserving XML parts", () => {
     ).toThrowError(expect.objectContaining({ code: "invalid-value" }));
   });
 });
+
+it("sets simple element text while preserving namespace bindings and attributes", () => {
+  const part = parseXmlPart(
+    encode('<d xmlns:q="urn:q"><q:t xml:space="preserve"><![CDATA[old]]></q:t><q:t/></d>'),
+    limits
+  );
+  const changed = part.setText(part.root.children[0]!, "<&🐚\r");
+  expect(text(changed.bytes())).toBe(
+    '<d xmlns:q="urn:q"><q:t xml:space="preserve">&lt;&amp;🐚&#13;</q:t><q:t/></d>'
+  );
+  expect(text(changed.setText(changed.root.children[1]!, "new").bytes())).toContain(
+    "<q:t>new</q:t>"
+  );
+  expect(() => part.setText(part.root, "discard")).toThrow();
+  expect(() => part.setText(changed.root.children[0]!, "foreign")).toThrow();
+  expect(() => part.setText(part.root.children[0]!, "\ud800")).toThrow();
+});
+
+it("serializes an owned subtree with inherited namespace bindings for standalone reuse", () => {
+  const part = parseXmlPart(
+    encode('<d xmlns:q="urn:q" xmlns:x="urn:x"><q:r><q:p x:flag="yes"/><q:t>keep</q:t></q:r></d>'),
+    limits
+  );
+  const markup = part.markup(part.root.children[0]!, true);
+  const clone = parseXmlPart(encode(markup), limits);
+  expect(clone.root.name).toEqual({ namespace: "urn:q", localName: "r" });
+  expect(clone.root.children[0]!.attributes).toEqual([
+    { name: { namespace: "urn:x", localName: "flag" }, value: "yes" }
+  ]);
+  expect(part.markup(part.root.children[0]!)).toBe('<q:r><q:p x:flag="yes"/><q:t>keep</q:t></q:r>');
+});

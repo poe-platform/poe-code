@@ -2432,12 +2432,15 @@ async function evaluateForStatement(
     }
   }
 
+  let activeScope = restored !== undefined && resumePhase !== "init"
+    ? restored.activeScope
+    : loopBindingNames.length === 0 ? loopScope : loopScope.iterationChild(loopBindingNames);
   while (true) {
     context.budget.visitNode();
     context.stats.nodeVisits += 1;
 
     if (node.test !== undefined && resumePhase !== "body" && resumePhase !== "update") {
-      const test = await evaluateNode(node.test, phaseContext("test", loopScope));
+      const test = await evaluateNode(node.test, phaseContext("test", activeScope));
       if (test.kind !== "normal") {
         return test;
       }
@@ -2451,11 +2454,8 @@ async function evaluateForStatement(
       }
     }
 
-    const iterationScope =
-      resumePhase === "body" || resumePhase === "update" ? restored!.activeScope
-        : loopBindingNames.length === 0 ? loopScope : loopScope.iterationChild(loopBindingNames);
     if (resumePhase !== "update") {
-      const iterationContext = createLoopIterationContext(phaseContext("body", iterationScope), iterationScope);
+      const iterationContext = createLoopIterationContext(phaseContext("body", activeScope), activeScope);
       emitLoopIterationBreakpoint(node, iterationContext);
       const evaluated = await evaluateNode(node.body, iterationContext);
       const result = completion?.update(evaluated) ?? evaluated;
@@ -2475,8 +2475,8 @@ async function evaluateForStatement(
 
     const updateScope =
       resumePhase === "update" ? restored!.activeScope : loopBindingNames.length === 0
-        ? iterationScope
-        : iterationScope.iterationChild(loopBindingNames);
+        ? activeScope
+        : activeScope.iterationChild(loopBindingNames);
     const updateContext = phaseContext("update", updateScope);
 
     if (node.update !== undefined) {
@@ -2486,7 +2486,7 @@ async function evaluateForStatement(
       }
     }
 
-    loopScope.copyInitializedBindingsFrom(updateScope, loopBindingNames);
+    activeScope = updateScope;
     resumePhase = undefined;
   }
   });

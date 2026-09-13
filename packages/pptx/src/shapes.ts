@@ -1,5 +1,6 @@
+import { createXmlElementView } from "./xml-view.js";
 import { AdjustmentCollection, validateAdjustmentValues } from "./shape-adjustments.js";
-import { IndexError, OfficeError, ValueError } from "./errors.js";
+import { InvalidHandleError, IndexError, OfficeError, ValueError } from "./errors.js";
 import { Length } from "./length.js";
 import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
 import { attr, child } from "./masters.js";
@@ -18,7 +19,13 @@ import { MSO_AUTO_SHAPE_TYPE, shapePresets } from "./shape-presets.js";
 import { PP_PLACEHOLDER_TYPE } from "./shape-placeholder-types.js";
 export { PP_PLACEHOLDER_TYPE, PP_PLACEHOLDER } from "./shape-placeholder-types.js";
 export { MSO_AUTO_SHAPE_TYPE, MSO_SHAPE, shapePresets } from "./shape-presets.js";
-import { applyDrawingUpdate, readDrawingFormat, readDrawingColor } from "./drawing-format.js";
+import {
+  applyDrawingUpdate,
+  applyDrawingFill,
+  readDrawingFormat,
+  readDrawingColor,
+  type DrawingFill
+} from "./drawing-format.js";
 import { patternTokens, dashTokens } from "./drawing-enums.js";
 export type ShapeKind = "text-box" | keyof typeof shapePresets | MSO_AUTO_SHAPE_TYPE;
 export type ShapeLength =
@@ -49,9 +56,19 @@ const ans = "http://schemas.openxmlformats.org/drawingml/2006/main";
 function drawing(node: XmlElement) {
   if ([ans, "http://purl.oclc.org/ooxml/drawingml/main"].includes(node.name.namespace))
     return node.name.namespace;
-  if (![pns, "http://purl.oclc.org/ooxml/presentationml/main"].includes(node.name.namespace))
+  if (
+    ![
+      pns,
+      "http://purl.oclc.org/ooxml/presentationml/main",
+      "http://schemas.openxmlformats.org/drawingml/2006/chart",
+      "http://purl.oclc.org/ooxml/drawingml/chart"
+    ].includes(node.name.namespace)
+  )
     invalid("Unsupported shape namespace.");
-  return node.name.namespace === "http://purl.oclc.org/ooxml/presentationml/main"
+  return [
+    "http://purl.oclc.org/ooxml/presentationml/main",
+    "http://purl.oclc.org/ooxml/drawingml/chart"
+  ].includes(node.name.namespace)
     ? "http://purl.oclc.org/ooxml/drawingml/main"
     : ans;
 }
@@ -986,6 +1003,13 @@ export class FillFormat {
     if (!this.edit) unsupported("This view does not support extended drawing edits.");
     this.edit(transform);
   }
+  apply(value: DrawingFill): void {
+    this.change((document, node) => {
+      const owner = this.owner(node);
+      if (!owner) invalid("Fill owner is unavailable.");
+      return applyDrawingFill(document, owner, value);
+    });
+  }
   get type(): number | null {
     const f = this.fill(this.read().root);
     return f
@@ -1167,6 +1191,24 @@ export class GradientStop {
     if (!n) invalid("Gradient stop is unavailable.");
     return n;
   }
+  get element() {
+    return createXmlElementView(
+      {
+        read: this.read,
+        commit: (expected, next) =>
+          this.edit((document) => {
+            if (document !== expected) throw new InvalidHandleError();
+            return next;
+          })
+      },
+      this.node(this.read().root)
+    );
+  }
+  equals(other: unknown): boolean {
+    return (
+      other instanceof GradientStop && this.node(this.read().root) === other.node(other.read().root)
+    );
+  }
   get position() {
     return Number(attr(this.node(this.read().root), "pos")) / 100000;
   }
@@ -1232,7 +1274,7 @@ export class GradientStops implements Iterable<GradientStop> {
     for (let i = 0; i < this.length; i++) yield this.at(i);
   }
   includes(value: GradientStop) {
-    return Array.from(this).includes(value);
+    return Array.from(this).some((stop) => stop.equals(value));
   }
   count(value: GradientStop) {
     return this.includes(value) ? 1 : 0;
@@ -1242,7 +1284,7 @@ export class GradientStops implements Iterable<GradientStop> {
       throw new ValueError("Gradient stop search bounds must be integers.");
     const lower = Math.max(0, start < 0 ? this.length + start : start);
     const upper = Math.min(this.length, stop < 0 ? this.length + stop : stop);
-    for (let i = lower; i < upper; i++) if (this.at(i) === value) return i;
+    for (let i = lower; i < upper; i++) if (this.at(i).equals(value)) return i;
     throw new ValueError("Gradient stop is not in this collection.");
   }
   reversed() {
@@ -1268,7 +1310,7 @@ export class LineFormat {
     private readonly edit?: DrawingEdit
   ) {}
   get width(): Length {
-    return new Length(readShape(this.read().root).lineWidth ?? 0);
+    return new Length(readDrawingFormat(this.read().root).line.width ?? 0);
   }
   set width(value: Length | null) {
     if (value !== null && !(value instanceof Length)) invalid();

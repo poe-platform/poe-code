@@ -247,14 +247,76 @@ function fillXml(v: DrawingFill, a: string, r: string): string {
       invalid();
   }
 }
+export function applyDrawingFill(document: XmlPart, owner: XmlElement, fill: DrawingFill): XmlPart {
+  validateDrawingUpdate({ fill });
+  const a = [
+    "http://purl.oclc.org/ooxml/drawingml/main",
+    "http://schemas.openxmlformats.org/drawingml/2006/main"
+  ].includes(owner.name.namespace)
+    ? owner.name.namespace
+    : namespaces(owner).a;
+  const strict = a === "http://purl.oclc.org/ooxml/drawingml/main";
+  const existing = owner.children.filter(
+    (n) => n.name.namespace === a && fills.includes(n.name.localName)
+  );
+  if (existing.length > 1) invalid("Ambiguous drawing fill choices.");
+  const old = existing[0];
+  const textProperties = ["rPr", "defRPr", "endParaRPr"].includes(owner.name.localName);
+  const after = [
+    "effectLst",
+    "effectDag",
+    "scene3d",
+    "sp3d",
+    "extLst",
+    ...(textProperties
+      ? [
+          "highlight",
+          "uLnTx",
+          "uLn",
+          "uFillTx",
+          "uFill",
+          "latin",
+          "ea",
+          "cs",
+          "sym",
+          "hlinkClick",
+          "hlinkMouseOver",
+          "rtl"
+        ]
+      : ["ln"])
+  ];
+  const next = owner.children.findIndex(
+    (n) => n.name.namespace === a && after.includes(n.name.localName)
+  );
+  const position = old ? owner.children.indexOf(old) : next < 0 ? owner.children.length : next;
+  const markup = fillXml(
+    fill,
+    a,
+    strict
+      ? "http://purl.oclc.org/ooxml/officeDocument/relationships"
+      : "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  );
+  return document.spliceChildren(
+    owner,
+    position,
+    old ? 1 : 0,
+    markup ? [markup.replace(" xmlns:a=", ` xmlns="${a}" xmlns:a=`)] : []
+  );
+}
 function properties(node: XmlElement) {
   return child(node, node.name.localName === "grpSp" ? "grpSpPr" : "spPr");
 }
 function namespaces(node: XmlElement) {
-  const strict = node.name.namespace === "http://purl.oclc.org/ooxml/presentationml/main";
+  const strict = [
+    "http://purl.oclc.org/ooxml/presentationml/main",
+    "http://purl.oclc.org/ooxml/drawingml/chart"
+  ].includes(node.name.namespace);
   if (
     !strict &&
-    node.name.namespace !== "http://schemas.openxmlformats.org/presentationml/2006/main"
+    ![
+      "http://schemas.openxmlformats.org/presentationml/2006/main",
+      "http://schemas.openxmlformats.org/drawingml/2006/chart"
+    ].includes(node.name.namespace)
   )
     invalid();
   return {

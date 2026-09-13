@@ -1,0 +1,1308 @@
+{
+  "schema_version": 1,
+  "authority": [
+    "upstream-api-inventory.json",
+    "upstream-test-inventory.json",
+    "drawing-api-map.json"
+  ],
+  "count": 42,
+  "status": "Exhaustive selected family receipt; per-row gaps remain visible. Construction mapped to returned bound interfaces. No whole-public-API claim.",
+  "members": [
+    {
+      "source_id": "pptx.dml.color.ColorFormat",
+      "declared_on": null,
+      "source_kind": "type",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(eg_colorChoice_parent, color)",
+      "target_signature": "ColorFormat(xml: XmlPart); shape-owned color access returns ShapeColorFormat",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "See explicit target signature; omitted mutation fields leave existing local XML unchanged.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "exposes bounded color model properties for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "sets bounded color model RGB and theme for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "updates %s brightness from %s/%s to %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.color.ColorFormat.__init__",
+      "declared_on": null,
+      "source_kind": "constructor",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self, eg_colorChoice_parent, color)",
+      "target_signature": "ColorFormat(xml: XmlPart); shape-owned color access returns ShapeColorFormat",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "Source raw-wrapper constructors map to returned owned interfaces; constructor identity is not mirrored.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [],
+      "cli_route": null,
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.color.ColorFormat.brightness",
+      "declared_on": "pptx.dml.color.ColorFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": true,
+      "read_signature": "(self)",
+      "write_signature": "(self, value)",
+      "source_signature": "(self)",
+      "target_signature": "brightness: number",
+      "status": "implemented",
+      "defaults": "Absent color or luminance transforms reads 0. Assignment requires an explicit color and a finite number in [-1,1].",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "exposes bounded color model properties for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "sets bounded color model RGB and theme for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "updates %s brightness from %s/%s to %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.color.ColorFormat.rgb",
+      "declared_on": "pptx.dml.color.ColorFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": true,
+      "read_signature": "(self)",
+      "write_signature": "(self, rgb)",
+      "source_signature": "(self)",
+      "target_signature": "rgb: RGBColor",
+      "status": "implemented",
+      "defaults": "No inferred RGB. Getter throws unless RGB representation; setter requires RGBColor.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "exposes bounded color model properties for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "sets bounded color model RGB and theme for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "updates %s brightness from %s/%s to %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.color.ColorFormat.theme_color",
+      "declared_on": "pptx.dml.color.ColorFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": true,
+      "read_signature": "(self)",
+      "write_signature": "(self, mso_theme_color_idx)",
+      "source_signature": "(self)",
+      "target_signature": "theme_color: MSO_THEME_COLOR_INDEX",
+      "status": "implemented",
+      "defaults": "Absent color getter throws; non-theme color returns NOT_THEME_COLOR. Setter requires a writable MSO_THEME_COLOR_INDEX.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering. Pattern missing color container creates its documented default; line.color converts local line fill to solid.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "exposes bounded color model properties for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "sets bounded color model RGB and theme for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "updates %s brightness from %s/%s to %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.color.ColorFormat.type",
+      "declared_on": "pptx.dml.color.ColorFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": false,
+      "read_signature": "(self)",
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "readonly type: MSO_COLOR_TYPE | null",
+      "status": "implemented",
+      "defaults": "No local color/fill returns null; explicit representation returns numeric enum.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "exposes bounded color model properties for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "sets bounded color model RGB and theme for %s"
+        },
+        {
+          "file": "packages/pptx/src/font-color-cases.test.ts",
+          "title": "updates %s brightness from %s/%s to %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.effect.ShadowFormat",
+      "declared_on": null,
+      "source_kind": "type",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(spPr)",
+      "target_signature": "returned live ShadowFormat from Shape.shadow",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "See explicit target signature; omitted mutation fields leave existing local XML unchanged.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "preserves explicit shadow inheritance states for group=%s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.effect.ShadowFormat.__init__",
+      "declared_on": null,
+      "source_kind": "constructor",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self, spPr)",
+      "target_signature": "returned live ShadowFormat from Shape.shadow",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "Source raw-wrapper constructors map to returned owned interfaces; constructor identity is not mirrored.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [],
+      "cli_route": null,
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.effect.ShadowFormat.inherit",
+      "declared_on": "pptx.dml.effect.ShadowFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": true,
+      "read_signature": "(self)",
+      "write_signature": "(self, value)",
+      "source_signature": "(self)",
+      "target_signature": "inherit: boolean",
+      "status": "implemented",
+      "defaults": "Absent effect list/DAG is true; explicit list/DAG is false. False creates an empty list; true removes an empty list; destructive unsupported effects fail.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "preserves explicit shadow inheritance states for group=%s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat",
+      "declared_on": null,
+      "source_kind": "type",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(eg_fill_properties_parent: 'BaseOxmlElement', fill_obj: '_Fill')",
+      "target_signature": "returned live FillFormat from Shape.fill or Shape.line.fill",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "See explicit target signature; omitted mutation fields leave existing local XML unchanged.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "replaces each existing fill choice without losing owner attributes: %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "classifies every local fill representation %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "new pattern fill keeps its preset inherited and unavailable properties fail"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "default model gradient has an upward angle and documented themed transforms"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.__init__",
+      "declared_on": null,
+      "source_kind": "constructor",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self, eg_fill_properties_parent: BaseOxmlElement, fill_obj: _Fill)",
+      "target_signature": "returned live FillFormat from Shape.fill or Shape.line.fill",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "Source raw-wrapper constructors map to returned owned interfaces; constructor identity is not mirrored.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [],
+      "cli_route": null,
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.back_color",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": false,
+      "read_signature": "(self)",
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "readonly back_color: ShapeColorFormat",
+      "status": "implemented",
+      "defaults": "Available only for patterned fill; missing container is created with FFFFFF; existing empty container stays empty.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering. Pattern missing color container creates its documented default; line.color converts local line fill to solid.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "creates only missing pattern %s containers"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.background",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "function",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "background(): void",
+      "status": "implemented",
+      "defaults": "No arguments; replaces current fill with noFill.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "replaces each existing fill choice without losing owner attributes: %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "classifies every local fill representation %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "new pattern fill keeps its preset inherited and unavailable properties fail"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "default model gradient has an upward angle and documented themed transforms"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.fore_color",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": false,
+      "read_signature": "(self)",
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "readonly fore_color: ShapeColorFormat",
+      "status": "implemented",
+      "defaults": "Available only for solid/pattern; missing pattern foreground is created with 000000; empty solid remains empty.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering. Pattern missing color container creates its documented default; line.color converts local line fill to solid.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "creates only missing pattern %s containers"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.gradient",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "function",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "gradient(): void",
+      "status": "implemented",
+      "defaults": "No arguments; retains existing gradient, otherwise creates 90-degree counterclockwise linear gradient with two themed accent1 stops at 0/1 and documented transforms.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "replaces each existing fill choice without losing owner attributes: %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "classifies every local fill representation %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "new pattern fill keeps its preset inherited and unavailable properties fail"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "default model gradient has an upward angle and documented themed transforms"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.gradient_angle",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": true,
+      "read_signature": "(self)",
+      "write_signature": "(self, value)",
+      "source_signature": "(self)",
+      "target_signature": "gradient_angle: number | null (setter: number)",
+      "status": "implemented",
+      "defaults": "Getter absent lin returns null; path/non-gradient fails. Setter finite degrees within [-360000,360000], counterclockwise modulo 360.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads counterclockwise gradient angle %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "serializes angle %s independently as %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.gradient_stops",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": false,
+      "read_signature": "(self)",
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "readonly gradient_stops: _GradientStops",
+      "status": "implemented",
+      "defaults": "Requires gradient; missing list creates default two stops; explicitly empty list remains empty.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering. Missing gsLst is created; explicit empty gsLst retained.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "replaces each existing fill choice without losing owner attributes: %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "classifies every local fill representation %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "new pattern fill keeps its preset inherited and unavailable properties fail"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "default model gradient has an upward angle and documented themed transforms"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.pattern",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": true,
+      "read_signature": "(self)",
+      "write_signature": "(self, pattern_type)",
+      "source_signature": "(self)",
+      "target_signature": "pattern: number | null",
+      "status": "implemented",
+      "defaults": "Absent preset null; null assignment removes preset; otherwise numeric pattern enum.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "changes and clears pattern without inventing a missing preset"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.patterned",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "function",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "patterned(): void",
+      "status": "implemented",
+      "defaults": "No arguments; retains existing pattern choice, otherwise creates pattern without preset/colors.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "replaces each existing fill choice without losing owner attributes: %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "classifies every local fill representation %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "new pattern fill keeps its preset inherited and unavailable properties fail"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "default model gradient has an upward angle and documented themed transforms"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.solid",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "function",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "solid(): void",
+      "status": "implemented",
+      "defaults": "No arguments; retains existing solid choice, otherwise creates empty solid fill.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "replaces each existing fill choice without losing owner attributes: %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "classifies every local fill representation %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "new pattern fill keeps its preset inherited and unavailable properties fail"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "default model gradient has an upward angle and documented themed transforms"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill.FillFormat.type",
+      "declared_on": "pptx.dml.fill.FillFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": false,
+      "read_signature": "(self) -> MSO_FILL_TYPE",
+      "write_signature": null,
+      "source_signature": "(self) -> MSO_FILL_TYPE",
+      "target_signature": "readonly type: number | null",
+      "status": "implemented",
+      "defaults": "No local color/fill returns null; explicit representation returns numeric enum.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "replaces each existing fill choice without losing owner attributes: %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "classifies every local fill representation %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "new pattern fill keeps its preset inherited and unavailable properties fail"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "default model gradient has an upward angle and documented themed transforms"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStop",
+      "declared_on": null,
+      "source_kind": "type",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": null,
+      "target_signature": "returned live _GradientStop; DrawingGradientStop alias",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "See explicit target signature; omitted mutation fields leave existing local XML unchanged.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStop.__eq__",
+      "declared_on": "pptx.shared.ElementProxy",
+      "source_kind": "function",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self, other: object) -> bool",
+      "target_signature": "equals(other: unknown): boolean",
+      "status": "implemented-bound-shape-owner",
+      "defaults": "True only for another GradientStop with the identical current owned XML element.",
+      "side_effects": "None.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J03",
+        "J09"
+      ],
+      "original_tests": [
+        "drawing-chart-reuse.test.ts: exposes inherited gradient stop XML as an owner-bound view and compares stop identity"
+      ],
+      "cli_route": null,
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStop.__init__",
+      "declared_on": null,
+      "source_kind": "constructor",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self, gs)",
+      "target_signature": "returned live _GradientStop; DrawingGradientStop alias",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "Source raw-wrapper constructors map to returned owned interfaces; constructor identity is not mirrored.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [],
+      "cli_route": null,
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStop.color",
+      "declared_on": "pptx.dml.fill._GradientStop",
+      "source_kind": "lazyproperty",
+      "readable": true,
+      "writable": false,
+      "read_signature": "(self)",
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "readonly color: ShapeColorFormat",
+      "status": "implemented",
+      "defaults": "Readonly live color; LineFormat.color converts non-solid line fill to solid before returning.",
+      "side_effects": "Returns a live color view of this stop; does not create pattern or line defaults. No host I/O.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStop.element",
+      "declared_on": "pptx.shared.ElementProxy",
+      "source_kind": "property",
+      "readable": true,
+      "writable": false,
+      "read_signature": "(self)",
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "readonly element: XmlElementView",
+      "status": "implemented-bound-shape-owner",
+      "defaults": "Current stop element; bounded view becomes stale after another owner mutation.",
+      "side_effects": "Accessor allocates a view only; view writes commit through original XML owner.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "original_tests": [
+        "drawing-chart-reuse.test.ts: exposes inherited gradient stop XML as an owner-bound view and compares stop identity"
+      ],
+      "cli_route": null,
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStop.position",
+      "declared_on": "pptx.dml.fill._GradientStop",
+      "source_kind": "property",
+      "readable": true,
+      "writable": true,
+      "read_signature": "(self)",
+      "write_signature": "(self, value)",
+      "source_signature": "(self)",
+      "target_signature": "position: number",
+      "status": "implemented",
+      "defaults": "Required XML pos converted from hundred-thousandths; setter finite [0,1]; no global sort/reorder.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStops",
+      "declared_on": null,
+      "source_kind": "type",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": null,
+      "target_signature": "returned live _GradientStops",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "See explicit target signature; omitted mutation fields leave existing local XML unchanged.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStops.__contains__",
+      "declared_on": "collections.abc.Sequence",
+      "source_kind": "protocol",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": null,
+      "target_signature": "includes(value: _GradientStop): boolean",
+      "status": "implemented",
+      "defaults": "Element equality, false for foreign stop.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStops.__getitem__",
+      "declared_on": "pptx.dml.fill._GradientStops",
+      "source_kind": "function",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self, idx)",
+      "target_signature": "readonly [index: number]: GradientStop; at(index: number): GradientStop",
+      "status": "implemented",
+      "defaults": "Zero-based integer index, negative positions from end; out-of-range throws IndexError; no replacement/deletion.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStops.__init__",
+      "declared_on": null,
+      "source_kind": "constructor",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self, gsLst)",
+      "target_signature": "returned live _GradientStops",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "Source raw-wrapper constructors map to returned owned interfaces; constructor identity is not mirrored.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [],
+      "cli_route": null,
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStops.__iter__",
+      "declared_on": "pptx.dml.fill._GradientStops",
+      "source_kind": "protocol",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": null,
+      "target_signature": "[Symbol.iterator](): Iterator<_GradientStop>",
+      "status": "implemented",
+      "defaults": "Current sequence order; only DrawingML gs children.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStops.__len__",
+      "declared_on": "pptx.dml.fill._GradientStops",
+      "source_kind": "function",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "readonly length: number",
+      "status": "implemented",
+      "defaults": "Number of current DrawingML gs children, including zero.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStops.__reversed__",
+      "declared_on": "collections.abc.Sequence",
+      "source_kind": "protocol",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": null,
+      "target_signature": "reversed(): readonly _GradientStop[]",
+      "status": "implemented",
+      "defaults": "New reversed array of current live stop objects.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStops.count",
+      "declared_on": "collections.abc.Sequence",
+      "source_kind": "protocol",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": null,
+      "target_signature": "count(value: _GradientStop): number",
+      "status": "implemented",
+      "defaults": "0 or 1 by current element equality.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.fill._GradientStops.index",
+      "declared_on": "collections.abc.Sequence",
+      "source_kind": "protocol",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": null,
+      "target_signature": "index(value: GradientStop, start = 0, stop = length): number",
+      "status": "implemented",
+      "defaults": "start=0, stop=length; negative bounds normalized; absent match throws ValueError.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and changes gradient position %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.line.LineFormat",
+      "declared_on": null,
+      "source_kind": "type",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(parent)",
+      "target_signature": "returned live LineFormat from Shape.line",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "See explicit target signature; omitted mutation fields leave existing local XML unchanged.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.line.LineFormat.__init__",
+      "declared_on": null,
+      "source_kind": "constructor",
+      "readable": null,
+      "writable": null,
+      "read_signature": null,
+      "write_signature": null,
+      "source_signature": "(self, parent)",
+      "target_signature": "returned live LineFormat from Shape.line",
+      "status": "returned-interface-construction-mapped",
+      "defaults": "Source raw-wrapper constructors map to returned owned interfaces; constructor identity is not mirrored.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01"
+      ],
+      "original_tests": [],
+      "cli_route": null,
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.line.LineFormat.color",
+      "declared_on": "pptx.dml.line.LineFormat",
+      "source_kind": "lazyproperty",
+      "readable": true,
+      "writable": false,
+      "read_signature": "(self)",
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "readonly color: ShapeColorFormat",
+      "status": "implemented",
+      "defaults": "Readonly live color; LineFormat.color converts non-solid line fill to solid before returning.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering. Pattern missing color container creates its documented default; line.color converts local line fill to solid.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.line.LineFormat.dash_style",
+      "declared_on": "pptx.dml.line.LineFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": true,
+      "read_signature": "(self)",
+      "write_signature": "(self, dash_style)",
+      "source_signature": "(self)",
+      "target_signature": "dash_style: number | null",
+      "status": "implemented",
+      "defaults": "Missing/custom dash reads null; null removes dash; setter accepts mapped numeric enum.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.line.LineFormat.fill",
+      "declared_on": "pptx.dml.line.LineFormat",
+      "source_kind": "lazyproperty",
+      "readable": true,
+      "writable": false,
+      "read_signature": "(self)",
+      "write_signature": null,
+      "source_signature": "(self)",
+      "target_signature": "readonly fill: FillFormat",
+      "status": "implemented",
+      "defaults": "Readonly live fill view; accessor alone does not create fill.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    },
+    {
+      "source_id": "pptx.dml.line.LineFormat.width",
+      "declared_on": "pptx.dml.line.LineFormat",
+      "source_kind": "property",
+      "readable": true,
+      "writable": true,
+      "read_signature": "(self)",
+      "write_signature": "(self, emu)",
+      "source_signature": "(self)",
+      "target_signature": "width: Length (setter: Length | null)",
+      "status": "implemented",
+      "defaults": "Missing width reads Length(0); setter Length or null; null removes local width.",
+      "side_effects": "No implicit host I/O, time, network, native runtime or rendering.",
+      "exceptions": "OfficeError invalid-value for invalid/bounded values; PropertyAccessError for unavailable color/fill properties; unsupported-edit for destructive unsupported payload.",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "cli_route": "shapes drawing get/set; shapes effects set (bounded value edits only; model-only collection helpers have no direct command)",
+      "scope_note": "Shared shape-domain behavior; chart owner integration tested separately. No raw dependency-library constructor or host capability."
+    }
+  ]
+}

@@ -116,6 +116,6 @@ it.each([
 ] as const)("retains drawing symbol %s.%s = %s", (group, name, value, token) => {
   const symbols =
     group === "MSO_FILL_TYPE" ? MSO_FILL : group === "MSO_PATTERN_TYPE" ? MSO_PATTERN : MSO_LINE;
-  expect((symbols as Readonly<Record<string, number>>)[name]).toBe(value);
+  expect(Reflect.get(symbols, name)).toBe(value);
   if (token) expect((group === "MSO_PATTERN_TYPE" ? patternTokens : dashTokens)[value]).toBe(token);
 });

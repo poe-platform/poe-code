@@ -1,4 +1,4 @@
-import { OfficeError } from "./errors.js";
+import { ValueError } from "./errors.js";
 
 enum AutoSizeValue {
   NONE = 0,
@@ -34,7 +34,7 @@ const anchors: readonly VerticalAnchorMetadata[] = [
   { name: "MIXED", value: -2, xml_value: null }
 ].map((value) => Object.freeze(value));
 function invalid(): never {
-  throw new OfficeError("invalid-value", "Invalid text frame enumeration value.", "usage");
+  throw new ValueError("Invalid text frame enumeration value.");
 }
 export type MSO_AUTO_SIZE = AutoSizeValue;
 export const MSO_AUTO_SIZE = Object.freeze(

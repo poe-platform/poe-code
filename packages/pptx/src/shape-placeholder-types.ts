@@ -1,4 +1,4 @@
-import { OfficeError } from "./errors.js";
+import { ValueError } from "./errors.js";
 const values = {
   BITMAP: 9,
   BODY: 2,
@@ -45,7 +45,7 @@ const entries = [
 ] as const;
 export type PP_PLACEHOLDER_TYPE = (typeof values)[keyof typeof values];
 function invalid(): never {
-  throw new OfficeError("invalid-value", "Unsupported placeholder type.", "usage");
+  throw new ValueError("Unsupported placeholder type.");
 }
 export const PP_PLACEHOLDER_TYPE = Object.freeze(
   Object.assign(values, {

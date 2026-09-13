@@ -1,4 +1,4 @@
-import { OfficeError } from "./errors.js";
+import { ValueError } from "./errors.js";
 const values = {
   AUTO_SHAPE: 1,
   CALLOUT: 2,
@@ -35,8 +35,10 @@ export const MSO_SHAPE_TYPE = Object.freeze(
   Object.assign(values, {
     metadata(value: MSO_SHAPE_TYPE) {
       const item = entries.find((e) => e.value === value);
-      if (!item) throw new OfficeError("invalid-value", "Unknown shape category.", "usage");
+      if (!item) throw new ValueError("Unknown shape category.");
       return item;
     }
   })
 );
+
+export { MSO_SHAPE_TYPE as MSO };

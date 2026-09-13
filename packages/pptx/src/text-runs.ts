@@ -1,3 +1,4 @@
+import { defineXmlEnum } from "./enum-definition.js";
 import { protectedEquationNodes } from "./equations-compatibility.js";
 import type { BinaryInput, Location } from "./contracts.js";
 import { OfficeError } from "./errors.js";
@@ -10,7 +11,7 @@ import {
 } from "./text-reading.js";
 import { readRunColor, colorMerge, validateRunColor, type RunColor } from "./text-run-color.js";
 import type { XmlElement, XmlMerge, XmlPart } from "./xml.js";
-export enum MSO_TEXT_UNDERLINE_TYPE {
+enum UnderlineValue {
   NONE = 0,
   WORDS = 1,
   SINGLE_LINE = 2,
@@ -31,7 +32,6 @@ export enum MSO_TEXT_UNDERLINE_TYPE {
   WAVY_DOUBLE_LINE = 17,
   MIXED = -2
 }
-export { MSO_TEXT_UNDERLINE_TYPE as MSO_UNDERLINE };
 export const textUnderlineStyles = [
   "none",
   "words",
@@ -52,6 +52,12 @@ export const textUnderlineStyles = [
   "wavyHeavy",
   "wavyDbl"
 ] as const;
+export type MSO_TEXT_UNDERLINE_TYPE = UnderlineValue;
+export const MSO_TEXT_UNDERLINE_TYPE = defineXmlEnum(
+  UnderlineValue,
+  Object.fromEntries(textUnderlineStyles.map((token, value) => [value, token]))
+);
+export { MSO_TEXT_UNDERLINE_TYPE as MSO_UNDERLINE };
 export const textStrikeStyles = ["none", "single", "double"] as const;
 export const textCapitalizationStyles = ["none", "small", "all"] as const;
 export interface TextRunFormatting {

@@ -1,4 +1,4 @@
-import { OfficeError } from "./errors.js";
+import { ValueError } from "./errors.js";
 
 enum AlignmentValue {
   LEFT = 1,
@@ -28,7 +28,7 @@ const alignmentMetadata = [
 ].map((value) => Object.freeze(value)) as readonly ParagraphAlignmentMetadata[];
 
 function invalid(): never {
-  throw new OfficeError("invalid-value", "Invalid paragraph alignment value.", "usage");
+  throw new ValueError("Invalid paragraph alignment value.");
 }
 
 export type PP_PARAGRAPH_ALIGNMENT = AlignmentValue;

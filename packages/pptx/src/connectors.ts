@@ -1,5 +1,5 @@
 import type { Location } from "./contracts.js";
-import { OfficeError } from "./errors.js";
+import { OfficeError, ValueError } from "./errors.js";
 import { Length } from "./length.js";
 import { attr, child, required } from "./masters.js";
 import { readShape, type ShapeLength } from "./shapes.js";
@@ -13,27 +13,30 @@ const connectorEntries = [
   { name: "CURVE", value: 3, xml_value: "curvedConnector3" },
   { name: "MIXED", value: -2, xml_value: null }
 ] as const;
+function invalidConnectorEnum(message: string): never {
+  throw new ValueError(message);
+}
 export const MSO_CONNECTOR_TYPE = Object.freeze(
   Object.assign(connectorValues, {
     metadata(value: MSO_CONNECTOR_TYPE) {
       const entry = connectorEntries.find((e) => e.value === value);
-      return entry ? Object.freeze({ ...entry }) : invalid("Unknown connector type.");
+      return entry ? Object.freeze({ ...entry }) : invalidConnectorEnum("Unknown connector type.");
     },
     from_xml(value: string): MSO_CONNECTOR_TYPE {
       return value === "straightConnector1"
         ? 1
         : (connectorEntries.find((e) => e.xml_value !== null && e.xml_value === value)?.value ??
-            invalid("Unknown connector geometry."));
+            invalidConnectorEnum("Unknown connector geometry."));
     },
     to_xml(value: MSO_CONNECTOR_TYPE): string {
       return (
         connectorEntries.find((e) => e.value === value)?.xml_value ??
-        invalid("Connector type cannot be written.")
+        invalidConnectorEnum("Connector type cannot be written.")
       );
     },
     validate(value: MSO_CONNECTOR_TYPE): void {
       if (!connectorEntries.some((e) => e.value === value && e.xml_value !== null))
-        invalid("Connector type cannot be written.");
+        invalidConnectorEnum("Connector type cannot be written.");
     }
   })
 );

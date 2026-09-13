@@ -1,4 +1,4 @@
-import { OfficeError } from "./errors.js";
+import { ValueError } from "./errors.js";
 const values = {
   ACTION_BUTTON_BACK_OR_PREVIOUS: 129,
   ACTION_BUTTON_BEGINNING: 131,
@@ -378,7 +378,7 @@ const entries = (Object.keys(values) as (keyof typeof values)[]).map((name) =>
   Object.freeze({ name, value: values[name], xml_value: shapePresets[name] })
 );
 function invalid(): never {
-  throw new OfficeError("invalid-value", "Unknown shape preset.", "usage");
+  throw new ValueError("Unknown shape preset.");
 }
 export const MSO_AUTO_SHAPE_TYPE = Object.freeze(
   Object.assign(values, {

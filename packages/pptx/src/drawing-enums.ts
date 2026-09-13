@@ -1,4 +1,5 @@
-export const MSO_FILL_TYPE = Object.freeze({
+import { defineEnum, defineXmlEnum } from "./enum-definition.js";
+export const MSO_FILL_TYPE = defineEnum({
   SOLID: 1,
   PATTERNED: 2,
   GRADIENT: 3,
@@ -8,7 +9,7 @@ export const MSO_FILL_TYPE = Object.freeze({
   GROUP: 101
 } as const);
 export const MSO_FILL = MSO_FILL_TYPE;
-export const MSO_LINE_DASH_STYLE = Object.freeze({
+const lineValues = {
   SOLID: 1,
   SQUARE_DOT: 2,
   ROUND_DOT: 3,
@@ -18,8 +19,8 @@ export const MSO_LINE_DASH_STYLE = Object.freeze({
   LONG_DASH: 7,
   LONG_DASH_DOT: 8,
   DASH_STYLE_MIXED: -2
-} as const);
-export const MSO_LINE = MSO_LINE_DASH_STYLE;
+} as const;
+
 export const dashTokens: Readonly<Record<number, string>> = Object.freeze({
   1: "solid",
   2: "sysDash",
@@ -30,7 +31,7 @@ export const dashTokens: Readonly<Record<number, string>> = Object.freeze({
   7: "lgDash",
   8: "lgDashDot"
 });
-export const MSO_PATTERN_TYPE = Object.freeze({
+const patternValues = {
   PERCENT_5: 1,
   PERCENT_10: 2,
   PERCENT_20: 3,
@@ -86,8 +87,8 @@ export const MSO_PATTERN_TYPE = Object.freeze({
   UPWARD_DIAGONAL: 53,
   DIAGONAL_CROSS: 54,
   MIXED: -2
-} as const);
-export const MSO_PATTERN = MSO_PATTERN_TYPE;
+} as const;
+
 export const patternTokens: Readonly<Record<number, string>> = Object.freeze({
   1: "pct5",
   2: "pct10",
@@ -144,3 +145,8 @@ export const patternTokens: Readonly<Record<number, string>> = Object.freeze({
   53: "upDiag",
   54: "diagCross"
 });
+
+export const MSO_LINE_DASH_STYLE = defineXmlEnum(lineValues, dashTokens);
+export const MSO_LINE = MSO_LINE_DASH_STYLE;
+export const MSO_PATTERN_TYPE = defineXmlEnum(patternValues, patternTokens);
+export const MSO_PATTERN = MSO_PATTERN_TYPE;

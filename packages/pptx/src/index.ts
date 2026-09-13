@@ -19,6 +19,11 @@ export type {
 export {
   OfficeError,
   InvalidHandleError,
+  IndexError,
+  KeyError,
+  ValueError,
+  TypeError,
+  PropertyAccessError,
   type ByteErrorCode,
   type OfficeErrorCode
 } from "./errors.js";
@@ -315,7 +320,22 @@ export { readShapes, addShape, mutateShapes, type ShapeSelection } from "./shape
 export { readShapeGeometry, type ShapeGeometry } from "./shape-transforms.js";
 export { PP_PLACEHOLDER_TYPE, PP_PLACEHOLDER } from "./shape-placeholder-types.js";
 
-export { MSO_SHAPE_TYPE } from "./shape-types.js";
+export { MSO_SHAPE_TYPE, MSO } from "./shape-types.js";
+export { MSO_LANGUAGE_ID } from "./language-enum.js";
+export { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX, MSO_THEME_COLOR } from "./color-enums.js";
+export { PP_MEDIA_TYPE } from "./media-enum.js";
+export { PROG_ID, type OleApplication } from "./ole-enum.js";
+export {
+  XL_AXIS_CROSSES,
+  XL_CATEGORY_TYPE,
+  XL_CHART_TYPE,
+  XL_DATA_LABEL_POSITION,
+  XL_LABEL_POSITION,
+  XL_LEGEND_POSITION,
+  XL_MARKER_STYLE,
+  XL_TICK_LABEL_POSITION,
+  XL_TICK_MARK
+} from "./chart-enums.js";
 
 export {
   validateShapePath,

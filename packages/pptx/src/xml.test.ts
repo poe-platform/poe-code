@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Volume } from "memfs";
 import { parseXmlPart } from "./xml.js";
+import { OfficeError } from "./errors.js";
 
 const limits = { maxBytes: 8192, maxNodes: 100, maxDepth: 12 };
 const encode = (text: string) => new TextEncoder().encode(text);
@@ -102,7 +103,7 @@ describe("preserving XML parts", () => {
   ])("rejects fragments that are not one standalone element: %s", (fragment) => {
     const part = parseXmlPart(encode("<deck/>"), limits);
     expect(() => part.spliceChildren(part.root, 0, 0, [fragment])).toThrowError(
-      expect.objectContaining({ name: "OfficeError" })
+      OfficeError
     );
   });
 

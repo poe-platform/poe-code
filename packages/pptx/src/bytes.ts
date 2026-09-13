@@ -7,7 +7,7 @@ import type {
   ReadOptions,
   WriteOptions
 } from "./contracts.js";
-import { OfficeError } from "./errors.js";
+import { OfficeError, PackageNotFoundError } from "./errors.js";
 
 function admitLimits(context: ByteContext, options: ReadOptions, output: boolean): ByteLimits {
   if (!context || !context.limits || !options || typeof options !== "object") {
@@ -79,8 +79,11 @@ export async function readBinary(
     }
     try {
       source = await input.capability.openRead(input.path, signal);
-    } catch {
+    } catch (error) {
       checkCancellation(signal, "admit");
+      if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+        throw new PackageNotFoundError();
+      }
       throw new OfficeError("io-failure", "Byte input failed.", "admit");
     }
     checkCancellation(signal, "admit");

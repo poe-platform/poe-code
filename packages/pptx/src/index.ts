@@ -18,6 +18,8 @@ export type {
 } from "./contracts.js";
 export {
   OfficeError,
+  InvalidXmlError,
+  PackageNotFoundError,
   InvalidHandleError,
   IndexError,
   KeyError,

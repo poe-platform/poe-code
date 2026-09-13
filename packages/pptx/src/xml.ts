@@ -1,5 +1,5 @@
 import { SaxesParser } from "saxes";
-import { OfficeError } from "./errors.js";
+import { InvalidXmlError, OfficeError } from "./errors.js";
 
 export interface XmlName {
   readonly namespace: string;
@@ -72,6 +72,7 @@ interface Patch {
 const xmlns = "http://www.w3.org/2000/xmlns/";
 const xmlNamespace = "http://www.w3.org/XML/1998/namespace";
 function fail(code: "invalid-xml" | "invalid-value" | "resource-limit"): never {
+  if (code === "invalid-xml") throw new InvalidXmlError();
   throw new OfficeError(
     code,
     code === "resource-limit" ? "XML resource limit exceeded." : "Invalid XML or structured edit.",

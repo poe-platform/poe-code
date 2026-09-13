@@ -45,6 +45,20 @@ export class InvalidHandleError extends OfficeError {
   }
 }
 
+export class InvalidXmlError extends OfficeError {
+  override readonly name = "InvalidXmlError";
+  constructor(message = "Invalid XML or structured edit.") {
+    super("invalid-xml", message, "parse");
+  }
+}
+
+export class PackageNotFoundError extends OfficeError {
+  override readonly name = "PackageNotFoundError";
+  constructor(message = "Input package was not found.") {
+    super("io-failure", message, "admit");
+  }
+}
+
 export class IndexError extends OfficeError {
   override readonly name = "IndexError";
   constructor(message = "Sequence position is out of range.") {

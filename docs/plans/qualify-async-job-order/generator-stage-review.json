@@ -1,0 +1,15 @@
+{
+  "index": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-async-commit-ah8a1huc/index",
+  "head": "bc6107ba5a308e94335f2d419d51d122ed17e6c3",
+  "stagedNames": [
+    "docs/plans/qualify-async-job-order/generator-repair.md",
+    "packages/safe-js/src/interp/async-generator-driver.ts",
+    "packages/safe-js/src/interp/generator-expression-state.ts",
+    "packages/safe-js/src/interp/interpreter.ts",
+    "packages/safe-js/src/snapshot/guest-ast-validation.ts",
+    "packages/safe-js/src/snapshot/guest-heap-validation.ts",
+    "packages/safe-js/test/async-delegated-return-restore.test.ts",
+    "packages/safe-js/test/async-generator-return-order.test.ts"
+  ],
+  "realIndexSha256": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8"
+}

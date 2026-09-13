@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/test/async-delegated-return-restore.test.ts (3 tests) 501ms
+   ✓ restores a pending absent-delegate-return Await without repeating its getter  345ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  04:43:42
+   Duration  3.35s (transform 2.16s, setup 52ms, import 2.68s, tests 501ms, environment 0ms)

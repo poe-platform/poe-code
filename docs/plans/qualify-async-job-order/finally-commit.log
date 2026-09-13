@@ -1,0 +1,4 @@
+[main cff1a62cd] fix(safe-js): expose correct finally handler arity
+ 3 files changed, 31 insertions(+)
+ create mode 100644 docs/plans/qualify-async-job-order/finally-metadata-repair.md
+ create mode 100644 packages/safe-js/test/promise-finally-handler-metadata.test.ts

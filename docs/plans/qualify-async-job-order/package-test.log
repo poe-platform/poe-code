@@ -1,0 +1,306 @@
+
+> @poe-code/safe-js@0.0.1 pretest
+> node scripts/numberformat-data.mjs && npm run typecheck:fs
+
+{"numberFormatLocales":766,"sourceBytes":5153552,"pluralLocales":224}
+
+> @poe-code/safe-js@0.0.1 typecheck:fs
+> node scripts/fs-type-contract.mjs
+
+{"resolution":"NodeNext","environment":"Node-only","contracts":25,"ok":true}
+{"resolution":"NodeNext","environment":"DOM","contracts":25,"ok":true}
+{"resolution":"Bundler","environment":"Node-only","contracts":25,"ok":true}
+{"resolution":"Bundler","environment":"DOM","contracts":25,"ok":true}
+
+> @poe-code/safe-js@0.0.1 test
+> cd ../.. && vitest run packages/safe-js/src packages/safe-js/test
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/methods/regex-cursor.independent.test.ts (1027 tests) 29322ms
+     ✓ 'matchAll' /'^a.'/'ms' from 10 on ''az\nAZ\na\nz'' matches native  866ms
+ ✓ packages/safe-js/src/modules/namespace-identity-mc-002-validation.test.ts (18 tests) 18964ms
+     ✓ matches all native-anchored fields with object/object registries  1860ms
+     ✓ matches all native-anchored fields with object/map registries  1653ms
+     ✓ matches all native-anchored fields with map/object registries  1780ms
+     ✓ matches all native-anchored fields with map/map registries  2429ms
+     ✓ matches the complete original graph through the public memfs harness  1844ms
+     ✓ keeps aliases through three completed object-registry replays  2454ms
+     ✓ keeps aliases through three completed map-registry replays  2614ms
+     ✓ restores identity after a 25-step checkpoint with +0 calls  1278ms
+     ✓ restores identity after a 900-step checkpoint with 1 calls  1409ms
+     ✓ restores identity after a 1800-step checkpoint with 2 calls  1362ms
+ ✓ packages/safe-js/src/interp/methods/string-split.independent.test.ts (808 tests) 20089ms
+     ✓ preserves typed slots for /'(b*)'/'gims' on ''ab'', limit 2  973ms
+ ✓ packages/safe-js/test/integration/input-error-projection.test.ts (19 tests) 18291ms
+     ✓ flushes the complete serialized observation beyond the pipe buffer  815ms
+     ✓ classifies complete proof 1 against the same capture and request  882ms
+     ✓ classifies complete proof 1 against the same capture and request: completed replay  858ms
+     ✓ classifies complete proof 2 against the same capture and request  901ms
+     ✓ classifies complete proof 2 against the same capture and request: completed replay  958ms
+     ✓ classifies minimal proof 1 against the same capture and request  1023ms
+     ✓ classifies minimal proof 1 against the same capture and request: completed replay  924ms
+     ✓ classifies minimal proof 2 against the same capture and request  933ms
+     ✓ classifies minimal proof 2 against the same capture and request: completed replay  999ms
+     ✓ classifies native-fields proof 1 against the same capture and request  1062ms
+     ✓ classifies native-fields proof 1 against the same capture and request: completed replay  1067ms
+     ✓ classifies native-fields proof 2 against the same capture and request  1206ms
+     ✓ classifies native-fields proof 2 against the same capture and request: completed replay  1072ms
+     ✓ preserves raw-left proof provenance with the complete right receipt  1060ms
+     ✓ preserves raw-left proof provenance with the complete right receipt: completed replay  1046ms
+     ✓ preserves genuine-null-left proof provenance with the complete right receipt  1031ms
+     ✓ preserves genuine-null-left proof provenance with the complete right receipt: completed replay  1007ms
+     ✓ records raw public-input qualification without substituting it for O12  679ms
+ ✓ packages/safe-js/src/interp/globals/math-function-metadata.test.ts (186 tests) 13773ms
+ ✓ packages/safe-js/src/interp/globals/collections-iteration-validation.test.ts (112 tests) 10472ms
+ ✓ packages/safe-js/src/run.cbi-001-validation.test.ts (29 tests) 9675ms
+     ✓ retains original registration after first  592ms
+     ✓ retains original registration after second  346ms
+     ✓ retains original registration after completed  318ms
+     ✓ recaptures first to second to completed without consuming new deliveries as history  479ms
+     ✓ retains original registration after first  337ms
+     ✓ retains original registration after second  370ms
+     ✓ recaptures first to second to completed without consuming new deliveries as history  421ms
+     ✓ retains original registration after first  1019ms
+     ✓ retains original registration after second  899ms
+     ✓ retains original registration after completed  925ms
+     ✓ recaptures first to second to completed without consuming new deliveries as history  1295ms
+     ✓ retains original registration after second  342ms
+     ✓ recaptures first to second to completed without consuming new deliveries as history  369ms
+ ✓ packages/safe-js/src/interp/float32-camera.test.ts (11 tests) 14183ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-0-1  1724ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-2-3  1753ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-4-5  1907ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-0-1  1723ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-2-3  1748ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-4-4  1249ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-offset-handoff-typed:samples-0-1  1912ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-offset-handoff-typed:samples-2-3  2161ms
+ ✓ packages/safe-js/src/interp/globals/foreign-newtarget-default.test.ts (135 tests) 9621ms
+   ✓ keeps foreign newTarget realm through replay: function Target(){}  438ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-nested-yields.test.ts (70 tests) 9716ms
+   ✓ resumes suspension inside yield arguments: 'let count=0;function input(){count++;…' (async=false, operation='return')  329ms
+ ✓ packages/safe-js/src/run.retained-callback.test.ts (21 tests) 8577ms
+     ✓ restores at first without losing a new delivery  451ms
+     ✓ restores at second without losing a new delivery  339ms
+     ✓ preserves new callback history through successive and completed checkpoints  489ms
+     ✓ restores at first without losing a new delivery  363ms
+     ✓ restores at second without losing a new delivery  348ms
+     ✓ preserves new callback history through successive and completed checkpoints  426ms
+     ✓ preserves new callback history through successive and completed checkpoints  347ms
+     ✓ preserves new callback history through successive and completed checkpoints  351ms
+     ✓ delivers repeated events uninterrupted  418ms
+     ✓ restores at first without losing a new delivery  1097ms
+     ✓ restores at second without losing a new delivery  991ms
+     ✓ preserves new callback history through successive and completed checkpoints  1348ms
+ ✓ packages/safe-js/src/interp/source-exceptions-validation.test.ts (98 tests) 8799ms
+     ✓ matches complete native output and tick log: '02-auto-dependency-closures'  497ms
+     ✓ matches complete native output and tick log: '03-maplimit-lexical-state'  407ms
+ ✓ packages/safe-js/src/run.references.test.ts (99 tests) 9324ms
+     ✓ checks the let temporal dead zone at the right operation  440ms
+     ✓ checks the const temporal dead zone at the right operation  542ms
+ ✓ packages/safe-js/src/snapshot/mixed-source-closures.test.ts (16 tests) 5228ms
+   ✓ preserves distinct function bodies and captured state from return ()=>1  456ms
+   ✓ preserves distinct function bodies and captured state from const value=1;return ()=>value  343ms
+   ✓ preserves distinct function bodies and captured state from class C { value=1 };return ()=>new C().value  350ms
+   ✓ preserves distinct function bodies and captured state from function* f(){yield 0;yield 1};const g=f();g.next();return ()=>g.next().value  357ms
+   ✓ preserves distinct function bodies and captured state from class C { #value=1;read(){return this.#value} };return ()=>new C().read()  354ms
+   ✓ preserves distinct function bodies and captured state from const c=Promise.withResolvers();const p=(async()=>{await c.promise;return 1})();return async()=>{c.resolve();return await p}  407ms
+   ✓ preserves distinct function bodies and captured state from async function* f(){yield 0;yield 1};const g=f();await g.next();return async()=>(await g.next()).value  335ms
+   ✓ preserves distinct function bodies and captured state from function* f(){try {yield 0}finally {yield 1}};const g=f();g.next();return ()=>g.next().value  356ms
+   ✓ preserves distinct function bodies and captured state from class Base {read(){return 1}}class Derived extends Base {read(){return super.read()}}return ()=>new Derived().read()  363ms
+   ✓ preserves distinct function bodies and captured state from const value=1;const read=eval('()=>value');return ()=>read()  317ms
+   ✓ preserves distinct function bodies and captured state from const read=Function('return 1');return ()=>read()  354ms
+   ✓ preserves distinct function bodies and captured state from class Base {constructor(){this.value=1}}class Derived extends Base {constructor(){super()}}return ()=>new Derived().value  356ms
+   ✓ reuses each restored template site with other source first  320ms
+ ✓ packages/safe-js/src/interp/methods/array-nested-reads.test.ts (202 tests) 9519ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-closures.test.ts (24 tests) 7954ms
+   ✓ restores the originating realm for '()=>[]'  525ms
+   ✓ restores the originating realm for '()=>({})'  351ms
+   ✓ restores the originating realm for '()=>/x/'  363ms
+   ✓ restores the originating realm for '()=>new Map()'  345ms
+   ✓ restores the originating realm for 'Function("return this")'  384ms
+   ✓ restores the originating realm for '(()=>{const C=class { constructor(){r…'  363ms
+   ✓ restores the originating realm for '(()=>{const C=class { constructor(){r…'  341ms
+   ✓ restores the originating realm for '(()=>{const C=class { constructor(){r…'  345ms
+   ✓ restores the originating realm for '(()=>{class C { value=[] };return ()=…'  383ms
+   ✓ restores the originating realm for '(()=>{class C { #value={};get(){retur…'  356ms
+   ✓ restores the originating realm for '(()=>{class B{};class C extends B { v…'  311ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  344ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  308ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  310ms
+   ✓ restores the originating realm for '(()=>{function* f(){while(true)yield …'  455ms
+   ✓ restores the originating realm for '(()=>{async function* f(){while(true)…'  328ms
+   ✓ restores the originating realm for '(()=>{async function* f(){while(true)…'  319ms
+   ✓ restores the originating realm for '(()=>{async function* f(){while(true)…'  326ms
+   ✓ restores the originating realm for '(()=>{const c=Promise.withResolvers()…'  360ms
+   ✓ restores the originating realm for '(()=>{const c=Promise.withResolvers()…'  390ms
+   ✓ restores the originating realm for '(()=>{const c=Promise.withResolvers()…'  403ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-iteration-continuations.test.ts (50 tests) 7219ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-catch-iterator.test.ts (28 tests) 6170ms
+   ✓ restores catch binding and body: 'try{throw new Set([1,2])}catch([a,b])…' async=false  416ms
+   ✓ restores catch binding and body: 'try{throw new Set([1,2])}catch([a,b])…' async=true  401ms
+   ✓ restores catch binding and body: 'let closed=0;function* input(){try{yi…' async=false  330ms
+   ✓ restores catch binding and body: 'let closed=0;function* input(){try{yi…' async=true  374ms
+   ✓ restores catch binding and body: 'try{throw [1,undefined]}catch([a,b=yi…' async=false  338ms
+ ✓ packages/safe-js/src/interp/methods/regex-last-index.test.ts (287 tests) 8555ms
+ ✓ packages/safe-js/src/run.replay.stress.test.ts (65 tests) 6743ms
+     ✓ matches native random reaction ordering across 32 rounds  897ms
+ ✓ packages/safe-js/src/interp/methods/regex-metadata-order.independent.test.ts (169 tests) 8486ms
+ ✓ packages/safe-js/src/lint/mutable-closures.stress.test.ts (25 tests) 4531ms
+       ✓ matches native JavaScript at width 24  1551ms
+       ✓ matches native JavaScript at width 24  789ms
+       ✓ matches native JavaScript at width 24  513ms
+ ✓ packages/safe-js/src/interp/methods/string-receivers.test.ts (264 tests) 5644ms
+ ✓ packages/safe-js/src/interp/iterator-result-creation-realm.test.ts (78 tests) 6386ms
+ ✓ packages/safe-js/src/interp/methods/string.match-no-match.independent.test.ts (189 tests) 4096ms
+ ✓ packages/safe-js/src/interp/methods/callback-this.test.ts (141 tests) 4622ms
+ ✓ packages/safe-js/test/ppr2-integration-adjudication.test.ts (19 tests) 5298ms
+     ✓ 'reduction': native trace, public/signal/completed checkpoints and recapture  426ms
+     ✓ 'callback': native trace, public/signal/completed checkpoints and recapture  750ms
+     ✓ 'retry-reissue': native trace, public/signal/completed checkpoints and recapture  614ms
+     ✓ 'retry-external': native trace, public/signal/completed checkpoints and recapture  710ms
+     ✓ 'co': native trace, public/signal/completed checkpoints and recapture  2285ms
+ ✓ packages/safe-js/src/named-host-policy.test.ts (46 tests) 3599ms
+ ✓ packages/safe-js/src/interp/methods/array-receivers.test.ts (199 tests) 3355ms
+ ✓ packages/safe-js/src/run.control.test.ts (12 tests) 3528ms
+     ✓ allows a host turn to pause CPU-bound guest work  360ms
+     ✓ preserves an async function's synchronous prefix across a CPU pause  656ms
+     ✓ preserves an async function's synchronous prefix across a CPU pause  679ms
+   ✓ lets a parent pause and resume successive children independently  1308ms
+ ✓ packages/safe-js/src/interp/globals/string-method-metadata.test.ts (66 tests) 3015ms
+ ✓ packages/safe-js/src/run.promise-aliases.test.ts (19 tests) 3577ms
+     ✓ matches the full native workflow and restores both inputs (pending: false)  1132ms
+     ✓ matches the full native workflow and restores both inputs (pending: true)  992ms
+ ✓ packages/safe-js/src/interp/globals/uri-globals.test.ts (113 tests) 3342ms
+ ✓ packages/safe-js/src/run.promise-generic.test.ts (52 tests) 3030ms
+ ✓ packages/safe-js/src/host-error-identity.test.ts (70 tests) 3627ms
+ ✓ packages/safe-js/src/interp/accessor-properties.test.ts (132 tests) 3119ms
+ ✓ packages/safe-js/src/external-checkpoint-validation.test.ts (14 tests) 3040ms
+     ✓ captures externally and by signal while 'reduction' remains pending  310ms
+     ✓ captures externally and by signal while 'callback' remains pending  597ms
+     ✓ captures externally and by signal while 'retry-reissue' remains pending  465ms
+     ✓ captures externally and by signal while 'retry-external' remains pending  415ms
+     ✓ captures externally and by signal while 'co' remains pending  843ms
+ ✓ packages/safe-js/src/migrate.test.ts (31 tests) 2895ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-array-patterns.test.ts (29 tests) 2971ms
+ ✓ packages/safe-js/src/interp/function-arity.test.ts (18 tests) 2847ms
+     ✓ selects the comparator branch in the complete original D3 bisector workload  1144ms
+     ✓ keeps the complete explicit-mode control equivalent to the original  1208ms
+ ✓ packages/safe-js/src/interp/bigint-typed-array.test.ts (56 tests) 1626ms
+ ✓ packages/safe-js/src/modules/dynamic-import.test.ts (39 tests) 1432ms
+ ✓ packages/safe-js/src/snapshot/private-elements.test.ts (31 tests) 2458ms
+ ✓ packages/safe-js/src/snapshot/proxy.test.ts (36 tests) 1618ms
+ ✓ packages/safe-js/src/interp/methods/mapset-callback-replay.test.ts (4 tests) 1468ms
+     ✓ recovers a finite worklist from a budget checkpoint without repeating effects  380ms
+     ✓ preserves genuine pending boundaries and does not await callback return values  486ms
+     ✓ preserves genuine pending boundaries and does not await callback return values  358ms
+ ✓ packages/safe-js/src/cli.original-source.test.ts (5 tests) 533ms
+   ✓ renders startup syntax errors from the original source and supplied filename  461ms
+ ✓ packages/safe-js/src/interp/methods/mapset-callback-mutation.test.ts (44 tests) 3001ms
+ ✓ packages/safe-js/src/interp/generator-intrinsic-prototypes.test.ts (60 tests) 2202ms
+ ✓ packages/safe-js/src/interp/intrinsic-prototype-origin.test.ts (46 tests) 1991ms
+ ✓ packages/safe-js/src/interp/methods/ctx-001-validation.test.ts (37 tests) 2739ms
+ ✓ packages/safe-js/src/snapshot/async-function-continuations.test.ts (29 tests) 2997ms
+ ✓ packages/safe-js/src/interp/methods/array-callback-mutation.test.ts (130 tests) 2943ms
+ ✓ packages/safe-js/src/interp/globals/intl-datetimeformat.test.ts (52 tests) 3106ms
+ ✓ packages/safe-js/src/interp/globals/regex-construction.test.ts (110 tests) 2914ms
+ ✓ packages/safe-js/src/loader/markdown-offset-hi-002-validation.test.ts (38 tests) 1920ms
+ ✓ packages/safe-js/src/interp/globals/dynamic-function.test.ts (65 tests) 2377ms
+ ✓ packages/safe-js/src/interp/source-exceptions.boundaries.test.ts (84 tests) 1683ms
+ ✓ packages/safe-js/src/interp/methods/string-patterns.test.ts (107 tests) 2626ms
+ ✓ packages/safe-js/src/interp/number-typed-arrays.test.ts (92 tests) 2726ms
+ ✓ packages/safe-js/src/lint/function-syntax.stress.test.ts (14 tests) 2159ms
+       ✓ matches native JavaScript at width 12  794ms
+ ✓ packages/safe-js/src/interp/methods/regex-unicode.test.ts (64 tests) 1715ms
+ ✓ packages/safe-js/src/snapshot/dynamic-import.test.ts (18 tests) 2263ms
+   ✓ restores dynamic module access in a closure (already loaded=false)  363ms
+   ✓ preserves host-export property cycles and reconnects only supplied capabilities  313ms
+ ✓ packages/safe-js/src/snapshot/eval-source.test.ts (18 tests) 2042ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-object-patterns.test.ts (31 tests) 3527ms
+ ✓ packages/safe-js/src/interp/globals/math-sum-precise.test.ts (67 tests) 1851ms
+ ✓ packages/safe-js/src/interp/source-exceptions.test.ts (13 tests) 2975ms
+     ✓ preserves the complete 02-auto-dependency-closures workflow  533ms
+     ✓ preserves the complete 03-maplimit-lexical-state workflow  468ms
+     ✓ preserves the complete 04-nested-finally-precedence workflow  321ms
+     ✓ preserves the complete 05-saga-delegation-cleanup workflow  307ms
+     ✓ preserves the complete 12-finally-domain-records workflow  340ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-delegation.test.ts (20 tests) 3335ms
+ ✓ packages/safe-js/src/interp/generator-own-properties.test.ts (44 tests) 1637ms
+ ✓ packages/safe-js/src/interp/function-bound-snapshot.test.ts (23 tests) 4029ms
+   ✓ round trips bound function state: 'function f(a,b){return this.base+a+b}…'  427ms
+   ✓ round trips bound function state: 'function F(a,b){this.sum=a+b;this.tar…'  338ms
+ ✓ packages/safe-js/src/interp/globals/numeric-parsing.test.ts (86 tests) 3844ms
+ ✓ packages/safe-js/src/interp/globals/standard-builtin-lengths.test.ts (34 tests) 3930ms
+ ✓ packages/safe-js/src/interp/globals/number-locale-formatting.test.ts (63 tests) 2409ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-values.test.ts (15 tests) 4003ms
+   ✓ preserves pristine ({}) prototype identity from two realms  328ms
+   ✓ preserves pristine [1].values() prototype identity from two realms  344ms
+   ✓ preserves new Map([[1,2],[3,4]]).values() cursor progression across mixed-realm snapshots  355ms
+ ✓ packages/safe-js/src/interp/classes.test.ts (93 tests) 3340ms
+ ✓ packages/safe-js/src/interp/function-properties.test.ts (37 tests) 3319ms
+     ✓ preserves guest state in heap and direct run snapshots while refusing unsupported replay-data encoding: function Counter() {} Counter.value = 7; return Counter;  313ms
+ ✓ packages/safe-js/src/interp/receiver-retention.test.ts (34 tests) 2159ms
+ ✓ packages/safe-js/src/interp/intermediate-retention.test.ts (49 tests) 2349ms
+ ✓ packages/safe-js/src/snapshot/internal-continuation-references.test.ts (21 tests) 2968ms
+ ✓ packages/safe-js/src/interp/globals/json-function-metadata.test.ts (22 tests) 2078ms
+   ✓ preserves JSON.'stringify' metadata in 'completed' checkpoints  315ms
+ ✓ packages/safe-js/src/run.random.test.ts (28 tests) 3282ms
+ ✓ packages/safe-js/src/run.test.ts (66 tests) 2965ms
+     ✓ rejects unbounded recursion with the default call-depth guard  340ms
+ ✓ packages/safe-js/src/interp/async-generator.test.ts (77 tests) 2449ms
+ ✓ packages/safe-js/src/interp/data-view.test.ts (51 tests) 2043ms
+ ✓ packages/safe-js/src/interp/host-bridge.test.ts (45 tests) 1874ms
+     ✓ preserves synchronous function Error() { [native code] } metadata through repeated replay  415ms
+ ✓ packages/safe-js/src/interp/array-buffer-transfer.test.ts (25 tests) 1165ms
+ ❯ packages/safe-js/test/async-job-order-qualification.test.ts (13 tests | 1 failed) 2757ms
+     ✓ 'resolution is locked before a reentra…': native, original, pending restore and completed replay  380ms
+     × 'delegated generator return performs i…': native, original, pending restore and completed replay 104ms
+     ✓ 'queued generator return reads a non-c…': native, original, pending restore and completed replay 262ms
+     ✓ 'executor prefix, nested thenables and…': native, original, pending restore and completed replay 233ms
+     ✓ 'FIFO reactions including registration…': native, original, pending restore and completed replay 208ms
+     ✓ 'async function synchronous prefix and…': native, original, pending restore and completed replay 210ms
+     ✓ 'finally preserves fulfillment and rep…': native, original, pending restore and completed replay 193ms
+     ✓ 'combinator input ordering and empty c…': native, original, pending restore and completed replay 273ms
+     ✓ 'queued async generator requests and f…': native, original, pending restore and completed replay 300ms
+   ✓ preserves shared callback mutations and host effects (already settled: false) 223ms
+   ✓ preserves shared callback mutations and host effects (already settled: true) 109ms
+   ✓ handles rejected host Promises in original and replay (settled: false) 160ms
+   ✓ handles rejected host Promises in original and replay (settled: true) 99ms
+FAIL packages/safe-js/test/async-job-order-qualification.test.ts > independent ECMAScript 2025 async ordering traces > 'delegated generator return performs i…': native, original, pending restore and completed replay
+AssertionError: expected [ 'start', 'tick 1', 'get then', …(3) ] to deeply equal [ 'start', 'tick 1', 'get then', …(4) ]
+
+- Expected
++ Received
+
+@@ -2,8 +2,7 @@
+    "start",
+    "tick 1",
+    "get then",
+    "tick 2",
+    "get return",
+-   "get then",
+    "tick 3",
+  ]
+
+ ❯ packages/safe-js/test/async-job-order-qualification.test.ts:125:57
+    123|       const original = await bounded(execution, "original trace");
+    124|       assert(original.ok, JSON.stringify(original));
+    125|       expect(deepCopyFromSandbox(original.returnValue)).toEqual(expect…
+       |                                                         ^
+    126|       const resumed = await bounded(
+    127|         run(source, {
+
+ ✓ packages/safe-js/src/cli.test.ts (46 tests) 2014ms
+     ✓ inspects and migrates checkpoints without executing the target  324ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-calls.test.ts (18 tests) 3090ms
+ ✓ packages/safe-js/src/interp/globals/set-operations.test.ts (54 tests) 2532ms
+ ✓ packages/safe-js/src/lint.syntax-parity.test.ts (26 tests) 1814ms
+npm error Lifecycle script `test` failed with error:
+npm error code 143
+npm error path /Users/kjopek/Workspace/poe-code/packages/safe-js
+npm error workspace @poe-code/safe-js@0.0.1
+npm error location /Users/kjopek/Workspace/poe-code/packages/safe-js
+npm error command failed
+npm error command sh -c cd ../.. && vitest run packages/safe-js/src packages/safe-js/test

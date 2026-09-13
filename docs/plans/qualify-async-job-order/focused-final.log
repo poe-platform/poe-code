@@ -1,0 +1,115 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/test/async-job-order-qualification.test.ts (13 tests | 2 failed) 2684ms
+     ✓ 'resolution is locked before a reentra…': native, original, pending restore and completed replay  373ms
+     ✓ 'delegated generator return performs i…': native, original, pending restore and completed replay  321ms
+     ✓ 'queued generator return reads a non-c…': native, original, pending restore and completed replay 252ms
+     ✓ 'executor prefix, nested thenables and…': native, original, pending restore and completed replay 216ms
+     ✓ 'FIFO reactions including registration…': native, original, pending restore and completed replay 186ms
+     ✓ 'async function synchronous prefix and…': native, original, pending restore and completed replay 185ms
+     ✓ 'finally preserves fulfillment and rep…': native, original, pending restore and completed replay 210ms
+     ✓ 'combinator input ordering and empty c…': native, original, pending restore and completed replay 251ms
+     ✓ 'queued async generator requests and f…': native, original, pending restore and completed replay 263ms
+   ✓ preserves shared callback mutations and host effects (already settled: false) 222ms
+   ✓ preserves shared callback mutations and host effects (already settled: true) 123ms
+   × handles rejected host Promises in original and replay (settled: false) 50ms
+   × handles rejected host Promises in original and replay (settled: true) 28ms
+FAIL packages/safe-js/test/async-job-order-qualification.test.ts > handles rejected host Promises in original and replay (settled: false)
+AssertionError: expected [ 'sync', { name: 'Error', …(2) } ] to deeply equal [ 'sync', 'reason' ]
+
+- Expected
++ Received
+
+  [
+    "sync",
+-   "reason",
++   {
++     "message": "reason",
++     "name": "Error",
++     "stack": "Error: reason
++     at gate (line 1, column 32)",
++   },
+  ]
+
+ ❯ packages/safe-js/test/async-job-order-qualification.test.ts:288:53
+    286|     let result = await bounded(execution, "host rejection");
+    287|     assert(result.ok);
+    288|     expect(deepCopyFromSandbox(result.returnValue)).toEqual(["sync", "…
+       |                                                     ^
+    289|     const bindings = {
+    290|       gate: declareHostOperation(() => {
+
+FAIL packages/safe-js/test/async-job-order-qualification.test.ts > handles rejected host Promises in original and replay (settled: true)
+AssertionError: expected [ 'sync', { name: 'Error', …(2) } ] to deeply equal [ 'sync', 'reason' ]
+
+- Expected
++ Received
+
+  [
+    "sync",
+-   "reason",
++   {
++     "message": "reason",
++     "name": "Error",
++     "stack": "Error: reason
++     at gate (line 1, column 32)",
++   },
+  ]
+
+ ❯ packages/safe-js/test/async-job-order-qualification.test.ts:288:53
+    286|     let result = await bounded(execution, "host rejection");
+    287|     assert(result.ok);
+    288|     expect(deepCopyFromSandbox(result.returnValue)).toEqual(["sync", "…
+       |                                                     ^
+    289|     const bindings = {
+    290|       gate: declareHostOperation(() => {
+
+ ✓ packages/safe-js/src/snapshot/async-function-continuations.test.ts (29 tests) 3834ms
+ ✓ packages/safe-js/src/snapshot/thenable-continuations.test.ts (10 tests) 1315ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-continuations.test.ts (16 tests) 1989ms
+ ✓ packages/safe-js/src/snapshot/async-generator-validation.test.ts (13 tests) 794ms
+ ✓ packages/safe-js/src/interp/globals/promise-try.test.ts (16 tests) 679ms
+ ✓ packages/safe-js/test/async-delegated-return-restore.test.ts (3 tests) 472ms
+   ✓ restores a pending absent-delegate-return Await without repeating its getter  318ms
+ ✓ packages/safe-js/src/interp/globals/promise-with-resolvers.test.ts (15 tests) 728ms
+ ✓ packages/safe-js/test/async-generator-return-order.test.ts (6 tests) 324ms
+ ✓ packages/safe-js/test/async-lifecycle-qualification.test.ts (5 tests) 296ms
+ ✓ packages/safe-js/test/async-rejection-policy-qualification.test.ts (4 tests) 132ms
+ ✓ packages/safe-js/test/promise-finally-handler-metadata.test.ts (2 tests) 120ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/test/async-job-order-qualification.test.ts > handles rejected host Promises in original and replay (settled: false)
+ FAIL  packages/safe-js/test/async-job-order-qualification.test.ts > handles rejected host Promises in original and replay (settled: true)
+AssertionError: expected [ 'sync', { name: 'Error', …(2) } ] to deeply equal [ 'sync', 'reason' ]
+
+- Expected
++ Received
+
+  [
+    "sync",
+-   "reason",
++   {
++     "message": "reason",
++     "name": "Error",
++     "stack": "Error: reason
++     at gate (line 1, column 32)",
++   },
+  ]
+
+ ❯ packages/safe-js/test/async-job-order-qualification.test.ts:288:53
+    286|     let result = await bounded(execution, "host rejection");
+    287|     assert(result.ok);
+    288|     expect(deepCopyFromSandbox(result.returnValue)).toEqual(["sync", "…
+       |                                                     ^
+    289|     const bindings = {
+    290|       gate: declareHostOperation(() => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed | 11 passed (12)
+      Tests  2 failed | 130 passed (132)
+   Start at  04:44:32
+   Duration  13.26s (transform 4.72s, setup 207ms, import 11.10s, tests 13.37s, environment 1ms)

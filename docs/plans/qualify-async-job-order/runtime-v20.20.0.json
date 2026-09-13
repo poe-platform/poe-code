@@ -1,0 +1,337 @@
+{
+  "versions": {
+    "node": "20.20.0",
+    "acorn": "8.15.0",
+    "ada": "2.9.2",
+    "ares": "1.34.6",
+    "brotli": "1.1.0",
+    "cjs_module_lexer": "2.1.0",
+    "cldr": "47.0",
+    "icu": "77.1",
+    "llhttp": "9.3.0",
+    "modules": "115",
+    "napi": "9",
+    "nghttp2": "1.61.0",
+    "openssl": "3.0.17",
+    "simdutf": "6.4.2",
+    "tz": "2025b",
+    "undici": "6.23.0",
+    "unicode": "16.0",
+    "uv": "1.46.0",
+    "uvwasi": "0.0.23",
+    "v8": "11.3.244.8-node.33",
+    "zlib": "1.3.1-470d3a2"
+  },
+  "records": [
+    {
+      "name": "resolution is locked before a reentrant then getter",
+      "native": [
+        "get",
+        "sync",
+        "call",
+        7
+      ],
+      "original": [
+        "get",
+        "sync",
+        "call",
+        7
+      ],
+      "resumed": [
+        "get",
+        "sync",
+        "call",
+        7
+      ],
+      "replayed": [
+        "get",
+        "sync",
+        "call",
+        7
+      ],
+      "hostCalls": 2,
+      "pass": true
+    },
+    {
+      "name": "delegated generator return performs its separate absent-method await",
+      "native": [
+        "start",
+        "tick 1",
+        "get then",
+        "tick 2",
+        "get return",
+        "get then",
+        "tick 3"
+      ],
+      "original": [
+        "start",
+        "tick 1",
+        "get then",
+        "tick 2",
+        "get return",
+        "get then",
+        "tick 3"
+      ],
+      "resumed": [
+        "start",
+        "tick 1",
+        "get then",
+        "tick 2",
+        "get return",
+        "get then",
+        "tick 3"
+      ],
+      "replayed": [
+        "start",
+        "tick 1",
+        "get then",
+        "tick 2",
+        "get return",
+        "get then",
+        "tick 3"
+      ],
+      "hostCalls": 2,
+      "pass": true
+    },
+    {
+      "name": "queued generator return reads a non-callable then only once",
+      "native": [
+        "start",
+        "tick 1",
+        "get then",
+        "tick 2"
+      ],
+      "original": [
+        "start",
+        "tick 1",
+        "get then",
+        "tick 2"
+      ],
+      "resumed": [
+        "start",
+        "tick 1",
+        "get then",
+        "tick 2"
+      ],
+      "replayed": [
+        "start",
+        "tick 1",
+        "get then",
+        "tick 2"
+      ],
+      "hostCalls": 2,
+      "pass": true
+    },
+    {
+      "name": "executor prefix, nested thenables and reentrant resolution",
+      "native": [
+        "executor",
+        "get",
+        "resolved",
+        "sync",
+        "outer",
+        "inner",
+        "value:7"
+      ],
+      "original": [
+        "executor",
+        "get",
+        "resolved",
+        "sync",
+        "outer",
+        "inner",
+        "value:7"
+      ],
+      "resumed": [
+        "executor",
+        "get",
+        "resolved",
+        "sync",
+        "outer",
+        "inner",
+        "value:7"
+      ],
+      "replayed": [
+        "executor",
+        "get",
+        "resolved",
+        "sync",
+        "outer",
+        "inner",
+        "value:7"
+      ],
+      "hostCalls": 2,
+      "pass": true
+    },
+    {
+      "name": "FIFO reactions including registration inside a reaction",
+      "native": [
+        "sync",
+        "a",
+        "b",
+        "c"
+      ],
+      "original": [
+        "sync",
+        "a",
+        "b",
+        "c"
+      ],
+      "resumed": [
+        "sync",
+        "a",
+        "b",
+        "c"
+      ],
+      "replayed": [
+        "sync",
+        "a",
+        "b",
+        "c"
+      ],
+      "hostCalls": 2,
+      "pass": true
+    },
+    {
+      "name": "async function synchronous prefix and await reaction order",
+      "native": [
+        "prefix",
+        "sync",
+        "resume",
+        "reaction"
+      ],
+      "original": [
+        "prefix",
+        "sync",
+        "resume",
+        "reaction"
+      ],
+      "resumed": [
+        "prefix",
+        "sync",
+        "resume",
+        "reaction"
+      ],
+      "replayed": [
+        "prefix",
+        "sync",
+        "resume",
+        "reaction"
+      ],
+      "hostCalls": 2,
+      "pass": true
+    },
+    {
+      "name": "finally preserves fulfillment and replaces rejection",
+      "native": [
+        "kept",
+        "new",
+        "thrown"
+      ],
+      "original": [
+        "kept",
+        "new",
+        "thrown"
+      ],
+      "resumed": [
+        "kept",
+        "new",
+        "thrown"
+      ],
+      "replayed": [
+        "kept",
+        "new",
+        "thrown"
+      ],
+      "hostCalls": 2,
+      "pass": true
+    },
+    {
+      "name": "combinator input ordering and empty completion",
+      "native": [
+        "winner",
+        "first,second",
+        "fulfilled,rejected",
+        "first",
+        0,
+        0
+      ],
+      "original": [
+        "winner",
+        "first,second",
+        "fulfilled,rejected",
+        "first",
+        0,
+        0
+      ],
+      "resumed": [
+        "winner",
+        "first,second",
+        "fulfilled,rejected",
+        "first",
+        0,
+        0
+      ],
+      "replayed": [
+        "winner",
+        "first,second",
+        "fulfilled,rejected",
+        "first",
+        0,
+        0
+      ],
+      "hostCalls": 2,
+      "pass": true
+    },
+    {
+      "name": "queued async generator requests and for-await break cleanup",
+      "native": [
+        "start",
+        "sync",
+        "next",
+        1,
+        2,
+        "close",
+        "start",
+        1,
+        "close"
+      ],
+      "original": [
+        "start",
+        "sync",
+        "next",
+        1,
+        2,
+        "close",
+        "start",
+        1,
+        "close"
+      ],
+      "resumed": [
+        "start",
+        "sync",
+        "next",
+        1,
+        2,
+        "close",
+        "start",
+        1,
+        "close"
+      ],
+      "replayed": [
+        "start",
+        "sync",
+        "next",
+        1,
+        2,
+        "close",
+        "start",
+        1,
+        "close"
+      ],
+      "hostCalls": 2,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

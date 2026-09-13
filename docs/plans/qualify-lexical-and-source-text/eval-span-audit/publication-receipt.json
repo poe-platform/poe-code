@@ -1,0 +1,201 @@
+{
+  "observedAt": "2026-09-13T08:52:38.524249+00:00",
+  "acceptance": "open",
+  "localCommits": [
+    {
+      "sha": "75363a1198d45b767b571c0354f7b006cd834b0f",
+      "subject": "fix(safe-js): preserve eval syntax source diagnostics"
+    },
+    {
+      "sha": "b85625fb99fe30d2d4b110de52e21185fb1948b6",
+      "subject": "fix(safe-js): consume statement body terminators correctly"
+    },
+    {
+      "sha": "a8c7a4f5c526ee6b5b2148380c52a15cb34d4cfb",
+      "subject": "fix(safe-js): honor regexp lexical goals and line terminators"
+    },
+    {
+      "sha": "278037d1f924bf2f727ce67a689dc2e192a4e21d",
+      "subject": "fix(safe-js): scrub unlocated parser host stacks"
+    },
+    {
+      "sha": "b92c64ea8e646933a8e77a105b6a8926ecf46b7b",
+      "subject": "fix(safe-js): align Unicode source excerpts and carets"
+    },
+    {
+      "sha": "60d8f302a29b4b0eb59ac0b311f7c357d77fb3d0",
+      "subject": "fix(safe-js): display unlocated CLI source origins"
+    },
+    {
+      "sha": "f5805d989da0a212b934ea17ca4dad52c5cbed11",
+      "subject": "fix(safe-js): render original CLI source diagnostics"
+    },
+    {
+      "sha": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+      "subject": "docs(safe-js): record lexical delivery qualification"
+    },
+    {
+      "sha": "d92879b57436f4e65441cf217227b948ea2a2ccc",
+      "subject": "fix(safe-js): preserve regexp CRLF budget precedence"
+    },
+    {
+      "sha": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+      "subject": "fix(safe-js): preserve lexical diagnostics through lint"
+    },
+    {
+      "sha": "04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7",
+      "subject": "docs(safe-js): record lexical recovery qualification"
+    }
+  ],
+  "remoteMain": "04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7",
+  "allDeliveredCommitsAreAncestors": true,
+  "sourceCommit": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+  "sourceHash": "2d897c00268b8a654abe7c690eef16b7f4907442e88e2a38035307b64e1fe9a3",
+  "workflows": [
+    {
+      "conclusion": "failure",
+      "databaseId": 34745114831,
+      "headSha": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+      "name": "Release",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34745114831"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34745114622,
+      "headSha": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+      "name": "Release scoped safe packages",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34745114622"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34745114630,
+      "headSha": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+      "name": "Publish Schemas to GitHub Pages",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34745114630"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 34746694804,
+      "headSha": "d92879b57436f4e65441cf217227b948ea2a2ccc",
+      "name": "Release",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34746694804"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34746694706,
+      "headSha": "d92879b57436f4e65441cf217227b948ea2a2ccc",
+      "name": "Release scoped safe packages",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34746694706"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 34746694704,
+      "headSha": "d92879b57436f4e65441cf217227b948ea2a2ccc",
+      "name": "Publish Schemas to GitHub Pages",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34746694704"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 34746762028,
+      "headSha": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+      "name": "Release",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34746762028"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34746761936,
+      "headSha": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+      "name": "Release scoped safe packages",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34746761936"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34746761998,
+      "headSha": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+      "name": "Publish Schemas to GitHub Pages",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34746761998"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34747060037,
+      "headSha": "04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7",
+      "name": "Release",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34747060037"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34747059931,
+      "headSha": "04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7",
+      "name": "Publish Schemas to GitHub Pages",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34747059931"
+    }
+  ],
+  "superseded": {
+    "34746694804": {
+      "successor": 34746762028,
+      "ancestryVerified": true
+    },
+    "34746762028": {
+      "successor": 34747060037,
+      "ancestryVerified": true
+    },
+    "34746694704": {
+      "successor": 34746761998,
+      "ancestryVerified": true
+    }
+  },
+  "scopedPublication": {
+    "versions": {
+      "@poe-platform/safe-js": "0.1.568",
+      "@poe-platform/safe-fs": "0.1.568",
+      "@poe-platform/safe-bash": "0.1.568"
+    },
+    "sourceCommit": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+    "independentVerification": [
+      "scoped568-retry-publication.json (FS/Bash passed; earlier SafeJS 404 retained)",
+      "scoped568-js-retry2-publication.json (SafeJS passed)",
+      "scoped568-workerd-publication.json"
+    ],
+    "previous567Verification": [
+      "scoped567-first-publication.json (FS/Bash passed; earlier SafeJS 404 retained)",
+      "scoped567-js-online-publication.json (SafeJS passed)"
+    ],
+    "additionalBudgetCheck": "scoped568-budget-order.json"
+  },
+  "umbrellaPublication": {
+    "status": "verified",
+    "receipt": "umbrella-final-publication.json",
+    "packages": [
+      {
+        "name": "poe-code",
+        "version": "15.0.31",
+        "status": "passed"
+      }
+    ],
+    "sourceCommit": "04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7",
+    "workflowAttempt": 2
+  },
+  "qualification": {
+    "corpus": "2335 passed, 44 timeout failures, 2 explicitly unsupported module variants",
+    "sourceOrigins": "runtime eval/Function/restored executable-source identity remains unresolved"
+  },
+  "recovery": "If the final release fails, retain logs, repair with TDD in a separate commit, push through normal hooks, verify successor ancestry and independent installed artifacts. Retry registry propagation errors. Never publish locally, unpublish or destructively roll back.",
+  "releaseComplete": true,
+  "releaseFailures": {
+    "sourceRegression": "First umbrella run failed two CRLF budget-precedence tests; separately reproduced and repaired in d92879b57436f4e65441cf217227b948ea2a2ccc.",
+    "githubTransient": "Final workflow attempt 1 passed all validation but token creation returned HTTP 500 four times. First rerun request also returned HTTP 500; subsequent failed-job-only rerun succeeded. Same commit/build; no code or permissions changed.",
+    "retryRecords": "release-retry-errors.jsonl"
+  },
+  "artifactSmokeSource": "published-smoke.mjs"
+}

@@ -1,0 +1,149 @@
+{
+  "observedAt": "2026-09-13T08:52:06.453789+00:00",
+  "requiredSourceCommit": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+  "packages": [
+    {
+      "name": "poe-code",
+      "version": "15.0.31",
+      "metadata": {
+        "name": "poe-code",
+        "version": "15.0.31",
+        "gitHead": "04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7",
+        "dist": {
+          "shasum": "befdb7555c10dab831a65083ff955155e2ad2fa1",
+          "tarball": "https://registry.npmjs.org/poe-code/-/poe-code-15.0.31.tgz",
+          "fileCount": 5836,
+          "integrity": "sha512-Wl3LfkGPrEed52/luAFqEyzz5geszUcYS62iP4+WVIy65WKRONuF8VvbxW59PwMDhtHNVb+uCx5k43J75et9uA==",
+          "signatures": [
+            {
+              "sig": "MEYCIQCxyaxHWZjWtxS23qR/UziBlJtb3TdBNR6eavIP45InuQIhALi7j2u1Yyb3dPFd21l1rUtD3A/Cv0A+R5cBzNFtBnRt",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/poe-code@15.0.31",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 209424047
+        }
+      },
+      "integrityVerified": true,
+      "provenanceStatements": [
+        {
+          "_type": "https://in-toto.io/Statement/v1",
+          "subject": [
+            {
+              "name": "pkg:npm/poe-code@15.0.31",
+              "digest": {
+                "sha512": "5a5dcb7e418fac479de76fe5b8016a132cf3e607accd47184bada23f8f96548cbae5629138db85f15bdbc56e7d3f030386d1cd55bfae0b1e64e3727be5eb7db8"
+              }
+            }
+          ],
+          "predicateType": "https://slsa.dev/provenance/v1",
+          "predicate": {
+            "buildDefinition": {
+              "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+              "externalParameters": {
+                "workflow": {
+                  "ref": "refs/heads/main",
+                  "repository": "https://github.com/poe-platform/poe-code",
+                  "path": ".github/workflows/release.yml"
+                }
+              },
+              "internalParameters": {
+                "github": {
+                  "event_name": "push",
+                  "repository_id": "1078492326",
+                  "repository_owner_id": "129537891"
+                }
+              },
+              "resolvedDependencies": [
+                {
+                  "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+                  "digest": {
+                    "gitCommit": "04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7"
+                  }
+                }
+              ]
+            },
+            "runDetails": {
+              "builder": {
+                "id": "https://github.com/actions/runner/github-hosted"
+              },
+              "metadata": {
+                "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34747060037/attempts/2"
+              }
+            }
+          }
+        }
+      ],
+      "sourceAncestryVerified": true,
+      "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-umbrella-final-js-_6gooqp2",
+      "commands": [
+        {
+          "command": [
+            "npm",
+            "install",
+            "--prefer-online",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+            "poe-code@15.0.31"
+          ],
+          "exitCode": 0,
+          "output": "\nadded 185 packages in 7s\n"
+        },
+        {
+          "command": [
+            "node",
+            "smoke.mjs",
+            "js",
+            "poe-code/safe-js",
+            "--lint-origin"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"poe-code/safe-js\",\"mode\":\"js\",\"status\":\"passed\",\"node\":\"v22.23.2\",\"icu\":\"78.2\"}\n"
+        },
+        {
+          "command": [
+            "npm",
+            "exec",
+            "--yes",
+            "--package=node@18.18.0",
+            "--",
+            "node",
+            "smoke.mjs",
+            "js",
+            "poe-code/safe-js",
+            "--lint-origin"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"poe-code/safe-js\",\"mode\":\"js\",\"status\":\"passed\",\"node\":\"v18.18.0\",\"icu\":\"73.2\"}\n"
+        },
+        {
+          "command": [
+            "npm",
+            "audit",
+            "signatures"
+          ],
+          "exitCode": 0,
+          "output": "audited 208 packages in 1s\n\n208 packages have verified registry signatures\n\n38 packages have verified attestations\n\n"
+        },
+        {
+          "command": [
+            "/Users/kjopek/.bun/bin/bun",
+            "smoke.mjs",
+            "js",
+            "poe-code/safe-js",
+            "--lint-origin"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"poe-code/safe-js\",\"mode\":\"js\",\"status\":\"passed\",\"node\":\"v24.3.0\",\"icu\":\"74.2\"}\n"
+        }
+      ],
+      "status": "passed"
+    }
+  ]
+}

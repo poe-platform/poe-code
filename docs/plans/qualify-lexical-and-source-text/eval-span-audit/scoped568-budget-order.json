@@ -1,0 +1,10 @@
+{
+  "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-scoped568-js-retry2-js-ro73vefp",
+  "source": "import assert from 'node:assert/strict';import {run,Budget} from '@poe-platform/safe-js';\nawait assert.rejects(run('/a\\r\\n/',{budget:new Budget({stringLength:2})}),{name:'SandboxError',code:'budgetExceeded',budget:'stringLength',current:3,limit:2});\nawait run('/a/',{budget:new Budget({stringLength:2})});\nconsole.log(JSON.stringify({status:'passed',node:process.version,icu:process.versions.icu}));\n",
+  "command": [
+    "node",
+    "budget-order.mjs"
+  ],
+  "exitCode": 0,
+  "output": "{\"status\":\"passed\",\"node\":\"v22.23.2\",\"icu\":\"78.2\"}\n"
+}

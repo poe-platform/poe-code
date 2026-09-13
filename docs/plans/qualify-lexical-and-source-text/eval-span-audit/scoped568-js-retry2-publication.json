@@ -1,0 +1,162 @@
+{
+  "observedAt": "2026-09-13T08:15:39.424701+00:00",
+  "requiredSourceCommit": "1b4a46948ad735414f75e4b07290c26c3a8942f2",
+  "packages": [
+    {
+      "name": "@poe-platform/safe-js",
+      "version": "0.1.568",
+      "metadata": {
+        "name": "@poe-platform/safe-js",
+        "version": "0.1.568",
+        "dist": {
+          "shasum": "8e106a786e0765375149e5c552b8320070b33bee",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.568.tgz",
+          "fileCount": 374,
+          "integrity": "sha512-wVxaBbhme5hFCV5KNUEOLNfLb/NOHNXl8fKcHKLDZzeqWFy7aTOOPPrK3rB9mUU4owSI4AxS8D5sYC1pB7sMgA==",
+          "signatures": [
+            {
+              "sig": "MEQCIGq1X45/NaO9tywKBCGM9qW/CN6UxhzK8/HCqXsdByMVAiAdVfHjb4AXDiWFsnuG9RUsnK1BV0eg9nOSwUbjvqJUew==",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEUCICGF3wzJ3gDtwBJi3dmfTV6I0vqv/TJwfBi1C1OuXs5UAiEA7eUtugSv9Xd85yRsqzAFy7QXH39+XsmbRBlaOYUjazk=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.568",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 42938607
+        }
+      },
+      "integrityVerified": true,
+      "provenanceStatements": [
+        {
+          "_type": "https://in-toto.io/Statement/v1",
+          "subject": [
+            {
+              "name": "pkg:npm/%40poe-platform/safe-js@0.1.568",
+              "digest": {
+                "sha512": "c15c5a05b8667b9845095e4a35410e2cd7cb6ff34e1cd5e5f1f29c1ca2c36737aa585cbb69338e3cfacadeb07d994538a30488e00c52f03e6c602d6907bb0c80"
+              }
+            }
+          ],
+          "predicateType": "https://slsa.dev/provenance/v1",
+          "predicate": {
+            "buildDefinition": {
+              "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+              "externalParameters": {
+                "workflow": {
+                  "ref": "refs/heads/main",
+                  "repository": "https://github.com/poe-platform/poe-code",
+                  "path": ".github/workflows/release-safe.yml"
+                }
+              },
+              "internalParameters": {
+                "github": {
+                  "event_name": "push",
+                  "repository_id": "1078492326",
+                  "repository_owner_id": "129537891"
+                }
+              },
+              "resolvedDependencies": [
+                {
+                  "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+                  "digest": {
+                    "gitCommit": "1b4a46948ad735414f75e4b07290c26c3a8942f2"
+                  }
+                }
+              ]
+            },
+            "runDetails": {
+              "builder": {
+                "id": "https://github.com/actions/runner/github-hosted"
+              },
+              "metadata": {
+                "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34746761936/attempts/1"
+              }
+            }
+          }
+        }
+      ],
+      "sourceAncestryVerified": true,
+      "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-scoped568-js-retry2-js-ro73vefp",
+      "commands": [
+        {
+          "command": [
+            "npm",
+            "install",
+            "--prefer-online",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+            "@poe-platform/safe-js@0.1.568"
+          ],
+          "exitCode": 0,
+          "output": "\nadded 15 packages in 2s\n"
+        },
+        {
+          "command": [
+            "node",
+            "smoke.mjs",
+            "js",
+            "@poe-platform/safe-js",
+            "--lint-origin"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"@poe-platform/safe-js\",\"mode\":\"js\",\"status\":\"passed\",\"node\":\"v22.23.2\",\"icu\":\"78.2\"}\n"
+        },
+        {
+          "command": [
+            "npm",
+            "exec",
+            "--yes",
+            "--package=node@18.18.0",
+            "--",
+            "node",
+            "smoke.mjs",
+            "js",
+            "@poe-platform/safe-js",
+            "--lint-origin"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"@poe-platform/safe-js\",\"mode\":\"js\",\"status\":\"passed\",\"node\":\"v18.18.0\",\"icu\":\"73.2\"}\n"
+        },
+        {
+          "command": [
+            "npm",
+            "audit",
+            "signatures"
+          ],
+          "exitCode": 0,
+          "output": "audited 15 packages in 0s\n\n15 packages have verified registry signatures\n\n10 packages have verified attestations\n\n"
+        },
+        {
+          "command": [
+            "/Users/kjopek/.bun/bin/bun",
+            "smoke.mjs",
+            "js",
+            "@poe-platform/safe-js",
+            "--lint-origin"
+          ],
+          "exitCode": 0,
+          "output": "{\"entry\":\"@poe-platform/safe-js\",\"mode\":\"js\",\"status\":\"passed\",\"node\":\"v24.3.0\",\"icu\":\"74.2\"}\n"
+        }
+      ],
+      "cli": {
+        "command": [
+          "node",
+          "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-scoped568-js-retry2-js-ro73vefp/node_modules/@poe-platform/safe-js/dist/safe-js/cli.js",
+          "broken.ajs"
+        ],
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "ParseError: broken.ajs:1:3\n\n1 | /a\n2 | /\n  |   ^\n\nUnterminated regular expression literal at line 1, column 3.\n"
+      },
+      "status": "passed"
+    }
+  ]
+}

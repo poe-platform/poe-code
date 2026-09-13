@@ -506,7 +506,6 @@ class Lexer {
 
       if (
         char === "/" &&
-        this.peekChar(1) !== "=" &&
         shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedControlParenthesis, tokens)
       ) {
         if (!this.options.allowRegexLiterals) {
@@ -857,7 +856,6 @@ class Lexer {
   private readSlashOrPunctuator(start: Position): void {
     if (
       this.currentChar() === "/" &&
-      this.peekChar(1) !== "=" &&
       shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedControlParenthesis, this.tokens)
     ) {
       if (!this.options.allowRegexLiterals) {
@@ -896,6 +894,7 @@ class Lexer {
       const patternStart = this.index;
       let inCharacterClass = false;
       const advancePattern = () => {
+        if (isLineBreak(this.currentChar())) this.syntaxError("Unterminated regular expression literal", this.position());
         const width = this.currentChar() === "\r" && this.peekChar(1) === "\n" ? 2 : 1;
         guard.checkLength(this.index - patternStart + width);
         guard.work(width);

@@ -7,7 +7,13 @@ import { nodeFor, validateSelection, type ShapeSelection } from "./shape-operati
 import { applyShapeUpdate } from "./shapes.js";
 import { readCharts, inspectChart } from "./charts.js";
 import { parseXmlPart, type XmlPart, type XmlElement } from "./xml.js";
-import { createChartWorkbook, validateChartWorkbook } from "./chart-workbook.js";
+import {
+  chartWorkbookRange,
+  createChartWorkbook,
+  validateChartWorkbook,
+  validateWorkbookOwnership,
+  type WorkbookRange
+} from "./chart-workbook.js";
 import { applyFrameFormatting } from "./text-frames.js";
 
 export const chartTypes = [
@@ -577,7 +583,9 @@ function existingType(doc: XmlPart): CreatableChartType {
   }
   if (plot.type === "bubbleChart") {
     const chart = required(required(doc.root, "chart"), "plotArea");
-    const series = child(required(chart, "bubbleChart"), "ser");
+    const series = required(chart, "bubbleChart").children.find(
+      (node) => node.name.namespace === doc.root.name.namespace && node.name.localName === "ser"
+    );
     const effect = series && child(series, "bubble3D");
     return effect && ["1", "true"].includes(attr(effect, "val") ?? "")
       ? "BUBBLE_THREE_D_EFFECT"
@@ -663,50 +671,89 @@ export async function setCharts(
         unsupported("Shared chart workbook ownership is ambiguous.");
       if (update.data.date1904 !== undefined && update.data.date1904 !== metadata.date1904)
         unsupported("Chart replacement must retain the existing date system.");
-      const sheet =
-        metadata.sheetName === "Sheet1"
-          ? "Sheet1"
-          : `'${metadata.sheetName.split("'").join("''")}'`;
-      for (const [index, series] of inspection.plots[0]!.series.entries()) {
-        const v = variant(type),
-          scatter = v.scatter,
-          depth = series.categories?.levels.length || 1,
-          xColumn = scatter ? index * (v.bubble ? 3 : 2) : 0,
-          yColumn = scatter ? xColumn + 1 : index + depth;
+      const epoch = child(doc.root, "date1904");
+      const epochValue = epoch ? (attr(epoch, "val") ?? "1") : "0";
+      if (
+        !["0", "1", "false", "true"].includes(epochValue) ||
+        ["1", "true"].includes(epochValue) !== metadata.date1904
+      )
+        unsupported("Chart and workbook date systems must agree.");
+      const ranges: WorkbookRange[] = [];
+      let referenceCount = 0;
+      for (const series of inspection.plots[0]!.series) {
+        const v = variant(type);
         const channels = [
-          [series.nameSource, `${sheet}!$${column(yColumn)}$1`],
-          [scatter ? series.xValues : series.categories, null],
-          [scatter ? series.yValues : series.values, null],
-          ...(v.bubble ? [[series.bubbleSizes, null] as const] : [])
-        ] as const;
-        for (const [position, [source, nameFormula]] of channels.entries()) {
-          if (!source || source.authority !== "referenced" || !source.cached)
+          series.nameSource,
+          v.scatter ? series.xValues : series.categories,
+          v.scatter ? series.yValues : series.values,
+          ...(v.bubble ? [series.bubbleSizes] : [])
+        ];
+        for (const [position, source] of channels.entries()) {
+          if (!source || source.authority !== "referenced" || !source.cached || !source.formula)
             unsupported("Chart data must have simple owned cached references.");
-          const count = Number(source.pointCount),
-            col = position === 1 ? xColumn : position === 3 ? yColumn + 1 : yColumn;
-          if (!Number.isSafeInteger(count) || count < 1)
-            unsupported("Chart cache cardinality is invalid.");
-          const expected =
-            nameFormula ??
-            `${sheet}!$${column(col)}$2:$${column(position === 1 && !scatter ? depth - 1 : col)}$${count + 1}`;
-          if (source.formula !== expected)
-            unsupported("Chart formulas must reference their owned simple data ranges.");
+          const count = Number(source.pointCount);
+          const range = chartWorkbookRange(source.formula, metadata.sheetName);
+          const width = position === 1 && !v.scatter ? series.categories?.levels.length || 1 : 1;
+          if (
+            !Number.isSafeInteger(count) ||
+            count < 1 ||
+            (position === 0 && count !== 1) ||
+            range.end.row - range.start.row + 1 !== count ||
+            range.end.column - range.start.column + 1 !== width
+          )
+            unsupported("Chart cache cardinality must match its simple worksheet range.");
+          ranges.push(range);
+          referenceCount++;
+          if (v.scatter && position !== 0 && range.start.row > 1)
+            ranges.push({
+              start: { ...range.start, row: range.start.row - 1 },
+              end: { ...range.start, row: range.start.row - 1 }
+            });
         }
       }
+      let formulas = 0;
+      const countFormulas = (node: XmlElement) => {
+        if (node.name.namespace === ns && node.name.localName === "f") formulas++;
+        node.children.forEach(countFormulas);
+      };
+      countFormulas(doc.root);
+      if (formulas !== referenceCount)
+        unsupported("Dependent chart formulas prevent data replacement.");
+      validateWorkbookOwnership(metadata, ranges);
       const plot = child(required(doc.root, "chart"), "plotArea")!.children.find(
         (x) => x.name.namespace === ns && x.name.localName === inspection.plots[0]!.type
       )!;
       const series = plot.children.filter(
         (x) => x.name.namespace === ns && x.name.localName === "ser"
       );
+      const identities = ["idx", "order"].map((name) =>
+        series.map((node) => Number(attr(required(node, name), "val")))
+      );
+      if (
+        identities.some(
+          (values) =>
+            values.some(
+              (value) => !Number.isSafeInteger(value) || value < 0 || value > 4294967295
+            ) || new Set(values).size !== values.length
+        )
+      )
+        unsupported("Chart series identities must be unique unsigned integers.");
+      const nextIdentity = identities.map((values) => Math.max(-1, ...values) + 1);
       for (let index = 0; index < update.data.series.length; index++) {
-        const generated = parseXmlPart(
+        let generated = parseXmlPart(
           new TextEncoder().encode(
             `<c:ser xmlns:c="${ns}">${seriesXml(type, update.data, index, metadata.sheetName, metadata.date1904).slice(7, -8)}</c:ser>`
           ),
           context.xmlLimits
         );
         if (index >= series.length) {
+          for (const [position, name] of ["idx", "order"].entries()) {
+            const value = nextIdentity[position]!++;
+            if (value > 4294967295) unsupported("Chart series identity limit exceeded.");
+            generated = generated.merge(required(generated.root, name), {
+              attributes: [{ namespace: "", localName: "val", value: String(value) }]
+            });
+          }
           const currentPlot = required(required(doc.root, "chart"), "plotArea").children.find(
             (x) => x.name.namespace === ns && x.name.localName === plot.name.localName
           )!;

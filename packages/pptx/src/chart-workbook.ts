@@ -25,6 +25,15 @@ interface WorkbookInfo {
   readonly sheetName: string;
   readonly sheetPart: string;
   readonly date1904: boolean;
+  readonly cells: readonly WorkbookCell[];
+}
+interface WorkbookCell {
+  readonly column: number;
+  readonly row: number;
+}
+export interface WorkbookRange {
+  readonly start: WorkbookCell;
+  readonly end: WorkbookCell;
 }
 const ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const relationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
@@ -58,6 +67,54 @@ function column(index: number): string {
   for (let value = index + 1; value > 0; value = Math.floor((value - 1) / 26))
     result = String.fromCharCode(65 + ((value - 1) % 26)) + result;
   return result;
+}
+function cellReference(value: string): WorkbookCell {
+  let position = value[0] === "$" ? 1 : 0;
+  let col = 0;
+  while (position < value.length) {
+    const code = value.charCodeAt(position);
+    if (code < 65 || code > 90) break;
+    col = col * 26 + code - 64;
+    if (col > 16384) unsupported();
+    position++;
+  }
+  if (value[position] === "$") position++;
+  const digits = value.slice(position);
+  if (!col || !digits || [...digits].some((char) => char < "0" || char > "9")) unsupported();
+  const row = Number(digits);
+  if (!Number.isSafeInteger(row) || row < 1 || row > 1048576 || String(row) !== digits)
+    unsupported();
+  return { column: col, row };
+}
+
+export function chartWorkbookRange(formula: string, sheetName: string): WorkbookRange {
+  const quoted = `'${sheetName.split("'").join("''")}'!`;
+  const prefix = formula.startsWith(quoted) ? quoted : `${sheetName}!`;
+  if (!formula.startsWith(prefix)) unsupported();
+  const parts = formula.slice(prefix.length).split(":");
+  if (parts.length > 2) unsupported();
+  const start = cellReference(parts[0]!);
+  const end = parts.length === 2 ? cellReference(parts[1]!) : start;
+  if (end.row < start.row || end.column < start.column) unsupported();
+  return { start, end };
+}
+
+export function validateWorkbookOwnership(
+  info: WorkbookInfo,
+  ranges: readonly WorkbookRange[]
+): void {
+  for (const cell of info.cells) {
+    if (
+      !ranges.some(
+        ({ start, end }) =>
+          cell.row >= start.row &&
+          cell.row <= end.row &&
+          cell.column >= start.column &&
+          cell.column <= end.column
+      )
+    )
+      unsupported();
+  }
 }
 function inspectWorkbook(pkg: PackageReader, context: SelectionContext): WorkbookInfo {
   const graph = readRelationshipGraph(pkg, context.relationshipLimits);
@@ -154,6 +211,22 @@ function inspectWorkbook(pkg: PackageReader, context: SelectionContext): Workboo
     node.children.forEach(visit);
   };
   visit(worksheet.root);
+  const cells: WorkbookCell[] = [];
+  const seen = new Set<string>();
+  const data = worksheet.root.children.find((node) => node.name.localName === "sheetData")!;
+  for (const row of data.children) {
+    if (row.name.localName !== "row") unsupported();
+    for (const cell of row.children) {
+      if (cell.name.localName !== "c") unsupported();
+      const ref = attribute(cell, "r");
+      if (!ref || seen.has(ref)) unsupported();
+      seen.add(ref);
+      const coordinate = cellReference(ref);
+      if (String(coordinate.row) !== attribute(row, "r")) unsupported();
+      if (cell.children.some((node) => node.name.localName === "v" || node.name.localName === "is"))
+        cells.push(coordinate);
+    }
+  }
   const props = workbook.root.children.filter((node) => node.name.localName === "workbookPr");
   if (props.length > 1) unsupported();
   const date1904 = props[0] && attribute(props[0], "date1904");
@@ -165,6 +238,7 @@ function inspectWorkbook(pkg: PackageReader, context: SelectionContext): Workboo
     ...(styles[0]?.targetPart ? { stylesPart: styles[0].targetPart } : {}),
     sheetName,
     sheetPart,
+    cells,
     date1904: date1904 === "1" || date1904 === "true"
   };
 }

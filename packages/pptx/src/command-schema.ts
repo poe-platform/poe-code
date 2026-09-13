@@ -486,12 +486,16 @@ const slideSelectionSchema = {
   ]
 };
 
-function slideMutationSchema(operation: "slides.move" | "slides.set" | "slides.remove") {
+function slideMutationSchema(
+  operation: "slides.move" | "slides.set" | "slides.remove" | "slides.duplicate"
+) {
   return {
     description:
-      operation === "slides.remove"
-        ? "Remove selected slides and proven unreferenced owned parts; retain shared resources. Affected known references require explicit referencePolicy remove; unresolved opaque targets are rejected."
-        : "Move selected slides to a final one-based position after removal; preserve slide identity. Set supports labels and visibility; layout and background changes are unavailable.",
+      operation === "slides.duplicate"
+        ? "Duplicate selected slide-local content at a required one-based insertion position, with fresh identities and independent mutable resources; unsupported references are rejected."
+        : operation === "slides.remove"
+          ? "Remove selected slides and proven unreferenced owned parts; retain shared resources. Affected known references require explicit referencePolicy remove; unresolved opaque targets are rejected."
+          : "Move selected slides to a final one-based position after removal; preserve slide identity. Set supports labels and visibility; layout and background changes are unavailable.",
     input: inspectSchema.input,
     options: {
       $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -521,7 +525,10 @@ function slideMutationSchema(operation: "slides.move" | "slides.set" | "slides.r
           : {
               position: {
                 ...slidesAddSchema.options.properties.position,
-                description: "One-based final position after removing the selected slides."
+                description:
+                  operation === "slides.duplicate"
+                    ? "One-based insertion position for the copied slides."
+                    : "One-based final position after removing the selected slides."
               }
             }),
         ...(operation === "slides.set"
@@ -556,7 +563,7 @@ function slideMutationSchema(operation: "slides.move" | "slides.set" | "slides.r
           ? []
           : [
               {
-                anyOf: (operation === "slides.move"
+                anyOf: (operation === "slides.move" || operation === "slides.duplicate"
                   ? ["position"]
                   : ["position", "name", "hidden"]
                 ).map((field) => ({ required: [field] }))
@@ -590,7 +597,14 @@ function slideMutationSchema(operation: "slides.move" | "slides.set" | "slides.r
                     properties: {
                       ...createSchema.result.properties.data.oneOf[1]!.properties!.effects.items
                         .properties,
-                      action: { const: operation === "slides.remove" ? "remove" : "update" },
+                      action: {
+                        const:
+                          operation === "slides.duplicate"
+                            ? "add"
+                            : operation === "slides.remove"
+                              ? "remove"
+                              : "update"
+                      },
                       feature: { const: "F07" }
                     }
                   }
@@ -606,3 +620,5 @@ function slideMutationSchema(operation: "slides.move" | "slides.set" | "slides.r
 export const slidesMoveSchema = slideMutationSchema("slides.move");
 export const slidesSetSchema = slideMutationSchema("slides.set");
 export const slidesRemoveSchema = slideMutationSchema("slides.remove");
+
+export const slidesDuplicateSchema = slideMutationSchema("slides.duplicate");

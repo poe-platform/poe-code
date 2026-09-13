@@ -1,0 +1,299 @@
+{
+  "schema_version": 1,
+  "scope": "Research/provenance for focused same-deck slide copying",
+  "upstream_slide_duplicate_cases": 0,
+  "upstream_slide_duplicate_api_records": 0,
+  "notice": "test-case-map-notice.txt",
+  "original_tests": [
+    "packages/pptx/src/slide-copy.test.ts",
+    "packages/pptx/src/command-slide-copy.test.ts",
+    "packages/safe-bash/tests/commands/pptx/create.test.ts"
+  ],
+  "rows": [
+    {
+      "id": "presentation-unit-4aa61e954ce2",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1818",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_connector.py",
+        "line": 64,
+        "file_sha256": "17b76aba46dbb6ac7d0f40d75540397107d03362e29e432f044505fdb5484263",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_connect_its_begin_point_to_a_shape",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_connect_its_begin_point_to_a_shape"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-3fe4f15bcb4d",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1819",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_connector.py",
+        "line": 72,
+        "file_sha256": "17b76aba46dbb6ac7d0f40d75540397107d03362e29e432f044505fdb5484263",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_can_connect_its_end_point_to_a_shape",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_can_connect_its_end_point_to_a_shape"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-3b22e47890d3",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1822",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_connector.py",
+        "line": 93,
+        "file_sha256": "17b76aba46dbb6ac7d0f40d75540397107d03362e29e432f044505fdb5484263",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture0]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-baacdb2d89fd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1823",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_connector.py",
+        "line": 93,
+        "file_sha256": "17b76aba46dbb6ac7d0f40d75540397107d03362e29e432f044505fdb5484263",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture1]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-ae24a1e7bfc3",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1824",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_connector.py",
+        "line": 98,
+        "file_sha256": "17b76aba46dbb6ac7d0f40d75540397107d03362e29e432f044505fdb5484263",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture0]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-d9d7d29f32da",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1825",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_connector.py",
+        "line": 98,
+        "file_sha256": "17b76aba46dbb6ac7d0f40d75540397107d03362e29e432f044505fdb5484263",
+        "identity": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture1]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-899d6cd5379f",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1988",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 139,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_clone_a_placeholder",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseShapes::it_can_clone_a_placeholder"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-dde700e6b0a6",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2068",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 1268,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_clone_placeholder_shapes_from_a_layout",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::DescribeSlideShapes::it_can_clone_placeholder_shapes_from_a_layout"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-dc71b0f9ee91",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2069",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 1273,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture0]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-864fe6073044",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2070",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 1273,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture1]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-c1892e3ba0c8",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2071",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 1273,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture2]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-456743700890",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2249",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 170,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeNotesSlide::it_can_clone_the_notes_master_placeholders",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeNotesSlide::it_can_clone_the_notes_master_placeholders"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-38cf01155f9a",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2279",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 600,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture0]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-3871fabf3cc8",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2280",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 600,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture1]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-4387ef74c2ff",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2281",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 600,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture2]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-unit-ee0815f95f52",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2282",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 600,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture3]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture3]"
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-bdd-1ab607788770",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/550",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-connector.feature",
+        "line": 7,
+        "file_sha256": "cec026b27a356bc4b97f32d53306c041685a211849779f8ffde2376de9821d9d",
+        "identity": "Connector.begin_connect()",
+        "scenario_line": 7,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 8,
+            "text": "Given a connector and a 1 inch square picture at 0, 0"
+          },
+          {
+            "line": 9,
+            "text": "When I call connector.begin_connect(picture, 3)"
+          },
+          {
+            "line": 10,
+            "text": "Then connector.begin_x == 914400"
+          },
+          {
+            "line": 11,
+            "text": "And connector.begin_y == 457200"
+          }
+        ]
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    },
+    {
+      "id": "presentation-bdd-763b32a092ff",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/555",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-connector.feature",
+        "line": 54,
+        "file_sha256": "cec026b27a356bc4b97f32d53306c041685a211849779f8ffde2376de9821d9d",
+        "identity": "Connector.end_connect()",
+        "scenario_line": 54,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 55,
+            "text": "Given a connector and a 1 inch square picture at 0, 0"
+          },
+          {
+            "line": 56,
+            "text": "When I call connector.end_connect(picture, 3)"
+          },
+          {
+            "line": 57,
+            "text": "Then connector.end_x == 914400"
+          },
+          {
+            "line": 58,
+            "text": "And connector.end_y == 457200"
+          }
+        ]
+      },
+      "disposition": "Adjacent creation or object-model obligation remains pending; whole-slide copying is additive. Copy tests verify preservation/remapping, not full source API parity."
+    }
+  ],
+  "language_mappings": [
+    "J01",
+    "J02",
+    "J03",
+    "J05",
+    "J06",
+    "J07",
+    "J08",
+    "J09"
+  ],
+  "limitations": "No full object-model, connector creation, placeholder creation or video-timing insertion claim. Inherited, enum and private-looking public API rows remain tracked in the canonical inventory."
+}

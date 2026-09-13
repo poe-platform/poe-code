@@ -59,3 +59,5 @@ export {
 } from "./slides.js";
 
 export { removeSlides, type RemoveSlidesOptions } from "./slide-removal.js";
+
+export { duplicateSlides, type DuplicateSlidesOptions } from "./slide-copy.js";

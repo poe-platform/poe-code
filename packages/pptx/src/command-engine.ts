@@ -14,6 +14,7 @@ import {
   inspectSchema,
   slidesAddSchema,
   slidesMoveSchema,
+  slidesDuplicateSchema,
   slidesRemoveSchema,
   slidesSetSchema,
   xmlGetSchema,
@@ -27,6 +28,7 @@ import {
   type AddSlideOptions
 } from "./slides.js";
 import { commandJson, commandLength, commandTimestamp } from "./command-engine-values.js";
+import { duplicateSlides } from "./slide-copy.js";
 import { removeSlides } from "./slide-removal.js";
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
 import type { ValidationLimits } from "./validation.js";
@@ -87,6 +89,8 @@ const help =
   "       pptx slides remove INPUT [--slide N | --select TOKEN | --all]\n" +
   "                       [--reference-policy remove] [--allow-empty]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx slides duplicate INPUT --position N [--slide N | --select TOKEN | --all]\n" +
+  "                       [--allow-empty] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides move INPUT --position N [--slide N | --select TOKEN | --all]\n" +
   "                       [--allow-empty] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides set INPUT [--name TEXT] [--hidden true|false] [--position N]\n" +
@@ -95,7 +99,7 @@ const help =
   "       pptx xml get INPUT --part URI [--scope SCOPE] [--pretty] [--json]\n" +
   "       pptx xml set INPUT --part URI --file XML [--scope SCOPE]\n" +
   "                    [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-  "       pptx schema [create | inspect | slides add | slides move | slides set | slides remove | xml get | xml set] [--json]\n" +
+  "       pptx schema [create | inspect | slides add | slides move | slides set | slides remove | slides duplicate | xml get | xml set] [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "Slide positions are one-based. Shape names are exact; numeric strings are names.\n" +
   "Duplicate names require --all. Default scope: slides.\n" +
@@ -113,7 +117,7 @@ const help =
   "Create defaults: empty deck, 12192000 x 6858000 EMUs, blank layout and master.\n" +
   "Lengths require emu, in, cm, mm or pt. Dates/authors are never synthesized.\n" +
   "Create supports Transitional only; supplied templates are unavailable.\n" +
-  "Slides move/set/remove also accept --selection-json QUERY_OR_ARRAY instead of simple selectors.\n" +
+  "Slides move/set/remove/duplicate also accept --selection-json QUERY_OR_ARRAY instead of simple selectors.\n" +
   "Slide removal requires --reference-policy remove for affected known references; opaque targets are rejected.\n" +
   "Slides add requires an exact layout name or part URI; position defaults to append.\n" +
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
@@ -125,6 +129,7 @@ interface Arguments {
     | "slides.move"
     | "slides.set"
     | "slides.remove"
+    | "slides.duplicate"
     | "inspect"
     | "xml.get"
     | "xml.set"
@@ -232,7 +237,7 @@ function parse(
     } else if (
       index === 1 &&
       args[0] === "slides" &&
-      ["add", "move", "set", "remove"].includes(argument)
+      ["add", "move", "set", "remove", "duplicate"].includes(argument)
     ) {
       output.operation = `slides.${argument}`;
     } else if (hintValue) hintValue = false;
@@ -260,6 +265,7 @@ function parse(
       "slides.move",
       "slides.set",
       "slides.remove",
+      "slides.duplicate",
       "inspect",
       "xml.get",
       "xml.set",
@@ -330,7 +336,11 @@ function parse(
         "--placeholders-json"
       ].includes(argument)
     ) {
-      if (operation === "slides.move" || operation === "slides.set") {
+      if (
+        operation === "slides.duplicate" ||
+        operation === "slides.move" ||
+        operation === "slides.set"
+      ) {
         if (argument === "--position") {
           if (
             ![...value].every((character) => character >= "0" && character <= "9") ||
@@ -468,7 +478,8 @@ function parse(
       if (
         operation !== "slides.move" &&
         operation !== "slides.set" &&
-        operation !== "slides.remove"
+        operation !== "slides.remove" &&
+        operation !== "slides.duplicate"
       )
         usage("Selection JSON requires a supported slide mutation.");
       const selection = commandJson(value);
@@ -577,7 +588,10 @@ function parse(
   }
   const xml = operation === "xml.get" || operation === "xml.set";
   const slideMutation =
-    operation === "slides.move" || operation === "slides.set" || operation === "slides.remove";
+    operation === "slides.duplicate" ||
+    operation === "slides.move" ||
+    operation === "slides.set" ||
+    operation === "slides.remove";
   if (result.allowEmpty && !slideMutation)
     usage("Allow-empty requires a supported slide mutation.");
   if (operation === "create") {
@@ -657,9 +671,11 @@ function parse(
       usage("Slide mutation requires a selector or --all.");
     if (
       operation !== "slides.remove" &&
-      (!result.mutation || (operation === "slides.move" && result.mutation.position === undefined))
+      (!result.mutation ||
+        ((operation === "slides.move" || operation === "slides.duplicate") &&
+          result.mutation.position === undefined))
     )
-      usage("Slide mutation requires update fields; move requires --position.");
+      usage("Slide mutation requires update fields; move/duplicate require --position.");
     if (result.scope !== undefined && result.scope !== "slides")
       usage("Slide mutations require slides scope.");
   } else if (operation !== "inspect" && !xml) {
@@ -674,6 +690,7 @@ function parse(
         "slides.move",
         "slides.set",
         "slides.remove",
+        "slides.duplicate",
         "xml.get",
         "xml.set"
       ].includes(positionals.join("."))
@@ -863,6 +880,7 @@ async function execute(
             "slides.move": slidesMoveSchema,
             "slides.set": slidesSetSchema,
             "slides.remove": slidesRemoveSchema,
+            "slides.duplicate": slidesDuplicateSchema,
             "xml.get": xmlGetSchema,
             "xml.set": xmlSetSchema
           }).filter(([path]) => !args.schemaPath || path === args.schemaPath)
@@ -885,7 +903,7 @@ async function execute(
           slides: {
             level: "edit",
             subset:
-              "Insert at a validated position using an explicit layout/master; populate unambiguous type/index placeholders. Move ordered slides while retaining IDs; set names and visibility. Remove slides with explicit known-reference removal policy; reject unresolved opaque references and retain shared resources. Layout reassignment, background changes and duplication are unavailable."
+              "Insert at a validated position using an explicit layout/master; populate unambiguous type/index placeholders. Move ordered slides while retaining IDs; set names and visibility. Remove slides with explicit known-reference removal policy; reject unresolved opaque references and retain shared resources. Duplicate slide-local shapes and notes with fresh identities; clone mutable dependent resources and reject unsupported references. Layout reassignment and background changes are unavailable."
           },
           editing: { level: "reject", reason: "Other semantic model editing is not exposed." },
           xml: {
@@ -987,7 +1005,8 @@ async function execute(
         metadata ||
         args.operation === "slides.move" ||
         args.operation === "slides.set" ||
-        args.operation === "slides.remove"
+        args.operation === "slides.remove" ||
+        args.operation === "slides.duplicate"
           ? []
           : selected(index, args);
       if (args.operation === "slides.add") {
@@ -1031,29 +1050,40 @@ async function execute(
       } else if (
         args.operation === "slides.move" ||
         args.operation === "slides.set" ||
-        args.operation === "slides.remove"
+        args.operation === "slides.remove" ||
+        args.operation === "slides.duplicate"
       ) {
         const context = { ...options.context, signal: request.signal };
         const changed =
-          args.operation === "slides.remove"
-            ? await removeSlides(
+          args.operation === "slides.duplicate"
+            ? await duplicateSlides(
                 bytes,
                 {
                   selection: mutationSelection,
-                  allowEmpty: args.allowEmpty ?? false,
-                  ...(args.referencePolicy ? { referencePolicy: args.referencePolicy } : {})
-                },
-                context
-              )
-            : await mutateSlides(
-                bytes,
-                {
-                  ...args.mutation,
-                  selection: mutationSelection,
+                  position: args.mutation!.position!,
                   allowEmpty: args.allowEmpty ?? false
                 },
                 context
-              );
+              )
+            : args.operation === "slides.remove"
+              ? await removeSlides(
+                  bytes,
+                  {
+                    selection: mutationSelection,
+                    allowEmpty: args.allowEmpty ?? false,
+                    ...(args.referencePolicy ? { referencePolicy: args.referencePolicy } : {})
+                  },
+                  context
+                )
+              : await mutateSlides(
+                  bytes,
+                  {
+                    ...args.mutation,
+                    selection: mutationSelection,
+                    allowEmpty: args.allowEmpty ?? false
+                  },
+                  context
+                );
         const after = await readSelectionIndex(changed, context);
         const beforeTargets = (
           Array.isArray(mutationSelection) ? mutationSelection : [mutationSelection]
@@ -1071,9 +1101,15 @@ async function execute(
           }
         });
         const targets =
-          args.operation === "slides.remove"
-            ? beforeTargets
-            : beforeTargets.map((record) => after.slides.find((slide) => slide.id === record.id)!);
+          args.operation === "slides.duplicate"
+            ? after.slides.filter(
+                (slide) => !index.slides.some((original) => original.id === slide.id)
+              )
+            : args.operation === "slides.remove"
+              ? beforeTargets
+              : beforeTargets.map(
+                  (record) => after.slides.find((slide) => slide.id === record.id)!
+                );
         const dryRun = args.dryRun ?? false;
         const destination = args.inPlace ? args.input! : args.output;
         result = {
@@ -1082,7 +1118,12 @@ async function execute(
             {
               effects: (after.fingerprint === index.fingerprint ? [] : targets).map((slide) => ({
                 location: slide.location,
-                action: args.operation === "slides.remove" ? "remove" : "update",
+                action:
+                  args.operation === "slides.duplicate"
+                    ? "add"
+                    : args.operation === "slides.remove"
+                      ? "remove"
+                      : "update",
                 feature: "F07"
               })),
               outputs: dryRun
@@ -1094,7 +1135,7 @@ async function execute(
           ),
           affected: targets.length
         };
-        human = `${dryRun ? "Validated" : args.operation === "slides.remove" ? "Removed" : "Updated"} ${targets.length} slide(s)\n`;
+        human = `${dryRun ? "Validated" : args.operation === "slides.duplicate" ? "Duplicated" : args.operation === "slides.remove" ? "Removed" : "Updated"} ${targets.length} slide(s)\n`;
         if (destination === "-" && !dryRun) binary = changed;
         else if (destination && destination !== "-") {
           if (!request.publishOutput)

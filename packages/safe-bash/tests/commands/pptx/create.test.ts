@@ -6,6 +6,7 @@ import {
   addSlide,
   createPptxCommandEngine,
   createPresentation,
+  duplicateSlides,
   mutateSlides,
   removeSlides,
   readSelectionIndex
@@ -96,6 +97,63 @@ function fixture() {
   );
   return { shell, fs, volume };
 }
+
+test("pptx slide duplication publishes fresh identities and preserves its source", async () => {
+  const { shell, volume } = fixture();
+  const source = await createPresentation({ slides: [
+    { name: "Estuary", shapes: [{ name: "Caption", x: 10, y: 20, width: 300, height: 100, text: "Tide survey" }] },
+    { name: "Headland" }
+  ] }, context);
+  volume.writeFileSync("/work/source deck.pptx", source);
+  const result = await shell.exec(
+    "pptx slides duplicate 'source deck.pptx' --slide 1 --position 2 --output 'copied deck.pptx' --json"
+  );
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(JSON.parse(result.stdout).operation, "slides.duplicate");
+  assert.equal(JSON.parse(result.stdout).affected, 1);
+  const output = new Uint8Array(volume.readFileSync("/work/copied deck.pptx") as Buffer);
+  assert.deepEqual(output, await duplicateSlides(source, {
+    selection: { kind: "slide", position: { coordinateSystem: "one-based", value: 1 } },
+    position: 2
+  }, context));
+  const index = await readSelectionIndex(output, context);
+  assert.deepEqual(index.slides.map(slide => [slide.id, slide.name]), [
+    ["256", "Estuary"], ["258", "Estuary"], ["257", "Headland"]
+  ]);
+  assert.notEqual(index.slides[0]!.part, index.slides[1]!.part);
+  const inspected = await shell.exec("pptx inspect 'copied deck.pptx' --slide 2 --shape Caption --json");
+  assert.equal(inspected.exitCode, 0, inspected.stdout + inspected.stderr);
+  assert.equal(JSON.parse(inspected.stdout).data.records[0].name, "Caption");
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source deck.pptx") as Buffer), source);
+});
+
+test("pptx slide duplication keeps dry runs and invalid selections from publishing", async () => {
+  const { shell, volume } = fixture();
+  const source = await createPresentation({ slides: [{ name: "Soundings" }] }, context);
+  volume.writeFileSync("/work/deck.pptx", source);
+  const dry = await shell.exec("pptx slides duplicate deck.pptx --slide 1 --position 2 --in-place --dry-run --json");
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.deepEqual(JSON.parse(dry.stdout).data.outputs, []);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), source);
+  for (const [flags, status] of [["--slide 1 --position 3", 2], ["--slide 2 --position 2", 1]] as const) {
+    const result = await shell.exec(`pptx slides duplicate deck.pptx ${flags} --output rejected.pptx --json`);
+    assert.equal(result.exitCode, status, result.stdout + result.stderr);
+    assert.equal(volume.existsSync("/work/rejected.pptx"), false);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), source);
+  }
+  const piped = await shell.exec("pptx slides duplicate deck.pptx --slide 1 --position 1 --output - | pptx inspect - --json");
+  assert.equal(piped.exitCode, 0, piped.stdout + piped.stderr);
+  assert.deepEqual(JSON.parse(piped.stdout).data.records.map((record: { id: string; name: string }) => [record.id, record.name]), [
+    ["257", "Soundings"], ["256", "Soundings"]
+  ]);
+  const inPlace = await shell.exec("pptx slides duplicate deck.pptx --slide 1 --position 2 --in-place --json");
+  assert.equal(inPlace.exitCode, 0, inPlace.stdout + inPlace.stderr);
+  assert.deepEqual(
+    (await readSelectionIndex(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), context)).slides.map(slide => slide.id),
+    ["256", "257"]
+  );
+});
 
 test("pptx slide removal uses explicit VFS publication and matches SDK identity", async () => {
   const { shell, volume } = fixture();

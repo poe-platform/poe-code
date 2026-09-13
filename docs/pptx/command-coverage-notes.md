@@ -5,7 +5,7 @@ Status: Proposed command design; no product implementation or executed product t
 [command-coverage.json](command-coverage.json) maps F01–F60 and all 2,424 rows of
 the existing [public API map](public-api-map.json): the 2,407 reconciled upstream
 records plus 17 bounded XML/package-view members. It declares 1,933 operations
-and 6,301 planned acceptance cases. These are mixed bookkeeping counts, not an
+and 6,321 planned acceptance cases. These are mixed bookkeeping counts, not an
 implemented coverage percentage. The register preserves inherited members,
 underscore-prefixed returned interfaces, enum symbols/aliases, constructors,
 protocols, helpers and APIs without reference tests.
@@ -57,9 +57,10 @@ union using local JSON Schema 2020-12 references. `x-modelType` requires semanti
 interface/ownership validation beyond JSON shape checking. Defaults, bounds,
 selection, capabilities, cross-field rules and publication requirements also
 remain semantic requirements; merely accepting a JSON Schema is insufficient.
-Model result schemas describe the envelope's `data`; serialized format reports
-remain governed by the format/shared contract and require concrete runtime
-schemas before publication. This research file is not a runtime schema bundle.
+Model result schemas describe the envelope's `data`; direct format reports now have closed `resultSchema` definitions, with exact
+wire projections and semantic constraints in spec sections 6.1–6.8 and appendices
+A–C. Runtime schema/export verification remains implementation work. This research
+file is not a runtime schema bundle.
 
 ## Effects, preservation and rejected behavior
 
@@ -134,3 +135,29 @@ an API obligation.
 Agent verification procedures and actual documentation check results belong in
 [the command coverage plan](../plans/pptx-command-coverage.md). No product code,
 README, publisher document or cloned binary was edited or cleaned up.
+
+## Format contract completion
+
+The format specification now enumerates every direct operation, argument, option,
+input cardinality, scope and publication class. The register adds exact direct
+SDK option schemas and result schemas, diagnostic contexts, millisecond bounds,
+conditional instant-effect defaults, chart-data cardinality requirements, local
+EMU path rules and supplied SVG fallback admission. Shared names and flags remain
+unchanged. The direct CLI admits the shared five length units; centipoints remain
+a typed model helper. `images add --shared` was removed from the proposed register
+because it has no insertion meaning; existing-resource shared replacement remains
+explicit. Media insertion now requires its previously underspecified MIME type.
+
+Twenty original TypeScript regression designs (`format.*`) describe independent
+arrange/action/expected cases for these documentation findings. All are
+`planned_not_run`; none is an implementation or source-test equivalence claim.
+The complete original source-row ledger remains unchanged: every parameter and
+BDD example is individually accounted for, including its visible unfinished work.
+Required standalone notices are retained. No original assets were taken from
+disposable corpus documents.
+
+Current verification and input hashes are recorded in
+[the format contract plan](../plans/pptx-format-contract.md) and
+[the documentation receipt](format-contract-evidence.json). Historical checks
+above remain historical; expanded signatures and schemas do not turn prior
+research counts into product passes.

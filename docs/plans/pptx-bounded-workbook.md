@@ -64,3 +64,17 @@ Display-order increment: an original imported chart with idx/order pairs 3/4 and
 rewriting now retains 1/2. The exact seven replacement scenario dimension/type
 transitions have original package tests. Final maintained package gate passed
 128 files / 3,636 tests in 32.46 seconds; package lint and selected build passed.
+
+Accounting complete: workbook-case-map.json retains 180 source cases and their
+exact parameter/scenario pointers; workbook-api-map.json retains 190 live API
+obligations. Both inventories, counterparts, explicit JS/security mappings,
+serialization differences and unresolved public-model gaps are reconciled in
+workbook-evidence.md. All 920 cross-references and test links validate. A final
+original numeric-category rewrite case closes its exact behavioral mapping; the
+33-case file and package lint passed, with no additional product code changes.
+The maintained generic screenshot route produced the inspected, disposable
+`.cache/pptx-corpus/workbook-help.png`; no binary artifact is staged.
+
+Local implementation commits: f312b6954, f69147adf, 5b541d039, afcac84fa.
+No push or release. Final research/accounting commit includes this plan, the
+numeric-label acceptance test, workbook receipts and the API audit crosslink only.

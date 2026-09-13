@@ -389,3 +389,28 @@ it("trims series by declared display order while preserving surviving identities
   expect(next.chart).toContain("Sheet1!$B$2:$B$2");
   expect(next.sheet).toContain('<c r="B2"><v>8</v></c>');
 });
+
+it("replaces string categories with unsorted numeric labels while retaining series decoration", async () => {
+  const source = patch(await seed(), (xml) =>
+    xml.replace(
+      '<c:idx val="0"/><c:order val="0"/>',
+      '<c:idx val="0"/><c:order val="0"/><c:spPr><a:solidFill><a:srgbClr val="246810"/></a:solidFill></c:spPr>'
+    )
+  );
+  const next = outputs(
+    await setCharts(
+      source,
+      { slide: 1 },
+      { data: { categories: [42, 24], series: [{ name: "Numeric", values: [7, -2] }] } },
+      context
+    )
+  );
+  expect(next.chart).toContain("<c:numRef><c:f>Sheet1!$A$2:$A$3</c:f><c:numCache>");
+  expect(next.chart).toContain(
+    '<c:pt idx="0"><c:v>42</c:v></c:pt><c:pt idx="1"><c:v>24</c:v></c:pt>'
+  );
+  expect(next.chart).toContain('<a:srgbClr val="246810"/>');
+  expect(next.sheet).toContain('<c r="A2"><v>42</v></c>');
+  expect(next.sheet).toContain('<c r="A3"><v>24</v></c>');
+  expect(next.sheet).toContain('<c r="B3"><v>-2</v></c>');
+});

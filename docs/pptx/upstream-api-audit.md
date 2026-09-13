@@ -27,6 +27,12 @@ Current text fitting: [implementation and exact JS mappings](text-fitting-eviden
 "not implemented" statements below describe the audit checkpoint, not current
 package-wide implementation status. Whole-public-API coverage remains partial.
 
+Current bounded workbook data: [implementation, exact mappings and gaps](workbook-evidence.md),
+[180-case writer/rewrite ledger](workbook-case-map.json), and
+[190-member data-model ledger](workbook-api-map.json). Simple imported category,
+XY and bubble sheets have synchronized replacement; detached operation records
+do not implement live data builders or full workbook/chart-part APIs.
+
 ## Sources and baseline
 
 - [Published API and user guides](https://python-pptx.readthedocs.io/en/latest/).

@@ -205,3 +205,5 @@ export {
   type ModelTextFitOptions,
   type FitTextFramesOptions
 } from "./text-fitting.js";
+
+export { readFields, mutateFields, type FieldKind, type FieldUpdate, type MutateFieldsOptions } from "./fields.js";

@@ -1,3 +1,5 @@
+import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
+import { fieldSchemas } from "./fields-schema.js";
 import { fitTextFrames, validateTextFitOptions, type TextFitOptions } from "./text-fitting.js";
 import { admitFontMetrics } from "./font-metrics.js";
 import {
@@ -310,7 +312,9 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  fieldEdit?: FieldUpdate;
   operation:
+    | `fields.${"list" | "get" | "set" | "add" | "remove"}`
     | `masters.${"list" | "get" | "add" | "set"}`
     | `layouts.${"list" | "get" | "add" | "set" | "remove" | "apply"}`
     | "shapes.add"
@@ -659,6 +663,7 @@ function parse(
     "settings",
     "masters",
     "layouts",
+    "fields",
     "shapes",
     "backgrounds",
     "themes"
@@ -673,6 +678,7 @@ function parse(
         : command;
   if (
     ![
+      ...Object.keys(fieldSchemas),
       ...Object.keys(membershipSchemas),
       ...Object.keys(settingsSchemas),
       ...Object.keys(masterSchemas),
@@ -722,13 +728,29 @@ function parse(
       continue;
     }
     if (
-      (operation.startsWith("text.runs.") ||
+      (operation.startsWith("fields.") ||
+        operation.startsWith("text.runs.") ||
         operation.startsWith("text.paragraphs.") ||
         operation.startsWith("text.frames.") ||
         operation === "text.fit") &&
       ["--help", "-h"].includes(argument)
     )
       return { operation: "help", json: output.json, schemaPath: operation };
+    if (
+      operation.startsWith("fields.") &&
+      ["--kind", "--text", "--update", "--timestamp"].includes(argument)
+    ) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Field option requires a value.");
+      const key = argument.slice(2);
+      result.fieldEdit = {
+        ...result.fieldEdit,
+        [key]: key === "timestamp" ? commandTimestamp(value) : value
+      };
+      continue;
+    }
     if (seen.has(argument) && argument !== "--limit") usage("Repeated option.");
     seen.add(argument);
     if (argument === "--json") {
@@ -1526,6 +1548,7 @@ function parse(
     operation === "slides.remove";
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
   if (
+    operation.startsWith("fields.") ||
     operation === "text.get" ||
     operation === "text.fit" ||
     operation === "text.replace" ||
@@ -1533,12 +1556,17 @@ function parse(
     operation.startsWith("text.paragraphs.") ||
     operation.startsWith("text.frames.")
   ) {
+    const fields = operation.startsWith("fields.");
     const paragraphs = operation.startsWith("text.paragraphs.");
     const runs = operation.startsWith("text.runs.");
     const frames = operation.startsWith("text.frames.");
     const fitting = operation === "text.fit";
-    const formatting = runs || paragraphs || frames || fitting;
-    const mutation = operation.endsWith(".set") || operation === "text.replace" || fitting;
+    const formatting = fields || runs || paragraphs || frames || fitting;
+    const mutation =
+      operation.endsWith(".set") ||
+      operation === "text.replace" ||
+      fitting ||
+      (fields && ["fields.add", "fields.remove"].includes(operation));
     const allowed = [
       "--json",
       "--limit",
@@ -1546,6 +1574,9 @@ function parse(
       "--scope",
       "--slide",
       "--shape",
+      ...(fields && mutation && operation !== "fields.remove"
+        ? ["--kind", "--text", "--update", "--timestamp"]
+        : []),
       ...(frames && mutation ? frameFlags : []),
       ...(fitting ? fitFlags : []),
       ...(runs ? (mutation ? runFlags : ["--paragraph", "--run"]) : []),
@@ -1592,6 +1623,11 @@ function parse(
       usage("Shape selection requires an owning slide.");
     result.input = positionals[0];
     if (mutation) {
+      if (fields)
+        validateFieldOptions(
+          result.fieldEdit ?? {},
+          operation.slice(7) as "set" | "add" | "remove"
+        );
       if (fitting) {
         if (!result.fitEdit?.metrics) usage("Text fit requires --metrics JSON.");
         validateTextFitOptions(result.fitEdit);
@@ -2017,6 +2053,7 @@ function parse(
     if (
       (operation === "schema" || operation === "help") &&
       [
+        ...Object.keys(fieldSchemas),
         ...Object.keys(membershipSchemas),
         ...Object.keys(settingsSchemas),
         ...Object.keys(masterSchemas),
@@ -2307,8 +2344,22 @@ async function execute(
               : args.schemaPath?.startsWith("text.runs.")
                 ? runHelp
                 : help;
-      result = success(operation, { usage });
-      human = usage;
+      const resolvedUsage = args.schemaPath?.startsWith("fields.")
+        ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
+          "Selection: --slide N --shape NAME | --select TOKEN\n" +
+          "           --scope SCOPE --json --limit NAME=VALUE\n" +
+          "Mutation:  --all --allow-empty\n" +
+          "Output:    --output PATH | --in-place | --dry-run; --force\n" +
+          "Set/add:   --kind slide-number|date|footer|header\n" +
+          "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
+          "Add requires --kind and one text body; appends to its last paragraph.\n" +
+          "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
+          "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
+          "No field evaluation, automatic numbering or inherited-content flattening.\n" +
+          "List/get are read-only; get requires one field. Remove accepts no policy.\n"
+        : usage;
+      result = success(operation, { usage: resolvedUsage });
+      human = resolvedUsage;
     } else if (args.operation === "version") {
       result = success(operation, { version: 1, profile: "selectors" });
       human = "pptx selectors v1\n";
@@ -2317,6 +2368,7 @@ async function execute(
         version: 1,
         operations: Object.fromEntries(
           Object.entries({
+            ...fieldSchemas,
             ...membershipSchemas,
             ...settingsSchemas,
             ...masterSchemas,
@@ -2350,6 +2402,13 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          fields: {
+            supported: true,
+            level: "edit",
+            operations: Object.keys(fieldSchemas),
+            subset:
+              "Inline field caches only; preserve or explicit caller text/time, no automatic field evaluation. Shared inherited fields require explicit scope."
+          },
           textFit: {
             supported: true,
             operation: "text.fit",
@@ -2460,6 +2519,7 @@ async function execute(
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
     else if (
+      ["fields.set", "fields.add", "fields.remove"].includes(args.operation) ||
       args.operation === "text.replace" ||
       args.operation === "text.runs.set" ||
       args.operation === "text.paragraphs.set" ||
@@ -2487,8 +2547,14 @@ async function execute(
               }),
         ...(args.shape === undefined ? {} : { shape: args.shape })
       };
-      const changed =
-        args.operation === "text.fit"
+      const changed = args.operation.startsWith("fields.")
+        ? await mutateFields(
+            bytes,
+            args.operation.slice(7) as "set" | "add" | "remove",
+            { ...args.fieldEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+            context
+          )
+        : args.operation === "text.fit"
           ? await fitTextFrames(
               bytes,
               { ...args.fitEdit!, ...selectedText, ...(args.all ? { all: true } : {}) },
@@ -2529,20 +2595,46 @@ async function execute(
       result = {
         ...success(
           operation,
-          args.operation === "text.fit"
-            ? { frames: changed.affected, sizes: "sizes" in changed ? changed.sizes : [], dryRun }
-            : args.operation === "text.frames.set"
-              ? { frames: changed.affected, dryRun }
-              : args.operation === "text.paragraphs.set"
-                ? { paragraphs: changed.affected, dryRun }
-                : args.operation === "text.runs.set"
-                  ? { runs: changed.affected, dryRun }
-                  : { replacements: changed.affected, dryRun }
+          args.operation.startsWith("fields.")
+            ? {
+                effects: changed.locations.map((location) => ({
+                  location,
+                  action: args.operation.slice(7),
+                  feature: "F21"
+                })),
+                outputs: dryRun
+                  ? []
+                  : [
+                      {
+                        path: (args.inPlace ? args.input : args.output)!,
+                        sha256: Array.from(sha256(changed.bytes), (byte) =>
+                          byte.toString(16).padStart(2, "0")
+                        ).join(""),
+                        bytes: changed.bytes.length
+                      }
+                    ],
+                fingerprint: dryRun
+                  ? null
+                  : Array.from(sha256(changed.bytes), (byte) =>
+                      byte.toString(16).padStart(2, "0")
+                    ).join("")
+              }
+            : args.operation === "text.fit"
+              ? { frames: changed.affected, sizes: "sizes" in changed ? changed.sizes : [], dryRun }
+              : args.operation === "text.frames.set"
+                ? { frames: changed.affected, dryRun }
+                : args.operation === "text.paragraphs.set"
+                  ? { paragraphs: changed.affected, dryRun }
+                  : args.operation === "text.runs.set"
+                    ? { runs: changed.affected, dryRun }
+                    : { replacements: changed.affected, dryRun }
         ),
         affected: changed.affected,
         locations: changed.locations
       };
-      human = `${dryRun ? "Validated" : args.operation === "text.fit" ? "Fitted" : args.operation.endsWith(".set") ? "Updated" : "Replaced"} ${changed.affected} ${args.operation === "text.fit" || args.operation === "text.frames.set" ? "text frame(s)" : args.operation === "text.paragraphs.set" ? "paragraph(s)" : args.operation === "text.runs.set" ? "text run(s)" : "text match(es)"}\n`;
+      human = args.operation.startsWith("fields.")
+        ? `${dryRun ? "Validated" : "Updated"} ${changed.affected} field(s)\n`
+        : `${dryRun ? "Validated" : args.operation === "text.fit" ? "Fitted" : args.operation.endsWith(".set") ? "Updated" : "Replaced"} ${changed.affected} ${args.operation === "text.fit" || args.operation === "text.frames.set" ? "text frame(s)" : args.operation === "text.paragraphs.set" ? "paragraph(s)" : args.operation === "text.runs.set" ? "text run(s)" : "text match(es)"}\n`;
       const destination = args.inPlace ? args.input! : args.output;
       if (destination === "-" && !dryRun) binary = changed.bytes;
       else if (destination && destination !== "-") {
@@ -2561,6 +2653,8 @@ async function execute(
         };
       }
     } else if (
+      args.operation === "fields.list" ||
+      args.operation === "fields.get" ||
       args.operation === "text.get" ||
       args.operation === "text.runs.get" ||
       args.operation === "text.runs.list" ||
@@ -2589,19 +2683,23 @@ async function execute(
               }),
         ...(args.shape === undefined ? {} : { shape: args.shape })
       };
-      const data = args.operation.startsWith("text.frames.")
-        ? { frames: await readTextFrames(bytes, textOptions, context) }
-        : args.operation.startsWith("text.paragraphs.")
-          ? {
-              paragraphs: await readTextParagraphs(
-                bytes,
-                { ...textOptions, ...args.paragraphEdit },
-                context
-              )
-            }
-          : args.operation !== "text.get"
-            ? { runs: await readTextRuns(bytes, { ...textOptions, ...args.runEdit }, context) }
-            : await readPresentationText(bytes, textOptions, context);
+      const data = args.operation.startsWith("fields.")
+        ? { fields: await readFields(bytes, textOptions, context) }
+        : args.operation.startsWith("text.frames.")
+          ? { frames: await readTextFrames(bytes, textOptions, context) }
+          : args.operation.startsWith("text.paragraphs.")
+            ? {
+                paragraphs: await readTextParagraphs(
+                  bytes,
+                  { ...textOptions, ...args.paragraphEdit },
+                  context
+                )
+              }
+            : args.operation !== "text.get"
+              ? { runs: await readTextRuns(bytes, { ...textOptions, ...args.runEdit }, context) }
+              : await readPresentationText(bytes, textOptions, context);
+      if (args.operation === "fields.get" && "fields" in data && data.fields.length !== 1)
+        throw new SelectionError(data.fields.length ? "ambiguous-selection" : "missing-selection");
       if (args.operation === "text.frames.get" && "frames" in data && data.frames.length !== 1)
         throw new SelectionError(data.frames.length ? "ambiguous-selection" : "missing-selection");
       if (args.operation === "text.runs.get" && "runs" in data && data.runs.length !== 1)
@@ -2615,21 +2713,53 @@ async function execute(
           data.paragraphs.length ? "ambiguous-selection" : "missing-selection"
         );
       result = {
-        ...success(operation, data),
+        ...success(
+          operation,
+          "fields" in data
+            ? {
+                items: data.fields.map((field) => ({
+                  location: field.location,
+                  kind: field.kind ?? "unknown",
+                  name: field.fieldId,
+                  fields: [
+                    {
+                      name: "fieldType",
+                      value:
+                        field.fieldType === null
+                          ? { type: "null", value: null }
+                          : { type: "string", value: field.fieldType }
+                    },
+                    { name: "cachedText", value: { type: "string", value: field.cachedText } },
+                    { name: "paragraph", value: { type: "number", value: field.paragraph } },
+                    { name: "inline", value: { type: "number", value: field.inline } },
+                    { name: "coordinateSystem", value: { type: "string", value: "zero-based" } }
+                  ]
+                }))
+              }
+            : data
+        ),
         locations:
-          "frames" in data
-            ? data.frames.map((frame) => frame.location)
-            : "segments" in data
-              ? data.segments.map((segment) => segment.location)
-              : "paragraphs" in data
-                ? data.paragraphs.map((paragraph) => paragraph.location)
-                : data.runs.map((run) => run.location)
+          "fields" in data
+            ? data.fields.map((field) => field.location)
+            : "frames" in data
+              ? data.frames.map((frame) => frame.location)
+              : "segments" in data
+                ? data.segments.map((segment) => segment.location)
+                : "paragraphs" in data
+                  ? data.paragraphs.map((paragraph) => paragraph.location)
+                  : data.runs.map((run) => run.location)
       };
       human =
         "text" in data
           ? data.text
           : JSON.stringify(
-              "frames" in data ? data.frames : "paragraphs" in data ? data.paragraphs : data.runs
+              "fields" in data
+                ? data.fields
+                : "frames" in data
+                  ? data.frames
+                  : "paragraphs" in data
+                    ? data.paragraphs
+                    : data.runs
             );
     } else if (Object.hasOwn(masterSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };

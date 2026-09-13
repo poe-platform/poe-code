@@ -105,13 +105,13 @@ function getPackageAliases(): Record<string, string> {
     }
   }
 
-  // Subpath aliases must come first for correct resolution
-  return {
+  // Longer subpaths must precede their parent aliases (including nested exports).
+  return Object.fromEntries(Object.entries({
     ...bareSubpathAliases,
     ...subpathAliases,
     ...bareMainAliases,
     ...mainAliases
-  };
+  }).sort(([left], [right]) => right.length - left.length));
 }
 
 export default defineConfig({

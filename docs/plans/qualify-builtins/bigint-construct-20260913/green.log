@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/test/integration/exotic-symbol-constructor.test.ts (6 tests) 207ms
+ ✓ packages/safe-js/src/interp/bigint.test.ts (26 tests) 850ms
+ ✓ packages/safe-js/src/interp/globals/bigint-constructor.test.ts (4 tests) 377ms
+
+ Test Files  3 passed (3)
+      Tests  36 passed (36)
+   Start at  17:45:38
+   Duration  3.71s (transform 3.85s, setup 102ms, import 5.33s, tests 1.43s, environment 0ms)
+

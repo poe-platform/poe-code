@@ -55,6 +55,12 @@ empty title. Legend defaults false on creation. Existing theme parts and chart
 style dependencies are preserved; local metadata does not flatten effective
 inherited styles.
 
+Updating an existing title retains its layout, overlay, shape/text properties,
+and rich-text body/list settings. The literal string replaces paragraph content
+using whole-text-frame assignment semantics; individual run formatting is not
+retained. Missing, empty and referenced title text can be assigned an explicit
+empty string without deleting the title's surrounding formatting.
+
 Chart creation owns a simple embedded workbook. Data replacement synchronizes
 its worksheet, formulas and caches atomically. Both workbook policy values
 reject external data, unsupported formulas, extra unrelated sheets/tables or

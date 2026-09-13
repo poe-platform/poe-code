@@ -142,12 +142,21 @@ export function validateTextFrameOptions(options: MutateTextFramesOptions): void
 }
 function bodyProperties(body: XmlElement): XmlElement | undefined {
   if (
-    body.name.localName !== "txBody" ||
-    ![
-      ...drawingNamespaces,
-      "http://schemas.openxmlformats.org/presentationml/2006/main",
-      "http://purl.oclc.org/ooxml/presentationml/main"
-    ].includes(body.name.namespace)
+    !(
+      body.name.localName === "txBody" &&
+      [
+        ...drawingNamespaces,
+        "http://schemas.openxmlformats.org/presentationml/2006/main",
+        "http://purl.oclc.org/ooxml/presentationml/main"
+      ].includes(body.name.namespace)
+    ) &&
+    !(
+      body.name.localName === "rich" &&
+      [
+        "http://schemas.openxmlformats.org/drawingml/2006/chart",
+        "http://purl.oclc.org/ooxml/drawingml/chart"
+      ].includes(body.name.namespace)
+    )
   )
     malformed();
   const children = body.children.filter(

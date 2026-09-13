@@ -8,6 +8,7 @@ import { applyShapeUpdate } from "./shapes.js";
 import { readCharts, inspectChart } from "./charts.js";
 import { parseXmlPart, type XmlPart, type XmlElement } from "./xml.js";
 import { createChartWorkbook, validateChartWorkbook } from "./chart-workbook.js";
+import { applyFrameFormatting } from "./text-frames.js";
 
 export const chartTypes = [
   "BAR_CLUSTERED",
@@ -646,12 +647,27 @@ export async function setCharts(
         `<c:style xmlns:c="${ns}" val="${update.style}"/>`
       );
     if (update.title !== undefined) {
-      doc = replaceChild(
-        doc,
-        required(doc.root, "chart"),
-        "title",
-        titleXml(update.title, s.a, ns)
+      const title = child(required(doc.root, "chart"), "title");
+      const replacement = parseXmlPart(
+        new TextEncoder().encode(titleXml(update.title, s.a, ns)),
+        context.xmlLimits
       );
+      if (title) {
+        const text = child(title, "tx");
+        const rich = text && child(text, "rich");
+        if (rich) doc = applyFrameFormatting(doc, rich, { text: update.title });
+        else
+          doc = doc.spliceChildren(title, text ? title.children.indexOf(text) : 0, text ? 1 : 0, [
+            replacement.markup(required(replacement.root, "tx"), true)
+          ]);
+      } else {
+        doc = replaceChild(
+          doc,
+          required(doc.root, "chart"),
+          "title",
+          replacement.markup(replacement.root, true)
+        );
+      }
       doc = replaceChild(
         doc,
         required(doc.root, "chart"),

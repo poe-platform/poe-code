@@ -46,6 +46,14 @@ shell.use(pptxCommands({
 await shell.exec("pptx inspect deck.pptx --slide 1 --shape Heading --all --json");
 ```
 
+The plugin is opt-in and can be reused across separately configured shells.
+Registering over an existing `pptx` command fails unless `replace: true` is
+explicitly supplied. File input respects the invocation VFS's per-path read
+capabilities, using bounded streams where available. Buffered fallback requires
+read capability and a stream reporting unavailability before producing content. Stdin
+remains usable when file reads are unavailable. No host filesystem or native
+shell fallback is used.
+
 `inspect` supports `--slide`, `--shape`, `--part`, `--scope`, `--select`, `--all`
 and `--json`. Use `-` as input for stdin. `--` terminates option parsing. Reads
 do not modify the VFS. `help`, `version`, `schema [inspect]` and `capabilities`

@@ -3,10 +3,10 @@ import test from "node:test";
 import { Volume } from "memfs";
 import { createPptxCommandEngine, readSelectionIndex } from "pptx";
 import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
-import { FsError, toByteSource } from "../../../src/contracts/index.js";
+import { FsError, toByteSource, type FileSystem, type PluginHost } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
-import { pptxCommands } from "../../../src/commands/pptx/index.js";
+import { createPptxCommands, pptxCommands } from "../../../src/commands/pptx/index.js";
 
 const context = {
   limits: { maxBytes: 65536, maxReads: 1000, chunkBytes: 512 },
@@ -32,13 +32,13 @@ function deck(reversed = false) {
   }).map(([name, xml]) => ({ name, bytes: new TextEncoder().encode(xml) })));
 }
 
-function fixture() {
+function fixture(register = true) {
   const volume = Volume.fromJSON({ "/work": null });
   volume.writeFileSync("/work/deck.pptx", deck());
   volume.writeFileSync("/work/-deck.pptx", deck());
   volume.writeFileSync("/work/\uFEFFdeck.pptx", deck(true));
   volume.writeFileSync("/work/inspect.sh", "pptx inspect deck.pptx --slide 2 --json\n");
-  const fs = new MemoryFileSystem();
+  const fs: FileSystem = new MemoryFileSystem();
   fs.stat = async path => {
     try {
       const stat = volume.statSync(path);
@@ -57,9 +57,195 @@ function fixture() {
       return bytes;
     } catch (error) { throw new FsError((error as FsError).code); }
   };
-  const shell = new Shell({ fs, cwd: "/work" }).use(pptxCommands({ engine: createPptxCommandEngine({ context, maxOutputBytes: 65536, maxArgumentBytes: 8192 }) }));
-  return { shell, volume };
+  fs.readStream = async function* (path, options) {
+    options?.signal?.throwIfAborted();
+    yield new Uint8Array(volume.readFileSync(path) as Buffer);
+  };
+  const shell = new Shell({ fs, cwd: "/work" });
+  if (register) shell.use(pptxCommands({ engine: createPptxCommandEngine({ context, maxOutputBytes: 65536, maxArgumentBytes: 8192 }) }));
+  return { shell, volume, fs };
 }
+
+test("pptx reads a streaming-only file using path-specific capabilities", async () => {
+  const { shell, fs } = fixture();
+  const queried: string[] = [];
+  fs.capabilitiesFor = async (path, options) => {
+    assert.equal(options?.signal?.aborted, false);
+    queried.push(path);
+    return { ...fs.capabilities, read: false, streamingRead: true };
+  };
+  fs.readFile = async () => { assert.fail("buffered reads are unavailable"); };
+  const result = await shell.exec("pptx inspect deck.pptx --slide 1 --json");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).data.records[0].id, "400");
+  assert.ok(queried.includes("/work/deck.pptx"));
+});
+
+test("pptx refuses unavailable file reads before accessing content", async () => {
+  const { shell, fs } = fixture();
+  let reads = 0;
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, read: false, streamingRead: false });
+  fs.readFile = async () => { reads++; return deck(); };
+  fs.readStream = async function* () { reads++; yield deck(); };
+  const result = await shell.exec("pptx inspect deck.pptx --json");
+  assert.equal(result.exitCode, 3);
+  assert.equal(JSON.parse(result.stdout).errors[0].code, "io-failure");
+  assert.equal(reads, 0);
+  assert.equal((await shell.exec("pptx inspect - --slide 1 --json", { stdin: toByteSource(deck()) })).exitCode, 0);
+});
+
+test("pptx reads buffered files without entering a disabled stream", async () => {
+  const { shell, fs } = fixture();
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, streamingRead: false });
+  fs.readStream = () => { assert.fail("streaming reads are unavailable"); };
+  const result = await shell.exec("pptx inspect deck.pptx --slide 2 --json");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).data.records[0].id, "900");
+});
+
+test("pptx collision preflight does not call registration", () => {
+  const plugin = pptxCommands({ engine: createPptxCommandEngine({ context, maxOutputBytes: 65536, maxArgumentBytes: 8192 }) });
+  let registrations = 0;
+  const host = { commands: { has: (name: string) => name === "pptx", register: () => { registrations++; } } } as unknown as PluginHost;
+  assert.throws(() => plugin.setup(host), { message: "Command already registered: pptx" });
+  assert.equal(registrations, 0);
+});
+
+for (const replace of ["false", 1, null]) {
+  test(`pptx rejects invalid replacement configuration ${JSON.stringify(replace)}`, () => {
+    const engine = createPptxCommandEngine({ context, maxOutputBytes: 65536, maxArgumentBytes: 8192 });
+    const options = { engine, replace: replace as unknown as boolean };
+    for (const factory of [createPptxCommands, pptxCommands]) {
+      assert.throws(() => factory(options), { name: "TypeError", message: "pptx replace must be boolean" });
+    }
+  });
+}
+
+test("pptx registration is opt-in, reusable across shells and replaceable only explicitly", async () => {
+  const { shell } = fixture(false);
+  assert.equal(shell.commands.has("pptx"), false);
+  assert.equal((await shell.exec("pptx --help")).exitCode, 127);
+  const engine = createPptxCommandEngine({ context, maxOutputBytes: 65536, maxArgumentBytes: 8192 });
+  const plugin = pptxCommands({ engine });
+  shell.use(plugin);
+  const other = fixture(false).shell.use(plugin);
+  assert.equal((await other.exec("pptx schema inspect --json")).exitCode, 0);
+  other.use(pptxCommands({ engine }));
+  await assert.rejects(other.exec("pptx --help"), { message: "Command already registered: pptx" });
+  assert.equal((await shell.exec("pptx --help")).exitCode, 0);
+  shell.use(pptxCommands({ engine, replace: true }));
+  assert.equal((await shell.exec("pptx inspect deck.pptx --slide 1 --json")).exitCode, 0);
+});
+
+test("pptx accepts quoted Unicode paths and byte pipelines in a virtual script", async () => {
+  const { shell, volume } = fixture();
+  volume.writeFileSync("/work/coast '$ τ.pptx", deck());
+  volume.writeFileSync("/work/quoted script.sh", `pptx inspect --slide 1 --json -- "coast '\\$ τ.pptx"\npptx inspect - --slide 2 --json | pptx schema inspect --json\n`);
+  const script = await shell.exec("sh 'quoted script.sh'", { stdin: toByteSource(deck()) });
+  assert.equal(script.exitCode, 0, script.stderr);
+  const [inspection, schema] = script.stdout.trim().split("\n").map(line => JSON.parse(line));
+  assert.equal(inspection.data.records[0].id, "400");
+  assert.equal(schema.operation, "schema");
+  shell.commands.register({ name: "deck_bytes", async execute(command) {
+    const bytes = deck();
+    await command.stdout.write(bytes.subarray(0, 79));
+    await command.stdout.write(bytes.subarray(79));
+    return { exitCode: 0 };
+  } });
+  const piped = await shell.exec("deck_bytes | pptx inspect - --slide 2 --json");
+  assert.equal(piped.exitCode, 0, piped.stderr);
+  assert.equal(JSON.parse(piped.stdout).data.records[0].id, "900");
+});
+
+test("pptx bounds streaming and buffered file inputs independently of provider enforcement", async () => {
+  for (const streamingRead of [false, true]) {
+    const { shell, fs } = fixture();
+    fs.capabilitiesFor = async () => ({ ...fs.capabilities, streamingRead });
+    fs.readFile = async () => new Uint8Array(65537);
+    fs.readStream = async function* () { yield new Uint8Array(65537); };
+    const result = await shell.exec("pptx inspect deck.pptx --json");
+    assert.equal(result.exitCode, 4);
+    assert.equal(JSON.parse(result.stdout).errors[0].code, "resource-limit");
+  }
+});
+
+test("pptx falls back only when streaming is unavailable before content", async () => {
+  for (const phase of ["acquisition", "empty", "partial"]) {
+    const { shell, fs } = fixture();
+    let reads = 0;
+    fs.readStream = phase === "acquisition"
+      ? () => { throw new FsError("ENOTSUP"); }
+      : async function* () {
+        if (phase === "partial") yield deck().subarray(0, 10);
+        throw new FsError("ENOTSUP");
+      };
+    fs.readFile = async () => { reads++; return deck(); };
+    const result = await shell.exec("pptx inspect deck.pptx --slide 1 --json");
+    assert.equal(result.exitCode, phase === "partial" ? 3 : 0, result.stderr);
+    assert.equal(reads, phase === "partial" ? 0 : 1);
+  }
+});
+
+test("pptx direct command contexts handle synchronous unavailable stream acquisition", async () => {
+  const { shell, fs } = fixture();
+  fs.readStream = () => { throw new FsError("ENOTSUP"); };
+  const command = createPptxCommands({ engine: createPptxCommandEngine({ context, maxOutputBytes: 65536, maxArgumentBytes: 8192 }) })[0]!;
+  shell.use((invocation) => command.execute({ ...invocation, fs }));
+  const result = await shell.exec("pptx inspect deck.pptx --slide 1 --json");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).data.records[0].id, "400");
+});
+
+test("pptx preserves producer-reused file stream chunks", async () => {
+  const { shell, fs } = fixture();
+  fs.readStream = async function* () {
+    const bytes = deck();
+    const chunk = new Uint8Array(31);
+    for (let offset = 0; offset < bytes.length; offset += chunk.length) {
+      const length = Math.min(chunk.length, bytes.length - offset);
+      chunk.set(bytes.subarray(offset, offset + length));
+      yield chunk.subarray(0, length);
+    }
+    chunk.fill(0);
+  };
+  const result = await shell.exec("pptx inspect deck.pptx --slide 1 --json");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).data.records[0].id, "400");
+});
+
+test("pptx forwards cancellation to file acquisition and closes its stream", async () => {
+  const { shell, fs } = fixture();
+  const controller = new AbortController();
+  const reason = new Error("stop reading");
+  let observed: AbortSignal | undefined;
+  let closed = false;
+  fs.readStream = async function* (_path, options) {
+    observed = options?.signal;
+    try {
+      yield deck().subarray(0, 20);
+      controller.abort(reason);
+      options?.signal?.throwIfAborted();
+    } finally { closed = true; }
+  };
+  await assert.rejects(shell.exec("pptx inspect deck.pptx --json", { signal: controller.signal }), error => error === reason);
+  assert.equal(observed?.aborted, true);
+  assert.equal(closed, true);
+});
+
+test("pptx observes cancellation after capabilities resolve before reading content", async () => {
+  const { shell, fs } = fixture();
+  const controller = new AbortController();
+  const reason = new Error("stop admission");
+  let reads = 0;
+  fs.capabilitiesFor = async () => {
+    controller.abort(reason);
+    return fs.capabilities;
+  };
+  fs.readFile = async () => { reads++; return deck(); };
+  fs.readStream = async function* () { reads++; yield deck(); };
+  await assert.rejects(shell.exec("pptx inspect deck.pptx --json", { signal: controller.signal }), error => error === reason);
+  assert.equal(reads, 0);
+});
 
 test("pptx inspection follows slide order with the same identity through SDK and CLI", async () => {
   const { shell } = fixture();

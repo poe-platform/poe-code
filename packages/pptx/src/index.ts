@@ -462,3 +462,15 @@ export { readNotes, mutateNotes, validateNotesOptions, type NotesRecord, type Mu
 
 export { readComments, readCommentAuthors, mutateComments, type CommentRecord, type LegacyAuthorIdentity, type MutateCommentsOptions } from "./comments.js";
 export { type ModernCommentRecord, type ModernAuthorIdentity } from "./modern-comments.js";
+
+export {
+  CoreProperties,
+  openPropertySession,
+  readProperties,
+  mutateProperty,
+  sanitizeProperties,
+  type PropertyType,
+  type PropertyRecord,
+  type MutatePropertyOptions
+} from "./properties.js";
+export { readTags, mutateTags, type TagRecord, type TagOptions } from "./tags.js";

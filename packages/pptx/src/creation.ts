@@ -16,6 +16,11 @@ export interface PresentationSlideInput {
   readonly shapes?: readonly PresentationTextShape[];
 }
 export interface PresentationProperties {
+  readonly category?: string;
+  readonly content_status?: string;
+  readonly identifier?: string;
+  readonly language?: string;
+  readonly version?: string;
   readonly title?: string;
   readonly subject?: string;
   readonly author?: string;
@@ -331,6 +336,11 @@ export async function createPresentation(
   );
   const properties = options.properties === undefined ? {} : options.properties;
   const strings = {
+    category: "cp:category",
+    content_status: "cp:contentStatus",
+    identifier: "dc:identifier",
+    language: "dc:language",
+    version: "cp:version",
     title: "dc:title",
     subject: "dc:subject",
     author: "dc:creator",

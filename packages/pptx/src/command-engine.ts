@@ -1,6 +1,8 @@
 import { commentSchemas, commentsUsage } from "./comments-schema.js";
 import { validateCommentsCommand, executeCommentsCommand, type CommentsArguments } from "./command-comments.js";
 import { noteSchemas, notesUsage } from "./notes-schema.js";
+import { metadataSchemas, metadataUsage } from "./metadata-schema.js";
+import { validateMetadataCommand, executeMetadataCommand } from "./command-metadata.js";
 import { validateNotesCommand, executeNotesCommand } from "./command-notes.js";
 import { linkSchemas, linksUsage } from "./links-schema.js";
 import { validateLinkCommand, executeLinkCommand, type LinkArguments } from "./command-links.js";
@@ -296,6 +298,9 @@ const help =
   "       pptx text paragraphs list|get|set INPUT [--paragraph N] [--alignment left|center|right] [--json]\n" +
   "       pptx comments list|get|add|set|remove INPUT [--slide N] [--id ID] [output]\n" +
   "       pptx notes list|get INPUT [--slide N | --select TOKEN] [--json]\n" +
+  "       pptx properties list|get|set|remove INPUT [--name NAME] [--value VALUE] [--type TYPE] [output]\n" +
+  "       pptx tags list|get|add|set|remove INPUT [--slide N | --scope presentation | --select TOKEN] [--name NAME] [--value TEXT] [output]\n" +
+  "       pptx sanitize INPUT --remove properties [output]\n" +
   "       pptx notes add|set INPUT --text TEXT [--slide N | --select TOKEN | --all] [output]\n" +
   "       pptx notes remove INPUT [--slide N | --select TOKEN | --all] [output]\n" +
   "       pptx text get INPUT [--slide N] [--shape NAME] [--scope SCOPE] [--json]\n" +
@@ -405,6 +410,10 @@ const help =
 interface Arguments {
   commentEdit?: NonNullable<CommentsArguments["commentEdit"]>;
   noteText?: string;
+  metadataName?: string;
+  metadataValue?: string;
+  metadataType?: string;
+  metadataRemove?: string;
   tableStructure?: TableStructureOperation;
   tableFrom?: string;
   tableTo?: string;
@@ -436,6 +445,9 @@ interface Arguments {
   operation:
     | `comments.${"list" | "get" | "add" | "set" | "remove"}`
     | `notes.${"list" | "get" | "add" | "set" | "remove"}`
+    | `properties.${"list" | "get" | "set" | "remove"}`
+    | `tags.${"list" | "get" | "add" | "set" | "remove"}`
+    | "sanitize"
     | `links.${"list" | "get" | "add" | "set" | "remove"}`
     | "batch"
     | `equations.${"list" | "get" | "add"}`
@@ -751,6 +763,8 @@ const scalarOptions = [
   "--style-index",
   "--style-color",
   "--type",
+  "--value",
+  "--remove",
   "--preserve",
   "--show-master-shapes",
   "--matching-name",
@@ -851,7 +865,7 @@ function parse(
             ? "version"
             : argument;
       if (command === "text") output.operation = "text.get";
-      if (["create", "inspect", "schema", "capabilities", "help", "version", "batch"].includes(command))
+      if (["create", "inspect", "schema", "capabilities", "help", "version", "batch", "sanitize"].includes(command))
         output.operation = command;
     } else if (index === 1 && args[0] === "text" && ["get", "replace", "fit"].includes(argument)) {
       output.operation = `text.${argument}`;
@@ -871,6 +885,8 @@ function parse(
         "equations",
         "links",
         "notes",
+        "properties",
+        "tags",
         "comments",
         "charts",
         "media",
@@ -941,6 +957,8 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "properties",
+    "tags",
     "animations",
     "transitions",
     "media",
@@ -983,6 +1001,7 @@ function parse(
       ...Object.keys(equationSchemas),
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
+      ...Object.keys(metadataSchemas),
       ...Object.keys(commentSchemas),
       ...Object.keys(chartSchemas),
       ...Object.keys(fieldSchemas),
@@ -1045,6 +1064,7 @@ function parse(
         operation.startsWith("equations.") ||
         operation.startsWith("links.") ||
         operation.startsWith("notes.") ||
+        Object.hasOwn(metadataSchemas, operation) ||
         operation.startsWith("comments.") ||
         operation.startsWith("charts.") ||
         operation.startsWith("tables.") ||
@@ -1334,6 +1354,17 @@ function parse(
       const key = argument === "--author-id" ? "authorId" : argument.slice(2);
       const parsed = ["left", "top"].includes(key) ? commandLength(value, -Number.MAX_SAFE_INTEGER) : key === "timestamp" ? commandTimestamp(value).toISOString() : value;
       result.commentEdit = {...result.commentEdit, [key]: parsed};
+      continue;
+    }
+    if (Object.hasOwn(metadataSchemas, operation) && ["--name", "--value", "--type", "--remove"].includes(argument)) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Metadata option requires a value.");
+      if (argument === "--name") result.metadataName = value;
+      else if (argument === "--value") result.metadataValue = value;
+      else if (argument === "--type") result.metadataType = value;
+      else result.metadataRemove = value;
       continue;
     }
     if (operation.startsWith("notes.") && argument === "--text") {
@@ -2238,6 +2269,11 @@ function parse(
                 "keywords",
                 "comments",
                 "lastModifiedBy",
+                "category",
+                "contentStatus",
+                "identifier",
+                "language",
+                "version",
                 "revision",
                 "created",
                 "modified",
@@ -2261,6 +2297,8 @@ function parse(
                 ? "last_printed"
                 : key === "lastModifiedBy"
                   ? "last_modified_by"
+                  : key === "contentStatus"
+                    ? "content_status"
                   : key,
               item
             ])
@@ -2511,6 +2549,10 @@ function parse(
   }
   if (Object.hasOwn(noteSchemas, operation)) {
     validateNotesCommand(result, positionals, seen);
+    return result;
+  }
+  if (Object.hasOwn(metadataSchemas, operation)) {
+    validateMetadataCommand(result, positionals, seen);
     return result;
   }
   if (Object.hasOwn(linkSchemas, operation)) {
@@ -3428,6 +3470,7 @@ function parse(
         ...Object.keys(equationSchemas),
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
+      ...Object.keys(metadataSchemas),
       ...Object.keys(commentSchemas),
         ...Object.keys(chartSchemas),
         ...Object.keys(fieldSchemas),
@@ -3846,6 +3889,7 @@ async function execute(
                           : usage;
       if (args.schemaPath?.startsWith("comments.")) resolvedUsage = commentsUsage;
       if (args.schemaPath?.startsWith("notes.")) resolvedUsage = notesUsage;
+      if (args.schemaPath && Object.hasOwn(metadataSchemas, args.schemaPath)) resolvedUsage = metadataUsage;
       if (args.schemaPath?.startsWith("links.")) resolvedUsage = linksUsage;
       if (args.schemaPath?.startsWith("transitions.")) resolvedUsage = transitionsUsage;
       if (args.schemaPath?.startsWith("animations.")) resolvedUsage = animationsUsage;
@@ -3956,6 +4000,7 @@ async function execute(
             ...equationSchemas,
             ...linkSchemas,
             ...noteSchemas,
+            ...metadataSchemas,
             ...commentSchemas,
             ...fieldSchemas,
             ...membershipSchemas,
@@ -4063,6 +4108,18 @@ async function execute(
           notes: {
             supported: true, level: "edit", operations: Object.keys(noteSchemas),
             subset: "F48: associated speaker body read/create/set/remove; notes shapes and master text use explicit text scopes. Other placeholders and unsupported note content remain distinct. Competing notes-master import is rejected; live notes model APIs remain unavailable."
+          },
+          properties: {
+            supported: true, level: "edit", operations: Object.keys(metadataSchemas).filter(operation => operation.startsWith("properties.")),
+            subset: "F51: core and typed custom properties with explicit dates; unknown types, namespaces and custom XML associations are preserved."
+          },
+          tags: {
+            supported: true, level: "edit", operations: Object.keys(metadataSchemas).filter(operation => operation.startsWith("tags.")),
+            subset: "F51: presentation and slide tags; duplicate names fail and shared tag lists reject edits."
+          },
+          sanitize: {
+            supported: true, level: "edit", operations: ["sanitize"],
+            subset: "F56 subset: explicit supported property removal only. Unknown properties, tags, custom XML and extended metadata remain."
           },
           transitions: {
             supported: true,
@@ -4388,6 +4445,9 @@ async function execute(
     } else if (Object.hasOwn(commentSchemas, args.operation)) {
       const comments = await executeCommentsCommand(args, request, options);
       result = comments.result; human = comments.human; binary = comments.binary; publication = comments.publication;
+    } else if (Object.hasOwn(metadataSchemas, args.operation)) {
+      const metadata = await executeMetadataCommand(args, request, options);
+      result = metadata.result; human = metadata.human; binary = metadata.binary; publication = metadata.publication;
     } else if (Object.hasOwn(noteSchemas, args.operation)) {
       const notes = await executeNotesCommand(args, request, options);
       result = notes.result; human = notes.human; binary = notes.binary; publication = notes.publication;

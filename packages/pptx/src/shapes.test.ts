@@ -1,3 +1,4 @@
+import { MSO_COLOR_TYPE } from "./color-enums.js";
 import { expect, it } from "vitest";
 import { PP_PLACEHOLDER_TYPE } from "./shape-placeholder-types.js";
 import {
@@ -246,7 +247,7 @@ it.each([
 );
 it("creates solid line fill on color access and rejects unavailable RGB", () => {
   const shape = new Shape(original('<a:solidFill><a:schemeClr val="accent2"/></a:solidFill>'));
-  expect(shape.fill.fore_color.type).toBe("SCHEME");
+  expect(shape.fill.fore_color.type).toBe(MSO_COLOR_TYPE.SCHEME);
   expect(() => shape.fill.fore_color.rgb).toThrow();
   const color = shape.line.color;
   expect(shape.line.fill.type).toBe(1);

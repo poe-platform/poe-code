@@ -1,4 +1,11 @@
-import { OfficeError } from "./errors.js";
+import {
+  IndexError,
+  OfficeError,
+  PropertyAccessError,
+  TypeError as ModelTypeError,
+  ValueError
+} from "./errors.js";
+import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
 import { themeColorSlots, validateColor } from "./themes.js";
 import type { XmlElement, XmlMerge } from "./xml.js";
 
@@ -122,8 +129,10 @@ export class RGBColor implements Iterable<number> {
   readonly green: number;
   readonly blue: number;
   constructor(red: number, green: number, blue: number) {
+    if ([red, green, blue].some((v) => typeof v !== "number"))
+      throw new ModelTypeError("RGB channels must be numeric.");
     if ([red, green, blue].some((v) => !Number.isInteger(v) || v < 0 || v > 255))
-      invalid("RGB channels must be integers between 0 and 255.");
+      throw new ValueError("RGB channels must be integers between 0 and 255.");
     this[0] = red;
     this[1] = green;
     this[2] = blue;
@@ -131,10 +140,20 @@ export class RGBColor implements Iterable<number> {
     this.green = green;
     this.blue = blue;
     Object.freeze(this);
+    return new Proxy(this, {
+      get(target, property, receiver) {
+        if (typeof property === "string" && String(Number(property)) === property) {
+          const index = Number(property);
+          if (!Number.isInteger(index) || index < 0 || index >= 3)
+            throw new IndexError("RGB channel index is out of range.");
+        }
+        return Reflect.get(target, property, receiver);
+      }
+    });
   }
   at(index: number): number {
     if (!Number.isInteger(index) || index < -3 || index > 2)
-      invalid("RGB channel index is out of range.");
+      throw new IndexError("RGB channel index is out of range.");
     return [this.red, this.green, this.blue][index < 0 ? index + 3 : index]!;
   }
   slice(start?: number, end?: number, step = 1): readonly number[] {
@@ -143,7 +162,7 @@ export class RGBColor implements Iterable<number> {
       step === 0 ||
       [start, end].some((v) => v !== undefined && !Number.isSafeInteger(v))
     )
-      invalid("Invalid RGB slice bounds.");
+      throw new ValueError("Invalid RGB slice bounds.");
     const normalize = (value: number) =>
       Math.max(step > 0 ? 0 : -1, Math.min(step > 0 ? 3 : 2, value < 0 ? value + 3 : value));
     const first = start === undefined ? (step > 0 ? 0 : 2) : normalize(start);
@@ -161,7 +180,15 @@ export class RGBColor implements Iterable<number> {
     );
   }
   static from_string(value: string): RGBColor {
-    validateColor(value);
+    if (typeof value !== "string")
+      throw new ModelTypeError("RGB hexadecimal input must be a string.");
+    try {
+      validateColor(value);
+    } catch (error) {
+      if (error instanceof OfficeError && error.code === "invalid-value")
+        throw new ValueError(error.message);
+      throw error;
+    }
     return new RGBColor(
       Number.parseInt(value.slice(0, 2), 16),
       Number.parseInt(value.slice(2, 4), 16),
@@ -181,10 +208,7 @@ export class RGBColor implements Iterable<number> {
   }
 }
 
-export class ColorPropertyAccessError extends Error {
-  override readonly name = "PropertyAccessError";
-  readonly code = "property-unavailable";
-}
+export { PropertyAccessError as ColorPropertyAccessError } from "./errors.js";
 
 /** A synchronous color view over an explicitly supplied bounded XML part. */
 export class ColorFormat {
@@ -224,12 +248,13 @@ export class ColorFormat {
   get xml(): import("./xml.js").XmlPart {
     return this.#xml;
   }
-  get type(): RunColorRecord["type"] | null {
-    return readRunColor(this.#xml.root)?.type ?? null;
+  get type(): MSO_COLOR_TYPE | null {
+    const type = readRunColor(this.#xml.root)?.type;
+    return type === undefined ? null : MSO_COLOR_TYPE[type];
   }
   get rgb(): RGBColor {
     const value = readRunColor(this.#xml.root)?.rgb;
-    if (value == null) throw new ColorPropertyAccessError("RGB color is unavailable.");
+    if (value == null) throw new PropertyAccessError("RGB color is unavailable.");
     return RGBColor.from_string(value);
   }
   set rgb(value: RGBColor) {
@@ -237,14 +262,19 @@ export class ColorFormat {
     const xml = this.#xml;
     this.#xml = xml.merge(xml.root, colorMerge(value.toString(), xml.root.name.namespace));
   }
-  get theme_color(): string {
+  get theme_color(): MSO_THEME_COLOR_INDEX {
     const value = readRunColor(this.#xml.root);
-    if (value === null) throw new ColorPropertyAccessError("Theme color is unavailable.");
-    return value.theme ?? "NOT_THEME_COLOR";
+    if (value === null) throw new PropertyAccessError("Theme color is unavailable.");
+    return value.theme === null
+      ? MSO_THEME_COLOR_INDEX.NOT_THEME_COLOR
+      : MSO_THEME_COLOR_INDEX.from_xml(value.theme);
   }
-  set theme_color(value: string) {
+  set theme_color(value: MSO_THEME_COLOR_INDEX) {
     const xml = this.#xml;
-    this.#xml = xml.merge(xml.root, colorMerge({ theme: value }, xml.root.name.namespace));
+    this.#xml = xml.merge(
+      xml.root,
+      colorMerge({ theme: MSO_THEME_COLOR_INDEX.to_xml(value) }, xml.root.name.namespace)
+    );
   }
   get brightness(): number {
     return readRunColor(this.#xml.root)?.brightness ?? 0;

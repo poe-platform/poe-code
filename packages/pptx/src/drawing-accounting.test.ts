@@ -1,3 +1,4 @@
+import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
 import { describe, expect, it } from "vitest";
 import { applyDrawingUpdate, readDrawingFormat, type DrawingUpdate } from "./drawing-format.js";
 import { MSO_PATTERN, MSO_LINE } from "./drawing-enums.js";
@@ -106,7 +107,7 @@ describe("drawing model behavior accounting", () => {
     expect(stop.position).toBe(raw / 100000);
     stop.position = value;
     expect(stop.position).toBe(expected / 100000);
-    expect(stop.color.theme_color).toBe("accent3");
+    expect(stop.color.theme_color).toBe(MSO_THEME_COLOR_INDEX.ACCENT_3);
   });
   it.each([-0.42, 1.001, NaN, Infinity])("rejects out-of-bounds stop %s", (position) => {
     const model = shape();
@@ -140,7 +141,7 @@ describe("drawing model behavior accounting", () => {
       const themed = shape(
         `<a:pattFill><a:${tag}><a:schemeClr val="accent2"/></a:${tag}></a:pattFill>`
       );
-      expect(themed.fill[property].theme_color).toBe("accent2");
+      expect(themed.fill[property].theme_color).toBe(MSO_THEME_COLOR_INDEX.ACCENT_2);
     }
   );
   it("changes and clears pattern without inventing a missing preset", () => {
@@ -277,8 +278,8 @@ it.each(["", "<a:noFill/>", '<a:solidFill><a:schemeClr val="accent4"/></a:solidF
     const model = shape(`<a:ln>${fill}</a:ln>`);
     const color = model.line.color;
     expect(model.line.fill.type).toBe(1);
-    expect(color.type).toBe(fill.includes("schemeClr") ? "SCHEME" : null);
-    if (fill.includes("schemeClr")) expect(color.theme_color).toBe("accent4");
+    expect(color.type).toBe(fill.includes("schemeClr") ? MSO_COLOR_TYPE.SCHEME : null);
+    if (fill.includes("schemeClr")) expect(color.theme_color).toBe(MSO_THEME_COLOR_INDEX.ACCENT_4);
   }
 );
 it("new pattern fill keeps its preset inherited and unavailable properties fail", () => {
@@ -363,7 +364,7 @@ it.each([
   const model = shape(
     `<a:solidFill><a:${kind} ${attrs}><a:alpha val="25000"/></a:${kind}></a:solidFill>`
   );
-  expect(model.fill.fore_color.type).toBe(type);
+  expect(model.fill.fore_color.type).toBe(MSO_COLOR_TYPE[type]);
   expect(model.fill.fore_color.opacity).toBe(0.25);
   model.fill.fore_color.opacity = 0.75;
   const color = model.xml.root.children[0]!.children[0]!.children[0]!;
@@ -416,4 +417,23 @@ it("creating missing gradient stops retains the documented default transformatio
       ["satMod", "350000"]
     ]
   ]);
+});
+
+it("keeps color enum assignments live and rejects return-only themes before mutation", () => {
+  const model = shape('<a:solidFill><a:schemeClr val="accent2"/></a:solidFill>');
+  const color = model.fill.fore_color;
+  color.theme_color = MSO_THEME_COLOR_INDEX.ACCENT_6;
+  expect(model.fill.fore_color.theme_color).toBe(MSO_THEME_COLOR_INDEX.ACCENT_6);
+  expect(model.fill.fore_color.type).toBe(MSO_COLOR_TYPE.SCHEME);
+  const before = model.xml.bytes();
+  for (const value of [
+    MSO_THEME_COLOR_INDEX.NOT_THEME_COLOR,
+    MSO_THEME_COLOR_INDEX.MIXED,
+    "accent1",
+    null
+  ])
+    expect(() => {
+      color.theme_color = value as never;
+    }).toThrow();
+  expect(model.xml.bytes()).toEqual(before);
 });

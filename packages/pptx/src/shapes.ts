@@ -1,5 +1,6 @@
 import { OfficeError } from "./errors.js";
 import { Length } from "./length.js";
+import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
 import { attr, child } from "./masters.js";
 import { parseXmlPart, type XmlElement, type XmlPart, type XmlMerge } from "./xml.js";
 import { TextFrame, applyFrameFormatting } from "./text-frames.js";
@@ -779,8 +780,9 @@ export class ShapeColorFormat {
     private readonly edit: DrawingEdit,
     private readonly owner: ColorOwner
   ) {}
-  get type() {
-    return readRunColor(this.owner(this.read().root))?.type ?? null;
+  get type(): MSO_COLOR_TYPE | null {
+    const type = readRunColor(this.owner(this.read().root))?.type;
+    return type === undefined ? null : MSO_COLOR_TYPE[type];
   }
   get rgb(): RGBColor {
     const v = readRunColor(this.owner(this.read().root))?.rgb;
@@ -794,15 +796,18 @@ export class ShapeColorFormat {
       return doc.merge(owner, colorMerge(v.toString(), owner.name.namespace));
     });
   }
-  get theme_color(): string {
+  get theme_color(): MSO_THEME_COLOR_INDEX {
     const c = readRunColor(this.owner(this.read().root));
     if (!c) throw new ColorPropertyAccessError("Theme color is unavailable.");
-    return c.theme ?? "NOT_THEME_COLOR";
+    return c.theme === null
+      ? MSO_THEME_COLOR_INDEX.NOT_THEME_COLOR
+      : MSO_THEME_COLOR_INDEX.from_xml(c.theme);
   }
-  set theme_color(v: string) {
+  set theme_color(v: MSO_THEME_COLOR_INDEX) {
+    const theme = MSO_THEME_COLOR_INDEX.to_xml(v);
     this.edit((doc, node) => {
       const owner = this.owner(node);
-      return doc.merge(owner, colorMerge({ theme: v }, owner.name.namespace));
+      return doc.merge(owner, colorMerge({ theme }, owner.name.namespace));
     });
   }
   get brightness() {

@@ -1,3 +1,4 @@
+import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
 import { describe, expect, it } from "vitest";
 import { parseXmlPart } from "./xml.js";
 import {
@@ -33,7 +34,7 @@ const attributes = (node: ReturnType<typeof parse>["root"]) =>
 describe("run color values", () => {
   it.each(choices)("exposes bounded color model properties for %s", (_label, xml, type) => {
     const color = new ColorFormat(parse(xml));
-    expect(color.type).toBe(type);
+    expect(color.type).toBe(type === null ? null : MSO_COLOR_TYPE[type]);
     if (type === "RGB") expect(color.rgb.toString()).toBe("123456");
     else expect(() => color.rgb).toThrowError("RGB color is unavailable.");
     if (type === null) {
@@ -41,7 +42,10 @@ describe("run color values", () => {
       expect(() => {
         color.brightness = 0.5;
       }).toThrow();
-    } else expect(color.theme_color).toBe(type === "SCHEME" ? "accent1" : "NOT_THEME_COLOR");
+    } else
+      expect(color.theme_color).toBe(
+        type === "SCHEME" ? MSO_THEME_COLOR_INDEX.ACCENT_1 : MSO_THEME_COLOR_INDEX.NOT_THEME_COLOR
+      );
   });
   it.each(choices)("sets bounded color model RGB and theme for %s", (_label, xml) => {
     const color = new ColorFormat(parse(xml));
@@ -49,7 +53,7 @@ describe("run color values", () => {
     expect(color.xml.root.children.map((n) => [n.name.localName, attributes(n)])).toEqual([
       ["srgbClr", { val: "123456" }]
     ]);
-    color.theme_color = "accent6";
+    color.theme_color = MSO_THEME_COLOR_INDEX.ACCENT_6;
     expect(color.xml.root.children.map((n) => [n.name.localName, attributes(n)])).toEqual([
       ["schemeClr", { val: "accent6" }]
     ]);
@@ -187,8 +191,8 @@ describe("run color values", () => {
   });
   it("preserves exact XML color tokens and percentage boundaries", () => {
     const theme = new ColorFormat(parse('<a:schemeClr val="bg1"/>'));
-    expect(theme.theme_color).toBe("bg1");
-    theme.theme_color = "accent1";
+    expect(theme.theme_color).toBe(MSO_THEME_COLOR_INDEX.BACKGROUND_1);
+    theme.theme_color = MSO_THEME_COLOR_INDEX.ACCENT_1;
     expect(attributes(theme.xml.root.children[0]!)).toEqual({ val: "accent1" });
     const color = new ColorFormat(parse('<a:srgbClr val="123456"/>'));
     color.rgb = RGBColor.from_string("987654");

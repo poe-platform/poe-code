@@ -502,3 +502,5 @@ export {
 } from "./opaque-objects.js";
 
 export { comparePresentations, type DiffOptions, type DiffMode, type DiffCategory, type DiffChange, type PresentationDiff } from "./diff.js";
+
+export { extractPackage, packPackage, type ExtractedPackageMember, type PackPackageMember } from "./package-tools.js";

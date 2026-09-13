@@ -1,3 +1,5 @@
+import { packageToolsSchemas, packageToolsUsage } from "./package-tools-schema.js";
+import { validatePackageCommand, executePackageCommand } from "./command-package-tools.js";
 import { executeDiffCommand } from "./command-diff.js";
 import { diffSchema, diffUsage } from "./diff-schema.js";
 import { templateSchema, templateUsage } from "./template-schema.js";
@@ -273,6 +275,8 @@ const runHelp =
   "Use pptx schema text runs set --json for complete option definitions.\n";
 const help =
   "Usage: pptx diff LEFT RIGHT [--mode MODE] [--json] [--limit NAME=VALUE]\n" +
+  "       pptx extract INPUT --output-dir DIR [--parts JSON] [--allow-partial-output]\n" +
+  "       pptx pack --manifest PATH --output PATH [--kind pptx|potx|ppsx]\n" +
   "       pptx create --output PATH [--kind pptx|potx|ppsx] [--width LENGTH]\n" +
   "                   [--height LENGTH] [--slides-json JSON] [--author TEXT]\n" +
   "                   [--properties-json JSON] [--dialect transitional]\n" +
@@ -501,6 +505,8 @@ interface Arguments {
     | `settings.${"list" | "get" | "set"}`
     | `sections.${"list" | "get" | "add" | "set" | "remove"}`
     | `shows.${"list" | "get" | "add" | "set" | "remove"}`
+    | "extract"
+    | "pack"
     | "create"
     | "slides.add"
     | "slides.move"
@@ -568,6 +574,8 @@ interface Arguments {
   };
   membership?: { name?: string; slides?: readonly number[]; position?: number };
   settings?: MutatePresentationSettingsOptions;
+  manifest?: string;
+  parts?: readonly string[];
   creation?: CreatePresentationOptions;
   addition?: Partial<AddSlideOptions>;
   mutation?: Omit<MutateSlidesOptions, "selection">;
@@ -835,6 +843,8 @@ const scalarOptions = [
   "--limit",
   "--width",
   "--height",
+  "--manifest",
+  "--parts",
   "--kind",
   "--dialect",
   "--template",
@@ -889,7 +899,7 @@ function parse(
             ? "version"
             : argument;
       if (command === "text") output.operation = "text.get";
-      if (["create", "inspect", "schema", "capabilities", "help", "version", "batch", "sanitize"].includes(command))
+      if (["extract", "pack", "create", "inspect", "schema", "capabilities", "help", "version", "batch", "sanitize"].includes(command))
         output.operation = command;
     } else if (index === 1 && args[0] === "template" && argument === "apply") {
       output.operation = "template.apply";
@@ -1037,6 +1047,7 @@ function parse(
       ...Object.keys(mediaSchemas),
       ...Object.keys(imageSchemas),
       ...Object.keys(equationSchemas),
+      ...Object.keys(packageToolsSchemas),
       ...Object.keys(opaqueSchemas),
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
@@ -1117,7 +1128,7 @@ function parse(
         operation.startsWith("text.runs.") ||
         operation.startsWith("text.paragraphs.") ||
         operation.startsWith("text.frames.") ||
-        operation === "text.fit" || operation === "batch") &&
+        operation === "text.fit" || operation === "batch" || Object.hasOwn(packageToolsSchemas, operation)) &&
       ["--help", "-h"].includes(argument)
     )
       return { operation: "help", json: output.json, schemaPath: operation };
@@ -1495,7 +1506,7 @@ function parse(
       continue;
     }
     if (argument === "--allow-partial-output") {
-      if (!["slides.split", "images.extract", "media.extract", "objects.extract"].includes(operation))
+      if (!["extract", "slides.split", "images.extract", "media.extract", "objects.extract"].includes(operation))
         usage("Partial output requires a multi-file operation.");
       result.allowPartialOutput = true;
       continue;
@@ -2155,6 +2166,11 @@ function parse(
       result.sources = paths;
       continue;
     }
+    if (argument === "--manifest" || argument === "--parts") {
+      if (argument === "--manifest") result.manifest = value;
+      else { const parts = commandJson(value); if (!Array.isArray(parts) || parts.some(part => typeof part !== "string")) usage("Parts require a string array."); result.parts = parts; }
+      continue;
+    }
     if (argument === "--sha256") {
       if (
         operation !== "images.extract" ||
@@ -2168,7 +2184,7 @@ function parse(
     if (argument === "--output-dir" || argument === "--slides") {
       if (
         operation !== "slides.split" &&
-        !(["images.extract", "media.extract", "objects.extract"].includes(operation) && argument === "--output-dir")
+        !(["extract", "images.extract", "media.extract", "objects.extract"].includes(operation) && argument === "--output-dir")
       )
         usage("Option requires a multi-file operation.");
       if (argument === "--output-dir") result.outputDir = value;
@@ -2314,7 +2330,7 @@ function parse(
         "--properties-json"
       ].includes(argument)
     ) {
-      if (operation !== "create") usage("Creation options require create.");
+      if (operation !== "create" && operation !== "pack") usage("Creation options require create or pack.");
       result.creation ??= {};
       if (argument === "--template") result.template = value;
       else if (argument === "--width" || argument === "--height")
@@ -2476,7 +2492,7 @@ function parse(
           "maxNodes",
           "maxDepth",
           "maxOutputBytes",
-          ...(["images.extract", "media.extract", "objects.extract"].includes(operation) ? ["maxOutputs"] : [])
+          ...(["extract", "images.extract", "media.extract", "objects.extract"].includes(operation) ? ["maxOutputs"] : [])
         ].includes(name)
       )
         usage("Unknown limit name.");
@@ -2640,6 +2656,10 @@ function parse(
   }
   if (operation === "template.apply") {
     validateTemplateCommand(result, positionals, seen);
+    return result;
+  }
+  if (Object.hasOwn(packageToolsSchemas, operation)) {
+    validatePackageCommand(result, positionals, seen);
     return result;
   }
   if (Object.hasOwn(equationSchemas, operation)) {
@@ -3559,6 +3579,7 @@ function parse(
         ...Object.keys(mediaSchemas),
         ...Object.keys(imageSchemas),
         ...Object.keys(equationSchemas),
+      ...Object.keys(packageToolsSchemas),
         ...Object.keys(opaqueSchemas),
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
@@ -3852,7 +3873,9 @@ async function execute(
     const operation = args.operation;
     if (args.operation === "help") {
       const usage =
-        args.schemaPath && Object.hasOwn(opaqueSchemas, args.schemaPath)
+        args.schemaPath && Object.hasOwn(packageToolsSchemas, args.schemaPath)
+          ? packageToolsUsage
+          : args.schemaPath && Object.hasOwn(opaqueSchemas, args.schemaPath)
           ? opaqueUsage
           : args.schemaPath?.startsWith("equations.")
           ? equationsUsage
@@ -4102,6 +4125,7 @@ async function execute(
             ...chartSchemas,
             ...mediaSchemas,
             ...equationSchemas,
+            ...packageToolsSchemas,
             ...opaqueSchemas,
             ...linkSchemas,
             ...noteSchemas,
@@ -4373,6 +4397,7 @@ async function execute(
             operations: ["objects.list", "objects.extract"],
             subset: "Shared package-part inventory and exact-byte extraction with relationship closure for OLE, embedded packages, controls, web extensions and 3D models. Active payload indicators are metadata, not a safety verdict. No activation, recursive parsing, creation or unsupported object-reference import."
           },
+          packageTools: { level: "edit", operations: Object.keys(packageToolsSchemas), subset: "Bounded explicit extraction and hash-verified packing of complete validated package graphs. No directory scans, implicit filesystem access or active resource execution." },
           fonts: {
             level: "preserve",
             operations: ["fonts.list"],
@@ -4583,6 +4608,10 @@ async function execute(
     } else if (args.operation === "template.apply") {
       const template = await executeTemplateCommand(args, request, options);
       result = template.result; human = template.human; binary = template.binary; publication = template.publication;
+    } else if (Object.hasOwn(packageToolsSchemas, args.operation)) {
+      const packed = await executePackageCommand(args, request, options);
+      result = packed.result; human = packed.human; binary = packed.binary; publication = packed.publication;
+      publications = packed.publications; opaqueManifest = packed.manifest; allowPartialOutput = packed.allowPartialOutput ?? false;
     } else if (Object.hasOwn(opaqueSchemas, args.operation)) {
       const opaque = await executeOpaqueCommand(args, request, options);
       result = opaque.result;
@@ -6346,7 +6375,7 @@ async function execute(
     exitCode = limit
       ? 4
       : unsupported
-        ? ["images.extract", "media.extract", "objects.extract"].includes(output.operation)
+        ? ["extract", "images.extract", "media.extract", "objects.extract"].includes(output.operation)
           ? 3
           : 1
         : office?.code === "cancelled"
@@ -6478,7 +6507,7 @@ async function execute(
             ? 130
             : code === "resource-limit"
               ? 4
-              : (code === "publication-unsupported" && !["images.extract", "media.extract", "objects.extract"].includes(operation)) ||
+              : (code === "publication-unsupported" && !["extract", "images.extract", "media.extract", "objects.extract"].includes(operation)) ||
                   code === "stale-input"
                 ? 1
                 : 3,

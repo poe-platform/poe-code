@@ -12,6 +12,113 @@ const attribute = (localName: string, value: string | null, namespace = "") => (
 const text = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
 
 describe("preserving XML parts", () => {
+  it.each([0, 1, 2])(
+    "inserts a direct child at boundary %s without rewriting neighbors",
+    (index) => {
+      const source = '<deck><!--lead--><item a="1"/> \n<item a="2"/><!--tail--></deck>';
+      const part = parseXmlPart(encode(source), limits);
+      const positions = [
+        source.indexOf("<item"),
+        source.indexOf('<item a="2"'),
+        source.indexOf("</deck>")
+      ];
+      const result = part.spliceChildren(part.root, index, 0, ['<new xmlns="urn:new"/>']);
+      const position = positions[index]!;
+      expect(text(result.bytes())).toBe(
+        source.slice(0, position) + '<new xmlns="urn:new"/>' + source.slice(position)
+      );
+      expect(result.root.children[index]!.name).toEqual(name("new", "urn:new"));
+      expect(text(part.bytes())).toBe(source);
+    }
+  );
+
+  it("replaces repeated direct children while retaining their intervening non-element content", () => {
+    const source =
+      "<deck><item><nested/></item><!--between-->  <item/><?tail keep?><other/></deck>";
+    const part = parseXmlPart(encode(source), limits);
+    expect(text(part.spliceChildren(part.root, 0, 2, ["<replacement/>"]).bytes())).toBe(
+      "<deck><replacement/><!--between-->  <?tail keep?><other/></deck>"
+    );
+    expect(text(part.spliceChildren(part.root, 1, 1, []).bytes())).toBe(
+      "<deck><item><nested/></item><!--between-->  <?tail keep?><other/></deck>"
+    );
+  });
+
+  it.each(["<deck/>", "<deck />", "<deck></deck>"])(
+    "inserts into empty containers: %s",
+    (source) => {
+      const part = parseXmlPart(encode(source), limits);
+      expect(text(part.spliceChildren(part.root, 0, 0, ["<a/>", "<b/>"]).bytes())).toBe(
+        source === "<deck />" ? "<deck ><a/><b/></deck>" : "<deck><a/><b/></deck>"
+      );
+      expect(text(part.spliceChildren(part.root, 0, 0, []).bytes())).toBe(source);
+    }
+  );
+
+  it.each([
+    [-1, 0],
+    [2, 0],
+    [0.5, 0],
+    [NaN, 0],
+    [0, -1],
+    [0, 2],
+    [1, 1],
+    [0, 0.5]
+  ])("rejects invalid positional edits index=%s count=%s", (index, count) => {
+    const part = parseXmlPart(encode("<deck><item/></deck>"), limits);
+    expect(() => part.spliceChildren(part.root, index, count, [])).toThrowError(
+      expect.objectContaining({ code: "invalid-value" })
+    );
+  });
+
+  it.each([
+    "<a/><b/>",
+    "<bad:child/>",
+    "<!DOCTYPE a><a/>",
+    '<?xml version="1.0"?><a/>',
+    "<!--outside--><a/>",
+    "<a/> trailing"
+  ])("rejects fragments that are not one standalone element: %s", (fragment) => {
+    const part = parseXmlPart(encode("<deck/>"), limits);
+    expect(() => part.spliceChildren(part.root, 0, 0, [fragment])).toThrowError(
+      expect.objectContaining({ name: "OfficeError" })
+    );
+  });
+
+  it("requires self-contained default namespaces when the parent supplies one", () => {
+    const part = parseXmlPart(encode('<deck xmlns="urn:deck"/>'), limits);
+    expect(() => part.spliceChildren(part.root, 0, 0, ["<plain/>"])).toThrowError(
+      expect.objectContaining({ code: "invalid-value" })
+    );
+    const result = part.spliceChildren(part.root, 0, 0, [
+      '<plain xmlns=""/>',
+      '<x:box xmlns:x="urn:box" xmlns=""><nested/></x:box>'
+    ]);
+    expect(result.root.children[0]!.name).toEqual(name("plain", ""));
+    expect(result.root.children[1]!.children[0]!.name).toEqual(name("nested", ""));
+  });
+
+  it("checks foreign nodes, authored Unicode and combined resource limits", () => {
+    const part = parseXmlPart(encode("<deck/>"), { ...limits, maxNodes: 3, maxDepth: 2 });
+    const foreign = parseXmlPart(encode("<deck/>"), limits);
+    expect(() => part.spliceChildren(foreign.root, 0, 0, [])).toThrowError(
+      expect.objectContaining({ code: "invalid-value" })
+    );
+    expect(() => part.spliceChildren(part.root, 0, 0, ["<a>\ud800</a>"])).toThrowError(
+      expect.objectContaining({ code: "invalid-value" })
+    );
+    expect(() => part.spliceChildren(part.root, 0, 0, ["<a/>", "<b/>", "<c/>"])).toThrowError(
+      expect.objectContaining({ code: "resource-limit" })
+    );
+    expect(() => part.spliceChildren(part.root, 0, 0, ["<a><b/></a>"])).toThrowError(
+      expect.objectContaining({ code: "resource-limit" })
+    );
+    const small = parseXmlPart(encode("<deck/>"), { ...limits, maxBytes: 15 });
+    expect(() => small.spliceChildren(small.root, 0, 0, ["<child/>"])).toThrowError(
+      expect.objectContaining({ code: "resource-limit" })
+    );
+  });
+
   it("retains exact original bytes and exposes resolved names without mutable aliases", () => {
     const source =
       '<?xml version="1.0"?>\r\n<?view original?><p:deck xmlns:p="urn:deck" a=\'&amp;\'><!--keep--><p:item/>  <![CDATA[ spaced ]]></p:deck>';
@@ -327,6 +434,13 @@ describe("preserving XML parts", () => {
       input.slice(0, encoding === "utf-8" ? 3 : 2)
     );
     expect(new TextDecoder(encoding).decode(output)).toBe(source.split('x="old"').join('x="new"'));
+    const inserted = part.spliceChildren(part.root, 0, 0, ["<child>海</child>"]).bytes();
+    expect(inserted.slice(0, encoding === "utf-8" ? 3 : 2)).toEqual(
+      input.slice(0, encoding === "utf-8" ? 3 : 2)
+    );
+    expect(new TextDecoder(encoding).decode(inserted)).toBe(
+      source.split("</a>").join("<child>海</child></a>")
+    );
   });
 
   it.each([

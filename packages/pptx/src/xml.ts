@@ -33,6 +33,12 @@ export interface XmlPart {
   bytes(): Uint8Array;
   markup(element: XmlElement): string;
   resolveNamespace(element: XmlElement, prefix: string): string | undefined;
+  spliceChildren(
+    element: XmlElement,
+    index: number,
+    deleteCount: number,
+    children: readonly string[]
+  ): XmlPart;
   merge(element: XmlElement, update: XmlMerge): XmlPart;
 }
 interface AttributeSpan {
@@ -309,6 +315,65 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
       const span = spans.get(element);
       if (!span) fail("invalid-value");
       return span.bindings.get(prefix);
+    },
+    spliceChildren(
+      element: XmlElement,
+      index: number,
+      deleteCount: number,
+      children: readonly string[]
+    ): XmlPart {
+      const selected = spans.get(element);
+      if (
+        !selected ||
+        !Number.isSafeInteger(index) ||
+        index < 0 ||
+        index > element.children.length ||
+        !Number.isSafeInteger(deleteCount) ||
+        deleteCount < 0 ||
+        deleteCount > element.children.length - index ||
+        !Array.isArray(children)
+      )
+        fail("invalid-value");
+      let authoredLength = 0;
+      let authoredNodes = 0;
+      for (const child of children) {
+        if (typeof child !== "string") fail("invalid-value");
+        authoredLength += child.length;
+        if (authoredLength > limits.maxBytes) fail("resource-limit");
+        const bytes = new TextEncoder().encode(child);
+        if (new TextDecoder().decode(bytes) !== child) fail("invalid-value");
+        const fragment = parseXmlPart(bytes, limits);
+        authoredNodes += fragment.nodeCount;
+        if (authoredNodes > limits.maxNodes) fail("resource-limit");
+        if (
+          fragment.markup(fragment.root) !== child ||
+          (selected.bindings.get("") && fragment.resolveNamespace(fragment.root, "") === undefined)
+        )
+          fail("invalid-value");
+      }
+      const content = children.join("");
+      const patches: Patch[] = [];
+      if (selected.empty && content) {
+        patches.push({
+          start: selected.openEnd - 2,
+          end: selected.openEnd,
+          value: `>${content}</${selected.qname}>`
+        });
+      } else {
+        const position =
+          index < element.children.length
+            ? spans.get(element.children[index]!)!.start
+            : selected.closeStart;
+        if (content) patches.push({ start: position, end: position, value: content });
+        for (const child of element.children.slice(index, index + deleteCount)) {
+          const removed = spans.get(child)!;
+          patches.push({ start: removed.start, end: removed.end, value: "" });
+        }
+      }
+      return parseXmlPart(
+        encode(apply(source, 0, source.length, patches, limits.maxBytes)),
+        limits
+      );
     },
     merge(element: XmlElement, update: XmlMerge): XmlPart {
       const selected = spans.get(element);

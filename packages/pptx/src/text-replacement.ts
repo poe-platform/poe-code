@@ -1,3 +1,4 @@
+import { protectedEquationNodes } from "./equations-compatibility.js";
 import type { BinaryInput, Location } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { loadShared } from "./masters.js";
@@ -114,6 +115,7 @@ export async function replacePresentationText(
   for (const body of bodies) {
     context.signal?.throwIfAborted();
     let changed = false;
+    const opaqueInlines = protectedEquationNodes(body.document.root);
     const values = edits.get(body.part)?.values ?? new Map<XmlElement, Piece[]>();
     for (const [paragraphIndex, paragraph] of body.paragraphs.entries()) {
       let range: { node: XmlElement; text: string }[] = [];
@@ -174,8 +176,17 @@ export async function replacePresentationText(
         range = [];
       };
       let inlineIndex = 0;
+      let previousPosition = -1;
       for (const node of paragraph.inlines) {
+        const position = paragraph.node.children.indexOf(node);
+        if (position !== previousPosition + 1 || position < 0) flush();
+        previousPosition = position;
         const drawing = node.name.namespace === state.a;
+        if (opaqueInlines.has(node)) {
+          flush();
+          if (drawing && ["r", "fld", "br"].includes(node.name.localName)) inlineIndex++;
+          continue;
+        }
         if (drawing && node.name.localName === "r") {
           const inline = body.segment.paragraphs[paragraphIndex]!.inlines[inlineIndex++]!;
           const textNodes = node.children.filter(

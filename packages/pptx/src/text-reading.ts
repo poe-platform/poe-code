@@ -1,3 +1,4 @@
+import { equationOpaqueElements } from "./equations-compatibility.js";
 import { SaxesParser } from "saxes";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput, Location } from "./contracts.js";
@@ -190,6 +191,7 @@ export async function readTextBodies(
       part,
       [...presentationNamespaces, ...drawingNamespaces, ...relationshipNamespaces],
       [
+        ...equationOpaqueElements,
         ...presentationNamespaces.map((namespace) => ({ namespace, localName: "ext" })),
         ...drawingNamespaces.flatMap((namespace) =>
           ["ext", "graphicData"].map((localName) => ({ namespace, localName }))

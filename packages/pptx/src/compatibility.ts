@@ -79,11 +79,10 @@ export function interpretCompatibility(
         !name ||
         typeof name.namespace !== "string" ||
         typeof name.localName !== "string" ||
-        !name.localName ||
-        !understoodNamespaces.includes(name.namespace)
+        !name.localName
     )
   )
-    throw new OfficeError("invalid-value", "Expected understood opaque element names.", "usage");
+    throw new OfficeError("invalid-value", "Expected opaque element names.", "usage");
   const opaque = opaqueElements.map((name) => Object.freeze({ ...name }));
   const supplied = [...understoodNamespaces];
   const understood = new Set(["", xml, mc, ...supplied]);
@@ -250,6 +249,19 @@ export function interpretCompatibility(
     let destination = output;
     if (!task.branch) {
       const uri = element.name.namespace;
+      if (
+        !understood.has(uri) &&
+        opaque.some((name) => name.namespace === uri && name.localName === element.name.localName)
+      ) {
+        mustUnderstand(element);
+        output.push(element);
+        children.set(element, Object.freeze([]));
+        attributes.set(
+          element,
+          Object.freeze(element.attributes.filter((attribute) => attribute.name.namespace !== mc))
+        );
+        continue;
+      }
       if (!understood.has(uri)) {
         if (!context.ignorable.has(uri)) unsupported();
         if (

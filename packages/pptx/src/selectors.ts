@@ -1,3 +1,4 @@
+import { equationOpaqueElements } from "./equations-compatibility.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput, Location, Scope } from "./contracts.js";
@@ -189,6 +190,7 @@ export async function readSelectionIndex(
           "http://purl.oclc.org/ooxml/drawingml/main"
         ],
         [
+          ...equationOpaqueElements,
           ...presentationNamespaces.map((namespace) => ({ namespace, localName: "ext" })),
           ...[
             "http://schemas.openxmlformats.org/drawingml/2006/main",

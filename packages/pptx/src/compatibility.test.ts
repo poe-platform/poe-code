@@ -378,3 +378,48 @@ describe("namespace compatibility views", () => {
     );
   });
 });
+
+it("admits exact opaque foreign roots without choosing foreign alternatives", () => {
+  const part = parse(wrap('<x:sealed><x:unknown x:setting="retain"/></x:sealed>' + alternatives));
+  const view = interpretCompatibility(
+    part,
+    [strict],
+    [{ namespace: "urn:future", localName: "sealed" }]
+  );
+  expect(view.children(part.root).map((node) => node.name.localName)).toEqual(["sealed", "item"]);
+  expect(view.children(part.root.children[0]!)).toEqual([]);
+  expect(view.alternatives[0]!.selected!.name.localName).toBe("Fallback");
+  expect(view.part.bytes()).toEqual(part.bytes());
+  expect(() =>
+    interpretCompatibility(
+      parse(wrap("<x:other/>")),
+      [strict],
+      [{ namespace: "urn:future", localName: "sealed" }]
+    )
+  ).toThrowError(expect.objectContaining({ code: "unsupported-profile" }));
+  expect(() =>
+    interpretCompatibility(
+      parse(wrap('<x:sealed mc:MustUnderstand="x"/>')),
+      [strict],
+      [{ namespace: "urn:future", localName: "sealed" }]
+    )
+  ).toThrowError(expect.objectContaining({ code: "unsupported-profile" }));
+});
+
+it("keeps foreign opaque element names separate from foreign attribute namespaces", () => {
+  expect(() =>
+    interpretCompatibility(
+      parse(wrap('<p:sealed x:flag="retain"/>')),
+      [strict],
+      [{ namespace: "urn:future", localName: "sealed" }]
+    )
+  ).toThrowError(expect.objectContaining({ code: "unsupported-profile" }));
+  const part = parse(wrap('<x:sealed xmlns:z="urn:opaque-data" z:flag="retain"/>'));
+  const view = interpretCompatibility(
+    part,
+    [strict],
+    [{ namespace: "urn:future", localName: "sealed" }]
+  );
+  expect(view.children(part.root)).toHaveLength(1);
+  expect(view.part.markup(part.root.children[0]!)).toContain('z:flag="retain"');
+});

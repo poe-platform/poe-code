@@ -1,3 +1,4 @@
+import { protectedEquationNodes } from "./equations-compatibility.js";
 import type { BinaryInput, Location } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { loadShared } from "./masters.js";
@@ -407,6 +408,7 @@ export async function mutateTextRuns(
   const locations: Location[] = [];
   let affected = 0;
   for (const body of bodies) {
+    const protectedNodes = protectedEquationNodes(body.document.root);
     for (const [paragraphIndex, paragraph] of body.paragraphs.entries()) {
       if (options.paragraph !== undefined && options.paragraph !== paragraphIndex) continue;
       const runs = paragraph.inlines.filter(
@@ -414,6 +416,15 @@ export async function mutateTextRuns(
       );
       for (const [runIndex, node] of runs.entries()) {
         if (options.run !== undefined && options.run !== runIndex) continue;
+        if (protectedNodes.has(node)) {
+          if (options.run !== undefined)
+            throw new OfficeError(
+              "unsupported-edit",
+              "Equation fallback runs require synchronized editing.",
+              "validate-intent"
+            );
+          continue;
+        }
         if (options.text !== undefined && node.name.localName !== "r")
           throw new OfficeError(
             "unsupported-edit",

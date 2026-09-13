@@ -1,3 +1,4 @@
+import { equationOpaqueElements } from "./equations-compatibility.js";
 import { parseContentTypes, type ContentTypeLimits } from "./content-types.js";
 import { interpretCompatibility, type CompatibilityView } from "./compatibility.js";
 import { OfficeError } from "./errors.js";
@@ -136,6 +137,7 @@ export function validatePresentation(
       part,
       [dialect.p, dialect.a, dialect.r],
       [
+        ...equationOpaqueElements,
         { namespace: dialect.a, localName: "graphicData" },
         { namespace: dialect.a, localName: "ext" },
         { namespace: dialect.p, localName: "ext" }

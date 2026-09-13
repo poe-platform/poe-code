@@ -1,0 +1,620 @@
+{
+  "schemaVersion": 1,
+  "scope": "OMML preservation during literal replacement, run formatting/assignment, frame/paragraph formatting and slide transfer. Research/provenance only.",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "authorities": ["../specs/pptx.md", "../specs/office-cli.md", "../specs/office-sdk.md"],
+  "selection": {
+    "direct_equation_unit_variants": 0,
+    "direct_equation_bdd_scenarios": 0,
+    "direct_equation_public_members": 0,
+    "query": "Case-insensitive OMML/equation occurrences inspected across every unit ID, BDD name and API identity. Generic mathematical autoshape enum entries do not describe OMML.",
+    "affected_existing_operation": "Run setter: all three source parameter variants and five expanded BDD variants. Whole-frame setter: all six source parameter variants and two expanded BDD scenarios. Existing independently asserted ordinary-text tests retained; new mathematical input rejects rather than silently deleting protected content."
+  },
+  "inventorySha256": {
+    "upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "upstream-api-inventory.json": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934"
+  },
+  "retainedOperationRows": [
+    {
+      "id": "presentation-unit-2fd37c6d646c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2697",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 1163,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::Describe_Run::it_can_change_its_text[a:r/a:t-barfoo-a:r/a:t\"barfoo\"]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::Describe_Run::it_can_change_its_text[a:r~1a:t-barfoo-a:r~1a:t\"barfoo\"]"
+      },
+      "behaviorRecord": "test-case-map.json#/rows/2697/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [],
+      "status": "bounded-original-operation",
+      "claim": "Exposed mutateTextRuns(text) and text runs set retain each text scalar, tab/LF and XML-forbidden ESC/VT boundary; literal independent persisted XML assertions and matching SDK/CLI bytes. Live _Run property remains separate.",
+      "newTests": [
+        {
+          "file": "packages/pptx/src/text-run-assignment.test.ts",
+          "name": "assigns run text through SDK and CLI with %s"
+        }
+      ]
+    },
+    {
+      "id": "presentation-unit-f6b8266b8953",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2698",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 1163,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::Describe_Run::it_can_change_its_text[a:r/a:t-bar\\x1bfoo-a:r/a:t\"bar_x001B_foo\"]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::Describe_Run::it_can_change_its_text[a:r~1a:t-bar\\x1bfoo-a:r~1a:t\"bar_x001B_foo\"]"
+      },
+      "behaviorRecord": "test-case-map.json#/rows/2698/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [],
+      "status": "bounded-original-operation",
+      "claim": "Exposed mutateTextRuns(text) and text runs set retain each text scalar, tab/LF and XML-forbidden ESC/VT boundary; literal independent persisted XML assertions and matching SDK/CLI bytes. Live _Run property remains separate.",
+      "newTests": [
+        {
+          "file": "packages/pptx/src/text-run-assignment.test.ts",
+          "name": "assigns run text through SDK and CLI with %s"
+        }
+      ]
+    },
+    {
+      "id": "presentation-unit-dd16e0f3680c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2699",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 1163,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::Describe_Run::it_can_change_its_text[a:r/a:t-bar\\tfoo-a:r/a:t\"bar\\tfoo\"]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::Describe_Run::it_can_change_its_text[a:r~1a:t-bar\\tfoo-a:r~1a:t\"bar\\tfoo\"]"
+      },
+      "behaviorRecord": "test-case-map.json#/rows/2699/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [],
+      "status": "bounded-original-operation",
+      "claim": "Exposed mutateTextRuns(text) and text runs set retain each text scalar, tab/LF and XML-forbidden ESC/VT boundary; literal independent persisted XML assertions and matching SDK/CLI bytes. Live _Run property remains separate.",
+      "newTests": [
+        {
+          "file": "packages/pptx/src/text-run-assignment.test.ts",
+          "name": "assigns run text through SDK and CLI with %s"
+        }
+      ]
+    },
+    {
+      "id": "presentation-bdd-f673e8d86546",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/949",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/txt-text.feature",
+        "line": 19,
+        "file_sha256": "47a4cb67339dcc0758be6363b357dce888a72edcef0f13e9f59fa52d5c6891b0",
+        "identity": "_Run.text setter -- @1.1 _Paragraph assigned text replacement cases",
+        "scenario_line": 12,
+        "example_line": 19,
+        "example": {
+          "value": "\"abc\"",
+          "expected-value": "\"abc\""
+        },
+        "expanded_steps": [
+          {
+            "line": 13,
+            "text": "Given a _Run object as run"
+          },
+          {
+            "line": 14,
+            "text": "When I assign run.text = \"abc\""
+          },
+          {
+            "line": 15,
+            "text": "Then run.text == \"abc\""
+          }
+        ]
+      },
+      "behaviorRecord": "test-case-map.json#/rows/3649/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [],
+      "status": "bounded-original-operation",
+      "claim": "Exposed mutateTextRuns(text) and text runs set retain each text scalar, tab/LF and XML-forbidden ESC/VT boundary; literal independent persisted XML assertions and matching SDK/CLI bytes. Live _Run property remains separate.",
+      "newTests": [
+        {
+          "file": "packages/pptx/src/text-run-assignment.test.ts",
+          "name": "assigns run text through SDK and CLI with %s"
+        }
+      ]
+    },
+    {
+      "id": "presentation-bdd-5df14d24fe53",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/950",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/txt-text.feature",
+        "line": 20,
+        "file_sha256": "47a4cb67339dcc0758be6363b357dce888a72edcef0f13e9f59fa52d5c6891b0",
+        "identity": "_Run.text setter -- @1.2 _Paragraph assigned text replacement cases",
+        "scenario_line": 12,
+        "example_line": 20,
+        "example": {
+          "value": "\"a\\tb\\nc\"",
+          "expected-value": "\"a\\tb\\nc\""
+        },
+        "expanded_steps": [
+          {
+            "line": 13,
+            "text": "Given a _Run object as run"
+          },
+          {
+            "line": 14,
+            "text": "When I assign run.text = \"a\\tb\\nc\""
+          },
+          {
+            "line": 15,
+            "text": "Then run.text == \"a\\tb\\nc\""
+          }
+        ]
+      },
+      "behaviorRecord": "test-case-map.json#/rows/3650/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [],
+      "status": "bounded-original-operation",
+      "claim": "Exposed mutateTextRuns(text) and text runs set retain each text scalar, tab/LF and XML-forbidden ESC/VT boundary; literal independent persisted XML assertions and matching SDK/CLI bytes. Live _Run property remains separate.",
+      "newTests": [
+        {
+          "file": "packages/pptx/src/text-run-assignment.test.ts",
+          "name": "assigns run text through SDK and CLI with %s"
+        }
+      ]
+    },
+    {
+      "id": "presentation-bdd-0332a2bc824b",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/951",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/txt-text.feature",
+        "line": 21,
+        "file_sha256": "47a4cb67339dcc0758be6363b357dce888a72edcef0f13e9f59fa52d5c6891b0",
+        "identity": "_Run.text setter -- @1.3 _Paragraph assigned text replacement cases",
+        "scenario_line": 12,
+        "example_line": 21,
+        "example": {
+          "value": "\"a\\x1bbc\"",
+          "expected-value": "\"a_x001B_bc\""
+        },
+        "expanded_steps": [
+          {
+            "line": 13,
+            "text": "Given a _Run object as run"
+          },
+          {
+            "line": 14,
+            "text": "When I assign run.text = \"a\\x1bbc\""
+          },
+          {
+            "line": 15,
+            "text": "Then run.text == \"a_x001B_bc\""
+          }
+        ]
+      },
+      "behaviorRecord": "test-case-map.json#/rows/3651/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [],
+      "status": "bounded-original-operation",
+      "claim": "Exposed mutateTextRuns(text) and text runs set retain each text scalar, tab/LF and XML-forbidden ESC/VT boundary; literal independent persisted XML assertions and matching SDK/CLI bytes. Live _Run property remains separate.",
+      "newTests": [
+        {
+          "file": "packages/pptx/src/text-run-assignment.test.ts",
+          "name": "assigns run text through SDK and CLI with %s"
+        }
+      ]
+    },
+    {
+      "id": "presentation-bdd-e041f66d6b5c",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/952",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/txt-text.feature",
+        "line": 22,
+        "file_sha256": "47a4cb67339dcc0758be6363b357dce888a72edcef0f13e9f59fa52d5c6891b0",
+        "identity": "_Run.text setter -- @1.4 _Paragraph assigned text replacement cases",
+        "scenario_line": 12,
+        "example_line": 22,
+        "example": {
+          "value": "\"a\\vbc\"",
+          "expected-value": "\"a_x000B_bc\""
+        },
+        "expanded_steps": [
+          {
+            "line": 13,
+            "text": "Given a _Run object as run"
+          },
+          {
+            "line": 14,
+            "text": "When I assign run.text = \"a\\vbc\""
+          },
+          {
+            "line": 15,
+            "text": "Then run.text == \"a_x000B_bc\""
+          }
+        ]
+      },
+      "behaviorRecord": "test-case-map.json#/rows/3652/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [],
+      "status": "bounded-original-operation",
+      "claim": "Exposed mutateTextRuns(text) and text runs set retain each text scalar, tab/LF and XML-forbidden ESC/VT boundary; literal independent persisted XML assertions and matching SDK/CLI bytes. Live _Run property remains separate.",
+      "newTests": [
+        {
+          "file": "packages/pptx/src/text-run-assignment.test.ts",
+          "name": "assigns run text through SDK and CLI with %s"
+        }
+      ]
+    },
+    {
+      "id": "presentation-bdd-ba153c4c2e6a",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/953",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/txt-text.feature",
+        "line": 23,
+        "file_sha256": "47a4cb67339dcc0758be6363b357dce888a72edcef0f13e9f59fa52d5c6891b0",
+        "identity": "_Run.text setter -- @1.5 _Paragraph assigned text replacement cases",
+        "scenario_line": 12,
+        "example_line": 23,
+        "example": {
+          "value": "\"a\\nb\\vc\"",
+          "expected-value": "\"a\\nb_x000B_c\""
+        },
+        "expanded_steps": [
+          {
+            "line": 13,
+            "text": "Given a _Run object as run"
+          },
+          {
+            "line": 14,
+            "text": "When I assign run.text = \"a\\nb\\vc\""
+          },
+          {
+            "line": 15,
+            "text": "Then run.text == \"a\\nb_x000B_c\""
+          }
+        ]
+      },
+      "behaviorRecord": "test-case-map.json#/rows/3653/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [],
+      "status": "bounded-original-operation",
+      "claim": "Exposed mutateTextRuns(text) and text runs set retain each text scalar, tab/LF and XML-forbidden ESC/VT boundary; literal independent persisted XML assertions and matching SDK/CLI bytes. Live _Run property remains separate.",
+      "newTests": [
+        {
+          "file": "packages/pptx/src/text-run-assignment.test.ts",
+          "name": "assigns run text through SDK and CLI with %s"
+        }
+      ]
+    },
+    {
+      "id": "presentation-unit-8a16445217fa",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2566",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 169,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture0]"
+      },
+      "behaviorRecord": "test-case-map.json#/rows/2566/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [
+        {
+          "record": "text-frame-case-map.json",
+          "status": "bounded-detached-model-original",
+          "tests": [
+            {
+              "file": "packages/pptx/src/text-frame-cases.test.ts",
+              "name": "replaces frame text from %s to %s"
+            }
+          ]
+        }
+      ],
+      "status": "bounded-prior-evidence",
+      "claim": "Exact six parameter transitions use independently authored text and paragraph/inline structure assertions. Detached TextFrame.text is supported; live owner graph remains separate.",
+      "newTests": []
+    },
+    {
+      "id": "presentation-unit-066afe5d43af",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2567",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 169,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture1]"
+      },
+      "behaviorRecord": "test-case-map.json#/rows/2567/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [
+        {
+          "record": "text-frame-case-map.json",
+          "status": "bounded-detached-model-original",
+          "tests": [
+            {
+              "file": "packages/pptx/src/text-frame-cases.test.ts",
+              "name": "replaces frame text from %s to %s"
+            }
+          ]
+        }
+      ],
+      "status": "bounded-prior-evidence",
+      "claim": "Exact six parameter transitions use independently authored text and paragraph/inline structure assertions. Detached TextFrame.text is supported; live owner graph remains separate.",
+      "newTests": []
+    },
+    {
+      "id": "presentation-unit-5a921090e27b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2568",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 169,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture2]"
+      },
+      "behaviorRecord": "test-case-map.json#/rows/2568/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [
+        {
+          "record": "text-frame-case-map.json",
+          "status": "bounded-detached-model-original",
+          "tests": [
+            {
+              "file": "packages/pptx/src/text-frame-cases.test.ts",
+              "name": "replaces frame text from %s to %s"
+            }
+          ]
+        }
+      ],
+      "status": "bounded-prior-evidence",
+      "claim": "Exact six parameter transitions use independently authored text and paragraph/inline structure assertions. Detached TextFrame.text is supported; live owner graph remains separate.",
+      "newTests": []
+    },
+    {
+      "id": "presentation-unit-bd8ba51a348c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2569",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 169,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture3]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture3]"
+      },
+      "behaviorRecord": "test-case-map.json#/rows/2569/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [
+        {
+          "record": "text-frame-case-map.json",
+          "status": "bounded-detached-model-original",
+          "tests": [
+            {
+              "file": "packages/pptx/src/text-frame-cases.test.ts",
+              "name": "replaces frame text from %s to %s"
+            }
+          ]
+        }
+      ],
+      "status": "bounded-prior-evidence",
+      "claim": "Exact six parameter transitions use independently authored text and paragraph/inline structure assertions. Detached TextFrame.text is supported; live owner graph remains separate.",
+      "newTests": []
+    },
+    {
+      "id": "presentation-unit-52dcaed22876",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2570",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 169,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture4]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture4]"
+      },
+      "behaviorRecord": "test-case-map.json#/rows/2570/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [
+        {
+          "record": "text-frame-case-map.json",
+          "status": "bounded-detached-model-original",
+          "tests": [
+            {
+              "file": "packages/pptx/src/text-frame-cases.test.ts",
+              "name": "replaces frame text from %s to %s"
+            }
+          ]
+        }
+      ],
+      "status": "bounded-prior-evidence",
+      "claim": "Exact six parameter transitions use independently authored text and paragraph/inline structure assertions. Detached TextFrame.text is supported; live owner graph remains separate.",
+      "newTests": []
+    },
+    {
+      "id": "presentation-unit-ee3177627791",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2571",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 169,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture5]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_can_replace_the_text_it_contains[text_set_fixture5]"
+      },
+      "behaviorRecord": "test-case-map.json#/rows/2571/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [
+        {
+          "record": "text-frame-case-map.json",
+          "status": "bounded-detached-model-original",
+          "tests": [
+            {
+              "file": "packages/pptx/src/text-frame-cases.test.ts",
+              "name": "replaces frame text from %s to %s"
+            }
+          ]
+        }
+      ],
+      "status": "bounded-prior-evidence",
+      "claim": "Exact six parameter transitions use independently authored text and paragraph/inline structure assertions. Detached TextFrame.text is supported; live owner graph remains separate.",
+      "newTests": []
+    },
+    {
+      "id": "presentation-bdd-ffc9776ba206",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/968",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/txt-textframe.feature",
+        "line": 62,
+        "file_sha256": "c347e76452bbb3da85857c056e22d0c644560b4421c73078d46e861534e717ea",
+        "identity": "TextFrame.text setter -- @1.1 Textframe paragraph and line break combinations",
+        "scenario_line": 55,
+        "example_line": 62,
+        "example": {
+          "value": "\"abc\""
+        },
+        "expanded_steps": [
+          {
+            "line": 56,
+            "text": "Given a TextFrame object as text_frame"
+          },
+          {
+            "line": 57,
+            "text": "When I assign text_frame.text = \"abc\""
+          },
+          {
+            "line": 58,
+            "text": "Then text_frame.text == \"abc\""
+          }
+        ]
+      },
+      "behaviorRecord": "test-case-map.json#/rows/3668/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [
+        {
+          "record": "text-frame-case-map.json#/rows/143",
+          "status": "original_assertions_passed",
+          "tests": [
+            {
+              "file": "packages/pptx/src/text-frame-cases.test.ts",
+              "name": null
+            }
+          ]
+        }
+      ],
+      "status": "bounded-prior-evidence",
+      "claim": "Prior receipt retains its original limitations; extraction/operation assertions do not establish live owner-model or enum parity.",
+      "newTests": []
+    },
+    {
+      "id": "presentation-bdd-105921090c8c",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/969",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/txt-textframe.feature",
+        "line": 63,
+        "file_sha256": "c347e76452bbb3da85857c056e22d0c644560b4421c73078d46e861534e717ea",
+        "identity": "TextFrame.text setter -- @1.2 Textframe paragraph and line break combinations",
+        "scenario_line": 55,
+        "example_line": 63,
+        "example": {
+          "value": "\"a\\nb\\nc\""
+        },
+        "expanded_steps": [
+          {
+            "line": 56,
+            "text": "Given a TextFrame object as text_frame"
+          },
+          {
+            "line": 57,
+            "text": "When I assign text_frame.text = \"a\\nb\\nc\""
+          },
+          {
+            "line": 58,
+            "text": "Then text_frame.text == \"a\\nb\\nc\""
+          }
+        ]
+      },
+      "behaviorRecord": "test-case-map.json#/rows/3669/original_behavior",
+      "relevance": "unicode-text-and-inline-boundaries",
+      "priorEvidence": [
+        {
+          "record": "text-frame-case-map.json#/rows/144",
+          "status": "original_assertions_passed",
+          "tests": [
+            {
+              "file": "packages/pptx/src/text-frame-cases.test.ts",
+              "name": null
+            }
+          ]
+        }
+      ],
+      "status": "bounded-prior-evidence",
+      "claim": "Prior receipt retains its original limitations; extraction/operation assertions do not establish live owner-model or enum parity.",
+      "newTests": []
+    }
+  ],
+  "supplementalOriginalTests": {
+    "file": "packages/pptx/src/equations-preservation.test.ts",
+    "cases": 21,
+    "coverage": [
+      "Literal search cannot bridge hidden OMML or change equation fallback text",
+      "Drawing wrapper and both math namespace URIs",
+      "Malformed preserved opaque math versus unsafe slide remapping references/extensions",
+      "Frame/paragraph formatting preserves original OMML and fallbacks",
+      "Run formatting skips equation caches; explicit fallback run assignment rejects",
+      "Slide duplicate/import preserve original markup",
+      "CLI text replace reports zero affected and publishes original bytes through memfs",
+      "Nonignorable math remains opaque without advertising namespace understanding",
+      "Whole-frame text assignment rejects math/cache destruction via SDK, CLI, TextFrame.text and Shape.text; shared applyFrameFormatting guard also covers table cell assignment."
+    ]
+  },
+  "apiMapping": [
+    {
+      "sourceId": "pptx.text.text._Run.text",
+      "mapping": "JS caller string via mutateTextRuns({text}) and text runs set --text; existing UTF-16 scalar admission/control encoding tested. Protected equation fallback is unsupported-edit for explicit run selection. A returned live run.text setter is not claimed by this operation. Leading underscore does not exclude the public member."
+    },
+    {
+      "sourceId": "pptx.text.text.TextFrame.clear",
+      "mapping": "Not implemented in the current returned model; no clear method or Paragraph.text property is invented by this change. Existing inventories retain their public obligations. Paragraph set does not accept text. Leading underscores never exclude a public type."
+    },
+    {
+      "sourceId": "pptx.text.text.TextFrame.text",
+      "mapping": "TextFrame.text (caller JS string) and mutateTextFrames({text})/text frames set --text retain ordinary destructive replacement but reject equations or protected fallbacks with unsupported-edit before mutation. Shape.text and cell.text reach the same guarded frame primitive. Frame tests retain Unicode/newline/vertical-tab behavior."
+    },
+    {
+      "sourceId": "pptx.text.text._Paragraph.clear",
+      "mapping": "Not implemented in the current returned model; no clear method or Paragraph.text property is invented by this change. Existing inventories retain their public obligations. Paragraph set does not accept text. Leading underscores never exclude a public type."
+    },
+    {
+      "sourceId": "pptx.text.text._Paragraph.text",
+      "mapping": "Not implemented in the current returned model; no clear method or Paragraph.text property is invented by this change. Existing inventories retain their public obligations. Paragraph set does not accept text. Leading underscores never exclude a public type."
+    }
+  ],
+  "legal": "All new test words/XML are original. Existing upstream-license-notice.txt and test-case-map-notice.txt retained separately; no source copied into product tests."
+}

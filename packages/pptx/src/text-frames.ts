@@ -1,3 +1,4 @@
+import { protectedEquationNodes } from "./equations-compatibility.js";
 import type { FontMetricsHandle } from "./font-metrics.js";
 import { fitFrameXml, type ModelTextFitOptions } from "./text-fitting.js";
 import { SaxesParser } from "saxes";
@@ -228,6 +229,15 @@ export function applyFrameFormatting(
 ): XmlPart {
   validateTextFrameOptions(options);
   readFrameFormatting(node);
+  if (
+    options.text !== undefined &&
+    (protectedEquationNodes(node).size > 0 || protectedEquationNodes(document.root).has(node))
+  )
+    throw new OfficeError(
+      "unsupported-edit",
+      "Whole text replacement cannot remove equations or their fallbacks.",
+      "validate-intent"
+    );
   const path: number[] = [];
   function locate(current: XmlElement): boolean {
     if (current === node) return true;

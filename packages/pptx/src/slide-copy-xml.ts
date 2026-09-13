@@ -1,3 +1,4 @@
+import { equationNamespaces } from "./equations-compatibility.js";
 import { OfficeError } from "./errors.js";
 import type { RelationshipEdge } from "./relationships.js";
 import { parseXmlPart, type XmlElement, type XmlPart, type XmlLimits } from "./xml.js";
@@ -41,7 +42,22 @@ export function remapCopiedXml(
 ): Uint8Array {
   let xml = parseXmlPart(bytes, options.xmlLimits);
   const diagramNamespace = `${options.dialect.a.slice(0, options.dialect.a.lastIndexOf("/"))}/diagram`;
+  const original = xml;
   const nodes = elements(xml);
+  const compatibilityNamespace = "http://schemas.openxmlformats.org/markup-compatibility/2006";
+  const mathWrappers = new Set<XmlElement>();
+  for (const { node, path } of nodes) {
+    if (!equationNamespaces.includes(node.name.namespace)) continue;
+    let ancestor = xml.root;
+    for (const index of path) {
+      if (ancestor.name.namespace === compatibilityNamespace) {
+        mathWrappers.add(ancestor);
+        if (ancestor.name.localName === "AlternateContent")
+          for (const branch of ancestor.children) mathWrappers.add(branch);
+      }
+      ancestor = ancestor.children[index]!;
+    }
+  }
   const diagramPresent = nodes.some(
     ({ node }) => node.name.namespace === diagramNamespace && node.name.localName === "relIds"
   );
@@ -89,9 +105,14 @@ export function remapCopiedXml(
     if (
       (![options.dialect.p, options.dialect.a, options.dialect.c].includes(node.name.namespace) &&
         !(
-          diagramPresent &&
-          node.name.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" &&
+          (diagramPresent || mathWrappers.has(node)) &&
+          node.name.namespace === compatibilityNamespace &&
           ["AlternateContent", "Choice", "Fallback"].includes(node.name.localName)
+        ) &&
+        !equationNamespaces.includes(node.name.namespace) &&
+        !(
+          node.name.namespace === "http://schemas.microsoft.com/office/drawing/2010/main" &&
+          node.name.localName === "m"
         ) &&
         !(node.name.namespace === diagramNamespace && node.name.localName === "relIds") &&
         !(
@@ -163,8 +184,27 @@ export function remapCopiedXml(
         options.allocateLayoutId
       ) {
         value = options.allocateLayoutId();
+      } else if (namespace === compatibilityNamespace && localName === "Ignorable") {
+        const prefixes = attribute.value
+          .split(" ")
+          .flatMap((value) => value.split("\t"))
+          .flatMap((value) => value.split("\n"))
+          .flatMap((value) => value.split("\r"))
+          .filter(Boolean);
+        if (
+          !prefixes.length ||
+          prefixes.some(
+            (prefix) =>
+              ![
+                ...equationNamespaces,
+                "http://schemas.microsoft.com/office/drawing/2010/main"
+              ].includes(original.resolveNamespace(node, prefix) ?? "")
+          )
+        )
+          unsupported();
       } else if (
         namespace &&
+        !(equationNamespaces.includes(node.name.namespace) && namespace === node.name.namespace) &&
         !["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace"].includes(
           namespace
         )

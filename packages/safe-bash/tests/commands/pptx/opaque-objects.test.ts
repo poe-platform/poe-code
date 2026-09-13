@@ -69,7 +69,7 @@ test("pptx rejects unsupported object selectors and undeclared extraction public
 test("pptx refuses slide import with an unsupported object reference before publication", async () => {
   const { shell, volume } = setup();
   const target = await createPresentation({ slides: [{ name: "Landing" }] }, opaqueContext);
-  const members = new Map(inspectZip(target).map(item => [item.name, item.payload]));
+  const members = new Map<string, Uint8Array>(inspectZip(target).map(item => [item.name, item.payload]));
   const name = "ppt/slides/_rels/slide1.xml.rels";
   const xml = parseXmlPart(members.get(name)!, opaqueContext.xmlLimits);
   members.set(name, xml.spliceChildren(xml.root, xml.root.children.length, 0, [

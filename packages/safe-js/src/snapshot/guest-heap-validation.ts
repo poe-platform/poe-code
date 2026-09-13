@@ -1193,12 +1193,15 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
             fields(expression, ["kind", "async", "value", "current", "iterator"], ["phase", "awaitState", "completion"]);
             if (typeof expression.async !== "boolean") throw new TypeError("Invalid delegated yield protocol.");
             if (expression.phase !== undefined) {
-              if (!["await", "close"].includes(String(expression.phase)) || expression.async !== true || node.awaitPhase !== "await" || node.yieldNodeId !== Number(id))
+              if (!["await", "close", "return"].includes(String(expression.phase)) || expression.async !== true || node.awaitPhase !== "await" || node.yieldNodeId !== Number(id))
                 throw new TypeError("Invalid delegated iterator wait position.");
               const completion = record(expression.completion);
               fields(completion, ["type", "value"]);
-              if (!["normal", "return", "throw"].includes(String(completion.type)) || (expression.phase === "close" && completion.type !== "throw"))
+              if (!["normal", "return", "throw"].includes(String(completion.type)) || (expression.phase === "close" && completion.type !== "throw") || (expression.phase === "return" && completion.type !== "return"))
                 throw new TypeError("Invalid delegated iterator completion.");
+              if (expression.phase === "return") {
+                if (expression.awaitState !== undefined) throw new TypeError("Unexpected delegated return iterator state.");
+              } else {
               const awaiting = record(expression.awaitState);
               if (awaiting.kind === "result") fields(awaiting, ["kind"]);
               else if (awaiting.kind === "value") {
@@ -1207,6 +1210,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
                     awaiting.closeOnReject !== (expression.phase === "await" && completion.type !== "return" && !awaiting.done))
                   throw new TypeError("Invalid delegated async-from-sync continuation.");
               } else throw new TypeError("Invalid delegated iterator await kind.");
+              }
             } else if (expression.awaitState !== undefined || expression.completion !== undefined)
               throw new TypeError("Unexpected delegated iterator continuation fields.");
           } else if (expression.kind === "array-pattern") {
@@ -1252,7 +1256,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
               protocol = true;
             }
             if (((expression.kind === "for-of-iterator" && (expression.phase === "next" || expression.phase === "close")) ||
-                 (expression.kind === "yield-delegate" && expression.phase !== undefined)) &&
+                 (expression.kind === "yield-delegate" && expression.phase !== undefined && expression.phase !== "return")) &&
                 record(expression.awaitState).kind !== (depth === 1 ? "value" : "result"))
               throw new TypeError("Iterator await state does not match its adapter.");
             if (iterator.kind === "guest") {

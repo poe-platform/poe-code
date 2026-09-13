@@ -56,7 +56,11 @@ export function remapCopiedXml(
   }
   for (const { node, path } of nodes) {
     if (
-      ![options.dialect.p, options.dialect.a, options.dialect.c].includes(node.name.namespace) ||
+      (![options.dialect.p, options.dialect.a, options.dialect.c].includes(node.name.namespace) &&
+        !(
+          node.name.namespace === "http://schemas.microsoft.com/office/drawing/2014/chartex" &&
+          node.name.localName === "chart"
+        )) ||
       ["extLst", "oleObj", "control", "contentPart"].includes(node.name.localName)
     )
       unsupported();

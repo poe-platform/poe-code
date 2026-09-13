@@ -377,7 +377,7 @@ describe("cross-deck slide import", () => {
     expect(
       attrs(result.get("ppt/slideMasters/slideMaster1-import1.xml")!, "sldLayoutId")[0]!.id
     ).toBe("2147483648");
-    expect(attrs(result.get("ppt/charts/chart-import1.xml")!, "externalData")[0]!["r:id"]).not.toBe(
+    expect(attrs(result.get("ppt/charts/chart-import1.xml")!, "externalData")[0]!["r:id"]).toBe(
       "data"
     );
     expect(attrs(result.get("ppt/slides/slide1-import1.xml")!, "cNvPr").map((x) => x.id)).toEqual([

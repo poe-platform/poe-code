@@ -10,6 +10,11 @@ import { readRelationshipGraph } from "./relationships.js";
 import type { SelectionContext } from "./selectors.js";
 import type { SlideTransferBudget } from "./slide-transfer-budget.js";
 import { remapCopiedXml } from "./slide-copy-xml.js";
+import {
+  chartImportRelationships,
+  chartImportTypes,
+  validatePreservedChart
+} from "./chart-import.js";
 import { parseXmlPart, type XmlElement } from "./xml.js";
 import { validatePresentation } from "./validation.js";
 
@@ -330,16 +335,24 @@ export async function importSelectedSlides(
     notesMaster: "application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml",
     theme: "application/vnd.openxmlformats-officedocument.theme+xml",
     themeOverride: "application/vnd.openxmlformats-officedocument.themeOverride+xml",
-    chart: "application/vnd.openxmlformats-officedocument.drawingml.chart+xml",
+    ...chartImportTypes,
     package: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   };
+  const opaqueChartTypes = new Set<string>(Object.values(chartImportTypes));
   const closure = [...selected];
   const visited = new Set(selected);
   for (let cursor = 0; cursor < closure.length; cursor++) {
     if (cursor && cursor % 64 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
     const owner = closure[cursor]!;
     for (const edge of sourceGraph.outgoing(owner)) {
-      const kind = edge.type.startsWith(`${d.r}/`) ? edge.type.slice(d.r.length + 1) : "";
+      const kind =
+        chartImportRelationships[edge.type] ??
+        (edge.type.startsWith(`${d.r}/`) ? edge.type.slice(d.r.length + 1) : "");
+      if (
+        opaqueChartTypes.has(types.get(owner)) &&
+        !["package", "image", "chartStyle", "chartColorStyle", "themeOverride"].includes(kind)
+      )
+        unsupported("Import cannot preserve this chart dependency safely.");
       if (edge.external) {
         if (!["hyperlink", "image", "audio", "video"].includes(kind))
           unsupported("Import encountered an unsupported external relationship.");
@@ -359,7 +372,10 @@ export async function importSelectedSlides(
         (!type.startsWith(`${kind}/`) || sourceGraph.outgoing(edge.targetPart).length)
       )
         unsupported("Import media must have a matching type and no package relationships.");
-      if (kind === "package" && types.get(owner) !== expectedTypes.chart)
+      if (
+        kind === "package" &&
+        ![expectedTypes.chart, expectedTypes.chartEx].includes(types.get(owner))
+      )
         unsupported("Import supports embedded workbooks only as chart dependencies.");
       if (kind === "slide" && !selected.includes(edge.targetPart))
         unsupported("Import requires selecting every internally linked source slide.");
@@ -418,15 +434,19 @@ export async function importSelectedSlides(
     const copy = copies.get(original)!;
     const bytes = sourceReader.get(original);
     const edges = sourceGraph.outgoing(original);
+    const type = types.get(original);
+    const preserveChart = opaqueChartTypes.has(type);
     const oldIds = new Set(edges.map((edge) => edge.id));
     const ids = new Map<string, string>();
     let next = 1;
     for (const edge of edges) {
       while (oldIds.has(`rId${next}`)) next++;
-      ids.set(edge.id, `rId${next++}`);
+      ids.set(edge.id, preserveChart ? edge.id : `rId${next++}`);
     }
-    const type = types.get(original);
-    if (type.endsWith("+xml") || type === "application/xml" || type === "text/xml") {
+    if (preserveChart) {
+      validatePreservedChart(parse(bytes), type, edges, d);
+      save(copy, bytes);
+    } else if (type.endsWith("+xml") || type === "application/xml" || type === "text/xml") {
       const xml = parse(bytes);
       const pending = [xml.root];
       while (pending.length) {

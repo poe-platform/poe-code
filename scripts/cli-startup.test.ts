@@ -8,7 +8,9 @@ import { readFile, readdir } from "node:fs/promises";
 it("keeps filesystem imports out of the CLI startup graph", async () => {
   const root = path.resolve(import.meta.dirname, "..");
   const workspaces = [];
-  for (const dir of await readdir(path.join(root, "packages"))) {
+  for (const entry of await readdir(path.join(root, "packages"), { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const dir = entry.name;
     try {
       workspaces.push({
         dir,

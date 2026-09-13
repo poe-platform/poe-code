@@ -31,11 +31,16 @@ function invalid(): never {
     "usage"
   );
 }
-function object(value: unknown, keys: readonly string[]): asserts value is Record<string, unknown> {
+function object(
+  value: unknown,
+  keys: readonly string[],
+  required: readonly string[] = keys
+): asserts value is Record<string, unknown> {
   if (
     !value ||
     typeof value !== "object" ||
     ![Object.prototype, null].includes(Object.getPrototypeOf(value)) ||
+    required.some((key) => !Object.hasOwn(value, key)) ||
     Reflect.ownKeys(value).some(
       (key) =>
         typeof key !== "string" ||
@@ -75,7 +80,11 @@ export function validateTemplateBindings(
   if (bindings.length > 1000) invalid();
   const seen = new Set<string>();
   for (const binding of bindings) {
-    object(binding, ["kind", "name", "scope", "slide", "cardinality", "text", "table", "image"]);
+    object(
+      binding,
+      ["kind", "name", "scope", "slide", "cardinality", "text", "table", "image"],
+      ["kind", "name", "scope", "slide", "cardinality"]
+    );
     text(binding.name);
     if (
       !binding.name ||

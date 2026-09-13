@@ -1,0 +1,133 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/test/conformance/eval-deleted-global-function.test.ts (5 tests | 3 failed) 113ms
+   × recreates a deleted global block function through eval 39ms
+   × recreates a deleted global block function through (0,eval) 19ms
+   × ignores failed recreation on a now nonextensible global 18ms
+   ✓ preserves the neighboring declared or strict behavior: eval('{function f(){return 7}}'); f() 21ms
+   ✓ preserves the neighboring declared or strict behavior: eval('"use strict"; {function f(){}}'); typeof f 16ms
+FAIL packages/safe-js/test/conformance/eval-deleted-global-function.test.ts > recreates a deleted global block function through eval
+AssertionError: expected { status: 'throw', …(2) } to deeply equal { status: 'normal', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "status": "normal",
+-   "value": "7,true,true,true",
++   "error": {},
++   "phase": "runtime",
++   "status": "throw",
+  }
+
+ ❯ packages/safe-js/test/conformance/eval-deleted-global-function.test.ts:12:8
+     10|       var d=Object.getOwnPropertyDescriptor(globalThis,"f");
+     11|       [f(),d.writable,d.enumerable,d.configurable].join(",")`))
+     12|       .toEqual({status: "normal", value: "7,true,true,true"});
+       |        ^
+     13|   } finally { await realm.dispose(); }
+     14| });
+
+FAIL packages/safe-js/test/conformance/eval-deleted-global-function.test.ts > recreates a deleted global block function through (0,eval)
+AssertionError: expected { status: 'throw', …(2) } to deeply equal { status: 'normal', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "status": "normal",
+-   "value": "7,true,true,true",
++   "error": {},
++   "phase": "runtime",
++   "status": "throw",
+  }
+
+ ❯ packages/safe-js/test/conformance/eval-deleted-global-function.test.ts:12:8
+     10|       var d=Object.getOwnPropertyDescriptor(globalThis,"f");
+     11|       [f(),d.writable,d.enumerable,d.configurable].join(",")`))
+     12|       .toEqual({status: "normal", value: "7,true,true,true"});
+       |        ^
+     13|   } finally { await realm.dispose(); }
+     14| });
+
+FAIL packages/safe-js/test/conformance/eval-deleted-global-function.test.ts > ignores failed recreation on a now nonextensible global
+AssertionError: expected { status: 'throw', …(2) } to deeply equal { Object (status, value) }
+
+- Expected
++ Received
+
+  {
+-   "status": "normal",
+-   "value": "undefined",
++   "error": {},
++   "phase": "runtime",
++   "status": "throw",
+  }
+
+ ❯ packages/safe-js/test/conformance/eval-deleted-global-function.test.ts:20:8
+     18|   try {
+     19|     expect(await realm.evaluate(`eval("delete globalThis.f; Object.pre…
+     20|       .toEqual({status: "normal", value: "undefined"});
+       |        ^
+     21|   } finally { await realm.dispose(); }
+     22| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/test/conformance/eval-deleted-global-function.test.ts > recreates a deleted global block function through eval
+ FAIL  packages/safe-js/test/conformance/eval-deleted-global-function.test.ts > recreates a deleted global block function through (0,eval)
+AssertionError: expected { status: 'throw', …(2) } to deeply equal { status: 'normal', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "status": "normal",
+-   "value": "7,true,true,true",
++   "error": {},
++   "phase": "runtime",
++   "status": "throw",
+  }
+
+ ❯ packages/safe-js/test/conformance/eval-deleted-global-function.test.ts:12:8
+     10|       var d=Object.getOwnPropertyDescriptor(globalThis,"f");
+     11|       [f(),d.writable,d.enumerable,d.configurable].join(",")`))
+     12|       .toEqual({status: "normal", value: "7,true,true,true"});
+       |        ^
+     13|   } finally { await realm.dispose(); }
+     14| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/safe-js/test/conformance/eval-deleted-global-function.test.ts > ignores failed recreation on a now nonextensible global
+AssertionError: expected { status: 'throw', …(2) } to deeply equal { Object (status, value) }
+
+- Expected
++ Received
+
+  {
+-   "status": "normal",
+-   "value": "undefined",
++   "error": {},
++   "phase": "runtime",
++   "status": "throw",
+  }
+
+ ❯ packages/safe-js/test/conformance/eval-deleted-global-function.test.ts:20:8
+     18|   try {
+     19|     expect(await realm.evaluate(`eval("delete globalThis.f; Object.pre…
+     20|       .toEqual({status: "normal", value: "undefined"});
+       |        ^
+     21|   } finally { await realm.dispose(); }
+     22| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 2 passed (5)
+   Start at  09:37:36
+   Duration  1.90s (transform 1.32s, setup 36ms, import 1.67s, tests 113ms, environment 0ms)
+

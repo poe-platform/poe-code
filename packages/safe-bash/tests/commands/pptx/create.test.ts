@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import test from "node:test";
+import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
 import {
   addSlide,
   createPptxCommandEngine,
   createPresentation,
   duplicateSlides,
+  importSlides,
   mutateSlides,
   removeSlides,
   readSelectionIndex
@@ -32,6 +33,12 @@ const context = {
   xmlLimits: { maxBytes: 65536, maxNodes: 4000, maxDepth: 32 },
   relationshipLimits: { maxBytes: 65536, maxParts: 64, maxRelationships: 64 }
 };
+before(() => {
+  const timer = globalThis.setTimeout;
+  mock.method(globalThis, "setTimeout", ((callback: () => void, delay: number) =>
+    delay === 0 ? setImmediate(callback) : timer(callback, delay)) as typeof setTimeout);
+});
+after(() => mock.restoreAll());
 function fixture() {
   const volume = Volume.fromJSON({ "/work": null });
   const fs: FileSystem = new MemoryFileSystem();
@@ -97,6 +104,45 @@ function fixture() {
   );
   return { shell, fs, volume };
 }
+
+test("pptx imports ordered slides through SDK and shell with isolated source bytes", async () => {
+  const { shell, volume } = fixture();
+  const source = await createPresentation({ slides: [{ name: "Lagoon" }, { name: "Beacon" }] }, context);
+  const destination = await createPresentation({ slides: [{ name: "Pier" }] }, context);
+  volume.writeFileSync("/work/source deck.pptx", source);
+  volume.writeFileSync("/work/destination.pptx", destination);
+  const result = await shell.exec("pptx slides import destination.pptx --source 'source deck.pptx' --source-slides '[2,1]' --position 1 --output result.pptx --json");
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).operation, "slides.import");
+  assert.equal(JSON.parse(result.stdout).affected, 2);
+  const output = new Uint8Array(volume.readFileSync("/work/result.pptx") as Buffer);
+  assert.deepEqual(output, await importSlides(destination, source, { sourceSlides: [2,1], position: 1 }, context));
+  assert.deepEqual((await readSelectionIndex(output, context)).slides.map(slide => slide.name), ["Beacon", "Lagoon", "Pier"]);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source deck.pptx") as Buffer), source);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/destination.pptx") as Buffer), destination);
+  const dry = await shell.exec("pptx slides import destination.pptx --source 'source deck.pptx' --source-slides '[1]' --in-place --dry-run --json");
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.deepEqual(JSON.parse(dry.stdout).data.outputs, []);
+  const pipeline = await shell.exec("pptx slides import destination.pptx --source 'source deck.pptx' --source-slides '[1]' --output - | pptx inspect - --json");
+  assert.equal(pipeline.exitCode, 0, pipeline.stdout + pipeline.stderr);
+  assert.deepEqual(JSON.parse(pipeline.stdout).data.records.map((record: { name: string }) => record.name), ["Pier", "Lagoon"]);
+});
+
+test("pptx import never overwrites an aliased source under force", async () => {
+  const { shell, volume } = fixture();
+  const source = await createPresentation({ slides: [{ name: "Source" }] }, context);
+  volume.writeFileSync("/work/source.pptx", source);
+  volume.writeFileSync("/work/destination.pptx", await createPresentation({}, context));
+  volume.linkSync("/work/source.pptx", "/work/alias.pptx");
+  for (const output of ["source.pptx", "./source.pptx", "alias.pptx"]) {
+    const result = await shell.exec(`pptx slides import destination.pptx --source source.pptx --source-slides '[1]' --output ${output} --force --json`);
+    assert.notEqual(result.exitCode, 0, result.stdout + result.stderr);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source.pptx") as Buffer), source);
+  }
+  const same = await shell.exec("pptx slides import source.pptx --source ./source.pptx --source-slides '[1]' --in-place --json");
+  assert.notEqual(same.exitCode, 0, same.stdout + same.stderr);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source.pptx") as Buffer), source);
+});
 
 test("pptx slide duplication publishes fresh identities and preserves its source", async () => {
   const { shell, volume } = fixture();

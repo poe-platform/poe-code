@@ -78,6 +78,30 @@ function fixture(register = true) {
   return { shell, volume, fs };
 }
 
+for (const link of ["hardlink", "symlink"]) test(`pptx publication protects secondary input ${link} aliases`, async () => {
+  const { shell, volume, fs } = fixture(false);
+  fs.readlink = async path => String(volume.readlinkSync(path));
+  fs.realpath = async path => String(volume.realpathSync(path));
+  const source = new Uint8Array([7, 8, 9]);
+  volume.writeFileSync("/work/source.pptx", source);
+  volume.linkSync("/work/source.pptx", "/work/alias.pptx");
+  if (link === "symlink") volume.symlinkSync("/work/source.pptx", "/work/source-link.pptx");
+  let failure: unknown;
+  shell.use(pptxCommands({ engine: { async execute(request) {
+    const original = await request.readInput("deck.pptx", 65536);
+    await request.readInput(link === "symlink" ? "source-link.pptx" : "source.pptx", 65536);
+    try {
+      await request.publishOutput!({ inputPath: "deck.pptx", outputPath: "alias.pptx",
+        originalBytes: original, bytes: new Uint8Array([1]), inPlace: false, force: true, dryRun: false });
+    } catch (error) { failure = error; }
+    return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() };
+  } } }));
+  const result = await shell.exec("pptx");
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  assert.equal((failure as { code?: string } | undefined)?.code, "io-failure");
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source.pptx") as Buffer), source);
+});
+
 test("pptx adapter publishes atomically and refuses alias, stale and unavailable destinations", async () => {
   for (const scenario of ["new", "existing", "force", "alias", "hardlink", "symlink", "unknown", "stale", "unsupported", "dry-run", "dry-alias", "race"]) {
     const { shell, volume, fs } = fixture(false);

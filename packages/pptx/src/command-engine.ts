@@ -15,6 +15,7 @@ import {
   slidesAddSchema,
   slidesMoveSchema,
   slidesDuplicateSchema,
+  slidesImportSchema,
   slidesRemoveSchema,
   slidesSetSchema,
   xmlGetSchema,
@@ -29,6 +30,7 @@ import {
 } from "./slides.js";
 import { commandJson, commandLength, commandTimestamp } from "./command-engine-values.js";
 import { duplicateSlides } from "./slide-copy.js";
+import { importSlides, type ImportSlidesOptions } from "./slide-import.js";
 import { removeSlides } from "./slide-removal.js";
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
 import type { ValidationLimits } from "./validation.js";
@@ -42,6 +44,7 @@ export interface PptxCommandEngineOptions {
 }
 export interface PptxPublicationRequest {
   readonly inputPath?: string;
+  readonly protectedInputPaths?: readonly string[];
   readonly outputPath: string;
   readonly bytes: Uint8Array;
   readonly originalBytes: Uint8Array;
@@ -91,6 +94,9 @@ const help =
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides duplicate INPUT --position N [--slide N | --select TOKEN | --all]\n" +
   "                       [--allow-empty] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx slides import INPUT --source PATH --source-slides JSON [--position N]\n" +
+  "                       [--theme-policy source|destination] [--dimension-policy reject|destination]\n" +
+  "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides move INPUT --position N [--slide N | --select TOKEN | --all]\n" +
   "                       [--allow-empty] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides set INPUT [--name TEXT] [--hidden true|false] [--position N]\n" +
@@ -99,7 +105,7 @@ const help =
   "       pptx xml get INPUT --part URI [--scope SCOPE] [--pretty] [--json]\n" +
   "       pptx xml set INPUT --part URI --file XML [--scope SCOPE]\n" +
   "                    [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-  "       pptx schema [create | inspect | slides add | slides move | slides set | slides remove | slides duplicate | xml get | xml set] [--json]\n" +
+  "       pptx schema [create | inspect | slides add | slides move | slides set | slides remove | slides duplicate | slides import | xml get | xml set] [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "Slide positions are one-based. Shape names are exact; numeric strings are names.\n" +
   "Duplicate names require --all. Default scope: slides.\n" +
@@ -119,6 +125,10 @@ const help =
   "Create supports Transitional only; supplied templates are unavailable.\n" +
   "Slides move/set/remove/duplicate also accept --selection-json QUERY_OR_ARRAY instead of simple selectors.\n" +
   "Slide removal requires --reference-policy remove for affected known references; opaque targets are rejected.\n" +
+  "Import source-slides is an ordered JSON array of unique one-based positions.\n" +
+  "Import preserves source appearance by default; destination theme mapping is unavailable.\n" +
+  "Import rejects conflicting notes masters, global font/text/table-style dependencies, unselected slide links and opaque references.\n" +
+  "Dimension conflicts reject by default; destination policy retains source coordinates and destination size.\n" +
   "Slides add requires an exact layout name or part URI; position defaults to append.\n" +
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
@@ -130,6 +140,7 @@ interface Arguments {
     | "slides.set"
     | "slides.remove"
     | "slides.duplicate"
+    | "slides.import"
     | "inspect"
     | "xml.get"
     | "xml.set"
@@ -140,6 +151,8 @@ interface Arguments {
   creation?: CreatePresentationOptions;
   addition?: Partial<AddSlideOptions>;
   mutation?: Omit<MutateSlidesOptions, "selection">;
+  importing?: Partial<ImportSlidesOptions>;
+  source?: string;
   allowEmpty?: boolean;
   referencePolicy?: "remove";
   selection?: SelectionQuery | readonly SelectionQuery[];
@@ -167,6 +180,10 @@ function usage(message: string): never {
 }
 
 const scalarOptions = [
+  "--source",
+  "--source-slides",
+  "--theme-policy",
+  "--dimension-policy",
   "--reference-policy",
   "--selection-json",
   "--slide",
@@ -237,7 +254,7 @@ function parse(
     } else if (
       index === 1 &&
       args[0] === "slides" &&
-      ["add", "move", "set", "remove", "duplicate"].includes(argument)
+      ["add", "move", "set", "remove", "duplicate", "import"].includes(argument)
     ) {
       output.operation = `slides.${argument}`;
     } else if (hintValue) hintValue = false;
@@ -266,6 +283,7 @@ function parse(
       "slides.set",
       "slides.remove",
       "slides.duplicate",
+      "slides.import",
       "inspect",
       "xml.get",
       "xml.set",
@@ -325,6 +343,30 @@ function parse(
       continue;
     }
     if (
+      ["--source", "--source-slides", "--theme-policy", "--dimension-policy"].includes(argument)
+    ) {
+      if (operation !== "slides.import") usage("Option requires slides import.");
+      if (argument === "--source") result.source = value;
+      else if (argument === "--source-slides") {
+        const positions = commandJson(value);
+        if (
+          !Array.isArray(positions) ||
+          !positions.length ||
+          positions.some((position) => !Number.isSafeInteger(position) || position < 1) ||
+          new Set(positions).size !== positions.length
+        )
+          usage("Source slides require a nonempty array of unique one-based positions.");
+        result.importing = { ...result.importing, sourceSlides: positions };
+      } else if (argument === "--theme-policy") {
+        if (value !== "source" && value !== "destination") usage("Unknown theme policy.");
+        result.importing = { ...result.importing, themePolicy: value };
+      } else {
+        if (value !== "reject" && value !== "destination") usage("Unknown dimension policy.");
+        result.importing = { ...result.importing, dimensionPolicy: value };
+      }
+      continue;
+    }
+    if (
       [
         "--layout",
         "--position",
@@ -337,6 +379,7 @@ function parse(
       ].includes(argument)
     ) {
       if (
+        operation === "slides.import" ||
         operation === "slides.duplicate" ||
         operation === "slides.move" ||
         operation === "slides.set"
@@ -348,7 +391,9 @@ function parse(
             Number(value) < 1
           )
             usage("Slide positions must be positive one-based integers.");
-          result.mutation = { ...result.mutation, position: Number(value) };
+          if (operation === "slides.import")
+            result.importing = { ...result.importing, position: Number(value) };
+          else result.mutation = { ...result.mutation, position: Number(value) };
         } else if (operation === "slides.set" && argument === "--name")
           result.mutation = { ...result.mutation, name: value };
         else if (operation === "slides.set" && argument === "--hidden") {
@@ -620,7 +665,30 @@ function parse(
       usage("Binary stdout cannot be combined with JSON.");
     return result;
   }
-  if (operation === "slides.add") {
+  if (operation === "slides.import") {
+    const allowed = [
+      "--source",
+      "--source-slides",
+      "--theme-policy",
+      "--dimension-policy",
+      "--position",
+      "--json",
+      "--limit",
+      "--output",
+      "--in-place",
+      "--force",
+      "--dry-run"
+    ];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to slide import.");
+    if (!result.source || !result.importing?.sourceSlides)
+      usage("Import requires source and source slides.");
+    if (positionals[0] === "-" && result.source === "-") usage("Only one input may consume stdin.");
+    if (result.output === result.source && result.output !== "-")
+      usage("Import output cannot replace its source.");
+    if (result.inPlace && positionals[0] === result.source)
+      usage("Import in-place destination must differ from source.");
+  } else if (operation === "slides.add") {
     const allowed = [
       "--layout",
       "--position",
@@ -691,6 +759,7 @@ function parse(
         "slides.set",
         "slides.remove",
         "slides.duplicate",
+        "slides.import",
         "xml.get",
         "xml.set"
       ].includes(positionals.join("."))
@@ -719,11 +788,18 @@ function parse(
   if (
     operation !== "xml.set" &&
     operation !== "slides.add" &&
+    operation !== "slides.import" &&
     !slideMutation &&
     mutationOptions.some((option) => seen.has(option))
   )
     usage("Publication options require xml set.");
-  if (!xml && operation !== "slides.add" && !slideMutation && result.limits)
+  if (
+    !xml &&
+    operation !== "slides.add" &&
+    operation !== "slides.import" &&
+    !slideMutation &&
+    result.limits
+  )
     usage("Limit overrides require XML operations or slides add.");
   if (operation !== "xml.get" && result.pretty) usage("Pretty output requires xml get.");
   if (xml) {
@@ -731,7 +807,12 @@ function parse(
       usage("XML operations require one part selector.");
     if (!result.part && !result.token) usage("XML operations require a part or opaque selector.");
   }
-  if (operation === "xml.set" || operation === "slides.add" || slideMutation) {
+  if (
+    operation === "xml.set" ||
+    operation === "slides.add" ||
+    operation === "slides.import" ||
+    slideMutation
+  ) {
     if (operation === "xml.set" && !result.file) usage("XML replacement requires --file.");
     if (result.input === "-" && result.file === "-") usage("Only one input may consume stdin.");
     if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
@@ -881,6 +962,7 @@ async function execute(
             "slides.set": slidesSetSchema,
             "slides.remove": slidesRemoveSchema,
             "slides.duplicate": slidesDuplicateSchema,
+            "slides.import": slidesImportSchema,
             "xml.get": xmlGetSchema,
             "xml.set": xmlSetSchema
           }).filter(([path]) => !args.schemaPath || path === args.schemaPath)
@@ -904,6 +986,11 @@ async function execute(
             level: "edit",
             subset:
               "Insert at a validated position using an explicit layout/master; populate unambiguous type/index placeholders. Move ordered slides while retaining IDs; set names and visibility. Remove slides with explicit known-reference removal policy; reject unresolved opaque references and retain shared resources. Duplicate slide-local shapes and notes with fresh identities; clone mutable dependent resources and reject unsupported references. Layout reassignment and background changes are unavailable."
+          },
+          slideImport: {
+            level: "edit",
+            subset:
+              "F08 subset: ordered source slides with supported dependency closure and deterministic collision remapping; source appearance is the default. Dimension conflicts reject unless destination size with unchanged source coordinates is explicit. Destination theme mapping, conflicting notes masters, tables/global table styles, embedded fonts, unequal presentation text defaults, unknown extension references, mixed dialects and links to unselected slides are rejected."
           },
           editing: { level: "reject", reason: "Other semantic model editing is not exposed." },
           xml: {
@@ -1003,6 +1090,7 @@ async function execute(
             });
       const records =
         metadata ||
+        args.operation === "slides.import" ||
         args.operation === "slides.move" ||
         args.operation === "slides.set" ||
         args.operation === "slides.remove" ||
@@ -1048,6 +1136,7 @@ async function execute(
           };
         }
       } else if (
+        args.operation === "slides.import" ||
         args.operation === "slides.move" ||
         args.operation === "slides.set" ||
         args.operation === "slides.remove" ||
@@ -1055,38 +1144,55 @@ async function execute(
       ) {
         const context = { ...options.context, signal: request.signal };
         const changed =
-          args.operation === "slides.duplicate"
-            ? await duplicateSlides(
+          args.operation === "slides.import"
+            ? await importSlides(
                 bytes,
-                {
-                  selection: mutationSelection,
-                  position: args.mutation!.position!,
-                  allowEmpty: args.allowEmpty ?? false
-                },
+                await request.readInput(
+                  args.source!,
+                  Math.min(
+                    options.context.limits.maxBytes,
+                    options.context.archiveLimits.maxArchiveBytes
+                  )
+                ),
+                args.importing as ImportSlidesOptions,
                 context
               )
-            : args.operation === "slides.remove"
-              ? await removeSlides(
+            : args.operation === "slides.duplicate"
+              ? await duplicateSlides(
                   bytes,
                   {
                     selection: mutationSelection,
-                    allowEmpty: args.allowEmpty ?? false,
-                    ...(args.referencePolicy ? { referencePolicy: args.referencePolicy } : {})
-                  },
-                  context
-                )
-              : await mutateSlides(
-                  bytes,
-                  {
-                    ...args.mutation,
-                    selection: mutationSelection,
+                    position: args.mutation!.position!,
                     allowEmpty: args.allowEmpty ?? false
                   },
                   context
-                );
+                )
+              : args.operation === "slides.remove"
+                ? await removeSlides(
+                    bytes,
+                    {
+                      selection: mutationSelection,
+                      allowEmpty: args.allowEmpty ?? false,
+                      ...(args.referencePolicy ? { referencePolicy: args.referencePolicy } : {})
+                    },
+                    context
+                  )
+                : await mutateSlides(
+                    bytes,
+                    {
+                      ...args.mutation,
+                      selection: mutationSelection,
+                      allowEmpty: args.allowEmpty ?? false
+                    },
+                    context
+                  );
         const after = await readSelectionIndex(changed, context);
         const beforeTargets = (
-          Array.isArray(mutationSelection) ? mutationSelection : [mutationSelection]
+          args.operation === "slides.import"
+            ? []
+            : Array.isArray(mutationSelection)
+              ? mutationSelection
+              : [mutationSelection]
         ).flatMap((query) => {
           try {
             return index.select(query);
@@ -1101,7 +1207,7 @@ async function execute(
           }
         });
         const targets =
-          args.operation === "slides.duplicate"
+          args.operation === "slides.import" || args.operation === "slides.duplicate"
             ? after.slides.filter(
                 (slide) => !index.slides.some((original) => original.id === slide.id)
               )
@@ -1119,12 +1225,12 @@ async function execute(
               effects: (after.fingerprint === index.fingerprint ? [] : targets).map((slide) => ({
                 location: slide.location,
                 action:
-                  args.operation === "slides.duplicate"
+                  args.operation === "slides.import" || args.operation === "slides.duplicate"
                     ? "add"
                     : args.operation === "slides.remove"
                       ? "remove"
                       : "update",
-                feature: "F07"
+                feature: args.operation === "slides.import" ? "F08" : "F07"
               })),
               outputs: dryRun
                 ? []
@@ -1135,7 +1241,7 @@ async function execute(
           ),
           affected: targets.length
         };
-        human = `${dryRun ? "Validated" : args.operation === "slides.duplicate" ? "Duplicated" : args.operation === "slides.remove" ? "Removed" : "Updated"} ${targets.length} slide(s)\n`;
+        human = `${dryRun ? "Validated" : args.operation === "slides.import" ? "Imported" : args.operation === "slides.duplicate" ? "Duplicated" : args.operation === "slides.remove" ? "Removed" : "Updated"} ${targets.length} slide(s)\n`;
         if (destination === "-" && !dryRun) binary = changed;
         else if (destination && destination !== "-") {
           if (!request.publishOutput)
@@ -1144,6 +1250,7 @@ async function execute(
             });
           publication = {
             inputPath: args.input!,
+            ...(args.operation === "slides.import" ? { protectedInputPaths: [args.source!] } : {}),
             outputPath: destination,
             bytes: changed,
             originalBytes: bytes,

@@ -11,6 +11,7 @@ export interface PptxCommandEngine {
     readonly readInput: (path: string, maxBytes: number) => Promise<Uint8Array>;
     readonly publishOutput?: (publication: {
       readonly inputPath?: string;
+      readonly protectedInputPaths?: readonly string[];
       readonly outputPath: string;
       readonly bytes: Uint8Array;
       readonly originalBytes: Uint8Array;
@@ -94,6 +95,14 @@ export function createPptxCommands(options: PptxCommandsOptions): readonly Comma
             destination = null;
           }
           if (destination && destination.type !== "file") throw new FsError("EINVAL");
+          if (destination) {
+            const protectedInputs = new Set((publication.protectedInputPaths ?? []).filter(path => path !== "-").map(path => pathOf(context, path)));
+            for (const [source, observed] of snapshots) {
+              if (source === input && !protectedInputs.has(source)) continue;
+              const identity = observed.type === "symlink" ? await fs.stat(source, { signal }) : observed;
+              if (source === output || await compareObservedEntries(fs, source, identity, fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");
+            }
+          }
           if (destination && !publication.inPlace) {
             if (!publication.force) throw new FsError("EEXIST");
             if (input && await compareObservedEntries(fs, input, await fs.stat(input, { signal }), fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");

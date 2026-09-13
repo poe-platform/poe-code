@@ -622,3 +622,64 @@ export const slidesSetSchema = slideMutationSchema("slides.set");
 export const slidesRemoveSchema = slideMutationSchema("slides.remove");
 
 export const slidesDuplicateSchema = slideMutationSchema("slides.duplicate");
+
+export const slidesImportSchema = {
+  description:
+    "Import ordered slides and supported dependency closure with source appearance by default. Destination theme mapping, conflicting notes masters, tables/global table styles, embedded fonts, unequal presentation text defaults, unknown extension references, mixed dialects and unselected slide links are rejected. Dimension policy destination preserves source coordinates and destination slide size.",
+  input: inspectSchema.input,
+  options: {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    type: "object",
+    additionalProperties: false,
+    required: ["source", "sourceSlides"],
+    properties: {
+      source: inspectSchema.input,
+      sourceSlides: {
+        type: "array",
+        minItems: 1,
+        uniqueItems: true,
+        items: { type: "integer", minimum: 1, maximum: 9007199254740991 },
+        description: "CLI --source-slides JSON; ordered unique one-based slide positions."
+      },
+      position: slidesAddSchema.options.properties.position,
+      themePolicy: { enum: ["source", "destination"], default: "source" },
+      dimensionPolicy: { enum: ["reject", "destination"], default: "reject" },
+      json: { type: "boolean", default: false },
+      limit: xmlSelection.limit,
+      output: { type: "string", minLength: 1 },
+      inPlace: { type: "boolean", default: false },
+      force: { type: "boolean", default: false },
+      dryRun: { type: "boolean", default: false }
+    },
+    allOf: slidesAddSchema.options.allOf
+  },
+  result: {
+    ...slidesDuplicateSchema.result,
+    properties: {
+      ...slidesDuplicateSchema.result.properties,
+      operation: { const: "slides.import" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            ...createSchema.result.properties.data.oneOf[1],
+            properties: {
+              ...createSchema.result.properties.data.oneOf[1]!.properties,
+              effects: {
+                type: "array",
+                items: {
+                  ...createSchema.result.properties.data.oneOf[1]!.properties!.effects.items,
+                  properties: {
+                    ...createSchema.result.properties.data.oneOf[1]!.properties!.effects.items
+                      .properties,
+                    feature: { const: "F08" }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+};

@@ -1,3 +1,4 @@
+import { remapCopiedXml } from "./slide-copy-xml.js";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput } from "./contracts.js";
 import { OfficeError } from "./errors.js";
@@ -304,88 +305,10 @@ export async function duplicateSlides(
       }
       const type = types.get(original);
       if (type.endsWith("+xml") || type === "application/xml" || type === "text/xml") {
-        let xml = parseXmlPart(bytes, context.xmlLimits);
-        const nodes = elements(xml);
-        const shapeIds = new Map<string, string>();
-        let maximum = 0;
-        for (const { node } of nodes)
-          if (node.name.namespace === d.p && node.name.localName === "cNvPr") {
-            const id = attr(node, "id")!;
-            if (!Number.isSafeInteger(Number(id)) || Number(id) < 1 || shapeIds.has(id))
-              unsupported();
-            maximum = Math.max(maximum, Number(id));
-            shapeIds.set(id, "");
-          }
-        for (const id of shapeIds.keys()) {
-          if (++maximum > 4294967295)
-            throw new OfficeError("resource-limit", "Shape IDs exhausted.", "validate-intent");
-          shapeIds.set(id, String(maximum));
-        }
-        for (const { node, path } of nodes) {
-          if (
-            ![d.p, d.a, d.c].includes(node.name.namespace) ||
-            ["extLst", "oleObj", "control", "contentPart"].includes(node.name.localName)
-          )
-            unsupported();
-          if (
-            node.name.namespace === d.a &&
-            ["hlinkClick", "hlinkHover"].includes(node.name.localName)
-          ) {
-            const action = attr(node, "action");
-            if (action && action !== "ppaction://hlinksldjump") unsupported();
-            const relationship = attr(node, "id", d.r);
-            if (
-              action &&
-              !edges.some(
-                (edge) => edge.id === relationship && edge.type === `${d.r}/slide` && !edge.external
-              )
-            )
-              unsupported();
-          }
-          const attributes: { namespace: string; localName: string; value: string }[] = [];
-          for (const attribute of node.attributes) {
-            const { namespace, localName } = attribute.name;
-            let value: string | undefined;
-            if (namespace === d.r) {
-              if (!["id", "embed", "link"].includes(localName)) unsupported();
-              value = ids.get(attribute.value);
-              if (!value) unsupported();
-            } else if (
-              namespace &&
-              !["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace"].includes(
-                namespace
-              )
-            )
-              unsupported();
-            else if (
-              !namespace &&
-              ((node.name.namespace === d.p &&
-                node.name.localName === "cNvPr" &&
-                localName === "id") ||
-                (node.name.namespace === d.a &&
-                  ["stCxn", "endCxn"].includes(node.name.localName) &&
-                  localName === "id") ||
-                (node.name.namespace === d.p && localName === "spid"))
-            ) {
-              if (
-                localName === "spid" &&
-                !["spTgt", "subSp", "bldP", "bldDgm", "bldOleChart", "bldGraphic"].includes(
-                  node.name.localName
-                )
-              )
-                unsupported();
-              value = shapeIds.get(attribute.value);
-              if (!value) unsupported();
-            }
-            if (value !== undefined) attributes.push({ namespace, localName, value });
-          }
-          if (attributes.length) {
-            let current = xml.root;
-            for (const i of path) current = current.children[i]!;
-            xml = xml.merge(current, { attributes });
-          }
-        }
-        changes.set(copy, xml.bytes());
+        changes.set(
+          copy,
+          remapCopiedXml(bytes, edges, ids, { xmlLimits: context.xmlLimits, dialect: d })
+        );
       } else {
         if (edges.length) unsupported();
         changes.set(copy, new Uint8Array(bytes));

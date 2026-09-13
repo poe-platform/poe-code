@@ -362,10 +362,11 @@ function createGeneratorClosure(
     ...(node.id === undefined ? { name: context.inferredName } : { name: node.id.name }),
     retainedValues: () => [...context.scope.retainedDataRoots(), context.functionEnvironment?.homeObject, context.functionEnvironment?.newTarget],
     call: async (args, callContext) => {
-      // Native generators select their instance prototype before initializing parameters.
-      const candidate = prototypes === undefined ? undefined : getGuestFunctionProperty(closure, "prototype");
-      const prototype = typeof candidate === "object" && candidate !== null ? candidate : prototypes?.instancePrototype;
-      const releasePrototype = prototype === undefined ? undefined : retainValues(context.budget, () => [prototype]);
+      let prototype: Extract<SandboxValue, object> | undefined;
+      // Parameter initializers may replace the prototype; retain the current value
+      // without selecting the generator instance's prototype before they finish.
+      const releasePrototype = prototypes === undefined ? undefined
+        : retainValues(context.budget, () => [prototype ?? getGuestFunctionProperty(closure, "prototype")]);
       try {
         const closureContext = {
           ...context,
@@ -381,6 +382,8 @@ function createGeneratorClosure(
           closureContext,
           evaluateNode
         );
+        const candidate = prototypes === undefined ? undefined : getGuestFunctionProperty(closure, "prototype");
+        prototype = typeof candidate === "object" && candidate !== null ? candidate : prototypes?.instancePrototype;
         const channel = createGeneratorChannel((generatorYield) => {
           const execute = async () => {
             const result = await evaluateNode(node.body, {

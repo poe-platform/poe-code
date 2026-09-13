@@ -2399,3 +2399,13 @@ regressions become56 focused passes; lint/build pass. Ten original failures and 
 neighbors pass17/17 variants. Seven runtime SDK replay/source/host-escape checks pass;
 CLI screenshot inspected. Residual arithmetic is138 nonpasses; remaining categories,
 including typed-array prototype assignment, and publication gates remain unresolved.
+
+### qualify-language-semantics — generator allocation order, 2026-09-13
+
+[Atomic repair and evidence](qualify-language-semantics/generator-allocation-order/audit.md)
+select the instance prototype after parameter initialization as required by the pinned
+edition. Six independent red cases become96 focused passes. Existing native-oracle cases
+now explicitly assert the specification; retention budgets and assertions remain intact.
+Final lint/build and original upstream contexts pass. Seven runtime SDK replay/source/
+host-escape controls and inspected CLI output pass. Residual arithmetic is132 nonpasses;
+remaining categories and publication remain unresolved.

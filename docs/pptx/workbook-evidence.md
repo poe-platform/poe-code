@@ -63,10 +63,21 @@ retains the workbook epoch and rejects supplied or chart/workbook disagreement.
 Dataset formats apply to x and size; per-series overrides apply to y. This resolves
 the previously documented source workbook/cache format disagreement consistently.
 
-All edits reject formula cells, named calculations, external links, additional
+Data replacement rejects formula cells, named calculations, external links, additional
 sheets/tables, ambiguous ownership, dependent chart formulas, and detached
 calculation/external/query/pivot dependencies. No calculation or external fetch
 occurs. Failure leaves caller bytes and existing CLI destinations unchanged.
+
+Unrelated local chart styling can retain these dependencies without reading or
+rewriting the workbook. The original parameter cases in
+`packages/pptx/src/chart-editing-preservation.test.ts` cover external chart
+formulas, embedded worksheet formulas with opaque binary content, and external
+workbook relationships through SDK and CLI. Independent complete-part comparisons
+verify unchanged workbook bytes, chart formulas and caches; rejected data edits
+never invoke publication, including dry-run. Chart inventory exposes formula
+authority and workbook relationship identity; it does not claim a complete nested
+spreadsheet dependency inventory. See the
+[verification procedure](../plans/pptx-workbook-style-isolation.md).
 
 ## Language and security mappings
 

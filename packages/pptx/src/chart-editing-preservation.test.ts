@@ -5,6 +5,7 @@ import { addChart, setCharts } from "./chart-editing.js";
 import { inspectZip } from "../tests/zip-reader.js";
 import { writePackageArchive } from "./package-writer.js";
 import { createPptxCommandEngine } from "./command-engine.js";
+import { readCharts } from "./charts.js";
 
 const context = {
   limits: { maxBytes: 524288, maxReads: 1000, chunkBytes: 8192 },
@@ -62,6 +63,153 @@ function patchChart(bytes: Uint8Array, change: (xml: string) => string) {
     { compression: "store" }
   );
 }
+it.each(["external formula", "worksheet formula", "external workbook"])(
+  "preserves %s dependencies during SDK and CLI styling and rejects data publication",
+  async (dependency) => {
+    let source = await seed();
+    if (dependency === "external formula")
+      source = await patchChart(source, (xml) =>
+        xml.replace("Sheet1!$B$2:$B$3", "'[remote.xlsx]Sheet1'!$B$2:$B$3")
+      );
+    else {
+      const parts = inspectZip(source);
+      if (dependency === "worksheet formula") {
+        const book = parts.find((entry) => entry.name.endsWith(".xlsx"))!;
+        book.payload = new Uint8Array(
+          await writePackageArchive(
+            [
+              ...inspectZip(book.payload).map((entry) => ({
+                name: entry.name,
+                bytes:
+                  entry.name === "xl/worksheets/sheet1.xml"
+                    ? encode(
+                        decode(entry.payload).replace(
+                          '<c r="B2"><v>1</v>',
+                          '<c r="B2"><f>2-1</f><v>1</v>'
+                        )
+                      )
+                    : entry.name === "[Content_Types].xml"
+                      ? encode(
+                          decode(entry.payload).replace(
+                            "</Types>",
+                            '<Default Extension="bin" ContentType="application/octet-stream"/></Types>'
+                          )
+                        )
+                      : entry.payload
+              })),
+              { name: "custom/preserved.bin", bytes: new Uint8Array([0, 255, 3, 128, 42]) }
+            ],
+            context,
+            { compression: "store" }
+          )
+        );
+        expect(
+          decode(
+            inspectZip(book.payload).find((entry) => entry.name === "xl/worksheets/sheet1.xml")!
+              .payload
+          )
+        ).toContain("<f>2-1</f><v>1</v>");
+      } else {
+        const links = parts.find((entry) => entry.name === "ppt/charts/_rels/chart1.xml.rels")!;
+        links.payload = encode(
+          decode(links.payload).replace(
+            'Target="../embeddings/chart1.xlsx"',
+            'Target="https://data.invalid/chart.xlsx" TargetMode="External"'
+          )
+        );
+      }
+      source = await writePackageArchive(
+        parts.map((entry) => ({ name: entry.name, bytes: entry.payload })),
+        context,
+        { compression: "store" }
+      );
+    }
+    const initial = source.slice();
+    const inventory = await readCharts(source, { slide: 1 }, context);
+    expect(inventory).toHaveLength(1);
+    expect(inventory[0]!.links).toContainEqual(
+      expect.objectContaining({
+        role: "workbook",
+        authoritative: true,
+        external: dependency === "external workbook",
+        targetPart: dependency === "external workbook" ? null : "/ppt/embeddings/chart1.xlsx"
+      })
+    );
+    expect(inventory[0]!.plots[0]!.series[0]!.values).toMatchObject({
+      authority: "referenced",
+      formula:
+        dependency === "external formula" ? "'[remote.xlsx]Sheet1'!$B$2:$B$3" : "Sheet1!$B$2:$B$3",
+      points: [{ index: "0", value: "1" }]
+    });
+    const volume = Volume.fromJSON({
+      "/input.pptx": Buffer.from(source),
+      "/output.pptx": "retain destination"
+    });
+    const engine = createPptxCommandEngine({
+      context,
+      maxArgumentBytes: 16384,
+      maxOutputBytes: 524288
+    });
+    const publish = vi.fn(
+      async (output: { outputPath: string; bytes: Uint8Array; dryRun: boolean }) => {
+        if (!output.dryRun) volume.writeFileSync(output.outputPath, output.bytes);
+      }
+    );
+    const invoke = (flags: string[]) =>
+      engine.execute({
+        args: ["charts", "set", "/input.pptx", "--slide", "1", ...flags, "--json"].map(encode),
+        signal: new AbortController().signal,
+        readInput: async (path) => new Uint8Array(volume.readFileSync(path) as Buffer),
+        publishOutput: publish
+      });
+    await expect(setCharts(source, { slide: 1 }, { data }, context)).rejects.toMatchObject({
+      code: "unsupported-edit"
+    });
+    for (const flags of [["--output", "/output.pptx", "--force"], ["--dry-run"]]) {
+      const result = await invoke(["--data", JSON.stringify(data), ...flags]);
+      expect(result.exitCode).toBe(1);
+      expect(JSON.parse(decode(result.stdout))).toMatchObject({
+        ok: false,
+        data: null,
+        affected: 0,
+        errors: [expect.objectContaining({ code: "unsupported-edit" })]
+      });
+    }
+    expect(publish).not.toHaveBeenCalled();
+    expect(volume.readFileSync("/output.pptx", "utf8")).toBe("retain destination");
+    const sdk = await setCharts(source, { slide: 1 }, { style: 7 }, context);
+    const styled = await invoke(["--style", "7", "--output", "/output.pptx", "--force"]);
+    expect(styled.exitCode).toBe(0);
+    expect(JSON.parse(decode(styled.stdout))).toMatchObject({
+      version: 1,
+      operation: "charts.set",
+      ok: true,
+      affected: 1,
+      errors: []
+    });
+    for (const output of [sdk, new Uint8Array(volume.readFileSync("/output.pptx") as Buffer)]) {
+      const parts = inspectZip(output);
+      expect(parts.map((entry) => entry.name).sort()).toEqual(
+        inspectZip(source)
+          .map((entry) => entry.name)
+          .sort()
+      );
+      for (const original of inspectZip(source)) {
+        const actual = parts.find((entry) => entry.name === original.name)!.payload;
+        if (original.name === "ppt/charts/chart1.xml")
+          expect(decode(actual)).toBe(
+            decode(original.payload).replace(
+              "<c:chart>",
+              '<c:style xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" val="7"/><c:chart>'
+            )
+          );
+        else expect(actual).toEqual(original.payload);
+      }
+    }
+    expect(source).toEqual(initial);
+    expect(new Uint8Array(volume.readFileSync("/input.pptx") as Buffer)).toEqual(initial);
+  }
+);
 it("rejects formula expressions instead of silently replacing their authority", async () => {
   const source = await patchChart(await seed(), (xml) =>
     xml.replace("Sheet1!$B$2:$B$3", "SUM(Sheet1!$B$2:$B$3)")

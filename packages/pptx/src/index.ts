@@ -50,4 +50,10 @@ export {
   type PresentationTextShape
 } from "./creation.js";
 
-export { addSlide, type AddSlideOptions, type PlaceholderText } from "./slides.js";
+export {
+  addSlide,
+  mutateSlides,
+  type MutateSlidesOptions,
+  type AddSlideOptions,
+  type PlaceholderText
+} from "./slides.js";

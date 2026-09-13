@@ -1,0 +1,2749 @@
+{
+  "schema_version": 1,
+  "scope": "F07 order, visibility and labels; related collection/identity research with explicit remaining live model obligations",
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "authorities": [
+    "upstream-test-audit.md",
+    "upstream-test-inventory.json",
+    "upstream-api-audit.md",
+    "upstream-api-inventory.json",
+    "../specs/office-cli.md",
+    "../specs/office-sdk.md"
+  ],
+  "notice": "slide-insertion-notice.txt",
+  "counts": {
+    "unit": 26,
+    "bdd": 8,
+    "api": 93
+  },
+  "mapping_decisions": {
+    "J01": "Byte operation options are camelCase; neutral live method/property spellings remain planned and are not renamed by this operation API.",
+    "J02": "Name/ID index records are immutable snapshots; not live Slide objects. IDs remain exact through move. Names are labels and may repeat.",
+    "J03": "Operation positions explicitly declare one/zero-based coordinates; CLI destination is final one-based block position. Live collection .at/.slice/protocols and .get default semantics remain planned.",
+    "J06": "mutateSlides always async, explicit bytes/stream/VFS authority; no ambient I/O.",
+    "J07": "No implicit clock, network, native runtime, content evaluation or notes creation.",
+    "J08": "Operation usage errors invalid-value/invalid-selection differ from planned model IndexError/ValueError. Missing lookup is missing-selection. Null label rejection is operation-only; model null-clearing still required.",
+    "J09": "Reordering owned XML children retains exact node markup under same parent; rejects foreign, duplicate and incomplete permutations. No unrestricted XML library surface.",
+    "J10": "slides.move/slides.set direct flags and validated selection JSON mirror byte operation; generic method evaluation is absent."
+  },
+  "documentation_drift": [
+    "Published/pinned version drift remains recorded in upstream-api-audit.md.",
+    "follow_master_background documented setter missing from pinned implementation remains an explicit future target obligation; this increment does not advertise it.",
+    "Historical audit status says SDK implementation not started. That remains true for the mirrored live object model; byte-operation and command evidence now exists. This supplemental receipt does not rewrite unrelated canonical research statuses.",
+    "Advanced ordered selection is exposed through additive --selection-json and runtime schema; --slide remains a scalar. Draft usage documents that extension."
+  ],
+  "rows": [
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1629",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_presentation.py",
+        "line": 144,
+        "file_sha256": "01057891d90c60b5d01345387ea0a062c343ee03553ff23c54ff5b3caf9e1128",
+        "identity": "tests/parts/test_presentation.py::DescribePresentationPart::it_finds_the_slide_id_of_a_slide_part",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_presentation.py::DescribePresentationPart::it_finds_the_slide_id_of_a_slide_part"
+      },
+      "canonical_row": "test-case-map.json#/rows/1629",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.it_finds_the_slide_id_of_a_slide_part",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 154,
+            "expression": "related_part_.call_args_list == [call(prs_part, 'a'), call(prs_part, 'b')]"
+          },
+          {
+            "line": 158,
+            "expression": "_slide_id == 257"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.slide_part_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.related_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1630",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_presentation.py",
+        "line": 160,
+        "file_sha256": "01057891d90c60b5d01345387ea0a062c343ee03553ff23c54ff5b3caf9e1128",
+        "identity": "tests/parts/test_presentation.py::DescribePresentationPart::it_raises_on_slide_id_not_found",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_presentation.py::DescribePresentationPart::it_raises_on_slide_id_not_found"
+      },
+      "canonical_row": "test-case-map.json#/rows/1630",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.it_raises_on_slide_id_not_found",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [],
+        "mock_expectations": [],
+        "raises": [
+          {
+            "line": 168,
+            "expression": "pytest.raises(ValueError)"
+          }
+        ],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.slide_part_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.related_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1631",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_presentation.py",
+        "line": 171,
+        "file_sha256": "01057891d90c60b5d01345387ea0a062c343ee03553ff23c54ff5b3caf9e1128",
+        "identity": "tests/parts/test_presentation.py::DescribePresentationPart::it_finds_a_slide_by_slide_id[True]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_presentation.py::DescribePresentationPart::it_finds_a_slide_by_slide_id[True]"
+      },
+      "canonical_row": "test-case-map.json#/rows/1631",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.it_finds_a_slide_by_slide_id",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "is_present": "True"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 185,
+            "expression": "slide == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.slide_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.slide_part_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.related_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1632",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_presentation.py",
+        "line": 171,
+        "file_sha256": "01057891d90c60b5d01345387ea0a062c343ee03553ff23c54ff5b3caf9e1128",
+        "identity": "tests/parts/test_presentation.py::DescribePresentationPart::it_finds_a_slide_by_slide_id[False]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_presentation.py::DescribePresentationPart::it_finds_a_slide_by_slide_id[False]"
+      },
+      "canonical_row": "test-case-map.json#/rows/1632",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.it_finds_a_slide_by_slide_id",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "is_present": "False"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 185,
+            "expression": "slide == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.slide_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.slide_part_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_presentation.py::DescribePresentationPart.related_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1645",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_slide.py",
+        "line": 294,
+        "file_sha256": "20fa3a1af23d3796326f750d42d61f299b8056507ef6deffb67d1793a9eca29b",
+        "identity": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_its_slide_id",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_slide.py::DescribeSlidePart::it_knows_its_slide_id"
+      },
+      "canonical_row": "test-case-map.json#/rows/1645",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1parts~1test_slide.py::DescribeSlidePart.it_knows_its_slide_id",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 298,
+            "expression": "_slide_id is slide_id"
+          }
+        ],
+        "mock_expectations": [
+          {
+            "line": 297,
+            "expression": "presentation_part_.slide_id.assert_called_once_with(slide_part)"
+          }
+        ],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_slide.py::DescribeSlidePart.slide_id_fixture",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_slide.py::DescribeSlidePart.package_",
+          "test-behavior-evidence.json#/functions/tests~1parts~1test_slide.py::DescribeSlidePart.presentation_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2237",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 49,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::Describe_BaseSlide::it_knows_its_name[name_get_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::Describe_BaseSlide::it_knows_its_name[name_get_fixture0]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2237",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.it_knows_its_name",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "name_get_fixture": "('p:sld/p:cSld', '')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 51,
+            "expression": "base_slide.name == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.name_get_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "sets a label from %s to %s",
+        "treats duplicate names as labels and requires explicit bulk selection"
+      ],
+      "equivalence_and_remaining_work": "Absent/read and authored/replace/clear label cases have original byte-operation evidence. No live model name property is implemented."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2238",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 49,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::Describe_BaseSlide::it_knows_its_name[name_get_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::Describe_BaseSlide::it_knows_its_name[name_get_fixture1]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2238",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.it_knows_its_name",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "name_get_fixture": "('p:sld/p:cSld{name=Foobar}', 'Foobar')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 51,
+            "expression": "base_slide.name == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.name_get_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "sets a label from %s to %s",
+        "treats duplicate names as labels and requires explicit bulk selection"
+      ],
+      "equivalence_and_remaining_work": "Absent/read and authored/replace/clear label cases have original byte-operation evidence. No live model name property is implemented."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2239",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 53,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture0]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2239",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.it_can_change_its_name",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "name_set_fixture": "('p:sld/p:cSld', 'foo', 'p:sld/p:cSld{name=foo}')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 56,
+            "expression": "base_slide._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.name_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "sets a label from %s to %s",
+        "treats duplicate names as labels and requires explicit bulk selection"
+      ],
+      "equivalence_and_remaining_work": "Absent/read and authored/replace/clear label cases have original byte-operation evidence. No live model name property is implemented."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2240",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 53,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture1]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2240",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.it_can_change_its_name",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "name_set_fixture": "('p:sld/p:cSld{name=foo}', 'bar', 'p:sld/p:cSld{name=bar}')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 56,
+            "expression": "base_slide._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.name_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "sets a label from %s to %s",
+        "treats duplicate names as labels and requires explicit bulk selection"
+      ],
+      "equivalence_and_remaining_work": "Absent/read and authored/replace/clear label cases have original byte-operation evidence. No live model name property is implemented."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2241",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 53,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture2]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2241",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.it_can_change_its_name",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 2,
+            "bindings": {
+              "name_set_fixture": "('p:sld/p:cSld{name=bar}', '', 'p:sld/p:cSld')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 56,
+            "expression": "base_slide._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.name_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "sets a label from %s to %s",
+        "treats duplicate names as labels and requires explicit bulk selection"
+      ],
+      "equivalence_and_remaining_work": "Absent/read and authored/replace/clear label cases have original byte-operation evidence. No live model name property is implemented."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2242",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 53,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture3]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture3]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2242",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.it_can_change_its_name",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 3,
+            "bindings": {
+              "name_set_fixture": "('p:sld/p:cSld{name=bar}', None, 'p:sld/p:cSld')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 56,
+            "expression": "base_slide._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.name_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "rejects null labels from initial %s"
+      ],
+      "equivalence_and_remaining_work": "Operation JSON requires string, so null rejects; empty string clears. The separately documented live model nullable setter remains planned and is not reclassified as unsupported/private."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2243",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 53,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture4]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture4]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2243",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.it_can_change_its_name",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 4,
+            "bindings": {
+              "name_set_fixture": "('p:sld/p:cSld', '', 'p:sld/p:cSld')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 56,
+            "expression": "base_slide._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.name_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "sets a label from %s to %s",
+        "treats duplicate names as labels and requires explicit bulk selection"
+      ],
+      "equivalence_and_remaining_work": "Absent/read and authored/replace/clear label cases have original byte-operation evidence. No live model name property is implemented."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2244",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 53,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture5]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture5]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2244",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.it_can_change_its_name",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 5,
+            "bindings": {
+              "name_set_fixture": "('p:sld/p:cSld', None, 'p:sld/p:cSld')"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 56,
+            "expression": "base_slide._element.xml == expected_xml"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::Describe_BaseSlide.name_set_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "rejects null labels from initial %s"
+      ],
+      "equivalence_and_remaining_work": "Operation JSON requires string, so null rejects; empty string clears. The separately documented live model nullable setter remains planned and is not reclassified as unsupported/private."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2261",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 321,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlide::it_knows_its_slide_id",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlide::it_knows_its_slide_id"
+      },
+      "canonical_row": "test-case-map.json#/rows/2261",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlide.it_knows_its_slide_id",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 323,
+            "expression": "slide.slide_id == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlide.slide_id_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlide.part_prop_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlide.slide_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2266",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 449,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_supports_indexed_access",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_supports_indexed_access"
+      },
+      "canonical_row": "test-case-map.json#/rows/2266",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_supports_indexed_access",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 453,
+            "expression": "slide is slide_"
+          }
+        ],
+        "mock_expectations": [
+          {
+            "line": 452,
+            "expression": "prs_part_.related_slide.assert_called_once_with(rId)"
+          }
+        ],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.getitem_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.prs_part_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.slide_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.part_prop_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2267",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 455,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_raises_on_slide_index_out_of_range",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_raises_on_slide_index_out_of_range"
+      },
+      "canonical_row": "test-case-map.json#/rows/2267",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_raises_on_slide_index_out_of_range",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [],
+        "mock_expectations": [],
+        "raises": [
+          {
+            "line": 457,
+            "expression": "pytest.raises(IndexError)"
+          }
+        ],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.getitem_raises_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2268",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 460,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_knows_the_index_of_a_slide_it_contains[0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_knows_the_index_of_a_slide_it_contains[0]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2268",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_knows_the_index_of_a_slide_it_contains",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "index_fixture": "0"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 463,
+            "expression": "index == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.index_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.part_prop_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.prs_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2269",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 460,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_knows_the_index_of_a_slide_it_contains[1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_knows_the_index_of_a_slide_it_contains[1]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2269",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_knows_the_index_of_a_slide_it_contains",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "index_fixture": "1"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 463,
+            "expression": "index == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.index_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.part_prop_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.prs_part_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2270",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 465,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_raises_on_slide_not_in_collection",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_raises_on_slide_not_in_collection"
+      },
+      "canonical_row": "test-case-map.json#/rows/2270",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_raises_on_slide_not_in_collection",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [],
+        "mock_expectations": [],
+        "raises": [
+          {
+            "line": 467,
+            "expression": "pytest.raises(ValueError)"
+          }
+        ],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.raises_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2271",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 470,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_can_iterate_its_slides",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_can_iterate_its_slides"
+      },
+      "canonical_row": "test-case-map.json#/rows/2271",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_can_iterate_its_slides",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 473,
+            "expression": "related_slide_.call_args_list == calls"
+          },
+          {
+            "line": 474,
+            "expression": "slide_lst == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.iter_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.part_prop_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.prs_part_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.slide_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2272",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 476,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_supports_len[len_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_supports_len[len_fixture0]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2272",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_supports_len",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "len_fixture": "('p:sldIdLst', 0)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 478,
+            "expression": "len(slides) == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.len_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2273",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 476,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_supports_len[len_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_supports_len[len_fixture1]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2273",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_supports_len",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "len_fixture": "('p:sldIdLst/p:sldId{r:id=a}', 1)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 478,
+            "expression": "len(slides) == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.len_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2274",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 476,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_supports_len[len_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_supports_len[len_fixture2]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2274",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_supports_len",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 2,
+            "bindings": {
+              "len_fixture": "('p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})', 2)"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 478,
+            "expression": "len(slides) == expected_value"
+          }
+        ],
+        "mock_expectations": [],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.len_fixture"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2275",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 480,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_can_add_a_new_slide",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_can_add_a_new_slide"
+      },
+      "canonical_row": "test-case-map.json#/rows/2275",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_can_add_a_new_slide",
+        "parameter_resolution": "not_parameterized",
+        "selected_parameters": {},
+        "assertions": [
+          {
+            "line": 488,
+            "expression": "slides._sldIdLst.xml == expected_xml"
+          },
+          {
+            "line": 489,
+            "expression": "slide is slide_"
+          }
+        ],
+        "mock_expectations": [
+          {
+            "line": 486,
+            "expression": "part_.add_slide.assert_called_once_with(slide_layout_)"
+          },
+          {
+            "line": 487,
+            "expression": "clone_layout_placeholders_.assert_called_once_with(slide_layout_)"
+          }
+        ],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.add_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.slide_layout_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.part_prop_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.prs_part_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.slide_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slides.test.ts",
+      "original_tests": [
+        "inserts at boundary %s without changing existing slide IDs or drawings"
+      ],
+      "equivalence_and_remaining_work": "Adjacent insertion evidence in slides.test.ts; see slide-insertion-case-accounting.json. Live returned collection/model API remains planned."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2276",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 491,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_finds_a_slide_by_slide_id[True]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_finds_a_slide_by_slide_id[True]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2276",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_finds_a_slide_by_slide_id",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 0,
+            "bindings": {
+              "get_fixture": "True"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 495,
+            "expression": "slide is expected_value"
+          }
+        ],
+        "mock_expectations": [
+          {
+            "line": 494,
+            "expression": "prs_part_.get_slide.assert_called_once_with(slide_id)"
+          }
+        ],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.get_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.part_prop_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.prs_part_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.slide_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2277",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/test_slide.py",
+        "line": 491,
+        "file_sha256": "d31cf75a2021b73f3525a7f0bffca46c51a1ce3dd396c89b20b1e65a075d1230",
+        "identity": "tests/test_slide.py::DescribeSlides::it_finds_a_slide_by_slide_id[False]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1test_slide.py::DescribeSlides::it_finds_a_slide_by_slide_id[False]"
+      },
+      "canonical_row": "test-case-map.json#/rows/2277",
+      "exact_contract": {
+        "test_contract": "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.it_finds_a_slide_by_slide_id",
+        "parameter_resolution": "literal_table_id_match",
+        "selected_parameters": [
+          {
+            "table_index": 1,
+            "bindings": {
+              "get_fixture": "False"
+            }
+          }
+        ],
+        "assertions": [
+          {
+            "line": 495,
+            "expression": "slide is expected_value"
+          }
+        ],
+        "mock_expectations": [
+          {
+            "line": 494,
+            "expression": "prs_part_.get_slide.assert_called_once_with(slide_id)"
+          }
+        ],
+        "raises": [],
+        "fixture_contracts": [
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.get_fixture",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.part_prop_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.prs_part_",
+          "test-behavior-evidence.json#/functions/tests~1test_slide.py::DescribeSlides.slide_"
+        ],
+        "parameter_helper_contracts": []
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "moves requested positions %j to final position %s with stable identities",
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original byte-operation/index evidence preserves graph IDs, list order, counts and lookup/bounds distinctions. Source live collection wrapper identity, .index/.get/default-return and exceptions are separate pending model obligations; operation lookup failure is missing-selection, not a claim to implement source default-return."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/789",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/sld-slide.feature",
+        "line": 43,
+        "file_sha256": "70b40f2495b6f1c5ea4a6f4a39a020f8b91942274e280967a7a90ef4e6054b99",
+        "identity": "Slide.name -- @1.1 name scenarios",
+        "scenario_line": 37,
+        "example_line": 43,
+        "example": {
+          "name": "Overview",
+          "value": "Overview"
+        },
+        "expanded_steps": [
+          {
+            "line": 38,
+            "text": "Given a slide having name Overview"
+          },
+          {
+            "line": 39,
+            "text": "Then slide.name is Overview"
+          }
+        ]
+      },
+      "canonical_row": "test-case-map.json#/rows/3489",
+      "exact_contract": {
+        "expanded_scenario": [
+          {
+            "line": 38,
+            "text": "Given a slide having name Overview"
+          },
+          {
+            "line": 39,
+            "text": "Then slide.name is Overview"
+          }
+        ],
+        "example": {
+          "name": "Overview",
+          "value": "Overview"
+        }
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "sets a label from %s to %s"
+      ],
+      "equivalence_and_remaining_work": "Original operation examples cover observable labels/IDs/list behavior. Live model object/protocol/default-return assertions remain pending; prior insertion has its own accounting."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/790",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/sld-slide.feature",
+        "line": 44,
+        "file_sha256": "70b40f2495b6f1c5ea4a6f4a39a020f8b91942274e280967a7a90ef4e6054b99",
+        "identity": "Slide.name -- @1.2 name scenarios",
+        "scenario_line": 37,
+        "example_line": 44,
+        "example": {
+          "name": "of no explicit value",
+          "value": "the empty string"
+        },
+        "expanded_steps": [
+          {
+            "line": 38,
+            "text": "Given a slide having name of no explicit value"
+          },
+          {
+            "line": 39,
+            "text": "Then slide.name is the empty string"
+          }
+        ]
+      },
+      "canonical_row": "test-case-map.json#/rows/3490",
+      "exact_contract": {
+        "expanded_scenario": [
+          {
+            "line": 38,
+            "text": "Given a slide having name of no explicit value"
+          },
+          {
+            "line": 39,
+            "text": "Then slide.name is the empty string"
+          }
+        ],
+        "example": {
+          "name": "of no explicit value",
+          "value": "the empty string"
+        }
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "sets a label from %s to %s"
+      ],
+      "equivalence_and_remaining_work": "Original operation examples cover observable labels/IDs/list behavior. Live model object/protocol/default-return assertions remain pending; prior insertion has its own accounting."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/795",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/sld-slide.feature",
+        "line": 68,
+        "file_sha256": "70b40f2495b6f1c5ea4a6f4a39a020f8b91942274e280967a7a90ef4e6054b99",
+        "identity": "Slide.slide_id",
+        "scenario_line": 68,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 69,
+            "text": "Given a slide having slide id 256"
+          },
+          {
+            "line": 70,
+            "text": "Then slide.slide_id is 256"
+          }
+        ]
+      },
+      "canonical_row": "test-case-map.json#/rows/3495",
+      "exact_contract": {
+        "expanded_scenario": [
+          {
+            "line": 69,
+            "text": "Given a slide having slide id 256"
+          },
+          {
+            "line": 70,
+            "text": "Then slide.slide_id is 256"
+          }
+        ],
+        "example": null
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original operation examples cover observable labels/IDs/list behavior. Live model object/protocol/default-return assertions remain pending; prior insertion has its own accounting."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/810",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/sld-slides.feature",
+        "line": 7,
+        "file_sha256": "240853c0d44f42bfdcec584919c70e8e7bddfc6a401a532c4550ddaf77613567",
+        "identity": "Slides.__getitem__()",
+        "scenario_line": 7,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 8,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 9,
+            "text": "Then slides[2] is a Slide object"
+          }
+        ]
+      },
+      "canonical_row": "test-case-map.json#/rows/3510",
+      "exact_contract": {
+        "expanded_scenario": [
+          {
+            "line": 8,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 9,
+            "text": "Then slides[2] is a Slide object"
+          }
+        ],
+        "example": null
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original operation examples cover observable labels/IDs/list behavior. Live model object/protocol/default-return assertions remain pending; prior insertion has its own accounting."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/811",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/sld-slides.feature",
+        "line": 12,
+        "file_sha256": "240853c0d44f42bfdcec584919c70e8e7bddfc6a401a532c4550ddaf77613567",
+        "identity": "Slides.__iter__()",
+        "scenario_line": 12,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 13,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 14,
+            "text": "Then iterating slides produces 3 Slide objects"
+          }
+        ]
+      },
+      "canonical_row": "test-case-map.json#/rows/3511",
+      "exact_contract": {
+        "expanded_scenario": [
+          {
+            "line": 13,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 14,
+            "text": "Then iterating slides produces 3 Slide objects"
+          }
+        ],
+        "example": null
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original operation examples cover observable labels/IDs/list behavior. Live model object/protocol/default-return assertions remain pending; prior insertion has its own accounting."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/812",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/sld-slides.feature",
+        "line": 17,
+        "file_sha256": "240853c0d44f42bfdcec584919c70e8e7bddfc6a401a532c4550ddaf77613567",
+        "identity": "Slides.__len__()",
+        "scenario_line": 17,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 18,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 19,
+            "text": "Then len(slides) is 3"
+          }
+        ]
+      },
+      "canonical_row": "test-case-map.json#/rows/3512",
+      "exact_contract": {
+        "expanded_scenario": [
+          {
+            "line": 18,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 19,
+            "text": "Then len(slides) is 3"
+          }
+        ],
+        "example": null
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original operation examples cover observable labels/IDs/list behavior. Live model object/protocol/default-return assertions remain pending; prior insertion has its own accounting."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/813",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/sld-slides.feature",
+        "line": 22,
+        "file_sha256": "240853c0d44f42bfdcec584919c70e8e7bddfc6a401a532c4550ddaf77613567",
+        "identity": "Slides.add_slide()",
+        "scenario_line": 22,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 23,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 24,
+            "text": "When I call slides.add_slide()"
+          },
+          {
+            "line": 25,
+            "text": "Then len(slides) is 4"
+          },
+          {
+            "line": 26,
+            "text": "And slide.slide_layout is the one passed in the call"
+          }
+        ]
+      },
+      "canonical_row": "test-case-map.json#/rows/3513",
+      "exact_contract": {
+        "expanded_scenario": [
+          {
+            "line": 23,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 24,
+            "text": "When I call slides.add_slide()"
+          },
+          {
+            "line": 25,
+            "text": "Then len(slides) is 4"
+          },
+          {
+            "line": 26,
+            "text": "And slide.slide_layout is the one passed in the call"
+          }
+        ],
+        "example": null
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slides.test.ts",
+      "original_tests": [
+        "inserts at boundary %s without changing existing slide IDs or drawings"
+      ],
+      "equivalence_and_remaining_work": "Original operation examples cover observable labels/IDs/list behavior. Live model object/protocol/default-return assertions remain pending; prior insertion has its own accounting."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/814",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/sld-slides.feature",
+        "line": 29,
+        "file_sha256": "240853c0d44f42bfdcec584919c70e8e7bddfc6a401a532c4550ddaf77613567",
+        "identity": "Slides.get()",
+        "scenario_line": 29,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 30,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 31,
+            "text": "Then slides.get(256) is slides[0]"
+          },
+          {
+            "line": 32,
+            "text": "And slides.get(666, default=slides[2]) is slides[2]"
+          }
+        ]
+      },
+      "canonical_row": "test-case-map.json#/rows/3514",
+      "exact_contract": {
+        "expanded_scenario": [
+          {
+            "line": 30,
+            "text": "Given a Slides object containing 3 slides"
+          },
+          {
+            "line": 31,
+            "text": "Then slides.get(256) is slides[0]"
+          },
+          {
+            "line": 32,
+            "text": "And slides.get(666, default=slides[2]) is slides[2]"
+          }
+        ],
+        "example": null
+      },
+      "status": "operation-evidence-model-pending",
+      "original_test_file": "packages/pptx/src/slide-mutation.test.ts",
+      "original_tests": [
+        "inspects %s slides in list order with exact lookup and bounds"
+      ],
+      "equivalence_and_remaining_work": "Original operation examples cover observable labels/IDs/list behavior. Live model object/protocol/default-return assertions remain pending; prior insertion has its own accounting."
+    }
+  ],
+  "api_obligations": [
+    {
+      "source_id": "pptx.slide.NotesMaster",
+      "inventory": "upstream-api-inventory.json#/objects/2148",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "NotesMaster",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2149",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "equals",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2150",
+      "declared_on": null,
+      "target_member": "constructor",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.background",
+      "inventory": "upstream-api-inventory.json#/objects/2151",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "background",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.element",
+      "inventory": "upstream-api-inventory.json#/objects/2152",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.name",
+      "inventory": "upstream-api-inventory.json#/objects/2153",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "name",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.part",
+      "inventory": "upstream-api-inventory.json#/objects/2154",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "part",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.placeholders",
+      "inventory": "upstream-api-inventory.json#/objects/2155",
+      "declared_on": "pptx.slide._BaseMaster",
+      "target_member": "placeholders",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesMaster.shapes",
+      "inventory": "upstream-api-inventory.json#/objects/2156",
+      "declared_on": "pptx.slide._BaseMaster",
+      "target_member": "shapes",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide",
+      "inventory": "upstream-api-inventory.json#/objects/2157",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "NotesSlide",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2158",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "equals",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2159",
+      "declared_on": null,
+      "target_member": "constructor",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.background",
+      "inventory": "upstream-api-inventory.json#/objects/2160",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "background",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.element",
+      "inventory": "upstream-api-inventory.json#/objects/2161",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.name",
+      "inventory": "upstream-api-inventory.json#/objects/2162",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "name",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.notes_placeholder",
+      "inventory": "upstream-api-inventory.json#/objects/2163",
+      "declared_on": "pptx.slide.NotesSlide",
+      "target_member": "notes_placeholder",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.notes_text_frame",
+      "inventory": "upstream-api-inventory.json#/objects/2164",
+      "declared_on": "pptx.slide.NotesSlide",
+      "target_member": "notes_text_frame",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.part",
+      "inventory": "upstream-api-inventory.json#/objects/2165",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "part",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.placeholders",
+      "inventory": "upstream-api-inventory.json#/objects/2166",
+      "declared_on": "pptx.slide.NotesSlide",
+      "target_member": "placeholders",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.NotesSlide.shapes",
+      "inventory": "upstream-api-inventory.json#/objects/2167",
+      "declared_on": "pptx.slide.NotesSlide",
+      "target_member": "shapes",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide",
+      "inventory": "upstream-api-inventory.json#/objects/2168",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "Slide",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2169",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "equals",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2170",
+      "declared_on": null,
+      "target_member": "constructor",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.background",
+      "inventory": "upstream-api-inventory.json#/objects/2171",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "background",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.element",
+      "inventory": "upstream-api-inventory.json#/objects/2172",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.follow_master_background",
+      "inventory": "upstream-api-inventory.json#/objects/2173",
+      "declared_on": "pptx.slide.Slide",
+      "target_member": "follow_master_background",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.has_notes_slide",
+      "inventory": "upstream-api-inventory.json#/objects/2174",
+      "declared_on": "pptx.slide.Slide",
+      "target_member": "has_notes_slide",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.name",
+      "inventory": "upstream-api-inventory.json#/objects/2175",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "name",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.notes_slide",
+      "inventory": "upstream-api-inventory.json#/objects/2176",
+      "declared_on": "pptx.slide.Slide",
+      "target_member": "notes_slide",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J07"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.part",
+      "inventory": "upstream-api-inventory.json#/objects/2177",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "part",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.placeholders",
+      "inventory": "upstream-api-inventory.json#/objects/2178",
+      "declared_on": "pptx.slide.Slide",
+      "target_member": "placeholders",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.shapes",
+      "inventory": "upstream-api-inventory.json#/objects/2179",
+      "declared_on": "pptx.slide.Slide",
+      "target_member": "shapes",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.slide_id",
+      "inventory": "upstream-api-inventory.json#/objects/2180",
+      "declared_on": "pptx.slide.Slide",
+      "target_member": "slide_id",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slide.slide_layout",
+      "inventory": "upstream-api-inventory.json#/objects/2181",
+      "declared_on": "pptx.slide.Slide",
+      "target_member": "slide_layout",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout",
+      "inventory": "upstream-api-inventory.json#/objects/2182",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "SlideLayout",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2183",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "equals",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2184",
+      "declared_on": null,
+      "target_member": "constructor",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.background",
+      "inventory": "upstream-api-inventory.json#/objects/2185",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "background",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.element",
+      "inventory": "upstream-api-inventory.json#/objects/2186",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.name",
+      "inventory": "upstream-api-inventory.json#/objects/2187",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "name",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.part",
+      "inventory": "upstream-api-inventory.json#/objects/2188",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "part",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.placeholders",
+      "inventory": "upstream-api-inventory.json#/objects/2189",
+      "declared_on": "pptx.slide.SlideLayout",
+      "target_member": "placeholders",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.shapes",
+      "inventory": "upstream-api-inventory.json#/objects/2190",
+      "declared_on": "pptx.slide.SlideLayout",
+      "target_member": "shapes",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.slide_master",
+      "inventory": "upstream-api-inventory.json#/objects/2191",
+      "declared_on": "pptx.slide.SlideLayout",
+      "target_member": "slide_master",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayout.used_by_slides",
+      "inventory": "upstream-api-inventory.json#/objects/2192",
+      "declared_on": "pptx.slide.SlideLayout",
+      "target_member": "used_by_slides",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts",
+      "inventory": "upstream-api-inventory.json#/objects/2193",
+      "declared_on": "pptx.slide.SlideLayouts",
+      "target_member": "SlideLayouts",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2194",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "equals",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.__getitem__",
+      "inventory": "upstream-api-inventory.json#/objects/2195",
+      "declared_on": "pptx.slide.SlideLayouts",
+      "target_member": "numeric lookup / at",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2196",
+      "declared_on": null,
+      "target_member": "constructor",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.__iter__",
+      "inventory": "upstream-api-inventory.json#/objects/2197",
+      "declared_on": "pptx.slide.SlideLayouts",
+      "target_member": "Symbol.iterator",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.__len__",
+      "inventory": "upstream-api-inventory.json#/objects/2198",
+      "declared_on": "pptx.slide.SlideLayouts",
+      "target_member": "length",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.element",
+      "inventory": "upstream-api-inventory.json#/objects/2199",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.get_by_name",
+      "inventory": "upstream-api-inventory.json#/objects/2200",
+      "declared_on": "pptx.slide.SlideLayouts",
+      "target_member": "get_by_name",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.index",
+      "inventory": "upstream-api-inventory.json#/objects/2201",
+      "declared_on": "pptx.slide.SlideLayouts",
+      "target_member": "index",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.parent",
+      "inventory": "upstream-api-inventory.json#/objects/2202",
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "target_member": "parent",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.part",
+      "inventory": "upstream-api-inventory.json#/objects/2203",
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "target_member": "part",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideLayouts.remove",
+      "inventory": "upstream-api-inventory.json#/objects/2204",
+      "declared_on": "pptx.slide.SlideLayouts",
+      "target_member": "remove",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster",
+      "inventory": "upstream-api-inventory.json#/objects/2205",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "SlideMaster",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2206",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "equals",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2207",
+      "declared_on": null,
+      "target_member": "constructor",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.background",
+      "inventory": "upstream-api-inventory.json#/objects/2208",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "background",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.element",
+      "inventory": "upstream-api-inventory.json#/objects/2209",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.name",
+      "inventory": "upstream-api-inventory.json#/objects/2210",
+      "declared_on": "pptx.slide._BaseSlide",
+      "target_member": "name",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.part",
+      "inventory": "upstream-api-inventory.json#/objects/2211",
+      "declared_on": "pptx.shared.PartElementProxy",
+      "target_member": "part",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.placeholders",
+      "inventory": "upstream-api-inventory.json#/objects/2212",
+      "declared_on": "pptx.slide._BaseMaster",
+      "target_member": "placeholders",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.shapes",
+      "inventory": "upstream-api-inventory.json#/objects/2213",
+      "declared_on": "pptx.slide._BaseMaster",
+      "target_member": "shapes",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMaster.slide_layouts",
+      "inventory": "upstream-api-inventory.json#/objects/2214",
+      "declared_on": "pptx.slide.SlideMaster",
+      "target_member": "slide_layouts",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters",
+      "inventory": "upstream-api-inventory.json#/objects/2215",
+      "declared_on": "pptx.slide.SlideMasters",
+      "target_member": "SlideMasters",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2216",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "equals",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.__getitem__",
+      "inventory": "upstream-api-inventory.json#/objects/2217",
+      "declared_on": "pptx.slide.SlideMasters",
+      "target_member": "numeric lookup / at",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2218",
+      "declared_on": null,
+      "target_member": "constructor",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.__iter__",
+      "inventory": "upstream-api-inventory.json#/objects/2219",
+      "declared_on": "pptx.slide.SlideMasters",
+      "target_member": "Symbol.iterator",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.__len__",
+      "inventory": "upstream-api-inventory.json#/objects/2220",
+      "declared_on": "pptx.slide.SlideMasters",
+      "target_member": "length",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.element",
+      "inventory": "upstream-api-inventory.json#/objects/2221",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.parent",
+      "inventory": "upstream-api-inventory.json#/objects/2222",
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "target_member": "parent",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.SlideMasters.part",
+      "inventory": "upstream-api-inventory.json#/objects/2223",
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "target_member": "part",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides",
+      "inventory": "upstream-api-inventory.json#/objects/2224",
+      "declared_on": "pptx.slide.Slides",
+      "target_member": "Slides",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2225",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "equals",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.__getitem__",
+      "inventory": "upstream-api-inventory.json#/objects/2226",
+      "declared_on": "pptx.slide.Slides",
+      "target_member": "numeric lookup / at",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2227",
+      "declared_on": null,
+      "target_member": "constructor",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.__iter__",
+      "inventory": "upstream-api-inventory.json#/objects/2228",
+      "declared_on": "pptx.slide.Slides",
+      "target_member": "Symbol.iterator",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.__len__",
+      "inventory": "upstream-api-inventory.json#/objects/2229",
+      "declared_on": "pptx.slide.Slides",
+      "target_member": "length",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.add_slide",
+      "inventory": "upstream-api-inventory.json#/objects/2230",
+      "declared_on": "pptx.slide.Slides",
+      "target_member": "add_slide",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.element",
+      "inventory": "upstream-api-inventory.json#/objects/2231",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.get",
+      "inventory": "upstream-api-inventory.json#/objects/2232",
+      "declared_on": "pptx.slide.Slides",
+      "target_member": "get",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.index",
+      "inventory": "upstream-api-inventory.json#/objects/2233",
+      "declared_on": "pptx.slide.Slides",
+      "target_member": "index",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.parent",
+      "inventory": "upstream-api-inventory.json#/objects/2234",
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "target_member": "parent",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide.Slides.part",
+      "inventory": "upstream-api-inventory.json#/objects/2235",
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "target_member": "part",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide._Background",
+      "inventory": "upstream-api-inventory.json#/objects/2236",
+      "declared_on": "pptx.slide._Background",
+      "target_member": "_Background",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide._Background.__eq__",
+      "inventory": "upstream-api-inventory.json#/objects/2237",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "equals",
+      "mapping_rules": [
+        "J01",
+        "J03"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide._Background.__init__",
+      "inventory": "upstream-api-inventory.json#/objects/2238",
+      "declared_on": null,
+      "target_member": "constructor",
+      "mapping_rules": [
+        "J01"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide._Background.element",
+      "inventory": "upstream-api-inventory.json#/objects/2239",
+      "declared_on": "pptx.shared.ElementProxy",
+      "target_member": "element",
+      "mapping_rules": [
+        "J01",
+        "J02",
+        "J09"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    },
+    {
+      "source_id": "pptx.slide._Background.fill",
+      "inventory": "upstream-api-inventory.json#/objects/2240",
+      "declared_on": "pptx.slide._Background",
+      "target_member": "fill",
+      "mapping_rules": [
+        "J01",
+        "J02"
+      ],
+      "disposition": "planned-live-model",
+      "operation_evidence": "slide-mutation.test.ts for slide labels, IDs, order and index snapshots only; inherited/returned/collection/background/notes members require their own live model acceptance",
+      "remaining": "Retain all documented members including underscore-prefixed types; no privacy exclusion or whole-API implementation claim."
+    }
+  ],
+  "verification": "Original domain suite 27 cases passing; final maintained receipts in ../plans/pptx-slide-order-visibility.md; canonical inventories not marked implemented."
+}

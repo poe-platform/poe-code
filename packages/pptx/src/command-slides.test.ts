@@ -256,3 +256,237 @@ describe("slide insertion command", () => {
     expect(decode(help.stdout)).toContain("pptx slides add INPUT --layout LAYOUT");
   });
 });
+
+describe("slide order and visibility commands", () => {
+  it("moves by list position and sets duplicate labels without changing IDs", async () => {
+    const request = await invocation([
+      "slides",
+      "move",
+      "/input.pptx",
+      "--slide",
+      "3",
+      "--position",
+      "1",
+      "--output",
+      "/moved.pptx",
+      "--json"
+    ]);
+    request.volume.writeFileSync(
+      "/input.pptx",
+      await createPresentation(
+        { slides: [{ name: "Shared" }, { name: "Middle" }, { name: "Shared" }] },
+        context
+      )
+    );
+    const moved = await engine.execute(request);
+    expect(moved.exitCode, decode(moved.stdout)).toBe(0);
+    const xml = decode(
+      inspectZip(new Uint8Array(request.volume.readFileSync("/moved.pptx") as Buffer)).find(
+        (entry) => entry.name === "ppt/presentation.xml"
+      )!.payload
+    );
+    expect(xml.indexOf('id="258"')).toBeLessThan(xml.indexOf('id="256"'));
+    expect(xml.indexOf('id="256"')).toBeLessThan(xml.indexOf('id="257"'));
+    const set = await engine.execute({
+      ...request,
+      args: [
+        "slides",
+        "set",
+        "/moved.pptx",
+        "--slide",
+        "1",
+        "--name",
+        "Middle",
+        "--hidden",
+        "true",
+        "--in-place",
+        "--json"
+      ].map((arg) => new TextEncoder().encode(arg))
+    });
+    expect(set.exitCode, decode(set.stdout)).toBe(0);
+    const parts = inspectZip(new Uint8Array(request.volume.readFileSync("/moved.pptx") as Buffer));
+    expect(decode(parts.find((entry) => entry.name === "ppt/presentation.xml")!.payload)).toBe(xml);
+    expect(
+      decode(parts.find((entry) => entry.name === "ppt/slides/slide3.xml")!.payload)
+    ).toContain('show="0"');
+    expect(
+      decode(parts.find((entry) => entry.name === "ppt/slides/slide3.xml")!.payload)
+    ).toContain('name="Middle"');
+    expect(JSON.parse(decode(set.stdout))).toMatchObject({ operation: "slides.set", affected: 1 });
+  });
+  it.each([
+    ["move", "--dry-run"],
+    ["move", "--position", "0", "--dry-run"],
+    ["move", "--position", "1", "--name", "Unexpected", "--dry-run"],
+    ["set", "--dry-run"],
+    ["set", "--hidden", "yes", "--dry-run"],
+    ["set", "--hidden", "true", "--scope", "notes", "--dry-run"],
+    ["set", "--hidden", "true", "--shape", "Title", "--dry-run"],
+    ["set", "--hidden", "true", "--output", "-", "--json"]
+  ])("rejects invalid lifecycle flags before I/O %j", async (operation, ...flags) => {
+    const request = await invocation([
+      "slides",
+      operation!,
+      "/input.pptx",
+      ...flags,
+      ...(flags.includes("--json") ? [] : ["--json"])
+    ]);
+    const result = await engine.execute(request);
+    expect(result.exitCode).toBe(2);
+    expect(request.readInput).not.toHaveBeenCalled();
+  });
+  it("requires unambiguous selection and permits an explicit empty collection", async () => {
+    const request = await invocation([
+      "slides",
+      "set",
+      "/input.pptx",
+      "--hidden",
+      "true",
+      "--all",
+      "--allow-empty",
+      "--dry-run",
+      "--json"
+    ]);
+    const empty = await engine.execute(request);
+    expect(empty.exitCode, decode(empty.stdout)).toBe(0);
+    expect(JSON.parse(decode(empty.stdout))).toMatchObject({
+      affected: 0,
+      data: { effects: [], outputs: [] }
+    });
+    request.volume.writeFileSync(
+      "/input.pptx",
+      await createPresentation({ slides: [{ name: "One" }, { name: "Two" }] }, context)
+    );
+    const ambiguous = await engine.execute({
+      ...request,
+      args: ["slides", "set", "/input.pptx", "--hidden", "true", "--dry-run", "--json"].map((arg) =>
+        new TextEncoder().encode(arg)
+      )
+    });
+    expect(ambiguous.exitCode).toBe(2);
+    expect(JSON.parse(decode(ambiguous.stdout)).errors[0].code).toBe("invalid-value");
+  });
+  it.each(["set", "move"])("publishes an exact %s mutation schema", async (operation) => {
+    const response = await engine.execute(
+      await invocation(["schema", "slides", operation, "--json"])
+    );
+    expect(response.exitCode).toBe(0);
+    const schema = JSON.parse(decode(response.stdout)).data.operations[`slides.${operation}`];
+    const validate = compileJsonSchema(schema.options);
+    expect(validate.validate({ slide: 1, position: 2, dryRun: true }).ok).toBe(true);
+    expect(
+      validate.validate({
+        selection: [
+          { kind: "slide", id: "259" },
+          { kind: "slide", id: "257" }
+        ],
+        position: 1,
+        output: "/result.pptx"
+      }).ok
+    ).toBe(true);
+    expect(
+      validate.validate({
+        selection: { kind: "part", part: "/ppt/presentation.xml" },
+        position: 1,
+        dryRun: true
+      }).ok
+    ).toBe(false);
+    expect(validate.validate({ selection: { kind: "slide" }, position: 1, dryRun: true }).ok).toBe(
+      false
+    );
+    expect(validate.validate({ slide: 1, position: 1 }).ok).toBe(false);
+    expect(validate.validate({ dryRun: true }).ok).toBe(false);
+    expect(validate.validate({ slide: 1, position: 0, dryRun: true }).ok).toBe(false);
+    expect(validate.validate({ position: 1, scope: "notes", dryRun: true }).ok).toBe(false);
+  });
+});
+
+it("moves reversed nonconsecutive structured selections in their requested order", async () => {
+  const request = await invocation([
+    "slides",
+    "move",
+    "/input.pptx",
+    "--selection-json",
+    JSON.stringify([
+      { kind: "slide", position: { coordinateSystem: "one-based", value: 4 } },
+      { kind: "slide", position: { coordinateSystem: "one-based", value: 2 } }
+    ]),
+    "--position",
+    "2",
+    "--output",
+    "/result.pptx",
+    "--json"
+  ]);
+  request.volume.writeFileSync(
+    "/input.pptx",
+    await createPresentation(
+      { slides: [{ name: "A" }, { name: "B" }, { name: "C" }, { name: "D" }] },
+      context
+    )
+  );
+  const result = await engine.execute(request);
+  expect(result.exitCode, decode(result.stdout)).toBe(0);
+  const xml = decode(
+    inspectZip(new Uint8Array(request.volume.readFileSync("/result.pptx") as Buffer)).find(
+      (entry) => entry.name === "ppt/presentation.xml"
+    )!.payload
+  );
+  const ids = [256, 259, 257, 258].map((id) => xml.indexOf(`id="${id}"`));
+  expect(ids.every((offset) => offset >= 0)).toBe(true);
+  expect(ids).toEqual([...ids].sort((a, b) => a - b));
+  const envelope = JSON.parse(decode(result.stdout));
+  expect(envelope.affected).toBe(2);
+  expect(envelope.locations.map((location: { objectId: string }) => location.objectId)).toEqual([
+    "259",
+    "257"
+  ]);
+  const response = await engine.execute(await invocation(["schema", "slides", "move", "--json"]));
+  const schema = JSON.parse(decode(response.stdout)).data.operations["slides.move"];
+  expect(compileJsonSchema(schema.result).validate(envelope).ok).toBe(true);
+});
+
+it.each([
+  ["--selection-json", "null"],
+  ["--selection-json", "{}"],
+  ["--selection-json", "[]"],
+  ["--selection-json", '[{"kind":"slide","id":"256","extra":true}]'],
+  ["--selection-json", '{"kind":"part","part":"/ppt/presentation.xml","scope":"presentation"}'],
+  ["--selection-json", '{"kind":"slide","all":true}', "--all"]
+])("does not publish invalid structured slide selectors %j", async (...flags) => {
+  const request = await invocation([
+    "slides",
+    "set",
+    "/input.pptx",
+    ...flags,
+    "--hidden",
+    "true",
+    "--output",
+    "/bad.pptx",
+    "--json"
+  ]);
+  const result = await engine.execute(request);
+  expect(result.exitCode, decode(result.stdout)).toBe(2);
+  expect(request.publishOutput).not.toHaveBeenCalled();
+  expect(request.readInput).not.toHaveBeenCalled();
+});
+
+it("counts an unchanged target while preserving the exact package bytes", async () => {
+  const request = await invocation([
+    "slides",
+    "set",
+    "/input.pptx",
+    "--slide",
+    "1",
+    "--hidden",
+    "false",
+    "--output",
+    "/result.pptx",
+    "--json"
+  ]);
+  const bytes = await createPresentation({ slides: [{ name: "Visible" }] }, context);
+  request.volume.writeFileSync("/input.pptx", bytes);
+  const result = await engine.execute(request);
+  expect(result.exitCode, decode(result.stdout)).toBe(0);
+  expect(JSON.parse(decode(result.stdout))).toMatchObject({ affected: 1, data: { effects: [] } });
+  expect(new Uint8Array(request.volume.readFileSync("/result.pptx") as Buffer)).toEqual(bytes);
+});

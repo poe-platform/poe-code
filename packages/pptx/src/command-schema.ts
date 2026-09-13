@@ -467,3 +467,124 @@ export const slidesAddSchema = {
     }
   }
 };
+
+const slideSelectionSchema = {
+  ...selectionQuerySchema,
+  properties: {
+    ...selectionQuerySchema.properties,
+    kind: { const: "slide" },
+    scope: { const: "slides" },
+    part: false
+  },
+  allOf: [
+    {
+      anyOf: [
+        ...["position", "id", "name", "token"].map((field) => ({ required: [field] })),
+        { required: ["all"], properties: { all: { const: true } } }
+      ]
+    }
+  ]
+};
+
+function slideMutationSchema(operation: "slides.move" | "slides.set") {
+  return {
+    description:
+      "Move selected slides to a final one-based position after removal; preserve slide identity. Set supports labels and visibility; layout and background changes are unavailable.",
+    input: inspectSchema.input,
+    options: {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        selection: {
+          oneOf: [
+            slideSelectionSchema,
+            { type: "array", minItems: 1, items: slideSelectionSchema }
+          ],
+          description: "CLI --selection-json; ordered selection queries."
+        },
+        slide: inspectSchema.options.properties.slide,
+        select: inspectSchema.options.properties.select,
+        scope: { const: "slides" },
+        all: { type: "boolean", default: false },
+        allowEmpty: { type: "boolean", default: false },
+        position: {
+          ...slidesAddSchema.options.properties.position,
+          description: "One-based final position after removing the selected slides."
+        },
+        ...(operation === "slides.set"
+          ? { name: { type: "string" }, hidden: { type: "boolean" } }
+          : {}),
+        json: { type: "boolean", default: false },
+        limit: xmlSelection.limit,
+        output: { type: "string", minLength: 1 },
+        inPlace: { type: "boolean", default: false },
+        force: { type: "boolean", default: false },
+        dryRun: { type: "boolean", default: false }
+      },
+      allOf: [
+        ...slidesAddSchema.options.allOf,
+        {
+          anyOf: [
+            { required: ["selection"] },
+            { required: ["slide"] },
+            { required: ["select"] },
+            { required: ["all"], properties: { all: { const: true } } }
+          ]
+        },
+        {
+          if: { required: ["selection"] },
+          then: {
+            not: {
+              anyOf: ["slide", "select", "scope", "all"].map((field) => ({ required: [field] }))
+            }
+          }
+        },
+        {
+          anyOf: (operation === "slides.move" ? ["position"] : ["position", "name", "hidden"]).map(
+            (field) => ({ required: [field] })
+          )
+        },
+        {
+          if: { required: ["select"] },
+          then: {
+            not: { anyOf: ["slide", "scope", "all"].map((field) => ({ required: [field] })) }
+          }
+        }
+      ]
+    },
+    result: {
+      ...slidesAddSchema.result,
+      properties: {
+        ...slidesAddSchema.result.properties,
+        operation: { const: operation },
+        affected: { type: "integer", minimum: 0, maximum: 9007199254740991 },
+        data: {
+          oneOf: [
+            { type: "null" },
+            {
+              ...createSchema.result.properties.data.oneOf[1],
+              properties: {
+                ...createSchema.result.properties.data.oneOf[1]!.properties,
+                effects: {
+                  type: "array",
+                  items: {
+                    ...createSchema.result.properties.data.oneOf[1]!.properties!.effects.items,
+                    properties: {
+                      ...createSchema.result.properties.data.oneOf[1]!.properties!.effects.items
+                        .properties,
+                      action: { const: "update" },
+                      feature: { const: "F07" }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  };
+}
+export const slidesMoveSchema = slideMutationSchema("slides.move");
+export const slidesSetSchema = slideMutationSchema("slides.set");

@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { Volume } from "memfs";
-import { addSlide, createPptxCommandEngine, createPresentation, readSelectionIndex } from "pptx";
+import {
+  addSlide,
+  createPptxCommandEngine,
+  createPresentation,
+  mutateSlides,
+  readSelectionIndex
+} from "pptx";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -241,4 +247,59 @@ test("pptx slides add rejects missing placeholders and out-of-range positions wi
     assert.equal(volume.existsSync("/work/out.pptx"), false);
     assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), original);
   }
+});
+
+test("pptx slide mutations preserve identity through ordered JSON selection and shell publication", async () => {
+  const { shell, volume } = fixture();
+  volume.writeFileSync(
+    "/work/slides.pptx",
+    await createPresentation(
+      { slides: [{ name: "Same" }, { name: "Second" }, { name: "Same" }, { name: "Fourth" }] },
+      context
+    )
+  );
+  const source = new Uint8Array(volume.readFileSync("/work/slides.pptx") as Buffer);
+  const selection = [
+    { kind: "slide", position: { coordinateSystem: "one-based", value: 4 } },
+    { kind: "slide", position: { coordinateSystem: "one-based", value: 2 } }
+  ] as const;
+  const move = await shell.exec(
+    `pptx slides move slides.pptx --selection-json '${JSON.stringify(selection)}' --position 1 --in-place --json`
+  );
+  assert.equal(move.exitCode, 0, move.stdout + move.stderr);
+  assert.equal(JSON.parse(move.stdout).affected, 2);
+  assert.deepEqual(
+    new Uint8Array(volume.readFileSync("/work/slides.pptx") as Buffer),
+    await mutateSlides(source, { selection, position: 1 }, context)
+  );
+  const listed = await shell.exec("pptx inspect slides.pptx --json");
+  assert.equal(listed.exitCode, 0, listed.stdout + listed.stderr);
+  assert.deepEqual(
+    JSON.parse(listed.stdout).data.records.map((record: { id: string; name: string }) => [
+      record.id,
+      record.name
+    ]),
+    [
+      ["259", "Fourth"],
+      ["257", "Second"],
+      ["256", "Same"],
+      ["258", "Same"]
+    ]
+  );
+  const set = await shell.exec(
+    "pptx slides set slides.pptx --slide 1 --name Same --hidden true --in-place --json"
+  );
+  assert.equal(set.exitCode, 0, set.stdout + set.stderr);
+  const shown = await shell.exec("pptx inspect slides.pptx --json");
+  assert.equal(shown.exitCode, 0, shown.stdout + shown.stderr);
+  assert.deepEqual(
+    JSON.parse(shown.stdout).data.records.map((record: { id: string }) => record.id),
+    ["259", "257", "256", "258"]
+  );
+  assert.equal(JSON.parse(shown.stdout).data.inventory.slides[0].show.effective, false);
+  const show = await shell.exec(
+    "pptx slides set slides.pptx --slide 1 --hidden false --output - | pptx inspect - --json"
+  );
+  assert.equal(show.exitCode, 0, show.stdout + show.stderr);
+  assert.equal(JSON.parse(show.stdout).data.inventory.slides[0].show.effective, true);
 });

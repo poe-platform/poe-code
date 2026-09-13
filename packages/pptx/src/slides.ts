@@ -6,7 +6,13 @@ import { readPackage } from "./package-reader.js";
 import { writePackageArchive } from "./package-writer.js";
 import { asciiKey, relativePartReference } from "./package-uri.js";
 import { readRelationshipGraph } from "./relationships.js";
-import type { SelectionContext } from "./selectors.js";
+import {
+  readSelectionIndex,
+  SelectionError,
+  type SelectionContext,
+  type SelectionQuery,
+  type SelectionRecord
+} from "./selectors.js";
 import { parseXmlPart, type XmlElement } from "./xml.js";
 import { validatePresentation } from "./validation.js";
 
@@ -24,6 +30,13 @@ export interface AddSlideOptions {
   readonly title?: string;
   readonly body?: string;
   readonly placeholders?: readonly PlaceholderText[];
+}
+export interface MutateSlidesOptions {
+  readonly selection: SelectionQuery | readonly SelectionQuery[];
+  readonly position?: number;
+  readonly name?: string;
+  readonly hidden?: boolean;
+  readonly allowEmpty?: boolean;
 }
 const contentNamespace = "http://schemas.openxmlformats.org/package/2006/content-types";
 const packageRelationships = "http://schemas.openxmlformats.org/package/2006/relationships";
@@ -467,6 +480,188 @@ export async function addSlide(
     throw new OfficeError(
       "invalid-opc",
       "Inserted slide fails graph validation.",
+      "validate-result"
+    );
+  return output;
+}
+
+export async function mutateSlides(
+  input: BinaryInput,
+  options: MutateSlidesOptions,
+  context: SelectionContext
+): Promise<Uint8Array> {
+  fields(options, ["selection", "position", "name", "hidden", "allowEmpty"]);
+  if ([options.position, options.name, options.hidden].every((value) => value === undefined))
+    invalid("At least one slide update is required.");
+  if (
+    options.position !== undefined &&
+    (!Number.isSafeInteger(options.position) || options.position < 1)
+  )
+    invalid("Invalid final slide position.");
+  if (options.name !== undefined && typeof options.name !== "string")
+    invalid("Expected a slide label.");
+  for (const value of [options.hidden, options.allowEmpty])
+    if (value !== undefined && typeof value !== "boolean")
+      invalid("Expected a boolean slide setting.");
+  if (!context?.xmlLimits || !context.relationshipLimits)
+    invalid("Explicit XML and relationship limits are required.");
+  if (options.name !== undefined) escape(options.name, context.xmlLimits.maxBytes);
+  const queries: readonly SelectionQuery[] = Array.isArray(options.selection)
+    ? options.selection
+    : [options.selection as SelectionQuery];
+  if (!queries.length) throw new SelectionError("invalid-selection");
+  if (queries.length > context.relationshipLimits.maxParts)
+    throw new OfficeError("resource-limit", "Too many slide selections.", "usage");
+  for (const query of queries)
+    if (
+      !query ||
+      typeof query !== "object" ||
+      (query.kind !== undefined && query.kind !== "slide") ||
+      (query.scope !== undefined && query.scope !== "slides") ||
+      (!query.all &&
+        query.token === undefined &&
+        query.id === undefined &&
+        query.name === undefined &&
+        query.position === undefined)
+    )
+      throw new SelectionError("invalid-selection");
+  const source = await readBinary(input, context);
+  const reader = await readPackage(source, context);
+  const limits = {
+    ...context.xmlLimits,
+    ...context.relationshipLimits,
+    maxBytes: Math.min(context.xmlLimits.maxBytes, context.relationshipLimits.maxBytes),
+    maxEntries: context.archiveLimits.maxMembers
+  };
+  const types = parseContentTypes(reader.get("/[Content_Types].xml"), limits);
+  const graph = readRelationshipGraph(reader, context.relationshipLimits);
+  for (const name of reader.names) {
+    context.signal?.throwIfAborted();
+    if (name === "/[Content_Types].xml") continue;
+    const type = types.get(name).toLowerCase();
+    if (
+      type.includes("digital-signature") ||
+      type.includes("macroenabled") ||
+      type.includes("vbaproject") ||
+      asciiKey(name).startsWith("/_xmlsignatures/")
+    )
+      unsupported("Signed and macro-enabled packages cannot be changed.");
+  }
+  for (const owner of ["/", ...graph.parts])
+    if (
+      graph
+        .outgoing(owner)
+        .some(
+          (edge) => edge.type.includes("/digital-signature/") || edge.type.endsWith("/vbaProject")
+        )
+    )
+      unsupported("Signed and macro-enabled packages cannot be changed.");
+  if (!validatePresentation(reader, limits).valid)
+    throw new OfficeError(
+      "invalid-opc",
+      "Slide editing requires a valid presentation graph.",
+      "validate-intent"
+    );
+  const index = await readSelectionIndex(source, context);
+  const selected: SelectionRecord[] = [];
+  const identities = new Set<string>();
+  for (const query of queries) {
+    let records: readonly SelectionRecord[];
+    try {
+      records = index.select(query);
+    } catch (error) {
+      if (
+        error instanceof SelectionError &&
+        error.code === "missing-selection" &&
+        options.allowEmpty
+      )
+        continue;
+      throw error;
+    }
+    for (const record of records) {
+      if (record.kind !== "slide" || identities.has(record.id))
+        throw new SelectionError("invalid-selection");
+      identities.add(record.id);
+      selected.push(record);
+    }
+  }
+  if (
+    options.position !== undefined &&
+    options.position > index.slides.length - selected.length + 1
+  )
+    invalid("Final position is outside the remaining slide list.");
+  const main = graph
+    .outgoing("/")
+    .find((edge) => dialects.some((d) => edge.type === `${d.r}/officeDocument`))!.targetPart!;
+  let presentation = parseXmlPart(reader.get(main), context.xmlLimits);
+  const d = dialects.find((value) => value.p === presentation.root.name.namespace)!;
+  const pending = [presentation.root];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (node.name.namespace === d.p && node.name.localName === "modifyVerifier")
+      unsupported("Protected presentations cannot be changed.");
+    if (node.name.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006")
+      unsupported("Conditional presentation structure cannot be changed.");
+    pending.push(...node.children);
+  }
+  const changes = new Map<string, Uint8Array>();
+  if (selected.length && options.position !== undefined) {
+    const list = child(presentation.root, "sldIdLst", d.p)!;
+    if (
+      list.children.some((node) => node.name.namespace !== d.p || node.name.localName !== "sldId")
+    )
+      unsupported("Unsupported slide-list content.");
+    const ordered = index.slides.filter((slide) => !identities.has(slide.id));
+    ordered.splice(options.position - 1, 0, ...selected);
+    if (ordered.some((slide, i) => slide.id !== index.slides[i]!.id)) {
+      const ids = new Map(index.slides.map((slide, i) => [slide.id, list.children[i]!]));
+      presentation = presentation.reorderChildren(
+        list,
+        ordered.map((slide) => ids.get(slide.id)!)
+      );
+      changes.set(main, presentation.bytes());
+    }
+  }
+  for (const selectedSlide of selected) {
+    context.signal?.throwIfAborted();
+    let document = parseXmlPart(reader.get(selectedSlide.part), context.xmlLimits);
+    let changed = false;
+    if (options.name !== undefined) {
+      const common = child(document.root, "cSld", d.p);
+      if (!common) unsupported("Conditional slide labels cannot be changed.");
+      if ((attr(common, "name") ?? "") !== options.name) {
+        document = document.merge(common, {
+          attributes: [{ namespace: "", localName: "name", value: options.name || null }]
+        });
+        changed = true;
+      }
+    }
+    if (options.hidden !== undefined) {
+      const show = attr(document.root, "show")?.trim();
+      if (show !== undefined && !["0", "1", "true", "false"].includes(show))
+        throw new OfficeError("invalid-opc", "Invalid slide visibility.", "validate-intent");
+      if ((show === "0" || show === "false") !== options.hidden) {
+        document = document.merge(document.root, {
+          attributes: [{ namespace: "", localName: "show", value: options.hidden ? "0" : "1" }]
+        });
+        changed = true;
+      }
+    }
+    if (changed) changes.set(selectedSlide.part, document.bytes());
+  }
+  if (!changes.size) return source;
+  const output = await writePackageArchive(
+    reader.names.map((name) => ({
+      name: name.slice(1),
+      bytes: changes.get(name) ?? reader.get(name)
+    })),
+    context,
+    { compression: "auto", source }
+  );
+  if (!validatePresentation(await readPackage(output, context), limits).valid)
+    throw new OfficeError(
+      "invalid-opc",
+      "Changed slides fail graph validation.",
       "validate-result"
     );
   return output;

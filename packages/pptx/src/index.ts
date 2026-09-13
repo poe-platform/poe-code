@@ -17,6 +17,7 @@ export type {
   WriteOptions
 } from "./contracts.js";
 export { OfficeError, type ByteErrorCode, type OfficeErrorCode } from "./errors.js";
+export { readTransitions, mutateTransitions, validateTransitionOptions, type TransitionKind, type TransitionDirection, type TransitionRecord, type MutateTransitionsOptions } from "./transitions.js";
 export {
   readCharts,
   inspectChart,

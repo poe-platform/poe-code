@@ -26,6 +26,8 @@ import { connectorSchemas } from "./connectors-schema.js";
 import { validateShapePath, pathFromVertices, type ShapePath } from "./shape-paths.js";
 import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
 import { fieldSchemas } from "./fields-schema.js";
+import { transitionSchemas, transitionsUsage } from "./transitions-schema.js";
+import { readTransitions, mutateTransitions, validateTransitionOptions, type MutateTransitionsOptions } from "./transitions.js";
 import { equationSchemas, equationsUsage } from "./equations-schema.js";
 import { validateEquationCommand, executeEquationCommand } from "./command-equations.js";
 import { readImages } from "./images.js";
@@ -335,6 +337,7 @@ const help =
   "       pptx themes list|get INPUT [--slide N | --part URI | --select TOKEN] [--json]\n" +
   "       pptx themes set INPUT --scope shared [--slide N | --part URI | --select TOKEN]\n" +
   "                       [--name TEXT] [--color-slot SLOT --color RRGGBB] [--font-slot SLOT --font TEXT]\n" +
+  "       pptx transitions list|get|add|set|remove INPUT [--slide N] [options]\n" +
   "       pptx backgrounds list|get INPUT [--slide N | --part URI] [--scope SCOPE] [--json]\n" +
   "       pptx backgrounds set INPUT [--slide N | --part URI | --select TOKEN] [--scope SCOPE]\n" +
   "                       --kind solid --color RRGGBB | --kind gradient --stops JSON [--angle N]\n" +
@@ -406,11 +409,13 @@ interface Arguments {
   shadowBlur?: { value: number; unit: "emu" };
   shadowColor?: DrawingColor;
   fieldEdit?: FieldUpdate;
+  transitionEdit?: Omit<MutateTransitionsOptions, "selection">;
   operation:
     | `equations.${"list" | "get" | "add"}`
     | `tables.${"list" | "get" | "add" | "set" | "merge" | "split" | "rows.add" | "rows.remove" | "columns.add" | "columns.remove"}`
     | `connectors.${"list" | "get" | "add" | "set" | "remove"}`
     | `fields.${"list" | "get" | "set" | "add" | "remove"}`
+    | `transitions.${"list" | "get" | "set" | "add" | "remove"}`
     | `masters.${"list" | "get" | "add" | "set"}`
     | `layouts.${"list" | "get" | "add" | "set" | "remove" | "apply"}`
     | "shapes.paths.list"
@@ -659,6 +664,9 @@ const imageSetFlags = [
   "--alt-text"
 ];
 const scalarOptions = [
+  "--duration",
+  "--advance-after",
+  "--advance-on-click",
   "--poster", "--poster-content-type", "--mime-type", "--trim-start", "--trim-end", "--loop", "--volume",
   ...imageSetFlags,
   "--content-type",
@@ -826,6 +834,7 @@ function parse(
     } else if (
       index === 1 &&
       [
+        "transitions",
         "equations",
         "charts",
         "media",
@@ -896,6 +905,7 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "transitions",
     "media",
     "equations",
     "charts",
@@ -925,6 +935,7 @@ function parse(
         : command;
   if (
     ![
+      ...Object.keys(transitionSchemas),
       ...Object.keys(mediaSchemas),
       ...Object.keys(imageSchemas),
       ...Object.keys(equationSchemas),
@@ -983,6 +994,7 @@ function parse(
     }
     if (
       (operation.startsWith("media.") ||
+        operation.startsWith("transitions.") ||
         operation.startsWith("images.") ||
         operation.startsWith("equations.") ||
         operation.startsWith("charts.") ||
@@ -1239,6 +1251,27 @@ function parse(
         ...result.fieldEdit,
         [key]: key === "timestamp" ? commandTimestamp(value) : value
       };
+      continue;
+    }
+    if (operation.startsWith("transitions.") && ["--kind", "--direction", "--duration", "--advance-after", "--advance-on-click"].includes(argument)) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Transition option requires a value.");
+      let parsed: string | number | boolean | null = value;
+      if (argument === "--duration" || argument === "--advance-after") {
+        if (argument === "--advance-after" && value === "null") parsed = null;
+        else {
+          if (!value.length || [...value].some(character => character < "0" || character > "9")) usage("Timing requires integer milliseconds.");
+          parsed = Number(value);
+        }
+      }
+      if (argument === "--advance-on-click") {
+        if (value !== "true" && value !== "false") usage("Advance on click requires true or false.");
+        parsed = value === "true";
+      }
+      const key = argument === "--advance-after" ? "advanceAfter" : argument === "--advance-on-click" ? "advanceOnClick" : argument.slice(2);
+      result.transitionEdit = { ...result.transitionEdit, [key]: parsed };
       continue;
     }
     if (seen.has(argument) && argument !== "--limit") usage("Repeated option.");
@@ -2488,6 +2521,29 @@ function parse(
     result.input = positionals[0];
     return result;
   }
+  if (operation.startsWith("transitions.")) {
+    const mutation = !["transitions.list", "transitions.get"].includes(operation);
+    const editing = ["transitions.add", "transitions.set"].includes(operation);
+    const allowed = ["--json", "--limit", "--select", "--scope", "--slide",
+      ...(mutation ? ["--all", "--allow-empty", "--output", "--in-place", "--force", "--dry-run"] : []),
+      ...(editing ? ["--kind", "--direction", "--duration", "--advance-after", "--advance-on-click"] : [])];
+    if ([...seen].some(flag => !allowed.includes(flag))) usage("Option does not apply to transitions.");
+    if (positionals.length !== 1 || !positionals[0]) usage("Transitions require one input.");
+    result.input = positionals[0];
+    if (result.scope !== undefined && result.scope !== "slides") usage("Transitions require slides scope.");
+    if (result.token && ["--scope", "--slide"].some(flag => seen.has(flag))) usage("Opaque and simple selectors cannot be combined.");
+    if (mutation) {
+      validateTransitionOptions(operation.slice(12) as "add" | "set" | "remove", { ...result.transitionEdit, selection: {} });
+      if (!result.token && result.slide === undefined && !result.all) usage("Transition mutation requires a selector or --all.");
+      if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+      if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+      if (!result.dryRun && !result.inPlace && !result.output) usage("Mutation requires a destination.");
+      if (result.force && !result.output) usage("Force requires an explicit output destination.");
+      if (result.output === result.input && result.output !== "-") usage("Replacing input requires --in-place.");
+      if (result.output === "-" && result.json && !result.dryRun) usage("Binary stdout cannot be combined with JSON.");
+    }
+    return result;
+  }
   if (
     operation.startsWith("fields.") ||
     operation === "text.get" ||
@@ -3211,6 +3267,7 @@ function parse(
     if (
       (operation === "schema" || operation === "help") &&
       [
+        ...Object.keys(transitionSchemas),
         ...Object.keys(mediaSchemas),
         ...Object.keys(imageSchemas),
         ...Object.keys(equationSchemas),
@@ -3629,6 +3686,7 @@ async function execute(
                             "No field evaluation, automatic numbering or inherited-content flattening.\n" +
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
+      if (args.schemaPath?.startsWith("transitions.")) resolvedUsage = transitionsUsage;
       if (args.schemaPath?.startsWith("media.")) resolvedUsage = mediaUsage;
       if (args.schemaPath === "images.set")
         resolvedUsage =
@@ -3715,6 +3773,7 @@ async function execute(
         version: 1,
         operations: Object.fromEntries(
           Object.entries({
+            ...transitionSchemas,
             ...imageSchemas,
             ...chartSchemas,
             ...mediaSchemas,
@@ -3807,6 +3866,12 @@ async function execute(
             operations: ["shapes.group", "shapes.ungroup"],
             subset:
               "Contiguous sibling grouping and single-group ungrouping with explicit EMU tolerance; retain original shape IDs, world geometry and z-order. Identity groups preserve child XML; transformed ungrouping requires rectangles without text, styles or strokes, nested groups and quarter-turn rotation chains. Unsupported geometry and affected references are rejected."
+          },
+          transitions: {
+            supported: true,
+            level: "edit",
+            operations: Object.keys(transitionSchemas),
+            subset: "Cut, fade, push and wipe; integer millisecond duration, explicit click and timed advance. Unsupported transitions and sound relationships are retained."
           },
           fields: {
             supported: true,
@@ -4006,6 +4071,53 @@ async function execute(
           )
           .join("") +
         "External targets remain inert. Metadata parsing does not prove playback.\n";
+    } else if (Object.hasOwn(transitionSchemas, args.operation)) {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));
+      const selection: SelectionQuery = args.token ? { token: args.token } : {
+        kind: "slide", scope: "slides",
+        ...(args.slide === undefined ? {} : { position: { coordinateSystem: "one-based", value: args.slide } }),
+        ...(args.all ? { all: true } : {})
+      };
+      const unfilteredList = args.operation === "transitions.list" && !args.token && args.slide === undefined;
+      const records = await readTransitions(bytes, unfilteredList ? {} : { selection }, context).catch(error => {
+        if (args.allowEmpty && !["transitions.list", "transitions.get"].includes(args.operation) && error instanceof SelectionError && error.code === "missing-selection") return [];
+        throw error;
+      });
+      if (["transitions.list", "transitions.get"].includes(args.operation)) {
+        if (args.operation === "transitions.get" && records.length !== 1) throw new SelectionError(records.length ? "ambiguous-selection" : "missing-selection");
+        const items = records.filter(record => record.kind !== null).map(record => ({
+          location: record.location, kind: record.kind, name: null,
+          fields: ["direction", "duration", "advanceAfter", "advanceOnClick"].map(name => {
+            const value = record[name as "direction" | "duration" | "advanceAfter" | "advanceOnClick"];
+            return { name, value: { type: value === null ? "null" : typeof value, value } };
+          })
+        }));
+        result = { ...success(operation, { items }), locations: records.map(record => record.location) };
+        human = records.filter(record => record.kind !== null).map(record =>
+          `Slide ${record.slide}: ${record.kind}${record.direction ? " " + record.direction : ""}\n` +
+          `  Duration: ${record.duration === null ? "unspecified" : record.duration + " ms"}\n` +
+          `  Advance: ${record.advanceAfter === null ? "manual" : record.advanceAfter + " ms"}; click: ${record.advanceOnClick === null ? "unspecified" : record.advanceOnClick ? "enabled" : "disabled"}\n`
+        ).join("");
+      } else {
+        const action = args.operation.slice(12) as "add" | "set" | "remove";
+        const changed = await mutateTransitions(bytes, action, { ...args.transitionEdit, selection, ...(args.allowEmpty ? { allowEmpty: true } : {}) }, context);
+        const locations = records.filter(record => changed.affectedSlides.includes(record.slide)).map(record => record.location);
+        const dryRun = args.dryRun ?? false;
+        const destination = args.inPlace ? args.input! : args.output;
+        const fingerprint = Array.from(sha256(changed.bytes), byte => byte.toString(16).padStart(2, "0")).join("");
+        result = { ...success(operation, {
+          effects: locations.map(location => ({ location, action, feature: "F44" })),
+          outputs: dryRun || !locations.length ? [] : [{ path: destination!, sha256: fingerprint, bytes: changed.bytes.length }],
+          fingerprint: dryRun || !locations.length ? null : fingerprint
+        }), affected: locations.length, locations };
+        human = `${dryRun ? "Validated" : "Updated"} ${locations.length} transition(s)\n`;
+        if (destination === "-" && !dryRun) binary = changed.bytes;
+        else if (destination && destination !== "-" && locations.length) {
+          if (!request.publishOutput) throw Object.assign(new Error("Output publication capability is unavailable."), { code: "publication-unsupported" });
+          publication = { inputPath: args.input!, outputPath: destination, bytes: changed.bytes, originalBytes: bytes, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
+        }
+      }
     } else if (Object.hasOwn(equationSchemas, args.operation)) {
       const equation = await executeEquationCommand(args, request, options);
       result = equation.result;

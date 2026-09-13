@@ -58,3 +58,9 @@ after the fix; number formats still retain consistent semantic cache/cell values
 The primary standards implementation note is linked in workbook-evidence.md.
 The affected 38-case gate, package lint, and selected build passed. The complete
 package gate is rerun after the final order correction below.
+
+Display-order increment: an original imported chart with idx/order pairs 3/4 and
+1/2 reproduced incorrect trimming. Sorting series by declared order before
+rewriting now retains 1/2. The exact seven replacement scenario dimension/type
+transitions have original package tests. Final maintained package gate passed
+128 files / 3,636 tests in 32.46 seconds; package lint and selected build passed.

@@ -314,3 +314,78 @@ it.each(["synchronize-simple", "reject-complex"])(
     expect(fs.readFileSync("/result.pptx")).toEqual(snapshot);
   }
 );
+
+it.each([
+  ["BAR_CLUSTERED", 2, 2, 3, 3],
+  ["BAR_STACKED_100", 2, 2, 3, 3],
+  ["COLUMN_CLUSTERED", 2, 2, 3, 3],
+  ["LINE", 4, 3, 3, 2],
+  ["PIE", 3, 1, 5, 1],
+  ["XY_SCATTER", 3, 2, 3, 3],
+  ["BUBBLE", 3, 2, 3, 3]
+] as const)(
+  "replaces %s dimensions %sx%s with %sx%s",
+  async (type, oldPoints, oldSeries, points, series) => {
+    const dataset = (pointCount: number, seriesCount: number, prefix: string): ChartData => ({
+      ...(!["XY_SCATTER", "BUBBLE"].includes(type)
+        ? {
+            categories: Array.from(
+              { length: pointCount },
+              (_, index) => `${prefix} station ${index}`
+            )
+          }
+        : {}),
+      series: Array.from({ length: seriesCount }, (_, index) => ({
+        name: `${prefix} measure ${index}`,
+        values: Array.from({ length: pointCount }, (_, point) => index + point),
+        ...(["XY_SCATTER", "BUBBLE"].includes(type)
+          ? { xValues: Array.from({ length: pointCount }, (_, point) => point * 2) }
+          : {}),
+        ...(type === "BUBBLE"
+          ? { bubbleSizes: Array.from({ length: pointCount }, (_, point) => point) }
+          : {})
+      }))
+    });
+    const source = await seed(type, dataset(oldPoints, oldSeries, "Old"));
+    const result = outputs(
+      await setCharts(source, { slide: 1 }, { data: dataset(points, series, "New") }, context)
+    );
+    expect(result.chart).not.toContain("Old measure");
+    expect(result.sheet).not.toContain("Old measure");
+    for (let index = 0; index < series; index++) {
+      expect(result.chart).toContain(`<c:v>New measure ${index}</c:v>`);
+      expect(result.sheet).toContain(`>New measure ${index}</t>`);
+    }
+    expect(result.chart).toContain(`<c:ptCount val="${points}"/>`);
+    expect(result.chart).toContain(`$${points + 1}</c:f>`);
+    expect(result.sheet).toContain(`<row r="${points + 1}">`);
+    expect(result.sheet).not.toContain(`<row r="${points + 2}">`);
+  }
+);
+
+it("trims series by declared display order while preserving surviving identities", async () => {
+  const data = {
+    categories: ["One"],
+    series: [
+      { name: "Later", values: [4] },
+      { name: "Earlier", values: [2] }
+    ]
+  };
+  const source = patch(await seed("COLUMN_CLUSTERED", data), (xml) =>
+    xml
+      .replace('<c:idx val="0"/><c:order val="0"/>', '<c:idx val="3"/><c:order val="4"/>')
+      .replace('<c:idx val="1"/><c:order val="1"/>', '<c:idx val="1"/><c:order val="2"/>')
+  );
+  const next = outputs(
+    await setCharts(
+      source,
+      { slide: 1 },
+      { data: { categories: ["New"], series: [{ name: "Kept", values: [8] }] } },
+      context
+    )
+  );
+  expect(next.chart).toContain('<c:idx val="1"/><c:order val="2"/>');
+  expect(next.chart).not.toContain('<c:idx val="3"/>');
+  expect(next.chart).toContain("Sheet1!$B$2:$B$2");
+  expect(next.sheet).toContain('<c r="B2"><v>8</v></c>');
+});

@@ -734,6 +734,20 @@ export async function setCharts(
         )
       )
         unsupported("Chart series identities must be unique unsigned integers.");
+      const ordered = series
+        .map((node, index) => ({ node, order: identities[1]![index]! }))
+        .sort((left, right) => left.order - right.order);
+      if (ordered.some((item, index) => item.node !== series[index])) {
+        let position = 0;
+        doc = doc.reorderChildren(
+          plot,
+          plot.children.map((node) =>
+            node.name.namespace === ns && node.name.localName === "ser"
+              ? ordered[position++]!.node
+              : node
+          )
+        );
+      }
       const nextIdentity = identities.map((values) => Math.max(-1, ...values) + 1);
       for (let index = 0; index < update.data.series.length; index++) {
         let generated = parseXmlPart(

@@ -298,3 +298,98 @@ pptx shapes drawing get 'painted deck.pptx' --slide 1 --shape Panel --json`
   assert.equal(sdk[0]!.drawing.fill.color?.opacity, 0.5);
   await shell.dispose();
 });
+
+test("drawing commands preserve mixed gradient colors, patterned lines and explicit inheritance", async () => {
+  const { shell, volume } = fixture();
+  volume.writeFileSync(
+    "/work/deck.pptx",
+    await createPresentation(
+      { slides: [{ shapes: [{ name: "Panel", x: 0, y: 0, width: 100, height: 100, text: "" }] }] },
+      context
+    )
+  );
+  const bytes = () => new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer);
+  const gradient = {
+    kind: "gradient",
+    angle: -90,
+    stops: [
+      { position: 0, color: { theme: "accent4", opacity: 0 } },
+      { position: 1, color: { rgb: "123456", opacity: 1 } }
+    ]
+  };
+  const line = {
+    width: { value: 2, unit: "pt" },
+    dash: "dash",
+    fill: {
+      kind: "pattern",
+      preset: "cross",
+      foreground: { theme: "accent2", opacity: 0.5 },
+      background: "ABCDEF"
+    }
+  };
+  try {
+    const painted = await shell.exec(
+      `pptx shapes drawing set deck.pptx --slide 1 --shape Panel --fill '${JSON.stringify(gradient)}' --line '${JSON.stringify(line)}' --in-place --json`
+    );
+    assert.equal(painted.exitCode, 0, painted.stderr);
+    const drawing = (await readDrawing(bytes(), { slide: 1, shape: "Panel" }, context))[0]!.drawing;
+    assert.equal(drawing.fill.kind, "gradient");
+    assert.equal(drawing.fill.angle, 270);
+    assert.deepEqual(
+      drawing.fill.stops?.map((stop) => [
+        stop.position,
+        stop.color?.theme,
+        stop.color?.rgb,
+        stop.color?.opacity
+      ]),
+      [
+        [0, "accent4", null, 0],
+        [1, null, "123456", 1]
+      ]
+    );
+    assert.equal(drawing.line.width, 25400);
+    assert.equal(drawing.line.dash, "dash");
+    assert.equal(drawing.line.fill.kind, "pattern");
+    assert.equal(drawing.line.fill.foreground?.theme, "accent2");
+    assert.equal(drawing.line.fill.foreground?.opacity, 0.5);
+    assert.equal(drawing.line.fill.background?.rgb, "ABCDEF");
+    for (const kind of ["none", "inherit"]) {
+      const changed = await shell.exec(
+        `pptx shapes drawing set deck.pptx --slide 1 --shape Panel --fill-kind ${kind} --in-place --json`
+      );
+      assert.equal(changed.exitCode, 0, changed.stderr);
+      assert.equal(
+        (await readDrawing(bytes(), { slide: 1, shape: "Panel" }, context))[0]!.drawing.fill.kind,
+        kind
+      );
+    }
+    const shadow = await shell.exec(
+      `pptx shapes effects set deck.pptx --slide 1 --shape Panel --shadow true --opacity 0.25 --shadow-blur 3pt --shadow-color '{"theme":"accent5"}' --in-place --json`
+    );
+    assert.equal(shadow.exitCode, 0, shadow.stderr);
+    const inspected = await shell.exec(
+      "pptx shapes drawing get deck.pptx --slide 1 --shape Panel --json"
+    );
+    assert.equal(inspected.exitCode, 0, inspected.stderr);
+    const effect = JSON.parse(inspected.stdout).data.records[0].drawing.shadow;
+    assert.deepEqual(
+      [effect.blur, effect.distance, effect.color.theme, effect.opacity],
+      [38100, 0, "accent5", 0.25]
+    );
+    for (const args of [
+      `--fill '{"kind":"solid","color":{"rgb":"123456","theme":"accent1"}}'`,
+      `--fill '{"kind":"solid","color":{"rgb":"123456","opacity":1.01}}'`,
+      `--line '{"width":{"value":-1,"unit":"pt"}}'`
+    ]) {
+      const original = bytes();
+      const rejected = await shell.exec(
+        `pptx shapes drawing set deck.pptx --slide 1 --shape Panel ${args} --in-place --json`
+      );
+      assert.equal(rejected.exitCode, 2, rejected.stderr);
+      assert.equal(JSON.parse(rejected.stdout).affected, 0);
+      assert.deepEqual(bytes(), original);
+    }
+  } finally {
+    await shell.dispose();
+  }
+});

@@ -100,3 +100,8 @@ corpus publication or ignored fixture staging is authorized or performed.
 The command fixture context repair is delivered independently from production
 formatting changes. The public context annotation admits the documented optional
 validation limits while retaining compile-time checking of unknown options.
+
+The final acceptance improvement adds original package command and registered
+shell cases for opaque-effect retention, shadow rejection without publication,
+mixed theme/RGB alpha, patterned lines, explicit inheritance and invalid values.
+Its additive research receipt preserves every broader unsupported obligation.

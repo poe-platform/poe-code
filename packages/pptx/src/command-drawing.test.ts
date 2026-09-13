@@ -3,6 +3,8 @@ import { Volume } from "memfs";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { mutateDrawing } from "./drawing-operations.js";
 import { readPackage } from "./package-reader.js";
+import { storedArchive } from "../tests/fixtures/archive.js";
+import { parseXmlPart } from "./xml.js";
 import { readSelectionIndex } from "./selectors.js";
 import { addShape } from "./shape-operations.js";
 import { Inches } from "./length.js";
@@ -53,10 +55,97 @@ async function fixture(input?: Uint8Array) {
         if (!request.dryRun) fs.writeFileSync(request.outputPath, request.bytes);
       }
     });
-    return { code: output.exitCode, value: JSON.parse(new TextDecoder().decode(output.stdout)) };
+    return {
+      code: output.exitCode,
+      value: JSON.parse(new TextDecoder().decode(output.stdout)),
+      bytes: new Uint8Array(fs.readFileSync("/deck.pptx") as Buffer)
+    };
   };
 }
 describe("drawing resource commands", () => {
+  it.each([
+    [
+      '<a:effectDag name="Layered"><a:cont type="tree"><a:blur rad="73"/></a:cont></a:effectDag><a:scene3d><a:camera prst="orthographicFront"/></a:scene3d><a:sp3d prstMaterial="metal"/>',
+      false
+    ],
+    [
+      '<a:effectLst><a:outerShdw blurRad="50" dist="100"><a:srgbClr val="345678"/></a:outerShdw></a:effectLst>',
+      false
+    ],
+    [
+      '<a:effectLst><a:extLst><a:ext uri="urn:retained-effect"><fx:prism xmlns:fx="urn:paint-effects" facets="7"/></a:ext></a:extLst></a:effectLst>',
+      true
+    ]
+  ])(
+    "retains opaque effect markup through CLI paint and line publication (%#)",
+    async (payload, shadowAllowed) => {
+      const archive = await readPackage(
+        await createPresentation({ slides: [{}] }, context),
+        context
+      );
+      const part = "/ppt/slides/slide1.xml";
+      let xml = parseXmlPart(archive.get(part), context.xmlLimits);
+      const tree = xml.root.children[0]!.children.find((node) => node.name.localName === "spTree")!;
+      xml = xml.spliceChildren(tree, tree.children.length, 0, [
+        `<p:sp xmlns:p="${xml.root.name.namespace}" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:nvSpPr><p:cNvPr id="2" name="Panel"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="100" cy="100"/></a:xfrm><a:prstGeom prst="rect"/>${payload}</p:spPr></p:sp>`
+      ]);
+      const run = await fixture(
+        storedArchive(
+          archive.names.map((name) => ({
+            name: name.slice(1),
+            bytes: name === part ? xml.bytes() : archive.get(name)
+          }))
+        )
+      );
+      const painted = await run([
+        "shapes",
+        "drawing",
+        "set",
+        "/deck.pptx",
+        "--slide",
+        "1",
+        "--shape",
+        "Panel",
+        "--fill",
+        '{"kind":"solid","color":{"theme":"accent6","opacity":0.75}}',
+        "--line",
+        '{"width":{"value":1,"unit":"pt"}}',
+        "--in-place"
+      ]);
+      expect(painted.code, JSON.stringify(painted.value)).toBe(0);
+      const paintedArchive = await readPackage(painted.bytes, context);
+      expect(new TextDecoder().decode(paintedArchive.get(part))).toContain(payload);
+      const shadow = await run([
+        "shapes",
+        "effects",
+        "set",
+        "/deck.pptx",
+        "--slide",
+        "1",
+        "--shape",
+        "Panel",
+        "--shadow",
+        "true",
+        "--opacity",
+        "0.5",
+        "--shadow-blur",
+        "2pt",
+        "--shadow-color",
+        "123456",
+        "--in-place"
+      ]);
+      expect(shadow.code, JSON.stringify(shadow.value)).toBe(shadowAllowed ? 0 : 1);
+      if (!shadowAllowed) {
+        expect(shadow.bytes).toEqual(painted.bytes);
+        expect(shadow.value.affected).toBe(0);
+      } else {
+        const changedArchive = await readPackage(shadow.bytes, context);
+        expect(new TextDecoder().decode(changedArchive.get(part))).toContain(
+          '<a:extLst><a:ext uri="urn:retained-effect"><fx:prism xmlns:fx="urn:paint-effects" facets="7"/></a:ext></a:extLst>'
+        );
+      }
+    }
+  );
   it("exposes typed drawing and effect schemas", async () => {
     const run = await fixture();
     for (const path of [

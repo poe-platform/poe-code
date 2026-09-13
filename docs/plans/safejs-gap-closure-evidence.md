@@ -2100,3 +2100,28 @@ Unrelated working and staged changes are preserved. **Local commits exist;
 verified remote-main delivery and successful release/publication have not been
 performed for these fixes.** No push was requested and no task release receipt
 exists. The atomic optional-chain commit is identified by this section's history.
+
+
+### qualify-language-semantics — prototype setter function names, 2026-09-13
+
+**Acceptance remains incomplete.** [Atomic repair and exact commands](qualify-language-semantics/proto-name/audit.md)
+reproduce six independent name-inference failures before repair. The existing
+prototype-setter predicate now suppresses inferred names for anonymous definitions.
+Final focused checks: **69 passed / zero failed or skipped**; targeted lint and
+maintained workspace build pass. Original pinned upstream contexts: **8/8 passing**,
+including the two recorded strict/sloppy failures, complete, exit 0.
+Source parent `440805b703b1339c9240077e129c8607ed6f51f5`, preserved working changes,
+fingerprint `6d7241b0709b644d476025b01438edf68c340438488b19e7fceae829d28a7049`,
+Node **22.23.2 / ICU 78.2**. Complete V4 evidence hashes were independently reverified.
+The edition and extension pins are unchanged.
+
+Checks cover lint, built CLI/SDK parity, visually inspected screenshot, separate
+eval/dynamic-function closure state, saved source, repeated pending/completed replay
+and absent ambient process/require authority. Budgets, assertions, runtime support,
+timeouts and snapshot format are unchanged. Existing local/staged changes are preserved.
+
+**Remaining:** 181 prior primary nonpasses before edition/extension disposition,
+126 prior secondary resource nonpasses, other-owner reconciliation, runtime/artifact
+gates and the previous caret finding. These are residual historical counts, not
+fresh whole-selection results. Duplicate prototype-setter early errors remain open.
+No task push, verified remote-main delivery or publication was performed.

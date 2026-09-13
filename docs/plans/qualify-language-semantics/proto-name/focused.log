@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/object-literal-realm.test.ts (6 tests) 214ms
+ ✓ packages/safe-js/src/interp/anonymous-function-names.test.ts (39 tests) 815ms
+ ✓ packages/safe-js/test/conformance/prototype-setter-function-name.test.ts (12 tests) 622ms
+   ✓ preserves dynamic prototype closures, source and authority through repeated replay  392ms
+ ✓ packages/safe-js/src/snapshot/null-object-prototype.test.ts (12 tests) 22ms
+
+ Test Files  4 passed (4)
+      Tests  69 passed (69)
+   Start at  10:05:21
+   Duration  3.15s (transform 2.72s, setup 88ms, import 4.20s, tests 1.67s, environment 0ms)
+

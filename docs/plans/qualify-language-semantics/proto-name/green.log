@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/test/conformance/prototype-setter-function-name.test.ts (11 tests) 182ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  10:05:07
+   Duration  1.82s (transform 1.21s, setup 32ms, import 1.55s, tests 182ms, environment 0ms)
+

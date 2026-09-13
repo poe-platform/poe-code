@@ -1310,6 +1310,16 @@ class Parser {
 
     this.assertAllowedStatementStart(token);
 
+    if (token.type === "identifier" && token.value === "debugger") {
+      this.index++;
+      const semicolon = this.consumePunctuator(";");
+      const next = this.currentToken();
+      if (semicolon === undefined && next.type !== "eof" && next.value !== "}" &&
+        !hasLineBreakBetween(token, next)) throw unexpectedTokenError(next);
+      // No debugging facility is exposed: DebuggerStatement has empty completion.
+      return { type: "EmptyStatement", span: createSpan(token.start, semicolon?.end ?? token.end) };
+    }
+
     if (token.value === "class") return this.parseClass(true) as ClassDeclaration;
     if (token.value === "return" && !this.lexicalContext.return)
       throw new DisallowedSyntaxError("return in a static block", token.start);
@@ -4326,6 +4336,7 @@ class Parser {
       token.type === "identifier" &&
       (token.value === "switch" ||
         token.value === "var" ||
+        token.value === "debugger" ||
         (this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":"))
     );
   }

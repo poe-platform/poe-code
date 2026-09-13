@@ -2218,3 +2218,22 @@ residuals, not a fresh whole-selection pass. Previous local repair SHA is
 `8aecabb27604bec0f166a50c44ef186c8561eff6`; this improvement receives its own local
 commit. Unrelated working/staged changes are preserved. Remote-main delivery
 **not performed**; release/publication **not performed**.
+
+### qualify-language-semantics — debugger statements, 2026-09-13
+
+**Acceptance remains incomplete.** [Atomic audit and commands](qualify-language-semantics/debugger/audit.md)
+repairs LANG-DEBUGGER-STATEMENT: `while(false) debugger;` was incorrectly rejected.
+The no-debugging-facility completion is empty under unchanged ECMA-2622025 §14.16.
+Independent regressions: **11 failed/seven controls passed →18 passed**. Focused
+checks: **105 tests/five files**, scoped lint and maintained SafeJS build pass.
+Original pinned fixture and negative neighbor: **four/four strict/sloppy variants
+pass**, unchanged fixture hashes, budgets and deadlines. Exact working source SHA,
+fingerprint, Node22.23.2/ICU78.2 and terminal counts are in the
+[reconciliation receipt](qualify-language-semantics/debugger/reconciliation.json).
+Built SDK checks pass Node18/20/22/24/26 and Bun, including repeated pending/completed
+replay, saved source, host-escape and step-budget controls. Built CLI screenshot
+was inspected. Workerd/full runtime and installed-artifact qualification remain open.
+Residual historical accounting: **161 primary nonpasses /126 secondary resource
+nonpasses**; proposal/exclusion rows remain visible, never counted as passes.
+Local commit, remote-main delivery and publication remain separate; no publication
+is claimed by this pre-delivery observation. Concurrent local/staged work is preserved.

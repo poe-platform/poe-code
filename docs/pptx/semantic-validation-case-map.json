@@ -1,0 +1,2256 @@
+{
+  "schema_version": 1,
+  "scope": "Read-only internal presentation semantic validation. Research provenance only; no model or command API coverage promoted.",
+  "inventory_sha256": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+  "baseline": {
+    "unit_variants": 2700,
+    "bdd_examples": 973,
+    "complete_ledger": "test-case-map.json"
+  },
+  "evidence": "../../packages/pptx/src/validation.test.ts",
+  "original_cases": 40,
+  "upstream_equivalence": "No upstream whole-package semantic validator exists in the audited surface. New malformed graph cases supplement it. Related allocation, accessors, mutation and collection scenarios remain individually accounted obligations in the complete ledger; validating a graph does not implement those APIs.",
+  "candidate_selection": {
+    "unit_files": [
+      "tests/oxml/test_presentation.py",
+      "tests/parts/test_slide.py",
+      "tests/shapes/test_connector.py",
+      "tests/shapes/test_shapetree.py",
+      "tests/test_presentation.py",
+      "tests/test_slide.py"
+    ],
+    "bdd_name_or_file_terms": ["slide", "notes", "connector", "shape id"]
+  },
+  "unit_candidates": [
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::it_can_add_a_sldId_element_as_a_child",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::it_knows_the_next_available_slide_id[p:sldIdLst-256]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::it_knows_the_next_available_slide_id[p:sldIdLst/p:sldId{id=42}-256]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::it_knows_the_next_available_slide_id[p:sldIdLst/p:sldId{id=256}-257]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::it_knows_the_next_available_slide_id[p:sldIdLst/(p:sldId{id=256},p:sldId{id=712})-713]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::it_knows_the_next_available_slide_id[p:sldIdLst/(p:sldId{id=280},p:sldId{id=257})-281]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::and_it_chooses_a_valid_slide_id_when_max_slide_id_is_used_for_a_slide[p:sldIdLst/p:sldId{id=2147483646}-2147483647]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::and_it_chooses_a_valid_slide_id_when_max_slide_id_is_used_for_a_slide[p:sldIdLst/p:sldId{id=2147483647}-256]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::and_it_chooses_a_valid_slide_id_when_max_slide_id_is_used_for_a_slide[p:sldIdLst/p:sldId{id=2147483648}-256]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::and_it_chooses_a_valid_slide_id_when_max_slide_id_is_used_for_a_slide[p:sldIdLst/(p:sldId{id=256},p:sldId{id=2147483647})-257]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::and_it_chooses_a_valid_slide_id_when_max_slide_id_is_used_for_a_slide[p:sldIdLst/(p:sldId{id=256},p:sldId{id=2147483647},p:sldId{id=257})-258]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/oxml/test_presentation.py::DescribeCT_SlideIdList::and_it_chooses_a_valid_slide_id_when_max_slide_id_is_used_for_a_slide[p:sldIdLst/(p:sldId{id=245},p:sldId{id=2147483647},p:sldId{id=256})-257]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeBaseSlidePart::it_knows_its_name",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeBaseSlidePart::it_can_get_a_related_image_by_rId",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeBaseSlidePart::it_can_add_an_image_part",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_can_create_a_notes_master_part",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_provides_access_to_its_notes_master",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_creates_a_new_notes_master_part_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_creates_a_new_theme_part_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_can_create_a_notes_slide_part",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_provides_access_to_the_notes_master",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_provides_access_to_its_notes_slide",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_adds_a_notes_slide_part_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_its_slide_id",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_whether_it_has_a_notes_slide[True]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_whether_it_has_a_notes_slide[False]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_a_chart_part",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.DOCX-http://schemas.openxmlformats.org/officeDocument/2006/relationships/package]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.PPTX-http://schemas.openxmlformats.org/officeDocument/2006/relationships/package]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.XLSX-http://schemas.openxmlformats.org/officeDocument/2006/relationships/package]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[Foo.Bar.18-http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_get_or_add_a_video_part",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_create_a_new_slide_part",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_provides_access_to_its_slide",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_provides_access_to_the_slide_layout",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_the_minimal_element_xml_for_a_slide",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_gets_its_notes_slide_to_help[True]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_gets_its_notes_slide_to_help[False]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_adds_a_notes_slide_part_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlideLayoutPart::it_provides_access_to_its_slide_master",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlideLayoutPart::it_provides_access_to_its_slide_layout",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlideMasterPart::it_provides_access_to_its_slide_master",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/parts/test_slide.py::DescribeSlideMasterPart::it_provides_access_to_a_related_slide_layout",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_x_location[begin_x_get_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_x_location[begin_x_get_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_x_location[begin_x_set_fixture5]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_y_location[begin_y_get_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_begin_point_y_location[begin_y_get_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_begin_point_y_location[begin_y_set_fixture5]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_x_location[end_x_get_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_x_location[end_x_get_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_x_location[end_x_set_fixture5]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_y_location[end_y_get_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_end_point_y_location[end_y_get_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_change_its_end_point_y_location[end_y_set_fixture5]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_connect_its_begin_point_to_a_shape",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_can_connect_its_end_point_to_a_shape",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_provides_access_to_its_line_format",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_knows_its_shape_type",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_begin_point_to_help[connect_begin_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_connects_its_end_point_to_help[connect_end_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_begin_point_to_help[move_begin_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_connector.py::DescribeConnector::it_moves_its_end_point_to_help[move_end_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeBaseShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeBaseShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeBaseShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeBaseShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeBaseShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeBaseShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture5]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_knows_how_many_shapes_it_contains",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_iterate_over_the_shapes_it_contains",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_iterates_shape_elements_to_help__iter__",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_supports_indexed_access",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_raises_on_shape_index_out_of_range",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_clone_a_placeholder",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_knows_if_turbo_add_is_enabled[turbo_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_knows_if_turbo_add_is_enabled[turbo_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture5]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture6]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture7]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_placeholder_name_to_help[ph_name_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_placeholder_name_to_help[ph_name_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_placeholder_name_to_help[ph_name_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_placeholder_name_to_help[ph_name_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_chart",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_connector_shape",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_group_shape",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_an_ole_object",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_picture",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_shape",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_textbox",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture5]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_chart_graphicFrame_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_pic_element_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_an_sp_element_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_textbox_sp_element_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeGroupShapes::it_recalculates_its_extents_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeBasePlaceholders::it_contains_only_placeholder_shapes[True]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeBasePlaceholders::it_contains_only_placeholder_shapes[False]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeNotesSlidePlaceholders::it_brokers_access_to_its_shape_factory",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeNotesSlideShapes::it_knows_notes_slide_placeholder_basenames[basename_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeNotesSlideShapes::it_knows_notes_slide_placeholder_basenames[basename_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeNotesSlideShapes::it_brokers_access_to_its_shape_factory",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_get_a_placeholder_by_idx[getitem_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_iterate_over_its_placeholders[iter_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_SlidePlaceholderFactory::it_constructs_the_right_type_of_placeholder[factory_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_SlidePlaceholderFactory::it_constructs_the_right_type_of_placeholder[factory_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_SlidePlaceholderFactory::it_constructs_the_right_type_of_placeholder[factory_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_SlidePlaceholderFactory::it_constructs_the_right_type_of_placeholder[factory_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_SlidePlaceholderFactory::it_constructs_the_right_type_of_placeholder[factory_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_SlidePlaceholderFactory::it_constructs_the_right_type_of_placeholder[factory_fixture5]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_SlidePlaceholderFactory::it_constructs_the_right_type_of_placeholder[factory_fixture6]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_SlidePlaceholderFactory::it_constructs_the_right_type_of_placeholder[factory_fixture7]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_SlidePlaceholderFactory::it_constructs_the_right_type_of_placeholder[factory_fixture8]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapeFactory::it_constructs_the_right_type_of_shape[factory_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapeFactory::it_constructs_the_right_type_of_shape[factory_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapeFactory::it_constructs_the_right_type_of_shape[factory_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapeFactory::it_constructs_the_right_type_of_shape[factory_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_provides_access_to_its_shape_factory",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_find_the_title_placeholder[title_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_find_the_title_placeholder[title_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_add_a_movie",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_add_a_table",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_clone_placeholder_shapes_from_a_layout",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeLayoutShapes::it_provides_access_to_its_shape_factory",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_LayoutShapeFactory::it_constructs_the_right_shape_for_an_element[ph]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_LayoutShapeFactory::it_constructs_the_right_shape_for_an_element[sp]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_LayoutShapeFactory::it_constructs_the_right_shape_for_an_element[pic]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeLayoutPlaceholders::it_provides_access_to_its_shape_factory",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeLayoutPlaceholders::it_can_find_a_placeholder_by_idx_value[0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeLayoutPlaceholders::it_can_find_a_placeholder_by_idx_value[1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeLayoutPlaceholders::it_returns_default_on_ph_idx_not_found",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MasterShapeFactory::it_constructs_a_master_placeholder_for_a_shape_element[ph]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MasterShapeFactory::it_constructs_a_master_placeholder_for_a_shape_element[sp]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MasterShapeFactory::it_constructs_a_master_placeholder_for_a_shape_element[pic]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeMasterShapes::it_provides_access_to_its_shape_factory",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeMasterPlaceholders::it_provides_access_to_its_shape_factory",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeMasterPlaceholders::it_can_find_a_placeholder_by_type[title]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeMasterPlaceholders::it_can_find_a_placeholder_by_type[body]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::DescribeMasterPlaceholders::it_returns_default_on_ph_type_not_found",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_creates_a_new_movie_pic_element",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_creates_a_pic_element",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_knows_the_shape_name_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_constructs_the_video_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_knows_the_media_rId_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_knows_the_video_rId_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_adds_the_poster_frame_image_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_gets_the_poster_frame_image_from_the_specified_path_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::but_it_gets_the_poster_frame_image_from_the_default_bytes_when_None_specified",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_gets_the_video_part_rIds_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_gets_the_slide_part_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_provides_a_graphicFrame_interface_method",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_creates_the_graphicFrame_element",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[999999-None-999999]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-PROG_ID.DOCX-965200]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-PROG_ID.PPTX-965200]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-PROG_ID.XLSX-965200]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-Foo.Bar.6-965200]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[666666-None-666666]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-PROG_ID.DOCX-609600]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-PROG_ID.PPTX-609600]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-PROG_ID.XLSX-609600]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-Foo.Bar.6-609600]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_height_to_help[666666-666666]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_height_to_help[None-609600]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[user-icon.png-PROG_ID.XLSX-user-icon.png]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-Foo.Bar.18-generic-icon.emf]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-PROG_ID.DOCX-docx-icon.emf]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-PROG_ID.PPTX-pptx-icon.emf]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-PROG_ID.XLSX-xlsx-icon.emf]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_adds_and_relates_the_icon_image_part_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_width_to_help[666666-666666]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_width_to_help[None-965200]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_adds_and_relates_the_ole_object_part_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[PROG_ID.DOCX-Word.Document.12]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[PROG_ID.PPTX-PowerPoint.Show.12]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[PROG_ID.XLSX-Excel.Sheet.12]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[Something.Else.42-Something.Else.42]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_computes_the_shape_name_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_provides_access_to_the_slide_part_to_help",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_NotesSlideShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_NotesSlideShapeFactory::it_constructs_the_right_shape_for_an_element[factory_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_the_height_of_its_slides[sld_height_get_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_the_height_of_its_slides[sld_height_get_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_change_the_height_of_its_slides[sld_height_set_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_change_the_height_of_its_slides[sld_height_set_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_the_width_of_its_slides[sld_width_get_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_the_width_of_its_slides[sld_width_get_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_change_the_width_of_its_slides[sld_width_set_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_change_the_width_of_its_slides[sld_width_set_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_its_part",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_core_properties",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_notes_master",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slides[slides_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slides[slides_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slides[slides_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slide_layouts",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slide_master",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slide_masters[masters_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slide_masters[masters_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_save_the_presentation_to_a_file",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_knows_its_name[name_get_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_knows_its_name[name_get_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture4]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture5]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_provides_access_to_its_background",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseMaster::it_is_a_BaseSlide_subclass",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseMaster::it_provides_access_to_its_placeholders",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_BaseMaster::it_provides_access_to_its_shapes",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_can_clone_the_notes_master_placeholders",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_shapes",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_placeholders",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_placeholder[notes_ph_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_placeholder[notes_ph_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_text_frame[True]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_text_frame[False]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_is_a_BaseSlide_subclass",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_background",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_knows_whether_it_follows_the_mstr_bkgd[follow_get_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_knows_whether_it_follows_the_mstr_bkgd[follow_get_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_knows_whether_it_has_a_notes_slide",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_knows_its_slide_id",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_shapes",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_placeholders",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_slide_layout",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_notes_slide",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_supports_indexed_access",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_raises_on_slide_index_out_of_range",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_knows_the_index_of_a_slide_it_contains[0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_knows_the_index_of_a_slide_it_contains[1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_raises_on_slide_not_in_collection",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_can_iterate_its_slides",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_supports_len[len_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_supports_len[len_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_supports_len[len_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_can_add_a_new_slide",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_finds_a_slide_by_slide_id[True]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlides::it_finds_a_slide_by_slide_id[False]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_is_a_BaseSlide_subclass",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_provides_access_to_its_placeholders",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_provides_access_to_its_shapes",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_provides_access_to_its_slide_master",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_knows_which_slides_are_based_on_it[used_by_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_knows_which_slides_are_based_on_it[used_by_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_knows_which_slides_are_based_on_it[used_by_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_knows_which_slides_are_based_on_it[used_by_fixture3]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_supports_len[len_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_supports_len[len_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_supports_len[len_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_can_iterate_its_slide_layouts",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_supports_indexed_access",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::but_it_raises_on_index_out_of_range",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_can_find_a_slide_layout_by_name",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::but_it_returns_the_default_value_when_no_layout_has_that_name",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_knows_the_index_of_each_of_its_slide_layouts",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::but_it_raises_on_slide_layout_not_in_collection",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_can_remove_an_unused_slide_layout",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::but_it_raises_on_attempt_to_remove_slide_layout_in_use",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideMaster::it_is_a_BaseMaster_subclass",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideMaster::it_provides_access_to_its_slide_layouts",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_knows_how_many_masters_it_contains[len_fixture0]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_knows_how_many_masters_it_contains[len_fixture1]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_knows_how_many_masters_it_contains[len_fixture2]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_can_iterate_the_slide_masters",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_supports_indexed_access",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_raises_on_index_out_of_range",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_Background::it_provides_access_to_its_fill[p:cSld{a:b=c}-p:cSld{a:b=c}/p:bg/p:bgPr/(a:noFill,a:effectLst)]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_Background::it_provides_access_to_its_fill[p:cSld{a:b=c}/p:bg/p:bgRef-p:cSld{a:b=c}/p:bg/p:bgPr/(a:noFill,a:effectLst)]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_id": "tests/test_slide.py::Describe_Background::it_provides_access_to_its_fill[p:cSld/p:bg/p:bgPr/a:solidFill-p:cSld/p:bg/p:bgPr/a:solidFill]",
+      "disposition": "retained-public-behavior-obligation; no implementation promotion by internal validation"
+    }
+  ],
+  "bdd_candidates": [
+    {
+      "source_file": "features/act-action.feature",
+      "line": 60,
+      "name": "Get ActionSetting.target_slide -- @1.1 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 61,
+      "name": "Get ActionSetting.target_slide -- @1.2 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 62,
+      "name": "Get ActionSetting.target_slide -- @1.3 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 63,
+      "name": "Get ActionSetting.target_slide -- @1.4 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 64,
+      "name": "Get ActionSetting.target_slide -- @1.5 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 65,
+      "name": "Get ActionSetting.target_slide -- @1.6 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 66,
+      "name": "Get ActionSetting.target_slide -- @1.7 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 67,
+      "name": "Get ActionSetting.target_slide -- @1.8 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 68,
+      "name": "Get ActionSetting.target_slide -- @1.9 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 69,
+      "name": "Get ActionSetting.target_slide -- @1.10 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 70,
+      "name": "Get ActionSetting.target_slide -- @1.11 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 71,
+      "name": "Get ActionSetting.target_slide -- @1.12 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 72,
+      "name": "Get ActionSetting.target_slide -- @1.13 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 73,
+      "name": "Get ActionSetting.target_slide -- @1.14 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 74,
+      "name": "Get ActionSetting.target_slide -- @1.15 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 86,
+      "name": "Set ActionSetting.target_slide -- @1.1 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 87,
+      "name": "Set ActionSetting.target_slide -- @1.2 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/act-action.feature",
+      "line": 88,
+      "name": "Set ActionSetting.target_slide -- @1.3 Click actions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/ph-inherit-props.feature",
+      "line": 19,
+      "name": "NotesSlide placeholder direct property settings",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/ph-inherit-props.feature",
+      "line": 23,
+      "name": "NotesSlide placeholder inherited property settings",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/ph-inherit-props.feature",
+      "line": 27,
+      "name": "Slide placeholder direct property settings",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/ph-inherit-props.feature",
+      "line": 31,
+      "name": "Slide placeholder inherited property settings",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 7,
+      "name": "Get Presentation.slide_width, .slide_height",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 13,
+      "name": "Set Presentation.slide_width, .slide_height",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 27,
+      "name": "Presentation.notes_master -- @1.1 Notes master states",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 28,
+      "name": "Presentation.notes_master -- @1.2 Notes master states",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 31,
+      "name": "Presentation.slides",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 36,
+      "name": "Presentation.slide_masters",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-connector.feature",
+      "line": 7,
+      "name": "Connector.begin_connect()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-connector.feature",
+      "line": 21,
+      "name": "Get Connector.begin_x/y -- @1.1 Connector begin point states",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-connector.feature",
+      "line": 31,
+      "name": "Get Connector.end_x/y -- @1.1 Connector end point states",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-connector.feature",
+      "line": 41,
+      "name": "Set Connector.begin_x -- @1.1 Connector begin point assignment results",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-connector.feature",
+      "line": 51,
+      "name": "Set Connector.begin_y -- @1.1 Connector begin point assignment results",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-connector.feature",
+      "line": 54,
+      "name": "Connector.end_connect()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-connector.feature",
+      "line": 68,
+      "name": "Set Connector.end_x -- @1.1 Connector end point assignment results",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-connector.feature",
+      "line": 78,
+      "name": "Set Connector.end_y -- @1.1 Connector end point assignment results",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-connector.feature",
+      "line": 81,
+      "name": "Connector.line",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-placeholder.feature",
+      "line": 6,
+      "name": "Set the title of a title slide",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 34,
+      "name": "GroupShapes.add_connector()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 105,
+      "name": "SlideShapes is a sequence",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 124,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.1 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 125,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.2 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 126,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.3 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 127,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.4 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 128,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.5 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 129,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.6 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 130,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.7 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 131,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.8 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 132,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.9 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 133,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.10 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 134,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.11 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 135,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.12 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 136,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.13 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 137,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.14 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 138,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.15 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 139,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.16 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 140,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.17 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 141,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.18 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 142,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.19 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 143,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.20 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 144,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.21 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 145,
+      "name": "SlideShapes.add_chart() (category chart) -- @1.22 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 156,
+      "name": "SlideShapes.add_chart() (category chart with date axis) -- @1.1 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 157,
+      "name": "SlideShapes.add_chart() (category chart with date axis) -- @1.2 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 158,
+      "name": "SlideShapes.add_chart() (category chart with date axis) -- @1.3 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 159,
+      "name": "SlideShapes.add_chart() (category chart with date axis) -- @1.4 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 162,
+      "name": "SlideShapes.add_chart() (multi-level category chart)",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 180,
+      "name": "SlideShapes.add_chart() (XY chart) -- @1.1 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 181,
+      "name": "SlideShapes.add_chart() (XY chart) -- @1.2 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 182,
+      "name": "SlideShapes.add_chart() (XY chart) -- @1.3 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 183,
+      "name": "SlideShapes.add_chart() (XY chart) -- @1.4 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 184,
+      "name": "SlideShapes.add_chart() (XY chart) -- @1.5 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 197,
+      "name": "SlideShapes.add_chart() (bubble chart) -- @1.1 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 198,
+      "name": "SlideShapes.add_chart() (bubble chart) -- @1.2 Chart specs",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 201,
+      "name": "SlideShapes.add_connector()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 211,
+      "name": "SlideShapes.add_group_shape()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 229,
+      "name": "SlideShapes.add_movie() -- @1.1 add_movie() preconditions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 230,
+      "name": "SlideShapes.add_movie() -- @1.2 add_movie() preconditions",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 248,
+      "name": "SlideShapes.add_ole_object() -- @1.1 add_ole_object() variations",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 249,
+      "name": "SlideShapes.add_ole_object() -- @1.2 add_ole_object() variations",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 250,
+      "name": "SlideShapes.add_ole_object() -- @1.3 add_ole_object() variations",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 262,
+      "name": "SlideShapes.add_picture() (using filename) -- @1.1 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 263,
+      "name": "SlideShapes.add_picture() (using filename) -- @1.2 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 264,
+      "name": "SlideShapes.add_picture() (using filename) -- @1.3 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 265,
+      "name": "SlideShapes.add_picture() (using filename) -- @1.4 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 266,
+      "name": "SlideShapes.add_picture() (using filename) -- @1.5 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 267,
+      "name": "SlideShapes.add_picture() (using filename) -- @1.6 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 268,
+      "name": "SlideShapes.add_picture() (using filename) -- @1.7 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 280,
+      "name": "SlideShapes.add_picture() (using file-like object) -- @1.1 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 281,
+      "name": "SlideShapes.add_picture() (using file-like object) -- @1.2 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 282,
+      "name": "SlideShapes.add_picture() (using file-like object) -- @1.3 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 283,
+      "name": "SlideShapes.add_picture() (using file-like object) -- @1.4 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 284,
+      "name": "SlideShapes.add_picture() (using file-like object) -- @1.5 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 285,
+      "name": "SlideShapes.add_picture() (using file-like object) -- @1.6 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 286,
+      "name": "SlideShapes.add_picture() (using file-like object) -- @1.7 image files of supported types",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 289,
+      "name": "SlideShapes.add_shape()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 296,
+      "name": "SlideShapes.add_table()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 303,
+      "name": "SlideShapes.add_textbox()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 310,
+      "name": "SlideShapes.build_freeform() (no parameters)",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 318,
+      "name": "SlideShapes.build_freeform() (with pen start position)",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 325,
+      "name": "SlideShapes.build_freeform() (square scaling)",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 332,
+      "name": "SlideShapes.build_freeform() (rectangular scaling)",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 339,
+      "name": "SlideShapes.title",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/shp-shapes.feature",
+      "line": 344,
+      "name": "SlidePlaceholders is a sequence",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 13,
+      "name": "Slide.background -- @1.1 Slide.background cases",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 14,
+      "name": "Slide.background -- @1.2 Slide.background cases",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 23,
+      "name": "Slide.follow_master_background -- @1.1 Slide.follow_master_background cases",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 24,
+      "name": "Slide.follow_master_background -- @1.2 Slide.follow_master_background cases",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 33,
+      "name": "Slide.has_notes_slide -- @1.1 Slide.has_notes_slide states",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 34,
+      "name": "Slide.has_notes_slide -- @1.2 Slide.has_notes_slide states",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 43,
+      "name": "Slide.name -- @1.1 name scenarios",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 44,
+      "name": "Slide.name -- @1.2 name scenarios",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 54,
+      "name": "Slide.notes_slide -- @1.1 Slide.notes_slide states",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 55,
+      "name": "Slide.notes_slide -- @1.2 Slide.notes_slide states",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 58,
+      "name": "Slide.shapes",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 63,
+      "name": "Slide.placeholders",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 68,
+      "name": "Slide.slide_id",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 79,
+      "name": "SlideLayout.name -- @1.1 name scenarios",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 80,
+      "name": "SlideLayout.name -- @1.2 name scenarios",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 83,
+      "name": "SlideLayout.shapes",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 88,
+      "name": "SlideLayout.placeholders",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 93,
+      "name": "SlideLayout.slide_master",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 98,
+      "name": "SlideLayout.used_by_slides",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 104,
+      "name": "SlideLayout.used_by_slides",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 109,
+      "name": "SlideMaster.background",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 114,
+      "name": "SlideMaster.shapes",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 119,
+      "name": "SlideMaster.placeholders",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 124,
+      "name": "SlideMaster.slide_layouts",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 129,
+      "name": "NotesSlide.placeholders",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 135,
+      "name": "NotesSlide.notes_placeholder",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slide.feature",
+      "line": 140,
+      "name": "NotesSlide.notes_text_frame",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 7,
+      "name": "Slides.__getitem__()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 12,
+      "name": "Slides.__iter__()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 17,
+      "name": "Slides.__len__()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 22,
+      "name": "Slides.add_slide()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 29,
+      "name": "Slides.get()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 35,
+      "name": "SlideLayouts.__getitem__()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 40,
+      "name": "SlideLayouts.__iter__()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 45,
+      "name": "SlideLayouts.__len__()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 50,
+      "name": "SlideLayouts.get_by_name()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 55,
+      "name": "SlideLayouts.index()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 60,
+      "name": "SlideLayouts.remove()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 66,
+      "name": "SlideMasters.__getitem__()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 71,
+      "name": "SlideMasters.__iter__()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    },
+    {
+      "source_file": "features/sld-slides.feature",
+      "line": 76,
+      "name": "SlideMasters.__len__()",
+      "disposition": "retained-public-workflow-obligation; no implementation promotion by internal validation"
+    }
+  ],
+  "language_security": "J01-J10 remain in api-language-mappings.md and public-api-map.json. Internal synchronous byte graph inspection creates no handles, invokes no lazy accessors, reads no host files and exposes no arbitrary property evaluation. No underscore-prefixed public API is excluded.",
+  "legal": "Original implementation, original assets and independently authored assertions. No reference implementation or fixture copied; existing standalone notices retained unchanged."
+}

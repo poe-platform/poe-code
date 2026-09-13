@@ -1,3 +1,4 @@
+import { AdjustmentCollection, validateAdjustmentValues } from "./shape-adjustments.js";
 import { IndexError, OfficeError, ValueError } from "./errors.js";
 import { Length } from "./length.js";
 import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
@@ -41,6 +42,7 @@ export interface ShapeUpdate {
   readonly lineColor?: string | null;
   readonly lineWidth?: ShapeLength | null;
   readonly text?: string;
+  readonly adjustments?: readonly number[];
 }
 const pns = "http://schemas.openxmlformats.org/presentationml/2006/main";
 const ans = "http://schemas.openxmlformats.org/drawingml/2006/main";
@@ -136,11 +138,13 @@ export function validateShapeOptions(options: ShapeUpdate, adding = false): void
           "fill",
           "lineColor",
           "lineWidth",
-          "text"
+          "text",
+          "adjustments"
         ].includes(k)
     )
   )
     invalid();
+  if (options.adjustments !== undefined) validateAdjustmentValues(options.adjustments);
   if (options.kind !== undefined) preset(options.kind);
   for (const key of ["flipHorizontal", "flipVertical"] as const)
     if (options[key] !== undefined && typeof options[key] !== "boolean") invalid();
@@ -334,7 +338,8 @@ export function applyShapeUpdate(
         value: value as string | null
       }))
     });
-  }  if (
+  }
+  if (
     node.name.localName !== "sp" &&
     (!["pic", "cxnSp", "graphicFrame", "grpSp"].includes(node.name.localName) ||
       Object.keys(options).some(
@@ -573,6 +578,28 @@ export function applyShapeUpdate(
     }
     updated = applyFrameFormatting(updated, body, { text: options.text });
   }
+  if (options.adjustments !== undefined) {
+    const path: number[] = [];
+    const locate = (current: XmlElement): boolean => {
+      if (current === node) return true;
+      for (let i = 0; i < current.children.length; i++) {
+        path.push(i);
+        if (locate(current.children[i]!)) return true;
+        path.pop();
+      }
+      return false;
+    };
+    if (!locate(document.root)) invalid("Shape does not belong to its document.");
+    const target = path.reduce((current, i) => current.children[i]!, updated.root);
+    const adjustments = new AdjustmentCollection(() => updated.subtree(target), (xml) => {
+      if (!path.length) updated = xml;
+      else {
+        const parent = path.slice(0, -1).reduce((current, i) => current.children[i]!, updated.root);
+        updated = updated.spliceChildren(parent, path.at(-1)!, 1, [xml.markup(xml.root, true)]);
+      }
+    });
+    adjustments.replace(options.adjustments);
+  }
   return updated;
 }
 export function createShapeXml(
@@ -605,15 +632,19 @@ export class Shape {
   set #xml(xml: XmlPart) {
     if (this.#owner) this.#owner.write(xml);
     else this.#snapshot = xml;
-  }  #textFrame: TextFrame | undefined;
+  }
+  #textFrame: TextFrame | undefined;
+  #adjustments: AdjustmentCollection | undefined;
   constructor(xml: XmlPart, owner?: { read(): XmlPart; write(xml: XmlPart): void }) {
     if (
       !["sp", "grpSp"].includes(xml.root.name.localName) &&
       (new.target === Shape || !["pic", "graphicFrame"].includes(xml.root.name.localName))
     )
-      invalid();    drawing(xml.root);
+      invalid();
+    drawing(xml.root);
     this.#snapshot = xml;
-    this.#owner = owner;  }
+    this.#owner = owner;
+  }
   get xml() {
     return this.#xml;
   }
@@ -705,6 +736,14 @@ export class Shape {
     if (!ph) invalid("Shape is not a placeholder.");
     return { ...ph, type: PP_PLACEHOLDER_TYPE.from_xml(ph.type) };
   }
+  get adjustments(): AdjustmentCollection {
+    return (this.#adjustments ??= new AdjustmentCollection(
+      () => this.#xml,
+      (xml) => {
+        this.#xml = xml;
+      }
+    ));
+  }
   get auto_shape_type() {
     const kind = readShape(this.element).kind;
     if (!kind || kind === "text-box") invalid("Shape has no supported preset type.");
@@ -785,6 +824,7 @@ export class Shape {
     unsupported("Shape category is unsupported.");
   }
   get has_chart() {
+    readShape(this.element);
     return false;
   }
   get has_table() {

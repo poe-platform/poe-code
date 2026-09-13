@@ -20,12 +20,14 @@
   "coverage": {
     "inventory_records": 2409,
     "rows": 2426,
-    "implemented": 2,
-    "original_tests_executed": 2,
+    "implemented": 7,
+    "original_tests_executed": 7,
     "unit_baseline_cases": 2700,
     "bdd_baseline_cases": 973,
-    "claim": "All reconciled inventory IDs retained. Proposed mapping coverage is distinct from implementation and passing whole-public-API coverage.",
-    "additional_mapping_rows": 17
+    "claim": "All 2,409 reconciled inventory IDs and 2,426 target rows retained. Implemented counts bounded SDK receipts, not full member/CLI closure or whole-public-API parity.",
+    "additional_mapping_rows": 17,
+    "full_public_api_coverage": false,
+    "unsupported_public_members_confirmed_in_current_review": 9
   },
   "type_catalog": [
     {
@@ -555,8 +557,9 @@
     },
     {
       "source_id": "pptx.presentation.Presentation",
-      "target": "Presentation",
-      "form": "returned-interface"
+      "target": "PresentationModel",
+      "form": "returned-interface",
+      "current_evidence": "packages/pptx/src/presentation-model.ts; packages/pptx/src/index.ts; presentation-public-exports.test.ts"
     },
     {
       "source_id": "pptx.shapes.autoshape.Adjustment",
@@ -19883,12 +19886,12 @@
         "documentation_line": 38
       },
       "disposition": "security-mapped",
-      "implementation_status": "not_implemented",
+      "implementation_status": "implemented",
       "target": {
         "owner": "module",
         "member": "Presentation",
         "form": "function",
-        "ts_signature": "Presentation(input?: BinaryInput | null, context?: OfficeContext): Promise<Presentation>",
+        "ts_signature": "Presentation(input?: BinaryInput | null, context?: PresentationContext): Promise<PresentationModel>",
         "arguments": [
           {
             "name": "input",
@@ -19900,7 +19903,7 @@
           },
           {
             "name": "context",
-            "ts_type": "OfficeContext",
+            "ts_type": "PresentationContext",
             "position": "positional",
             "optional": true,
             "source_default": null,
@@ -19909,7 +19912,7 @@
         ],
         "getter": null,
         "setter": null,
-        "return_type": "Promise<Presentation>",
+        "return_type": "Promise<PresentationModel>",
         "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
       },
       "value": null,
@@ -19935,41 +19938,14 @@
       "side_effects": [
         "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network."
       ],
-      "cli": [
-        {
-          "path": "batch",
-          "operation": "create",
-          "version": 1,
-          "receiver": null,
-          "arguments": [
-            {
-              "name": "input",
-              "ts_type": "BinaryInput | null",
-              "required": false,
-              "default": "null"
-            },
-            {
-              "name": "context",
-              "ts_type": "OfficeContext",
-              "required": false,
-              "default": "no ambient capabilities; original template; timestamps omitted"
-            }
-          ],
-          "result": "Promise<Presentation>",
-          "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
-        },
-        {
-          "path": "create",
-          "operation": "create",
-          "role": "Direct common workflow; use shared flags and scoped selectors.",
-          "argument_binding": "Direct flags bind the same domain values as the typed batch route; shared operation options are camelCase."
-        }
-      ],
       "original_tests": {
-        "status": "planned",
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "bounded_original_evidence_passed",
+        "implemented_test_files": [
+          "packages/pptx/src/presentation-model.test.ts",
+          "packages/pptx/src/presentation-public-exports.test.ts",
+          "packages/pptx/src/creation.test.ts"
+        ],
+        "executed": true,
         "cases": [
           {
             "id": "Presentation.surface",
@@ -19994,7 +19970,8 @@
             "assert": "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network."
           }
         ],
-        "profile_refs": ["security", "formatting"]
+        "profile_refs": ["security", "formatting"],
+        "coverage_scope": "Only executed behaviors in api-closure-current.md; historical planned cases remain obligations and are not all certified by this receipt."
       },
       "upstream_tests": {
         "status": "baseline-only; not original acceptance",
@@ -20011,6 +19988,58 @@
         "call": [
           "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network."
         ]
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "proposed_cli": [
+        {
+          "path": "batch",
+          "operation": "create",
+          "version": 1,
+          "receiver": null,
+          "arguments": [
+            {
+              "name": "input",
+              "ts_type": "BinaryInput | null",
+              "required": false,
+              "default": "null"
+            },
+            {
+              "name": "context",
+              "ts_type": "OfficeContext",
+              "required": false,
+              "default": "no ambient capabilities; original template; timestamps omitted"
+            }
+          ],
+          "result": "Promise<Presentation>",
+          "read_policy": "Apply documented effect profile.",
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
+        },
+        {
+          "path": "create",
+          "operation": "create",
+          "role": "Direct common workflow; use shared flags and scoped selectors.",
+          "argument_binding": "Direct flags bind the same domain values as the typed batch route; shared operation options are camelCase.",
+          "status": "historical_proposal_not_execution_evidence"
+        }
+      ],
+      "cli": [
+        {
+          "path": "create",
+          "operation": "create",
+          "status": "registered_bounded_equivalent",
+          "argument_binding": "--width 10in --height 7.5in --output PATH reproduces model canvas defaults; omitted CLI width uses a different wide-canvas default. Input admission occurs through document-consuming commands, not create(input).",
+          "evidence": "packages/pptx/src/command-metadata.test.ts"
+        }
+      ],
+      "current_review": {
+        "sdk": "implemented_bounded",
+        "cli": "shared_operation_equivalent",
+        "full_member_closure": false,
+        "export_evidence": "packages/pptx/src/index.ts",
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Passing bounded SDK behavior does not certify every proposed acceptance case or the complete returned public graph.",
+        "language_security": "J01/J06/J07: null/undefined create; explicit Uint8Array, ByteSource or VfsPath capability; always Promise; no raw host path, clock, native runtime or network. Original empty 10 x 7.5 inch model template; CLI creation has its independently documented wide-canvas default."
       }
     },
     {
@@ -172711,15 +172740,16 @@
       "disposition": "planned",
       "implementation_status": "not_implemented",
       "target": {
-        "owner": "Presentation",
+        "owner": "PresentationModel",
         "member": "Presentation",
         "form": "returned-interface",
-        "ts_signature": "interface Presentation",
+        "ts_signature": "interface PresentationModel",
         "arguments": [],
         "getter": null,
         "setter": null,
-        "return_type": "Presentation",
-        "ownership": "immutable value/type metadata"
+        "return_type": "PresentationModel",
+        "ownership": "immutable value/type metadata",
+        "coverage_note": "Actual exported returned interface; incomplete public graph. The factory export remains Presentation. Renaming the target does not close its members."
       },
       "value": null,
       "xml_value": null,
@@ -172794,7 +172824,7 @@
         "documentation_file": null,
         "documentation_line": null
       },
-      "disposition": "language-mapped",
+      "disposition": "unsupported",
       "implementation_status": "not_implemented",
       "target": {
         "owner": "Presentation",
@@ -172847,7 +172877,8 @@
           ],
           "result": "boolean",
           "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
         }
       ],
       "original_tests": {
@@ -172882,6 +172913,14 @@
         "call": [
           "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
         ]
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "current_review": {
+        "sdk": "unsupported",
+        "cli": "proposed_route_not_verified",
+        "full_member_closure": false,
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Member absent from public PresentationModel declaration and LivePresentation implementation. Low-level master/layout operations do not supply this returned model behavior; retained as a public coverage blocker."
       }
     },
     {
@@ -172985,9 +173024,9 @@
         "documentation_line": 44
       },
       "disposition": "security-mapped",
-      "implementation_status": "not_implemented",
+      "implementation_status": "implemented",
       "target": {
-        "owner": "Presentation",
+        "owner": "PresentationModel",
         "member": "core_properties",
         "form": "property",
         "ts_signature": "get core_properties(): CoreProperties",
@@ -173019,22 +173058,14 @@
       "side_effects": [
         "Creating getter: may add or change owner XML; CLI noncreating inspection must not invoke it."
       ],
-      "cli": [
-        {
-          "path": "batch",
-          "operation": "properties.presentation.presentation.coreProperties.get",
-          "version": 1,
-          "receiver": "Presentation",
-          "arguments": [],
-          "result": "CoreProperties",
-          "read_policy": "Explicit creating model access; mutating batch. inspect/list use noncreating query.",
-          "unknown_fields": "reject"
-        }
-      ],
       "original_tests": {
-        "status": "planned",
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "bounded_original_evidence_passed",
+        "implemented_test_files": [
+          "packages/pptx/src/presentation-model.test.ts",
+          "packages/pptx/src/presentation-public-exports.test.ts",
+          "packages/pptx/src/command-metadata.test.ts"
+        ],
+        "executed": true,
         "cases": [
           {
             "id": "presentation.Presentation.core_properties.surface",
@@ -173045,7 +173076,8 @@
             "assert": "Creating getter: may add or change owner XML; CLI noncreating inspection must not invoke it."
           }
         ],
-        "profile_refs": ["security", "formatting"]
+        "profile_refs": ["security", "formatting"],
+        "coverage_scope": "Only executed behaviors in api-closure-current.md; historical planned cases remain obligations and are not all certified by this receipt."
       },
       "upstream_tests": {
         "status": "baseline-only; not original acceptance",
@@ -173062,6 +173094,38 @@
         ],
         "write": [],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "proposed_cli": [
+        {
+          "path": "batch",
+          "operation": "properties.presentation.presentation.coreProperties.get",
+          "version": 1,
+          "receiver": "Presentation",
+          "arguments": [],
+          "result": "CoreProperties",
+          "read_policy": "Explicit creating model access; mutating batch. inspect/list use noncreating query.",
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
+        }
+      ],
+      "cli": [
+        {
+          "path": "properties list|get|set",
+          "operation": "properties.list / properties.get / properties.set",
+          "status": "registered_bounded_equivalent",
+          "argument_binding": "--name NAME --value VALUE; common publication flags for set. CLI reads are noncreating; the model getter creates missing core properties.",
+          "evidence": "packages/pptx/src/command-metadata.test.ts"
+        }
+      ],
+      "current_review": {
+        "sdk": "implemented_bounded",
+        "cli": "shared_operation_equivalent",
+        "full_member_closure": false,
+        "export_evidence": "packages/pptx/src/index.ts",
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Passing bounded SDK behavior does not certify every proposed acceptance case or the complete returned public graph.",
+        "language_security": "J02/J07: synchronous cached live CoreProperties getter creates a missing part; author empty and timestamp absent without supplied context. This receipt verifies title and factory metadata, not all CoreProperties members."
       }
     },
     {
@@ -173168,7 +173232,7 @@
         "documentation_file": "docs/api/presentation.rst",
         "documentation_line": 44
       },
-      "disposition": "security-mapped",
+      "disposition": "unsupported",
       "implementation_status": "not_implemented",
       "target": {
         "owner": "Presentation",
@@ -173212,7 +173276,8 @@
           "arguments": [],
           "result": "NotesMaster",
           "read_policy": "Explicit creating model access; mutating batch. inspect/list use noncreating query.",
-          "unknown_fields": "reject"
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
         }
       ],
       "original_tests": {
@@ -173246,6 +173311,14 @@
         ],
         "write": [],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "current_review": {
+        "sdk": "unsupported",
+        "cli": "proposed_route_not_verified",
+        "full_member_closure": false,
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Member absent from public PresentationModel declaration and LivePresentation implementation. Low-level master/layout operations do not supply this returned model behavior; retained as a public coverage blocker."
       }
     },
     {
@@ -173353,29 +173426,29 @@
         "documentation_line": 44
       },
       "disposition": "security-mapped",
-      "implementation_status": "not_implemented",
+      "implementation_status": "implemented",
       "target": {
-        "owner": "Presentation",
+        "owner": "PresentationModel",
         "member": "save",
         "form": "function",
-        "ts_signature": "save(file: BinaryOutput): Promise<void>",
+        "ts_signature": "save(destination?: undefined): Promise<Uint8Array>; save(destination: ByteSink | PresentationPublication): Promise<void>",
         "arguments": [
           {
-            "name": "file",
-            "target_binding": "file",
-            "ts_type": "BinaryOutput",
+            "name": "destination",
+            "target_binding": "destination",
+            "ts_type": "ByteSink | PresentationPublication",
             "position": "positional",
-            "optional": false,
+            "optional": true,
             "source_default": null,
-            "target_default": null,
-            "undefined_behavior": "required",
-            "null_behavior": "TypeError"
+            "target_default": "undefined",
+            "undefined_behavior": "return owned validated Uint8Array asynchronously",
+            "null_behavior": "TypeError / invalid-type"
           }
         ],
         "getter": null,
         "setter": null,
-        "return_type": "Promise<void>",
-        "ownership": "no returned value"
+        "return_type": "Promise<Uint8Array> | Promise<void>",
+        "ownership": "No destination returns owned validated bytes; explicit sink/publication destination returns void asynchronously."
       },
       "value": null,
       "xml_value": null,
@@ -173392,29 +173465,14 @@
       "side_effects": [
         "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network."
       ],
-      "cli": [
-        {
-          "path": "batch",
-          "operation": "slides.presentation.presentation.save",
-          "version": 1,
-          "receiver": "Presentation",
-          "arguments": [
-            {
-              "name": "file",
-              "ts_type": "BinaryOutput",
-              "required": true,
-              "default": null
-            }
-          ],
-          "result": "Promise<void>",
-          "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
-        }
-      ],
       "original_tests": {
-        "status": "planned",
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "bounded_original_evidence_passed",
+        "implemented_test_files": [
+          "packages/pptx/src/presentation-model.test.ts",
+          "packages/pptx/src/presentation-public-exports.test.ts",
+          "packages/pptx/src/creation.test.ts"
+        ],
+        "executed": true,
         "cases": [
           {
             "id": "presentation.Presentation.save.surface",
@@ -173430,7 +173488,8 @@
             "assert": "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network."
           }
         ],
-        "profile_refs": ["security", "formatting"]
+        "profile_refs": ["security", "formatting"],
+        "coverage_scope": "Only executed behaviors in api-closure-current.md; historical planned cases remain obligations and are not all certified by this receipt."
       },
       "upstream_tests": {
         "status": "baseline-only; not original acceptance",
@@ -173447,6 +173506,45 @@
         "call": [
           "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network."
         ]
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "proposed_cli": [
+        {
+          "path": "batch",
+          "operation": "slides.presentation.presentation.save",
+          "version": 1,
+          "receiver": "Presentation",
+          "arguments": [
+            {
+              "name": "file",
+              "ts_type": "BinaryOutput",
+              "required": true,
+              "default": null
+            }
+          ],
+          "result": "Promise<void>",
+          "read_policy": "Apply documented effect profile.",
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
+        }
+      ],
+      "cli": [
+        {
+          "path": "create / mutating resource commands / batch",
+          "operation": "shared publication",
+          "status": "registered_publication_equivalent_not_standalone_save",
+          "argument_binding": "--output PATH, --output -, --in-place and --force; validated SDK-backed operation output. No registered slides.presentation.presentation.save operation.",
+          "evidence": "packages/pptx/src/command-settings.test.ts"
+        }
+      ],
+      "current_review": {
+        "sdk": "implemented_bounded",
+        "cli": "shared_operation_equivalent",
+        "full_member_closure": false,
+        "export_evidence": "packages/pptx/src/index.ts",
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Passing bounded SDK behavior does not certify every proposed acceptance case or the complete returned public graph.",
+        "language_security": "J06: both overloads always Promise. Explicit publishOutput callback enforces atomic publication and stale baseline; ByteSink transport is not rollback-capable and caller owns close. Raw path and null fail; cancellation and changed model revision reject publication."
       }
     },
     {
@@ -173464,9 +173562,9 @@
         "documentation_line": 44
       },
       "disposition": "language-mapped",
-      "implementation_status": "not_implemented",
+      "implementation_status": "implemented",
       "target": {
-        "owner": "Presentation",
+        "owner": "PresentationModel",
         "member": "slide_height",
         "form": "property",
         "ts_signature": "get slide_height(): Length | null; set slide_height(value: Length)",
@@ -173500,37 +173598,14 @@
       "side_effects": [
         "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
       ],
-      "cli": [
-        {
-          "path": "batch",
-          "operation": "slides.presentation.presentation.slideHeight.get",
-          "version": 1,
-          "receiver": "Presentation",
-          "arguments": [],
-          "result": "Length | null",
-          "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
-        },
-        {
-          "path": "batch",
-          "operation": "slides.presentation.presentation.slideHeight.set",
-          "version": 1,
-          "receiver": "Presentation",
-          "arguments": [
-            {
-              "name": "value",
-              "ts_type": "Length",
-              "required": true
-            }
-          ],
-          "result": "void",
-          "unknown_fields": "reject"
-        }
-      ],
       "original_tests": {
-        "status": "planned",
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "bounded_original_evidence_passed",
+        "implemented_test_files": [
+          "packages/pptx/src/presentation-model.test.ts",
+          "packages/pptx/src/presentation-public-exports.test.ts",
+          "packages/pptx/src/command-settings.test.ts"
+        ],
+        "executed": true,
         "cases": [
           {
             "id": "presentation.Presentation.slide_height.surface",
@@ -173550,7 +173625,8 @@
             "assert": "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
           }
         ],
-        "profile_refs": ["security", "formatting"]
+        "profile_refs": ["security", "formatting"],
+        "coverage_scope": "Only executed behaviors in api-closure-current.md; historical planned cases remain obligations and are not all certified by this receipt."
       },
       "upstream_tests": {
         "status": "baseline-only; not original acceptance",
@@ -173569,6 +173645,61 @@
           "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
         ],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "proposed_cli": [
+        {
+          "path": "batch",
+          "operation": "slides.presentation.presentation.slideHeight.get",
+          "version": 1,
+          "receiver": "Presentation",
+          "arguments": [],
+          "result": "Length | null",
+          "read_policy": "Apply documented effect profile.",
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
+        },
+        {
+          "path": "batch",
+          "operation": "slides.presentation.presentation.slideHeight.set",
+          "version": 1,
+          "receiver": "Presentation",
+          "arguments": [
+            {
+              "name": "value",
+              "ts_type": "Length",
+              "required": true
+            }
+          ],
+          "result": "void",
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
+        }
+      ],
+      "cli": [
+        {
+          "path": "settings get",
+          "operation": "settings.get",
+          "status": "registered",
+          "argument_binding": "data.settings.height is integer EMU, while the model returns Length | null.",
+          "evidence": "packages/pptx/src/command-settings.test.ts"
+        },
+        {
+          "path": "settings set",
+          "operation": "settings.set",
+          "status": "registered",
+          "argument_binding": "--height LENGTH; --output PATH or --in-place; --dry-run and --json follow shared contract.",
+          "evidence": "packages/pptx/src/command-settings.test.ts"
+        }
+      ],
+      "current_review": {
+        "sdk": "implemented_bounded",
+        "cli": "shared_operation_equivalent",
+        "full_member_closure": false,
+        "export_evidence": "packages/pptx/src/index.ts",
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Passing bounded SDK behavior does not certify every proposed acceptance case or the complete returned public graph.",
+        "language_security": "J02/J05: synchronous Length assignment; 1–56 inch editable range; absent size reads null. A setter on absent size supplies original 10 x 7.5 inch companion defaults; CLI requires a complete explicit pair in that case. No implicit scaling."
       }
     },
     {
@@ -173585,7 +173716,7 @@
         "documentation_file": "docs/api/presentation.rst",
         "documentation_line": 44
       },
-      "disposition": "language-mapped",
+      "disposition": "unsupported",
       "implementation_status": "not_implemented",
       "target": {
         "owner": "Presentation",
@@ -173629,7 +173760,8 @@
           "arguments": [],
           "result": "SlideLayouts",
           "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
         }
       ],
       "original_tests": {
@@ -173659,6 +173791,14 @@
         ],
         "write": [],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "current_review": {
+        "sdk": "unsupported",
+        "cli": "proposed_route_not_verified",
+        "full_member_closure": false,
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Member absent from public PresentationModel declaration and LivePresentation implementation. Low-level master/layout operations do not supply this returned model behavior; retained as a public coverage blocker."
       }
     },
     {
@@ -173675,7 +173815,7 @@
         "documentation_file": "docs/api/presentation.rst",
         "documentation_line": 44
       },
-      "disposition": "language-mapped",
+      "disposition": "unsupported",
       "implementation_status": "not_implemented",
       "target": {
         "owner": "Presentation",
@@ -173719,7 +173859,8 @@
           "arguments": [],
           "result": "SlideMaster",
           "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
         }
       ],
       "original_tests": {
@@ -173749,6 +173890,14 @@
         ],
         "write": [],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "current_review": {
+        "sdk": "unsupported",
+        "cli": "proposed_route_not_verified",
+        "full_member_closure": false,
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Member absent from public PresentationModel declaration and LivePresentation implementation. Low-level master/layout operations do not supply this returned model behavior; retained as a public coverage blocker."
       }
     },
     {
@@ -173765,7 +173914,7 @@
         "documentation_file": "docs/api/presentation.rst",
         "documentation_line": 44
       },
-      "disposition": "language-mapped",
+      "disposition": "unsupported",
       "implementation_status": "not_implemented",
       "target": {
         "owner": "Presentation",
@@ -173809,7 +173958,8 @@
           "arguments": [],
           "result": "SlideMasters",
           "read_policy": "Explicit creating model access; mutating batch. inspect/list use noncreating query.",
-          "unknown_fields": "reject"
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
         }
       ],
       "original_tests": {
@@ -173843,6 +173993,14 @@
         ],
         "write": [],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "current_review": {
+        "sdk": "unsupported",
+        "cli": "proposed_route_not_verified",
+        "full_member_closure": false,
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Member absent from public PresentationModel declaration and LivePresentation implementation. Low-level master/layout operations do not supply this returned model behavior; retained as a public coverage blocker."
       }
     },
     {
@@ -173860,9 +174018,9 @@
         "documentation_line": 44
       },
       "disposition": "language-mapped",
-      "implementation_status": "not_implemented",
+      "implementation_status": "implemented",
       "target": {
-        "owner": "Presentation",
+        "owner": "PresentationModel",
         "member": "slide_width",
         "form": "property",
         "ts_signature": "get slide_width(): Length | null; set slide_width(value: Length)",
@@ -173896,37 +174054,14 @@
       "side_effects": [
         "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
       ],
-      "cli": [
-        {
-          "path": "batch",
-          "operation": "slides.presentation.presentation.slideWidth.get",
-          "version": 1,
-          "receiver": "Presentation",
-          "arguments": [],
-          "result": "Length | null",
-          "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
-        },
-        {
-          "path": "batch",
-          "operation": "slides.presentation.presentation.slideWidth.set",
-          "version": 1,
-          "receiver": "Presentation",
-          "arguments": [
-            {
-              "name": "value",
-              "ts_type": "Length",
-              "required": true
-            }
-          ],
-          "result": "void",
-          "unknown_fields": "reject"
-        }
-      ],
       "original_tests": {
-        "status": "planned",
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "bounded_original_evidence_passed",
+        "implemented_test_files": [
+          "packages/pptx/src/presentation-model.test.ts",
+          "packages/pptx/src/presentation-public-exports.test.ts",
+          "packages/pptx/src/command-settings.test.ts"
+        ],
+        "executed": true,
         "cases": [
           {
             "id": "presentation.Presentation.slide_width.surface",
@@ -173946,7 +174081,8 @@
             "assert": "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
           }
         ],
-        "profile_refs": ["security", "formatting"]
+        "profile_refs": ["security", "formatting"],
+        "coverage_scope": "Only executed behaviors in api-closure-current.md; historical planned cases remain obligations and are not all certified by this receipt."
       },
       "upstream_tests": {
         "status": "baseline-only; not original acceptance",
@@ -173965,6 +174101,61 @@
           "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
         ],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "proposed_cli": [
+        {
+          "path": "batch",
+          "operation": "slides.presentation.presentation.slideWidth.get",
+          "version": 1,
+          "receiver": "Presentation",
+          "arguments": [],
+          "result": "Length | null",
+          "read_policy": "Apply documented effect profile.",
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
+        },
+        {
+          "path": "batch",
+          "operation": "slides.presentation.presentation.slideWidth.set",
+          "version": 1,
+          "receiver": "Presentation",
+          "arguments": [
+            {
+              "name": "value",
+              "ts_type": "Length",
+              "required": true
+            }
+          ],
+          "result": "void",
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
+        }
+      ],
+      "cli": [
+        {
+          "path": "settings get",
+          "operation": "settings.get",
+          "status": "registered",
+          "argument_binding": "data.settings.width is integer EMU, while the model returns Length | null.",
+          "evidence": "packages/pptx/src/command-settings.test.ts"
+        },
+        {
+          "path": "settings set",
+          "operation": "settings.set",
+          "status": "registered",
+          "argument_binding": "--width LENGTH; --output PATH or --in-place; --dry-run and --json follow shared contract.",
+          "evidence": "packages/pptx/src/command-settings.test.ts"
+        }
+      ],
+      "current_review": {
+        "sdk": "implemented_bounded",
+        "cli": "shared_operation_equivalent",
+        "full_member_closure": false,
+        "export_evidence": "packages/pptx/src/index.ts",
+        "declaration_evidence": "packages/pptx/src/presentation-model.ts",
+        "reason": "Passing bounded SDK behavior does not certify every proposed acceptance case or the complete returned public graph.",
+        "language_security": "J02/J05: synchronous Length assignment; 1–56 inch editable range; absent size reads null. A setter on absent size supplies original 10 x 7.5 inch companion defaults; CLI requires a complete explicit pair in that case. No implicit scaling."
       }
     },
     {
@@ -239439,7 +239630,7 @@
         "documentation_file": "docs/api/slides.rst",
         "documentation_line": 25
       },
-      "disposition": "language-mapped",
+      "disposition": "unsupported",
       "implementation_status": "not_implemented",
       "target": {
         "owner": "Slide",
@@ -239483,7 +239674,8 @@
           "arguments": [],
           "result": "boolean",
           "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
         }
       ],
       "original_tests": {
@@ -239513,6 +239705,14 @@
         ],
         "write": [],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "current_review": {
+        "sdk": "unsupported",
+        "cli": "lower_level_operations_do_not_close_returned_model",
+        "full_member_closure": false,
+        "declaration_evidence": "packages/pptx/src/slide-model.ts",
+        "reason": "Public member absent from the current Slide or Slides declaration/implementation. Existing operation engines do not implement this required live model member."
       }
     },
     {
@@ -239651,7 +239851,7 @@
         "documentation_file": "docs/api/slides.rst",
         "documentation_line": 25
       },
-      "disposition": "security-mapped",
+      "disposition": "unsupported",
       "implementation_status": "not_implemented",
       "target": {
         "owner": "Slide",
@@ -239695,7 +239895,8 @@
           "arguments": [],
           "result": "NotesSlide",
           "read_policy": "Explicit creating model access; mutating batch. inspect/list use noncreating query.",
-          "unknown_fields": "reject"
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
         }
       ],
       "original_tests": {
@@ -239729,6 +239930,14 @@
         ],
         "write": [],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "current_review": {
+        "sdk": "unsupported",
+        "cli": "lower_level_operations_do_not_close_returned_model",
+        "full_member_closure": false,
+        "declaration_evidence": "packages/pptx/src/slide-model.ts",
+        "reason": "Public member absent from the current Slide or Slides declaration/implementation. Existing operation engines do not implement this required live model member."
       }
     },
     {
@@ -240105,7 +240314,7 @@
         "documentation_file": "docs/api/slides.rst",
         "documentation_line": 25
       },
-      "disposition": "language-mapped",
+      "disposition": "unsupported",
       "implementation_status": "not_implemented",
       "target": {
         "owner": "Slide",
@@ -240149,7 +240358,8 @@
           "arguments": [],
           "result": "SlideLayout",
           "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
         }
       ],
       "original_tests": {
@@ -240179,6 +240389,14 @@
         ],
         "write": [],
         "call": []
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "current_review": {
+        "sdk": "unsupported",
+        "cli": "lower_level_operations_do_not_close_returned_model",
+        "full_member_closure": false,
+        "declaration_evidence": "packages/pptx/src/slide-model.ts",
+        "reason": "Public member absent from the current Slide or Slides declaration/implementation. Existing operation engines do not implement this required live model member."
       }
     },
     {
@@ -245255,7 +245473,7 @@
         "documentation_file": "docs/api/slides.rst",
         "documentation_line": 13
       },
-      "disposition": "planned",
+      "disposition": "unsupported",
       "implementation_status": "not_implemented",
       "target": {
         "owner": "Slides",
@@ -245324,13 +245542,15 @@
           ],
           "result": "Slide",
           "read_policy": "Apply documented effect profile.",
-          "unknown_fields": "reject"
+          "unknown_fields": "reject",
+          "status": "historical_proposal_not_execution_evidence"
         },
         {
           "path": "slides add",
           "operation": "slides.add",
           "role": "Direct common workflow; use shared flags and scoped selectors.",
-          "argument_binding": "Direct flags bind the same domain values as the typed batch route; shared operation options are camelCase."
+          "argument_binding": "Direct flags bind the same domain values as the typed batch route; shared operation options are camelCase.",
+          "status": "historical_proposal_not_execution_evidence"
         }
       ],
       "original_tests": {
@@ -245372,6 +245592,14 @@
         "read": [],
         "write": [],
         "call": ["Append the documented child/content to its owner in source order."]
+      },
+      "evidence_receipt": "api-closure-current.md",
+      "current_review": {
+        "sdk": "unsupported",
+        "cli": "lower_level_operations_do_not_close_returned_model",
+        "full_member_closure": false,
+        "declaration_evidence": "packages/pptx/src/slide-model.ts",
+        "reason": "Public member absent from the current Slide or Slides declaration/implementation. Existing operation engines do not implement this required live model member."
       }
     },
     {
@@ -265765,5 +265993,70 @@
       "resolution": "MSO_FILL_TYPE | null, with original no-fill acceptance."
     }
   ],
-  "notice": "public-api-map-notice.txt"
+  "notice": "public-api-map-notice.txt",
+  "current_review": {
+    "receipt": "api-closure-current.md",
+    "plan": "../plans/pptx-api-closure-current.md",
+    "scope": "Five bounded presentation boundary members and five confirmed missing presentation members; remaining historical rows are not reclassified by symbol-name matching.",
+    "input_sha256": {
+      "upstream-api-inventory.json": "119a4ba61a96c88f487fb769fa268bc3a5d520b58315b8aa08606540fc92b421",
+      "upstream-api-audit.md": "ad0b9e0055397e38532ca8aeb499f539da16dd3caed2a1d3630302d90fc0b83c",
+      "upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+      "upstream-test-audit.md": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b"
+    },
+    "check": {
+      "command": "npx vitest run packages/pptx/src/presentation-model.test.ts packages/pptx/src/presentation-public-exports.test.ts packages/pptx/src/command-settings.test.ts packages/pptx/src/command-metadata.test.ts packages/pptx/src/creation.test.ts packages/pptx/src/freeform-builder.test.ts",
+      "passed_files": 6,
+      "passed_tests": 85
+    },
+    "full_closure": false,
+    "whole_denominator_assessment": {
+      "inventory_records": 2409,
+      "target_rows": 2426,
+      "bounded_sdk_receipt_rows": 7,
+      "confirmed_unsupported_rows": 9,
+      "not_currently_reconciled_rows": 2410,
+      "confirmed_unsupported_source_ids": [
+        "pptx.presentation.Presentation.__eq__",
+        "pptx.presentation.Presentation.notes_master",
+        "pptx.presentation.Presentation.slide_layouts",
+        "pptx.presentation.Presentation.slide_master",
+        "pptx.presentation.Presentation.slide_masters",
+        "pptx.slide.Slide.has_notes_slide",
+        "pptx.slide.Slide.notes_slide",
+        "pptx.slide.Slide.slide_layout",
+        "pptx.slide.Slides.add_slide"
+      ],
+      "bounded_sdk_receipt_source_ids": [
+        "pptx.Presentation",
+        "pptx.presentation.Presentation.core_properties",
+        "pptx.presentation.Presentation.save",
+        "pptx.presentation.Presentation.slide_height",
+        "pptx.presentation.Presentation.slide_width",
+        "pptx.shapes.freeform.FreeformBuilder.shape_offset_x",
+        "pptx.shapes.freeform.FreeformBuilder.shape_offset_y"
+      ],
+      "remaining_row_rule": "Every row outside the two explicit ID lists is not currently reconciled. Its historical not_implemented field is not a fresh assertion of absence. It retains its target, original acceptance cases, upstream candidate group, effects, errors and CLI obligations. No name-only export matching promotes rows.",
+      "closure_rule": "Every row requires checked actual export/returned acquisition, original tests for every observable obligation including absent upstream coverage, executable CLI route and explicit language/security mapping. Unsupported and not-currently-reconciled rows block full coverage. SDK-only bounded receipts do not establish a closed CLI member.",
+      "underscore_prefixed_type_rows_retained": 160
+    },
+    "maintained_checks_reported_by_integration_owner": {
+      "pptx_unit": {
+        "command": "npm run test:unit --workspace=pptx",
+        "passed_files": 261,
+        "passed_tests": 6838
+      },
+      "pptx_lint": "npm run lint --workspace=pptx passed",
+      "pptx_build": "npm run build:workspaces -- --workspace=pptx passed",
+      "safe_bash_pptx_integration": {
+        "passed_tests": 239
+      },
+      "built_public_import": {
+        "runtime_exports": 272,
+        "declaration_exports": 516,
+        "absent_on_live_model": ["slide_layouts", "slide_masters", "slides.add_slide"]
+      },
+      "scope": "Integration-owner report for current campaign; counts are execution evidence, not a public-member coverage ratio."
+    }
+  }
 }

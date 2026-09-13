@@ -1,4 +1,10 @@
 import {
+  readTextRuns,
+  mutateTextRuns,
+  validateTextRunOptions,
+  type MutateTextRunsOptions
+} from "./text-runs.js";
+import {
   readThemes,
   mutateTheme,
   themeColorSlots,
@@ -28,6 +34,9 @@ import {
   inspectSchema,
   textGetSchema,
   textReplaceSchema,
+  textRunsSetSchema,
+  textRunsGetSchema,
+  textRunsListSchema,
   slidesAddSchema,
   slidesMoveSchema,
   slidesDuplicateSchema,
@@ -115,6 +124,22 @@ const scopes: readonly Scope[] = [
   "presentation",
   "shared"
 ];
+const runHelp =
+  "Usage: pptx text runs list|get INPUT [selection] [--json]\n" +
+  "       pptx text runs set INPUT [selection] [formatting] [output]\n\n" +
+  "Selection: --slide N --shape NAME --paragraph N --run N (one-based)\n" +
+  "           --select TOKEN, or --all for every run in scope\n" +
+  "           --scope SCOPE --allow-empty (set only)\n" +
+  "Formatting: --font NAME --size LENGTH --language TAG\n" +
+  "            --bold true|false|null --italic true|false|null\n" +
+  "            --underline STYLE --strike none|single|double\n" +
+  "            --baseline PERCENT --capitalization none|small|all\n" +
+  "            --spacing LENGTH --color COLOR --highlight COLOR --text TEXT\n" +
+  "Omitted formatting is unchanged; null clears an explicit override.\n" +
+  "Colors: six hex digits or JSON with rgb/theme and optional brightness.\n" +
+  "Lengths: emu, in, cm, mm, pt. List returns all matches; get requires one.\n" +
+  "Output: --output PATH | --in-place; --force --dry-run --json\n" +
+  "Use pptx schema text runs set --json for complete option definitions.\n";
 const help =
   "Usage: pptx create --output PATH [--kind pptx|potx|ppsx] [--width LENGTH]\n" +
   "                   [--height LENGTH] [--slides-json JSON] [--author TEXT]\n" +
@@ -146,6 +171,7 @@ const help =
   "                       [--slide N | --select TOKEN | --all] [--allow-empty]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx text get INPUT [--slide N] [--shape NAME] [--scope SCOPE] [--json]\n" +
+  "       pptx text runs set INPUT --slide N --shape NAME --font NAME --size 18pt --output PATH\n" +
   "       pptx text replace INPUT --find TEXT --with TEXT --first|--all|--occurrence N\n" +
   "                         [--slide N --shape NAME | --select TOKEN] [--scope SCOPE]\n" +
   "                         [--style-json JSON] [--allow-empty] [--dry-run] [--output PATH | --in-place] [--force] [--json]\n" +
@@ -254,6 +280,9 @@ interface Arguments {
     | "slides.split"
     | "text.get"
     | "text.replace"
+    | "text.runs.set"
+    | "text.runs.get"
+    | "text.runs.list"
     | "inspect"
     | "xml.get"
     | "xml.set"
@@ -299,6 +328,7 @@ interface Arguments {
   referencePolicy?: "remove";
   selection?: SelectionQuery | readonly SelectionQuery[];
   template?: string;
+  runEdit?: MutateTextRunsOptions;
   style?: { bold?: boolean; italic?: boolean };
   first?: boolean;
   occurrence?: number;
@@ -326,7 +356,26 @@ function usage(message: string): never {
   throw new OfficeError("invalid-value", message, "usage");
 }
 
+const runFlags = [
+  "--text",
+  "--font",
+  "--size",
+  "--language",
+  "--bold",
+  "--italic",
+  "--underline",
+  "--strike",
+  "--baseline",
+  "--capitalization",
+  "--spacing",
+  "--color",
+  "--highlight",
+  "--paragraph",
+  "--run"
+];
+
 const scalarOptions = [
+  ...runFlags,
   "--style-json",
   "--find",
   "--with",
@@ -458,6 +507,11 @@ function parse(
     }
   }
   if (invalidUtf8) usage("Arguments must be UTF-8.");
+  if (args[0] === "text" && args[1] === "runs" && ["get", "set", "list"].includes(args[2]!)) {
+    const path = `text.runs.${args[2]}`;
+    args.splice(0, 3, path);
+    output.operation = path;
+  }
   if (args[0] === "text" && !["get", "replace"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
     "text",
@@ -497,6 +551,9 @@ function parse(
       "inspect",
       "text.get",
       "text.replace",
+      "text.runs.set",
+      "text.runs.get",
+      "text.runs.list",
       "xml.get",
       "xml.set",
       "schema",
@@ -520,6 +577,8 @@ function parse(
       positionals.push(argument);
       continue;
     }
+    if (operation.startsWith("text.runs.") && ["--help", "-h"].includes(argument))
+      return { operation: "help", json: output.json, schemaPath: operation };
     if (seen.has(argument) && argument !== "--limit") usage("Repeated option.");
     seen.add(argument);
     if (argument === "--json") {
@@ -567,6 +626,35 @@ function parse(
         ].includes(argument))
     )
       usage("Missing option value.");
+    if (operation.startsWith("text.runs.") && runFlags.includes(argument)) {
+      const key = argument.slice(2);
+      let parsed: unknown = value;
+      if (value === "null" && !["text", "paragraph", "run"].includes(key)) parsed = null;
+      else if (["size", "spacing"].includes(key))
+        parsed = commandLength(value, key === "spacing" ? -Number.MAX_SAFE_INTEGER : 1) / 12700;
+      else if (["bold", "italic"].includes(key)) {
+        if (!["true", "false"].includes(value)) usage("Emphasis requires true, false or null.");
+        parsed = value === "true";
+      } else if (["paragraph", "run"].includes(key)) {
+        if (
+          ![...value].every((c) => c >= "0" && c <= "9") ||
+          !Number.isSafeInteger(Number(value)) ||
+          Number(value) < 1
+        )
+          usage("Text positions require positive one-based integers.");
+        parsed = Number(value) - 1;
+      } else if (key === "baseline") {
+        if (!value.trim() || !Number.isFinite(Number(value)))
+          usage("Baseline requires a finite percentage.");
+        parsed = Number(value);
+      } else if (["color", "highlight"].includes(key) && value.startsWith("{"))
+        parsed = commandJson(value);
+      else if (key === "underline" && ["true", "false"].includes(value)) parsed = value === "true";
+      else if (key === "underline" && [...value].every((c) => c >= "0" && c <= "9"))
+        parsed = Number(value);
+      result.runEdit = { ...result.runEdit, [key]: parsed };
+      continue;
+    }
     if (argument === "--style-json") {
       if (operation !== "text.replace") usage("Style override requires text replace.");
       const style = commandJson(value);
@@ -1115,8 +1203,13 @@ function parse(
     operation === "slides.set" ||
     operation === "slides.remove";
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
-  if (operation === "text.get" || operation === "text.replace") {
-    const mutation = operation === "text.replace";
+  if (
+    operation === "text.get" ||
+    operation === "text.replace" ||
+    operation.startsWith("text.runs.")
+  ) {
+    const runs = operation.startsWith("text.runs.");
+    const mutation = operation === "text.runs.set" || operation === "text.replace";
     const allowed = [
       "--json",
       "--limit",
@@ -1124,6 +1217,7 @@ function parse(
       "--scope",
       "--slide",
       "--shape",
+      ...(runs ? (mutation ? runFlags : ["--paragraph", "--run"]) : []),
       ...(mutation
         ? [
             "--style-json",
@@ -1140,12 +1234,22 @@ function parse(
           ]
         : [])
     ];
+    if (
+      runs &&
+      [...seen].some((flag) =>
+        ["--style-json", "--find", "--with", "--first", "--occurrence"].includes(flag)
+      )
+    )
+      usage("Match options do not apply to runs.");
     if ([...seen].some((flag) => !allowed.includes(flag)))
       usage("Option does not apply to this text operation.");
     if (positionals.length !== 1 || !positionals[0]) usage("Text operation requires one input.");
     if (result.scope === "presentation" || result.scope === "shared")
       usage("Text operation requires a text-bearing scope.");
-    if (result.token && ["--scope", "--slide", "--shape"].some((flag) => seen.has(flag)))
+    if (
+      result.token &&
+      ["--scope", "--slide", "--shape", "--paragraph", "--run"].some((flag) => seen.has(flag))
+    )
       usage("Opaque and simple selectors cannot be combined.");
     if (
       result.slide !== undefined &&
@@ -1156,9 +1260,21 @@ function parse(
       usage("Shape selection requires an owning slide.");
     result.input = positionals[0];
     if (mutation) {
-      if (result.find === undefined || result.with === undefined)
+      if (runs) validateTextRunOptions({ ...result.runEdit, ...(result.all ? { all: true } : {}) });
+      if (
+        runs &&
+        !result.all &&
+        result.token === undefined &&
+        result.slide === undefined &&
+        result.shape === undefined &&
+        result.runEdit?.paragraph === undefined &&
+        result.runEdit?.run === undefined
+      )
+        throw new SelectionError("missing-selection");
+      if (!runs && (result.find === undefined || result.with === undefined))
         usage("Text replace requires find and with.");
       if (
+        !runs &&
         [result.first === true, result.all === true, result.occurrence !== undefined].filter(
           Boolean
         ).length !== 1
@@ -1572,6 +1688,9 @@ function parse(
         "slides.split",
         "text.get",
         "text.replace",
+        "text.runs.set",
+        "text.runs.get",
+        "text.runs.list",
         "xml.get",
         "xml.set"
       ].includes(positionals.join("."))
@@ -1817,8 +1936,9 @@ async function execute(
     output.operation = args.operation;
     const operation = args.operation;
     if (args.operation === "help") {
-      result = success(operation, { usage: help });
-      human = help;
+      const usage = args.schemaPath?.startsWith("text.runs.") ? runHelp : help;
+      result = success(operation, { usage });
+      human = usage;
     } else if (args.operation === "version") {
       result = success(operation, { version: 1, profile: "selectors" });
       human = "pptx selectors v1\n";
@@ -1834,6 +1954,9 @@ async function execute(
             inspect: inspectSchema,
             "text.get": textGetSchema,
             "text.replace": textReplaceSchema,
+            "text.runs.set": textRunsSetSchema,
+            "text.runs.get": textRunsGetSchema,
+            "text.runs.list": textRunsListSchema,
             "slides.add": slidesAddSchema,
             "slides.move": slidesMoveSchema,
             "slides.set": slidesSetSchema,
@@ -1850,6 +1973,11 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          textRuns: {
+            supported: true,
+            operation: "text.runs.set",
+            selectors: ["slide", "shape", "paragraph", "run", "select"]
+          },
           textReplace: {
             level: "edit",
             subset:
@@ -1933,45 +2061,60 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (args.operation === "text.replace") {
+    else if (args.operation === "text.replace" || args.operation === "text.runs.set") {
       const context = { ...options.context, signal: request.signal };
       const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
       const bytes = await request.readInput(
         args.input!,
         Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
       );
-      const changed = await replacePresentationText(
-        bytes,
-        {
-          ...(args.style === undefined ? {} : { style: args.style }),
-          find: args.find!,
-          with: args.with!,
-          ...(args.first ? { first: true } : {}),
-          ...(args.all ? { all: true } : {}),
-          ...(args.occurrence === undefined ? {} : { occurrence: args.occurrence }),
-          ...(args.allowEmpty ? { allowEmpty: true } : {}),
-          ...(scope === undefined ? {} : { scope: scope as TextScope }),
-          ...(args.token
-            ? { select: { token: args.token } }
-            : args.slide === undefined
-              ? {}
-              : {
-                  select: {
-                    kind: "slide",
-                    position: { coordinateSystem: "one-based", value: args.slide }
-                  }
-                }),
-          ...(args.shape === undefined ? {} : { shape: args.shape })
-        },
-        context
-      );
+      const selectedText = {
+        ...(args.allowEmpty ? { allowEmpty: true } : {}),
+        ...(scope === undefined ? {} : { scope: scope as TextScope }),
+        ...(args.token
+          ? { select: { token: args.token } }
+          : args.slide === undefined
+            ? {}
+            : {
+                select: {
+                  kind: "slide" as const,
+                  position: { coordinateSystem: "one-based" as const, value: args.slide }
+                }
+              }),
+        ...(args.shape === undefined ? {} : { shape: args.shape })
+      };
+      const changed =
+        args.operation === "text.runs.set"
+          ? await mutateTextRuns(
+              bytes,
+              { ...args.runEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+              context
+            )
+          : await replacePresentationText(
+              bytes,
+              {
+                ...selectedText,
+                ...(args.style === undefined ? {} : { style: args.style }),
+                find: args.find!,
+                with: args.with!,
+                ...(args.first ? { first: true } : {}),
+                ...(args.all ? { all: true } : {}),
+                ...(args.occurrence === undefined ? {} : { occurrence: args.occurrence })
+              },
+              context
+            );
       const dryRun = args.dryRun ?? false;
       result = {
-        ...success(operation, { replacements: changed.affected, dryRun }),
+        ...success(
+          operation,
+          args.operation === "text.runs.set"
+            ? { runs: changed.affected, dryRun }
+            : { replacements: changed.affected, dryRun }
+        ),
         affected: changed.affected,
         locations: changed.locations
       };
-      human = `${dryRun ? "Validated" : "Replaced"} ${changed.affected} text match(es)\n`;
+      human = `${dryRun ? "Validated" : args.operation === "text.runs.set" ? "Updated" : "Replaced"} ${changed.affected} ${args.operation === "text.runs.set" ? "text run(s)" : "text match(es)"}\n`;
       const destination = args.inPlace ? args.input! : args.output;
       if (destination === "-" && !dryRun) binary = changed.bytes;
       else if (destination && destination !== "-") {
@@ -1989,36 +2132,45 @@ async function execute(
           dryRun
         };
       }
-    } else if (args.operation === "text.get") {
+    } else if (
+      args.operation === "text.get" ||
+      args.operation === "text.runs.get" ||
+      args.operation === "text.runs.list"
+    ) {
       const context = { ...options.context, signal: request.signal };
       const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
       const bytes = await request.readInput(
         args.input!,
         Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
       );
-      const data = await readPresentationText(
-        bytes,
-        {
-          ...(scope === undefined ? {} : { scope: scope as TextScope }),
-          ...(args.token
-            ? { select: { token: args.token } }
-            : args.slide === undefined
-              ? {}
-              : {
-                  select: {
-                    kind: "slide",
-                    position: { coordinateSystem: "one-based", value: args.slide }
-                  }
-                }),
-          ...(args.shape === undefined ? {} : { shape: args.shape })
-        },
-        context
-      );
+      const textOptions = {
+        ...(scope === undefined ? {} : { scope: scope as TextScope }),
+        ...(args.token
+          ? { select: { token: args.token } }
+          : args.slide === undefined
+            ? {}
+            : {
+                select: {
+                  kind: "slide" as const,
+                  position: { coordinateSystem: "one-based" as const, value: args.slide }
+                }
+              }),
+        ...(args.shape === undefined ? {} : { shape: args.shape })
+      };
+      const data =
+        args.operation !== "text.get"
+          ? { runs: await readTextRuns(bytes, { ...textOptions, ...args.runEdit }, context) }
+          : await readPresentationText(bytes, textOptions, context);
+      if (args.operation === "text.runs.get" && "runs" in data && data.runs.length !== 1)
+        throw new SelectionError(data.runs.length ? "ambiguous-selection" : "missing-selection");
       result = {
         ...success(operation, data),
-        locations: data.segments.map((segment) => segment.location)
+        locations:
+          "segments" in data
+            ? data.segments.map((segment) => segment.location)
+            : data.runs.map((run) => run.location)
       };
-      human = data.text;
+      human = "text" in data ? data.text : JSON.stringify(data.runs);
     } else if (Object.hasOwn(masterSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(

@@ -33,7 +33,20 @@ export interface TextStyleRecord {
   readonly run: number | null;
   readonly properties: Readonly<
     Record<
-      "bold" | "italic" | "size" | "latin" | "eastAsia" | "complex" | "color",
+      | "bold"
+      | "italic"
+      | "size"
+      | "latin"
+      | "eastAsia"
+      | "complex"
+      | "color"
+      | "language"
+      | "underline"
+      | "strike"
+      | "baseline"
+      | "capitalization"
+      | "spacing"
+      | "highlight",
       EffectiveStyleValue
     >
   >;
@@ -101,9 +114,19 @@ function resolveProperty(
     reason: null
   };
   for (const layer of layers) {
-    const attribute = { bold: "b", italic: "i", size: "sz" }[property];
+    const attribute = {
+      bold: "b",
+      italic: "i",
+      size: "sz",
+      language: "lang",
+      underline: "u",
+      strike: "strike",
+      baseline: "baseline",
+      capitalization: "cap",
+      spacing: "spc"
+    }[property];
     const font = { latin: "latin", eastAsia: "ea", complex: "cs" }[property];
-    const fill = one(layer.node, "solidFill", a);
+    const fill = one(layer.node, property === "highlight" ? "highlight" : "solidFill", a);
     const color = fill?.children.find((n) => n.name.namespace === a);
     const token = attribute
       ? attr(layer.node, attribute)
@@ -141,6 +164,50 @@ function resolveProperty(
       reason
     });
     if (attribute) {
+      if (property === "language") return token ? result(token) : result(null, "invalid-language");
+      if (["underline", "strike", "capitalization"].includes(property)) {
+        const values: Record<string, readonly string[]> = {
+          underline: [
+            "none",
+            "words",
+            "sng",
+            "dbl",
+            "heavy",
+            "dotted",
+            "dottedHeavy",
+            "dash",
+            "dashHeavy",
+            "dashLong",
+            "dashLongHeavy",
+            "dotDash",
+            "dotDashHeavy",
+            "dotDotDash",
+            "dotDotDashHeavy",
+            "wavy",
+            "wavyHeavy",
+            "wavyDbl"
+          ],
+          strike: ["noStrike", "sngStrike", "dblStrike"],
+          capitalization: ["none", "small", "all"]
+        };
+        if (!values[property]!.includes(token)) return result(null, "invalid-character-format");
+        return result(
+          property === "strike"
+            ? { noStrike: "none", sngStrike: "single", dblStrike: "double" }[token]!
+            : token
+        );
+      }
+      if (property === "baseline" || property === "spacing") {
+        const digits = token.startsWith("-") || token.startsWith("+") ? token.slice(1) : token;
+        const value = Number(token),
+          max = property === "baseline" ? 100000 : 400000;
+        return digits.length > 0 &&
+          [...digits].every((c) => c >= "0" && c <= "9") &&
+          Number.isInteger(value) &&
+          Math.abs(value) <= max
+          ? result(value / (property === "baseline" ? 1000 : 100))
+          : result(null, "invalid-character-format");
+      }
       if (property !== "size")
         return ["0", "1", "true", "false"].includes(token)
           ? result(token === "1" || token === "true")
@@ -355,10 +422,22 @@ export function resolveTextStyles(context: TextStyleContext): readonly TextStyle
           );
         }
         const properties = Object.fromEntries(
-          ["bold", "italic", "size", "latin", "eastAsia", "complex", "color"].map((property) => [
-            property,
-            resolveProperty(layers, property, context, a)
-          ])
+          [
+            "bold",
+            "italic",
+            "size",
+            "latin",
+            "eastAsia",
+            "complex",
+            "color",
+            "language",
+            "underline",
+            "strike",
+            "baseline",
+            "capitalization",
+            "spacing",
+            "highlight"
+          ].map((property) => [property, resolveProperty(layers, property, context, a)])
         ) as unknown as TextStyleRecord["properties"];
         result.push({
           part: context.slide.part,

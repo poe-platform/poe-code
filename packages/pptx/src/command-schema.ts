@@ -1,3 +1,4 @@
+import { MSO_TEXT_UNDERLINE_TYPE } from "./text-runs.js";
 import { selectionQuerySchema } from "./selector-schema.js";
 import { inventorySchema, inventoryPartSchema } from "./inventory-schema.js";
 
@@ -1835,5 +1836,232 @@ export const textReplaceSchema = {
         ]
       }
     }
+  }
+};
+
+const runColorOptionSchema = {
+  anyOf: [
+    { type: "null" },
+    { type: "string", minLength: 6, maxLength: 6 },
+    {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        rgb: { type: "string", minLength: 6, maxLength: 6 },
+        theme: { type: "string" },
+        brightness: { type: "number", minimum: -1, maximum: 1 }
+      },
+      oneOf: [
+        { required: ["rgb"], not: { required: ["theme"] } },
+        { required: ["theme"], not: { required: ["rgb"] } }
+      ]
+    }
+  ]
+};
+
+const runFormattingProperties = {
+  text: { type: "string" },
+  font: { type: ["string", "null"], minLength: 1 },
+  size: {
+    type: ["number", "null"],
+    minimum: 1,
+    maximum: 4000,
+    description: "Points; CLI accepts explicit length suffixes."
+  },
+  language: { type: ["string", "null"], minLength: 1 },
+  bold: { type: ["boolean", "null"] },
+  italic: { type: ["boolean", "null"] },
+  underline: {
+    anyOf: [
+      { type: "integer", minimum: 0, maximum: 17 },
+      {
+        enum: Object.keys(MSO_TEXT_UNDERLINE_TYPE).filter(
+          (key) =>
+            key !== "MIXED" &&
+            typeof MSO_TEXT_UNDERLINE_TYPE[key as keyof typeof MSO_TEXT_UNDERLINE_TYPE] === "number"
+        )
+      },
+      { type: "null" },
+      { type: "boolean" },
+      {
+        enum: [
+          "none",
+          "words",
+          "sng",
+          "dbl",
+          "heavy",
+          "dotted",
+          "dottedHeavy",
+          "dash",
+          "dashHeavy",
+          "dashLong",
+          "dashLongHeavy",
+          "dotDash",
+          "dotDashHeavy",
+          "dotDotDash",
+          "dotDotDashHeavy",
+          "wavy",
+          "wavyHeavy",
+          "wavyDbl"
+        ]
+      }
+    ]
+  },
+  strike: { enum: [null, "none", "single", "double"] },
+  baseline: { type: ["number", "null"], minimum: -100, maximum: 100 },
+  capitalization: { enum: [null, "none", "small", "all"] },
+  spacing: {
+    type: ["number", "null"],
+    minimum: -4000,
+    maximum: 4000,
+    description: "Points; CLI accepts explicit length suffixes."
+  },
+  color: runColorOptionSchema,
+  highlight: runColorOptionSchema
+};
+export const textRunsSetSchema = {
+  description:
+    "Update selected text runs, retaining unknown XML. Omitted properties remain unchanged; null clears direct formatting to inherit. Paragraph/run CLI positions are one-based; SDK positions are zero-based. Colors accept hex or explicit JSON color values. Table/cell selectors are unavailable.",
+  input: inspectSchema.input,
+  options: {
+    ...textGetSchema.options,
+    properties: {
+      ...textGetSchema.options.properties,
+      ...runFormattingProperties,
+      paragraph: { type: "integer", minimum: 1 },
+      run: { type: "integer", minimum: 1 },
+      all: { type: "boolean" },
+      allowEmpty: { type: "boolean" },
+      output: { type: "string", minLength: 1 },
+      inPlace: { type: "boolean" },
+      force: { type: "boolean" },
+      dryRun: { type: "boolean" }
+    },
+    allOf: [
+      {
+        anyOf: [
+          ...["select", "slide", "shape", "paragraph", "run"].map((key) => ({ required: [key] })),
+          { required: ["all"], properties: { all: { const: true } } }
+        ]
+      },
+      ...textGetSchema.options.allOf,
+      ...xmlSetSchema.options.allOf.slice(xmlSelectionRules.length),
+      { anyOf: Object.keys(runFormattingProperties).map((key) => ({ required: [key] })) },
+      {
+        if: { required: ["select"] },
+        then: { not: { anyOf: [{ required: ["paragraph"] }, { required: ["run"] }] } }
+      }
+    ]
+  },
+  result: {
+    ...textReplaceSchema.result,
+    properties: {
+      ...textReplaceSchema.result.properties,
+      operation: { const: "text.runs.set" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["runs", "dryRun"],
+            properties: { runs: { type: "integer", minimum: 0 }, dryRun: { type: "boolean" } }
+          }
+        ]
+      }
+    }
+  }
+};
+
+const readRunColorSchema = {
+  type: ["object", "null"],
+  additionalProperties: false,
+  required: ["type", "rgb", "theme", "brightness"],
+  properties: {
+    type: { enum: ["RGB", "SCHEME", "HSL", "PRESET", "SCRGB", "SYSTEM"] },
+    rgb: { type: ["string", "null"] },
+    theme: { type: ["string", "null"] },
+    brightness: { type: "number" }
+  }
+};
+export const textRunsGetSchema = {
+  description:
+    "Read direct run properties without creating XML. Null means absent direct formatting; inspect reports effective values and inheritance provenance.",
+  input: inspectSchema.input,
+  options: {
+    ...textGetSchema.options,
+    properties: {
+      ...textGetSchema.options.properties,
+      paragraph: { type: "integer", minimum: 1 },
+      run: { type: "integer", minimum: 1 }
+    },
+    allOf: [
+      ...textGetSchema.options.allOf,
+      {
+        if: { required: ["select"] },
+        then: { not: { anyOf: [{ required: ["paragraph"] }, { required: ["run"] }] } }
+      }
+    ]
+  },
+  result: {
+    ...inspectSchema.result,
+    properties: {
+      ...inspectSchema.result.properties,
+      operation: { const: "text.runs.get" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["runs"],
+            properties: {
+              runs: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["location", "paragraph", "run", "coordinateSystem", "formatting"],
+                  properties: {
+                    location:
+                      textGetSchema.result.properties.data.oneOf[1]!.properties!.segments.items
+                        .properties.location,
+                    paragraph: { type: "integer", minimum: 0 },
+                    run: { type: "integer", minimum: 0 },
+                    coordinateSystem: { const: "zero-based" },
+                    formatting: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: Object.keys(runFormattingProperties).filter(
+                        (key) => key !== "text"
+                      ),
+                      properties: {
+                        ...Object.fromEntries(
+                          Object.keys(runFormattingProperties)
+                            .filter((key) => key !== "text")
+                            .map((key) => [key, { type: ["string", "number", "boolean", "null"] }])
+                        ),
+                        color: readRunColorSchema,
+                        highlight: readRunColorSchema
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+};
+
+export const textRunsListSchema = {
+  ...textRunsGetSchema,
+  description:
+    "List direct run formatting without creating XML; empty selections return an empty array.",
+  result: {
+    ...textRunsGetSchema.result,
+    properties: { ...textRunsGetSchema.result.properties, operation: { const: "text.runs.list" } }
   }
 };

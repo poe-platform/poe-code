@@ -145,3 +145,24 @@ export {
   type ReplacePresentationTextOptions,
   type TextReplacementResult
 } from "./text-replacement.js";
+
+export {
+  MSO_TEXT_UNDERLINE_TYPE,
+  MSO_UNDERLINE,
+  readTextRuns,
+  mutateTextRuns,
+  validateTextRunOptions,
+  textUnderlineStyles,
+  textStrikeStyles,
+  textCapitalizationStyles,
+  type MutateTextRunsOptions,
+  type TextRunFormatting
+} from "./text-runs.js";
+
+export {
+  ColorFormat,
+  RGBColor,
+  ColorPropertyAccessError,
+  type RunColor,
+  type RunColorRecord
+} from "./text-run-color.js";

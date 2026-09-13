@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
+import { SaxesParser } from "saxes";
 import {
   addSlide,
   createPptxCommandEngine,
@@ -18,6 +19,7 @@ import {
   readSelectionIndex
 } from "pptx";
 import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
+import { readPackage } from "../../../../pptx/src/package-reader.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -110,6 +112,174 @@ function fixture(engineContext = context) {
   );
   return { shell, fs, volume };
 }
+
+async function fontDeck() {
+  const p = "http://schemas.openxmlformats.org/presentationml/2006/main";
+  const a = "http://schemas.openxmlformats.org/drawingml/2006/main";
+  const xml = `<p:sld xmlns:p="${p}" xmlns:a="${a}" xmlns:v="urn:original:font-metadata" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="v"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/><p:sp><p:nvSpPr><p:cNvPr id="2" name="Coastal caption"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr b="1" i="1"/></a:pPr><a:r><a:rPr i="1" dirty="0" v:tracking="keep"/><a:t>Cliff &amp; cove</a:t></a:r><a:r><a:rPr sz="900"/><a:t> — unchanged</a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:sld>`;
+  const source = await createPresentation({ slides: [{ name: "Coastal survey" }] }, context);
+  const archive = await readPackage(source, context);
+  return storedArchive(
+    archive.names.map((name) => ({
+      name: name.slice(1),
+      bytes: name === "/ppt/slides/slide1.xml" ? new TextEncoder().encode(xml) : archive.get(name)
+    }))
+  );
+}
+
+test("pptx run font edits use scoped shell arguments and preserve unselected XML", async () => {
+  const xmlContext = {
+    ...context,
+    validationLimits: { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64 }
+  };
+  const { shell, volume } = fixture(xmlContext);
+  const original = await fontDeck();
+  volume.writeFileSync("/work/coastal deck.pptx", original);
+  const edited = await shell.exec(
+    "pptx text runs set 'coastal deck.pptx' --slide 1 --shape 'Coastal caption' --paragraph 1 --run 1 --font 'Aptos Display' --size 18pt --language en-US --bold false --italic null --underline dbl --strike double --baseline 12 --capitalization small --spacing -1pt --color 123ABC --highlight FFEEDD --output 'styled deck.pptx' --json"
+  );
+  assert.equal(edited.exitCode, 0, edited.stdout + edited.stderr);
+  assert.equal(edited.stderr, "");
+  const result = JSON.parse(edited.stdout);
+  assert.equal(result.operation, "text.runs.set");
+  assert.equal(result.affected, 1);
+  assert.equal(result.ok, true);
+  const output = new Uint8Array(volume.readFileSync("/work/styled deck.pptx") as Buffer);
+  const { xml } = await getXmlPart(output, "/ppt/slides/slide1.xml", xmlContext);
+  const tags: { name: string; attributes: Record<string, string> }[] = [];
+  const parser = new SaxesParser({ xmlns: true });
+  parser.on("opentag", (tag) =>
+    tags.push({
+      name:
+        tag.uri === "http://schemas.openxmlformats.org/drawingml/2006/main"
+          ? `a:${tag.local}`
+          : tag.name,
+      attributes: Object.fromEntries(
+        Object.values(tag.attributes)
+          .filter((attribute) => attribute.uri !== "http://www.w3.org/2000/xmlns/")
+          .map((attribute) => [attribute.name, attribute.value])
+      )
+    })
+  );
+  parser.write(xml).close();
+  assert.deepEqual(
+    tags.filter((tag) => tag.name === "a:rPr").map((tag) => tag.attributes),
+    [
+      {
+        dirty: "0",
+        "v:tracking": "keep",
+        b: "0",
+        sz: "1800",
+        lang: "en-US",
+        u: "dbl",
+        strike: "dblStrike",
+        baseline: "12000",
+        cap: "small",
+        spc: "-100"
+      },
+      { sz: "900" }
+    ]
+  );
+  assert.deepEqual(tags.find((tag) => tag.name === "a:defRPr")?.attributes, { b: "1", i: "1" });
+  assert.deepEqual(tags.find((tag) => tag.name === "a:latin")?.attributes, {
+    typeface: "Aptos Display"
+  });
+  assert.deepEqual(
+    tags.filter((tag) => tag.name === "a:srgbClr").map((tag) => tag.attributes),
+    [{ val: "123ABC" }, { val: "FFEEDD" }]
+  );
+  assert.ok(xml.includes("Cliff &amp; cove"));
+  assert.ok(xml.includes(" — unchanged"));
+  assert.deepEqual(
+    new Uint8Array(volume.readFileSync("/work/coastal deck.pptx") as Buffer),
+    original
+  );
+  const reset = await shell.exec(
+    "pptx text runs set 'styled deck.pptx' --slide 1 --shape 'Coastal caption' --paragraph 1 --run 1 --bold null --underline false --strike none --baseline 0 --capitalization none --spacing 0pt --color null --highlight null --output - | pptx xml get - --part /ppt/slides/slide1.xml --scope slides"
+  );
+  assert.equal(reset.exitCode, 0, reset.stdout + reset.stderr);
+  const resetTags: { name: string; attributes: Record<string, string> }[] = [];
+  const resetParser = new SaxesParser({ xmlns: true });
+  resetParser.on("opentag", (tag) =>
+    resetTags.push({
+      name:
+        tag.uri === "http://schemas.openxmlformats.org/drawingml/2006/main"
+          ? `a:${tag.local}`
+          : tag.name,
+      attributes: Object.fromEntries(
+        Object.values(tag.attributes)
+          .filter((attribute) => attribute.uri !== "http://www.w3.org/2000/xmlns/")
+          .map((attribute) => [attribute.name, attribute.value])
+      )
+    })
+  );
+  resetParser.write(reset.stdout).close();
+  assert.deepEqual(
+    resetTags.filter((tag) => tag.name === "a:rPr").map((tag) => tag.attributes),
+    [
+      {
+        dirty: "0",
+        "v:tracking": "keep",
+        sz: "1800",
+        lang: "en-US",
+        u: "none",
+        strike: "noStrike",
+        baseline: "0",
+        cap: "none",
+        spc: "0"
+      },
+      { sz: "900" }
+    ]
+  );
+  assert.equal(
+    resetTags.some((tag) => tag.name === "a:solidFill" || tag.name === "a:highlight"),
+    false
+  );
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/styled deck.pptx") as Buffer), output);
+});
+
+test("pptx run formatting validates dry runs and rejects invalid values without publication", async () => {
+  const { shell, volume } = fixture();
+  const original = await fontDeck();
+  volume.writeFileSync("/work/deck.pptx", original);
+  const ambiguous = await shell.exec(
+    "pptx text runs set deck.pptx --slide 1 --shape 'Coastal caption' --bold false --output rejected.pptx --json"
+  );
+  assert.equal(ambiguous.exitCode, 1, ambiguous.stdout + ambiguous.stderr);
+  assert.equal(JSON.parse(ambiguous.stdout).errors[0].code, "ambiguous-selection");
+  assert.equal(volume.existsSync("/work/rejected.pptx"), false);
+  const dry = await shell.exec(
+    "pptx text runs set deck.pptx --slide 1 --shape 'Coastal caption' --bold false --all --dry-run --json"
+  );
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.equal(JSON.parse(dry.stdout).data.dryRun, true);
+  for (const flags of [
+    "--size 0pt",
+    "--bold yes",
+    "--underline squiggle",
+    "--run 0",
+    "--color 12345G"
+  ]) {
+    const result = await shell.exec(
+      `pptx text runs set deck.pptx --slide 1 --shape 'Coastal caption' ${flags} --output rejected.pptx --json`
+    );
+    assert.equal(result.exitCode, 2, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).affected, 0);
+    assert.equal(volume.existsSync("/work/rejected.pptx"), false);
+  }
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), original);
+});
+
+test("pptx run formatting help works before input admission", async () => {
+  const { shell, volume } = fixture();
+  const help = await shell.exec("pptx text runs set --help");
+  assert.equal(help.exitCode, 0, help.stdout + help.stderr);
+  assert.equal(help.stderr, "");
+  assert.ok(help.stdout.includes("pptx text runs set"));
+  assert.ok(help.stdout.includes("--bold"));
+  assert.ok(help.stdout.includes("--highlight"));
+  assert.deepEqual(volume.readdirSync("/work"), []);
+});
 
 const assemblyContext = { ...context,
   archiveLimits: { ...context.archiveLimits, maxMembers: 256, maxTotalBytes: 1048576 },

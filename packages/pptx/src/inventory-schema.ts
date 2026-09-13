@@ -49,12 +49,39 @@ export const inventorySchema = {
           properties: {
             type: "object",
             additionalProperties: false,
-            required: ["bold", "italic", "size", "latin", "eastAsia", "complex", "color"],
+            required: [
+              "bold",
+              "italic",
+              "size",
+              "latin",
+              "eastAsia",
+              "complex",
+              "color",
+              "language",
+              "underline",
+              "strike",
+              "baseline",
+              "capitalization",
+              "spacing",
+              "highlight"
+            ],
             properties: Object.fromEntries(
-              ["bold", "italic", "size", "latin", "eastAsia", "complex", "color"].map((key) => [
-                key,
-                styleValueSchema
-              ])
+              [
+                "bold",
+                "italic",
+                "size",
+                "latin",
+                "eastAsia",
+                "complex",
+                "color",
+                "language",
+                "underline",
+                "strike",
+                "baseline",
+                "capitalization",
+                "spacing",
+                "highlight"
+              ].map((key) => [key, styleValueSchema])
             )
           }
         }

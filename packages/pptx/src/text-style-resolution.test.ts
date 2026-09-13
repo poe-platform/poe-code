@@ -258,3 +258,26 @@ describe("effective text styles", () => {
     });
   });
 });
+
+it("resolves inherited underline while retaining explicit zero and false formatting", () => {
+  const [record] = resolveTextStyles(
+    fixture(
+      '<a:rPr b="0" lang="fr-CA" strike="noStrike" baseline="0" cap="none" spc="-125"><a:highlight><a:srgbClr val="A0B1C2"/></a:highlight></a:rPr>'
+    )
+  );
+  expect(record!.properties).toMatchObject({
+    bold: { value: false, source: { layer: "run" } },
+    language: { value: "fr-CA", source: { layer: "run" } },
+    underline: { value: "sng", source: { layer: "master-text" } },
+    strike: { value: "none", source: { layer: "run" } },
+    baseline: { value: 0, source: { layer: "run" } },
+    capitalization: { value: "none", source: { layer: "run" } },
+    spacing: { value: -1.25, source: { layer: "run" } },
+    highlight: { value: "A0B1C2", source: { layer: "run" } }
+  });
+  const empty = resolveTextStyles(fixture("<a:rPr/>"))[0]!.properties;
+  expect(empty).toMatchObject({
+    language: { status: "absent", value: null },
+    highlight: { status: "absent", value: null }
+  });
+});

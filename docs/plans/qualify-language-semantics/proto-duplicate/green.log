@@ -1,0 +1,70 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/parse/duplicate-prototype-setters.test.ts (19 tests | 7 failed) 90ms
+   × rejects duplicate prototype setters before execution: ({__proto__: null, __proto__: null}) 6ms
+   × rejects duplicate prototype setters before execution: ({__proto__: null, "__proto__": {}}) 2ms
+   × rejects duplicate prototype setters before execution: ({"__pr\u006fto__": null, __proto__: null}) 1ms
+   × rejects duplicate prototype setters before execution: ({__pr\u006fto__: null, __proto__: null}) 1ms
+   × rejects duplicate prototype setters before execution: ({__proto__: null, ...{}, __proto__: null}) 1ms
+   × rejects duplicate prototype setters before execution: function neverCalled() { return {__proto__: null, __proto__: null}; } 1ms
+   × rejects duplicate prototype setters before execution: ({value: {__proto__: null, __proto__: null}}) 1ms
+   ✓ accepts ordinary properties and repeated destructuring keys: ({__proto__: null, ["__proto__"]: null}) 1ms
+   ✓ accepts ordinary properties and repeated destructuring keys: ({__proto__: null, __proto__() {}}) 1ms
+   ✓ accepts ordinary properties and repeated destructuring keys: ({__proto__: null, get __proto__() {}}) 0ms
+   ✓ accepts ordinary properties and repeated destructuring keys: ({__proto__: null, set __proto__(x) {}}) 0ms
+   ✓ accepts ordinary properties and repeated destructuring keys: var __proto__; ({__proto__: null, __proto__}) 1ms
+   ✓ accepts ordinary properties and repeated destructuring keys: var {__proto__: a, __proto__: b} = {} 0ms
+   ✓ accepts ordinary properties and repeated destructuring keys: var a, b; ({__proto__: a, __proto__: b} = {}) 0ms
+   ✓ accepts ordinary properties and repeated destructuring keys: var a, b; ([{__proto__: a, __proto__: b}] = [{}]) 1ms
+   ✓ accepts ordinary properties and repeated destructuring keys: ({__proto__: a, __proto__: b}) => [a,b] 1ms
+   ✓ accepts ordinary properties and repeated destructuring keys: var a,b; for ({__proto__: a, __proto__: b} of [{}]) {} 1ms
+   ✓ accepts ordinary properties and repeated destructuring keys: ({a: {__proto__: null}, b: {__proto__: null}}) 0ms
+   ✓ rejects direct, indirect and dynamic source without executing its side effects 72ms
+FAIL packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({__proto__: null, __proto__: null})
+SyntaxError: undefined
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>' }
+FAIL packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({__proto__: null, "__proto__": {}})
+SyntaxError: undefined
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>' }
+FAIL packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({"__pr\u006fto__": null, __proto__: null})
+SyntaxError: undefined
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>' }
+FAIL packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({__pr\u006fto__: null, __proto__: null})
+SyntaxError: undefined
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>' }
+FAIL packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({__proto__: null, ...{}, __proto__: null})
+SyntaxError: undefined
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>' }
+FAIL packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: function neverCalled() { return {__proto__: null, __proto__: null}; }
+SyntaxError: undefined
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>' }
+FAIL packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({value: {__proto__: null, __proto__: null}})
+SyntaxError: undefined
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({__proto__: null, __proto__: null})
+ FAIL  packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({__proto__: null, "__proto__": {}})
+ FAIL  packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({"__pr\u006fto__": null, __proto__: null})
+ FAIL  packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({__pr\u006fto__: null, __proto__: null})
+ FAIL  packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({__proto__: null, ...{}, __proto__: null})
+ FAIL  packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: function neverCalled() { return {__proto__: null, __proto__: null}; }
+ FAIL  packages/safe-js/src/parse/duplicate-prototype-setters.test.ts > rejects duplicate prototype setters before execution: ({value: {__proto__: null, __proto__: null}})
+SyntaxError: undefined
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 12 passed (19)
+   Start at  10:07:55
+   Duration  2.41s (transform 1.77s, setup 36ms, import 2.20s, tests 90ms, environment 0ms)
+

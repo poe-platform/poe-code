@@ -3537,6 +3537,7 @@ class Parser {
   private parseObjectExpression(): ObjectExpression {
     const start = this.expectPunctuator("{");
     const properties: Array<Property | SpreadElement> = [];
+    let hasPrototypeSetter = false;
 
     const emptyEnd = this.consumePunctuator("}");
     if (emptyEnd !== undefined) {
@@ -3557,7 +3558,17 @@ class Parser {
           span: createSpan(spreadStart.start, argument.node.span.end)
         });
       } else {
-        properties.push(this.parseObjectProperty());
+        const property = this.parseObjectProperty();
+        if (!property.computed && !property.shorthand && property.kind === undefined &&
+            !(property.value.type === "FunctionExpression" && property.value.method === true) &&
+            (property.key.type === "Identifier" ? property.key.name === "__proto__" :
+              property.key.type === "StringLiteral" && property.key.value === "__proto__")) {
+          if (hasPrototypeSetter) {
+            throw new Error(`Duplicate __proto__ prototype setter at line ${property.key.span.start.line}, column ${property.key.span.start.column}.`);
+          }
+          hasPrototypeSetter = true;
+        }
+        properties.push(property);
       }
 
       if (this.consumePunctuator(",") !== undefined) {

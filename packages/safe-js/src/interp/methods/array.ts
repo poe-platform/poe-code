@@ -26,6 +26,8 @@ import { getSandboxPropertyDescriptor } from "../object-model.js";
 import { sandboxIsArray } from "../guest-proxy-array.js";
 import { guestProxyStates } from "../guest-proxy.js";
 import { isNumericTypedArray } from "../typed-array.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
+import { getIntrinsicIdentity } from "../intrinsics.js";
 
 async function arraySpeciesCreate(value: ArrayLikeValue, length: number, options: ArrayMethodOptions): Promise<SandboxValue & object> {
   const receiver = arrayLikeSources.get(value) ?? value;
@@ -35,6 +37,11 @@ async function arraySpeciesCreate(value: ArrayLikeValue, length: number, options
   let constructor: SandboxValue;
   if (sandboxIsArray(receiver, options.budget)) {
     constructor = await read(receiver, "constructor");
+    if (isSandboxClosure(constructor) && constructor.construct !== undefined) {
+      const prototype = getFunctionRealmPrototype(constructor, "Array", undefined);
+      if (prototype !== getSandboxPrototype([], options.budget) && getIntrinsicIdentity(constructor) === '["Array"]')
+        constructor = undefined;
+    }
     if (typeof constructor === "object" && constructor !== null) {
       constructor = await read(constructor, Symbol.species);
       if (constructor === null) constructor = undefined;

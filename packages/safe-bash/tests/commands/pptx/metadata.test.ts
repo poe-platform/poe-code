@@ -5,6 +5,8 @@ import { createPptxCommandEngine, createPresentation, mutateProperty, mutateTags
 import { compileJsonSchema } from "toolcraft-schema";
 import { SaxesParser } from "saxes";
 import { inspectZip } from "../../../../pptx/tests/zip-reader.js";
+import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
+import { parseXmlPart } from "../../../../pptx/src/xml.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
@@ -16,6 +18,45 @@ const context = {
 };
 before(() => { const timer = globalThis.setTimeout; mock.method(globalThis, "setTimeout", ((fn: () => void, delay: number) => delay === 0 ? setImmediate(fn) : timer(fn, delay)) as typeof setTimeout); });
 after(() => mock.restoreAll());
+
+for (const security of [
+  { name: "an orphan macro content type", part: "payload.bin", contentType: "application/vnd.ms-office.vbaProject" },
+  { name: "an orphan macro part name", part: "ppt/vbaProject.bin", contentType: "application/octet-stream" },
+  { name: "an orphan signature content type", part: "seal.xml", contentType: "application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml" },
+  { name: "an orphan signature directory", part: "_xmlsignatures/seal.xml", contentType: "application/xml" },
+  { name: "an orphan classification label content type", part: "classification.xml", contentType: "application/vnd.ms-office.classificationlabels+xml" },
+  { name: "presentation modification protection", part: undefined, contentType: undefined }
+]) {
+  test(`pptx property mutation refuses ${security.name} in an ordinary presentation suffix`, async () => {
+    const parts = new Map<string, Uint8Array>(inspectZip(await createPresentation({ slides: [{ name: "Orchard" }] }, context)).map(member => [member.name, member.payload]));
+    const target = security.part === undefined ? "ppt/presentation.xml" : "[Content_Types].xml";
+    const document = parseXmlPart(parts.get(target)!, context.xmlLimits);
+    const markup = security.part === undefined
+      ? '<p:modifyVerifier xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" cryptProviderType="rsaAES"/>'
+      : `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/${security.part}" ContentType="${security.contentType}"/>`;
+    parts.set(target, document.spliceChildren(document.root, document.root.children.length, 0, [markup]).bytes());
+    if (security.part !== undefined) parts.set(security.part, new TextEncoder().encode('<opaque xmlns="urn:original:orchard"/>'));
+    const bytes = storedArchive([...parts].map(([name, payload]) => ({ name, bytes: payload })));
+    const volume = Volume.fromJSON({ "/work/orchard deck.pptx": Buffer.from(bytes) });
+    const fs = new MemoryFileSystem();
+    fs.readStream = async function* (path, options) { options?.signal?.throwIfAborted(); yield new Uint8Array(volume.readFileSync(path) as Buffer); };
+    const shell = new Shell({ fs, cwd: "/work" }).use(pptxCommands({ engine: createPptxCommandEngine({ context, maxArgumentBytes: 65536, maxOutputBytes: 262144 }) }));
+    try {
+      const result = await shell.exec("pptx properties set 'orchard deck.pptx' --name title --value Changed --output - --force");
+      assert.equal(result.exitCode, 1, result.stderr);
+      assert.equal(result.stdoutBytes.length, 0);
+      assert.ok(result.stderr.includes("unsupported-edit"), result.stderr);
+      const dryRun = await shell.exec("pptx properties set 'orchard deck.pptx' --name title --value Changed --dry-run --json");
+      assert.equal(dryRun.exitCode, 1, dryRun.stdout + dryRun.stderr);
+      const envelope = JSON.parse(dryRun.stdout);
+      assert.equal(envelope.errors[0].code, "unsupported-edit");
+      assert.equal(envelope.affected, 0);
+      assert.deepEqual(volume.readFileSync("/work/orchard deck.pptx"), Buffer.from(bytes));
+      assert.deepEqual(volume.readdirSync("/work"), ["orchard deck.pptx"]);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("pptx properties and tags retain SDK values through shell quoting, schemas and dry runs", async () => {
   let bytes = await createPresentation({ slides: [{ name: "Garden" }] }, context);
   bytes = (await mutateProperty(bytes, "set", { name: "title", value: "", type: "string" }, context)).bytes;

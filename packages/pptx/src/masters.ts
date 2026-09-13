@@ -1,4 +1,5 @@
 import { readBinary } from "./bytes.js";
+import { parseContentTypes } from "./content-types.js";
 import type { BinaryInput } from "./contracts.js";
 import type { PresentationTextShape } from "./creation.js";
 import { OfficeError } from "./errors.js";
@@ -136,6 +137,64 @@ export async function loadShared(input: BinaryInput, context: SelectionContext, 
   const r = strict
     ? "http://purl.oclc.org/ooxml/officeDocument/relationships"
     : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  if (mutation) {
+    const types = parseContentTypes(reader.get("/[Content_Types].xml"), limits);
+    let metadataBytes = 0;
+    let metadataNodes = 0;
+    for (const part of reader.names) {
+      if (part === "/[Content_Types].xml") continue;
+      const name = part.toLowerCase();
+      const type = types.get(part).split(";", 1)[0]!.trim().toLowerCase();
+      if (
+        type.includes("digital-signature") ||
+        type.includes("macroenabled") ||
+        type.includes("vbaproject") ||
+        name.startsWith("/_xmlsignatures/") ||
+        name.endsWith("/vbaproject.bin")
+      )
+        throw new OfficeError(
+          "unsupported-edit",
+          "Signed or macro packages cannot be edited.",
+          "validate-intent"
+        );
+      let labeled =
+        type === "application/vnd.ms-office.classificationlabels+xml" ||
+        name === "/docmetadata/labelinfo.xml";
+      if (type === "application/vnd.openxmlformats-officedocument.custom-properties+xml") {
+        const bytes = reader.get(part);
+        metadataBytes += bytes.length;
+        if (
+          metadataBytes > context.xmlLimits.maxBytes ||
+          metadataNodes >= context.xmlLimits.maxNodes
+        )
+          throw new OfficeError(
+            "resource-limit",
+            "Security metadata inspection limit exceeded.",
+            "validate-intent"
+          );
+        const document = parseXmlPart(bytes, {
+          ...context.xmlLimits,
+          maxNodes: context.xmlLimits.maxNodes - metadataNodes
+        });
+        metadataNodes += document.nodeCount;
+        labeled ||= document.root.children.some(
+          (node) =>
+            [
+              "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties",
+              "http://purl.oclc.org/ooxml/officeDocument/customProperties"
+            ].includes(node.name.namespace) &&
+            node.name.localName === "property" &&
+            (attr(node, "name") ?? "").startsWith("MSIP_Label_")
+        );
+      }
+      if (labeled)
+        throw new OfficeError(
+          "unsupported-edit",
+          "Labeled packages cannot be edited.",
+          "validate-intent"
+        );
+    }
+  }
   for (const edge of mutation ? index.inventory.relationships : [])
     if (edge.type.includes("/digital-signature/") || edge.type.endsWith("/vbaProject"))
       throw new OfficeError(

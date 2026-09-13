@@ -58,6 +58,10 @@ type RenderedLine = {
 export function formatParseError(source: string, filename: string, error: Error): ParseError {
   const location = parseErrorLocation(error.message);
   if (location === undefined) {
+    // Capacity/internal parser failures have no trustworthy token location.
+    // Preserve their type without publishing the host implementation stack.
+    replaceErrorStack(error);
+    Object.defineProperty(error, "filename", { configurable: true, value: filename });
     throw error;
   }
 

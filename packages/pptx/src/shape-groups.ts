@@ -72,7 +72,8 @@ function geometry(node: XmlElement) {
     y = pair("off", "y"),
     w = pair("ext", "cx"),
     h = pair("ext", "cy");
-  if (w <= 0 || h <= 0) unsupported("Geometry requires positive nonsingular extents.");
+  if (w < 0 || h < 0 || (node.name.localName !== "cxnSp" && (w === 0 || h === 0)))
+    unsupported("Geometry requires positive extents except for connector axes.");
   const angle = ((integer(attr(xfrm, "rot"), 0) % 21600000) + 21600000) % 21600000;
   const q = angle / 5400000;
   const c = Number.isInteger(q) ? [1, 0, -1, 0][q]! : Math.cos((angle * Math.PI) / 10800000);
@@ -369,6 +370,7 @@ export function applyShapeGroup(doc: XmlPart, ids: readonly string[], tolerance:
     y = transforms.reduce((n, g) => Math.min(n, g.y), Infinity);
   const w = transforms.reduce((n, g) => Math.max(n, g.x + g.w), -Infinity) - x,
     h = transforms.reduce((n, g) => Math.max(n, g.y + g.h), -Infinity) - y;
+  if (w <= 0 || h <= 0) unsupported("Group union requires positive nonsingular extents.");
   if (w > 27273042316900 || h > 27273042316900)
     unsupported("Group union exceeds coordinate bounds.");
   const used = new Set(

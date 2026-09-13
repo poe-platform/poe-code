@@ -4,10 +4,12 @@ import { OfficeError } from "./errors.js";
 import { attr, child, escape, invalid, loadShared, type SharedEditResult } from "./masters.js";
 import {
   SelectionError,
+  decodeSelectionToken,
   type SelectionContext,
   type SelectionQuery,
   type SelectionRecord
 } from "./selectors.js";
+import { partName } from "./package-uri.js";
 import { parseXmlPart, type XmlElement, type XmlPart } from "./xml.js";
 export type AnimationKind = "appear" | "fade-in" | "fade-out" | "pulse";
 export type AnimationTrigger = "on-click" | "with-previous" | "after-previous";
@@ -491,6 +493,17 @@ export function validateAnimationOptions(
     )
       invalid("Expected plain animation options.");
   };
+  const position = (value: NonNullable<SelectionQuery["position"]>) => {
+    data(value, ["coordinateSystem", "value"]);
+    if (!["one-based", "zero-based"].includes(value.coordinateSystem) ||
+        !Number.isSafeInteger(value.value) ||
+        value.value < (value.coordinateSystem === "one-based" ? 1 : 0))
+      invalid("Invalid animation position.");
+  };
+  const token = (value: string) => {
+    try { decodeSelectionToken(value); }
+    catch { invalid("Invalid animation location."); }
+  };
   data(options, ["selection", "target", "kind", "trigger", "duration", "delay", "allowEmpty"]);
   if (!["add", "set", "remove"].includes(action)) invalid("Invalid animation action.");
   if (options.allowEmpty !== undefined && typeof options.allowEmpty !== "boolean")
@@ -507,7 +520,30 @@ export function validateAnimationOptions(
       "token",
       "all"
     ]);
-    if (options.selection.position) data(options.selection.position, ["coordinateSystem", "value"]);
+    const selection = options.selection;
+    if (selection.kind !== undefined && !["slide", "object"].includes(selection.kind))
+      invalid("Animations require slide or object selection.");
+    if (selection.token !== undefined) {
+      if (Object.keys(selection).some(key => !["kind", "token"].includes(key)))
+        invalid("Opaque and simple selectors cannot be combined.");
+      token(selection.token);
+    } else {
+      if (selection.scope !== undefined && selection.scope !== "slides")
+        invalid("Animations require slides scope.");
+      if (selection.all !== undefined && typeof selection.all !== "boolean")
+        invalid("Invalid animation cardinality.");
+      for (const key of ["owner", "id", "name", "part"] as const)
+        if (selection[key] !== undefined && (typeof selection[key] !== "string" || !selection[key]))
+          invalid("Invalid animation selector value.");
+      if ([selection.position, selection.id, selection.name, selection.part].filter(value => value !== undefined).length > 1 ||
+          selection.part !== undefined || (selection.kind === "object" && !selection.owner))
+        invalid("Conflicting animation selectors.");
+      if (selection.owner !== undefined) {
+        try { partName(selection.owner, false); }
+        catch { invalid("Invalid animation owner."); }
+      }
+      if (selection.position !== undefined) position(selection.position);
+    }
   }
   if (options.target !== undefined && typeof options.target !== "string") {
     data(options.target, [
@@ -521,13 +557,17 @@ export function validateAnimationOptions(
     ]);
     if ("fingerprint" in options.target) {
       data(options.target, ["fingerprint", "scope", "owner", "objectId", "coordinateSystem"]);
-      if (options.target.coordinateSystem !== "identity") invalid("Invalid animation location.");
+      if (Object.values(options.target).some(value => typeof value !== "string"))
+        invalid("Animation location fields must be strings.");
+      token(JSON.stringify({ fingerprint: options.target.fingerprint, scope: options.target.scope,
+        owner: options.target.owner, objectId: options.target.objectId, coordinateSystem: options.target.coordinateSystem }));
     } else {
       data(options.target, ["slide", "shape"]);
-      data(options.target.slide, ["coordinateSystem", "value"]);
-      if (typeof options.target.shape !== "string") invalid("Expected shape name.");
+      position(options.target.slide);
+      if (typeof options.target.shape !== "string" || !options.target.shape) invalid("Expected nonempty shape name.");
     }
   }
+  if (typeof options.target === "string") token(options.target);
   optionsValid(options);
   const fields = [options.kind, options.trigger, options.target, options.duration, options.delay];
   if (action === "remove" && fields.some((v) => v !== undefined))

@@ -17,9 +17,10 @@ interface WorkbookData {
     readonly xValues?: readonly number[];
     readonly bubbleSizes?: readonly number[];
     readonly numberFormat?: string;
+    readonly pointNumberFormats?: readonly (string | null)[];
   }[];
 }
-interface WorkbookInfo {
+export interface WorkbookInfo {
   readonly workbookPart: string;
   readonly stylesPart?: string;
   readonly stringsPart?: string;
@@ -147,7 +148,7 @@ export function validateWorkbookOwnership(
       unsupported();
   }
 }
-function inspectWorkbook(pkg: PackageReader, context: SelectionContext): WorkbookInfo {
+export function inspectWorkbook(pkg: PackageReader, context: SelectionContext): WorkbookInfo {
   const graph = readRelationshipGraph(pkg, context.relationshipLimits);
   if (graph.dangling.length) unsupported();
   for (const owner of ["/", ...graph.parts]) {
@@ -428,8 +429,22 @@ export function prepareChartWorkbookMembers(
         ...(data.categoryLevels ?? [data.categories!]).map(() => data.categoryNumberFormat),
         ...data.series.map((series) => series.numberFormat ?? data.numberFormat)
       ];
+  const pointFormats: (readonly (string | null)[] | undefined)[] = scatter
+    ? data.series.flatMap((series) => [
+        undefined,
+        series.pointNumberFormats,
+        ...(series.bubbleSizes ? [undefined] : [])
+      ])
+    : [
+        ...(data.categoryLevels ?? [data.categories!]).map(() => undefined),
+        ...data.series.map((series) => series.pointNumberFormats)
+      ];
+  const extraFormats = pointFormats.flatMap(
+    (column) => column?.filter((value): value is string => value !== null) ?? []
+  );
+  const allFormats = [...formats, ...extraFormats];
   const styles = workbookStyles(
-    formats,
+    allFormats,
     context,
     source && info?.stylesPart ? source.get(info.stylesPart) : undefined
   );
@@ -441,7 +456,10 @@ export function prepareChartWorkbookMembers(
       const value = values[row];
       if (value === null || value === undefined) return;
       const ref = `${workbookColumn(col)}${row + 1}`;
-      const style = row > 0 && styles.indices[col] ? ` s="${styles.indices[col]}"` : "";
+      const pointFormat = row > 0 ? pointFormats[col]?.[row - 1] : undefined;
+      const styleIndex =
+        pointFormat == null ? styles.indices[col] : styles.indices[allFormats.indexOf(pointFormat)];
+      const style = row > 0 && styleIndex ? ` s="${styleIndex}"` : "";
       cells +=
         typeof value === "number"
           ? `<c r="${ref}"${style}><v>${value}</v></c>`

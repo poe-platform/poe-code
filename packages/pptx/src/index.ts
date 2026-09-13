@@ -79,7 +79,7 @@ export {
   chartTypes,
   type CreatableChartType,
   type ChartInputSeries,
-  type ChartData,
+  type ChartData as ChartDataInput,
   type ChartUpdate,
   type AddChartOptions
 } from "./chart-editing.js";
@@ -550,3 +550,8 @@ export {
 export { comparePresentations, type DiffOptions, type DiffMode, type DiffCategory, type DiffChange, type PresentationDiff } from "./diff.js";
 
 export { extractPackage, packPackage, type ExtractedPackageMember, type PackPackageMember } from "./package-tools.js";
+
+export { CategoryChartData, ChartData, XyChartData, BubbleChartData } from "./chart-data-model.js";
+export * as chartData from "./chart-data-model.js";
+export * as chart from "./chart-objects.js";
+export type { ChartObjectUpdate } from "./chart-object-operations.js";

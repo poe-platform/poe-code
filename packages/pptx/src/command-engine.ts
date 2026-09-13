@@ -1142,6 +1142,7 @@ function parse(
       operation.startsWith("charts.") &&
       [
         "--type",
+        "--objects",
         "--data",
         "--style",
         "--title",
@@ -1161,7 +1162,7 @@ function parse(
       if (key === "workbook-policy") result.chartWorkbookPolicy = value;
       else {
         let parsed: unknown = value;
-        if (key === "data") parsed = commandJson(value);
+        if (key === "data" || key === "objects") parsed = commandJson(value);
         else if (key === "style") {
           if (!value.length || [...value].some((c) => c < "0" || c > "9"))
             usage("Chart style requires an integer.");
@@ -4089,7 +4090,9 @@ async function execute(
           (replacing
             ? "Required: --data JSON --workbook-policy synchronize-simple|reject-complex\n"
             : "Style: --style 1..48 --title TEXT --legend true|false\n" +
-              (adding ? "" : "Set: --data JSON --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n")) +
+              (adding ? "" : "Set: --data JSON --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
+                "Objects: --objects JSON uses explicit targets; schema charts set lists fields.\n" +
+                "  Plot/series/point indexes inside objects are zero-based model indexes.\n")) +
           "Output: --output PATH | --in-place | --dry-run; --force\n" +
           "Common: --scope slides --json --limit NAME=VALUE\n" +
           (adding
@@ -4212,7 +4215,7 @@ async function execute(
             level: "edit",
             operations: Object.keys(chartSchemas),
             subset:
-              "Slide chart inventory and area, bar, column, line, pie, doughnut, radar, XY and bubble creation/data/style editing. No formula evaluation or external fetching. Unsupported extensions retain raw XML."
+              "Slide chart inventory and area, bar, column, line, pie, doughnut, radar, XY and bubble creation/data/style editing. Explicit objects edits use live title, legend, axis, tick-label, plot, series, marker, data-label, shared font and drawing-format setters. No formula evaluation or external fetching. Unsupported extensions retain raw XML."
           },
           images: {
             level: "edit",

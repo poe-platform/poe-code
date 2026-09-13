@@ -1,3 +1,4 @@
+import { chartObjectSchema } from "./chart-object-operations.js";
 import { textGetSchema } from "./command-schema.js";
 import { chartTypes } from "./chart-editing.js";
 
@@ -253,7 +254,8 @@ const chartData = {
           values: { type: "array", minItems: 1, items: { type: ["number", "null"] } },
           xValues: { type: "array", minItems: 1, items: { type: "number" } },
           bubbleSizes: { type: "array", minItems: 1, items: { type: "number", minimum: 0 } },
-          numberFormat: { type: "string" }
+          numberFormat: { type: "string" },
+          pointNumberFormats: { type: "array", minItems: 1, items: { type: ["string", "null"] } }
         }
       }
     }
@@ -285,6 +287,7 @@ export const chartSchemas = {
                 : {}),
               ...(action === "add" ? { type: { enum: chartTypes } } : {}),
               data: chartData,
+              ...(action === "set" ? { objects: chartObjectSchema } : {}),
               ...(action === "replace"
                 ? { workbookPolicy: { enum: ["synchronize-simple", "reject-complex"] } }
                 : {
@@ -348,6 +351,7 @@ export const chartSchemas = {
                 ? [
                     {
                       anyOf: [
+                        "objects",
                         "data",
                         "style",
                         "title",

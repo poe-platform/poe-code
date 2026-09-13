@@ -89,6 +89,37 @@ const fill = {
     }
   ]
 };
+export const drawingUpdateSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    fill,
+    line: {
+      type: "object",
+      additionalProperties: false,
+      minProperties: 1,
+      properties: {
+        fill,
+        width: { anyOf: [length, { type: "null" }] },
+        dash: { enum: [...dashPresets, null] }
+      }
+    },
+    shadowInherit: { type: "boolean" },
+    shadow: {
+      anyOf: [
+        { type: "null" },
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["blur", "color", "opacity"],
+          properties: { blur: length, color: drawingColorSchema, opacity: ratio }
+        }
+      ]
+    }
+  },
+  minProperties: 1,
+  not: { required: ["shadow", "shadowInherit"] }
+};
 export const drawingSchemaDefinitions = Object.fromEntries(
   ["shapes.drawing.get", "shapes.drawing.set", "shapes.effects.set"].map((operation) => {
     const mutation = operation.endsWith(".set"),

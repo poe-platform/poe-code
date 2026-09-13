@@ -153,7 +153,7 @@ function bodyProperties(body: XmlElement): XmlElement | undefined {
       ].includes(body.name.namespace)
     ) &&
     !(
-      body.name.localName === "rich" &&
+      ["rich", "txPr"].includes(body.name.localName) &&
       [
         "http://schemas.openxmlformats.org/drawingml/2006/chart",
         "http://purl.oclc.org/ooxml/drawingml/chart"

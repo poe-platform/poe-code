@@ -12,11 +12,13 @@ import { applyPresentationCanvasSettings } from "./presentation-settings.js";
 import { CoreProperties, createPropertyPart } from "./properties.js";
 import { Slide, Slides, preservePlaceholder, type SlideShapeOwner } from "./slide-model.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
-import { insertChartIntoState } from "./chart-editing.js";
+import { insertChartIntoState, replaceChartData } from "./chart-editing.js";
 import { validatePictureInput } from "./picture-input.js";
 import { readShape } from "./shapes.js";
 import { writePackageArchive, type ArchiveMember } from "./package-writer.js";
 import { Chart } from "./chart-model.js";
+import { inspectWorkbook } from "./chart-workbook.js";
+import { readPackage, type PackageReader } from "./package-reader.js";
 import { parseRelationships } from "./relationships.js";
 import { resolvePartReference, packageUri } from "./package-uri.js";
 import { relPart } from "./masters.js";
@@ -88,6 +90,27 @@ function cancelled(context: SelectionContext): void {
 
 type State = Awaited<ReturnType<typeof loadShared>>;
 
+function workbookMembersReader(members: readonly ArchiveMember[]): PackageReader {
+  const entries = new Map(
+    members.map((member) => ["/" + member.name, new Uint8Array(member.bytes)])
+  );
+  const get = (name: string): Uint8Array => {
+    const bytes = entries.get(name);
+    if (!bytes)
+      throw new OfficeError("invalid-opc", "Workbook part is missing.", "validate-intent");
+    return new Uint8Array(bytes);
+  };
+  return {
+    names: Object.freeze([...entries.keys()]),
+    has: (name) => entries.has(name),
+    get,
+    relsXmlFor: (name) => {
+      const part = name === "/" ? "/_rels/.rels" : relPart(name);
+      return entries.has(part) ? get(part) : null;
+    }
+  };
+}
+
 export interface PresentationModel {
   readonly element: XmlElementView;
   readonly part: PartView;
@@ -116,8 +139,15 @@ class LivePresentation implements PresentationModel {
   readonly #pendingWorkbooks = new Map<string, readonly ArchiveMember[]>();
   #workbookFlush: Promise<void> | undefined;
   #publishedSource: Uint8Array;
-  constructor(state: State, context: SelectionContext, inputPath?: string) {
+  readonly #workbooks: Map<string, { bytes: Uint8Array; reader: PackageReader } | Error>;
+  constructor(
+    state: State,
+    context: SelectionContext,
+    inputPath?: string,
+    workbooks = new Map<string, { bytes: Uint8Array; reader: PackageReader } | Error>()
+  ) {
     this.#state = state;
+    this.#workbooks = workbooks;
     this.#context = context;
     this.#inputPath = inputPath;
     this.#publishedSource = state.source;
@@ -242,6 +272,90 @@ class LivePresentation implements PresentationModel {
                 cachedXml = xml;
                 cachedBytes = state.changes.get(chartPart());
                 this.#revision++;
+              },
+              {
+                part: () => this.#part.package.get_part(chartPart())!,
+                replaceData: (data) => {
+                  cancelled(context);
+                  const part = chartPart();
+                  const xml = state.doc(part);
+                  const externalData = child(xml.root, "externalData");
+                  const id = externalData?.attributes.find(
+                    (attribute) =>
+                      attribute.name.localName === "id" && attribute.name.namespace === state.r
+                  )?.value;
+                  const relations = parseRelationships(
+                    state.doc(relPart(part)).bytes(),
+                    context.relationshipLimits
+                  );
+                  const relation = relations.find(
+                    (edge) => edge.id === id && edge.type.endsWith("/package") && !edge.external
+                  );
+                  if (!relation)
+                    throw new OfficeError(
+                      "unsupported-edit",
+                      "Data replacement requires one owned embedded workbook.",
+                      "validate-intent"
+                    );
+                  const workbookPart = resolvePartReference(
+                    packageUri(part).baseURI,
+                    relation.target
+                  );
+                  const owners = this.#part.package.parts.flatMap((ownerPart) =>
+                    ownerPart.rels.filter(
+                      (edge) =>
+                        edge.mode === "internal" &&
+                        resolvePartReference(
+                          packageUri(ownerPart.partname).baseURI,
+                          edge.target
+                        ) === workbookPart
+                    )
+                  );
+                  if (owners.length !== 1)
+                    throw new OfficeError(
+                      "unsupported-edit",
+                      "Shared chart workbook ownership is ambiguous.",
+                      "validate-intent"
+                    );
+                  const pending = this.#pendingWorkbooks.get(workbookPart);
+                  let source: PackageReader;
+                  if (pending) {
+                    source = workbookMembersReader(pending);
+                  } else {
+                    const cached = this.#workbooks.get(workbookPart);
+                    if (cached instanceof Error) throw cached;
+                    if (!cached)
+                      throw new OfficeError(
+                        "unsupported-edit",
+                        "Workbook was not admitted for synchronous replacement.",
+                        "validate-intent"
+                      );
+                    const current =
+                      state.changes.get(workbookPart) ?? state.reader.get(workbookPart);
+                    if (
+                      current.length !== cached.bytes.length ||
+                      current.some((byte, index) => byte !== cached.bytes[index])
+                    )
+                      throw new OfficeError(
+                        "invalid-handle",
+                        "Workbook changed after admission.",
+                        "select"
+                      );
+                    source = cached.reader;
+                  }
+                  const result = replaceChartData(
+                    xml,
+                    data,
+                    context,
+                    source,
+                    inspectWorkbook(source, context)
+                  );
+                  state.save(part, result.doc);
+                  this.#pendingWorkbooks.set(workbookPart, result.members);
+                  cachedXml = result.doc;
+                  cachedBytes = state.changes.get(part);
+                  this.#revision++;
+                }
               }
             );
           },
@@ -438,6 +552,10 @@ class LivePresentation implements PresentationModel {
         if (this.#pendingWorkbooks.get(part) === members) {
           this.#state.changes.set(part, bytes);
           this.#pendingWorkbooks.delete(part);
+          this.#workbooks.set(part, {
+            bytes: new Uint8Array(bytes),
+            reader: workbookMembersReader(members)
+          });
         }
     })();
     try {
@@ -547,5 +665,54 @@ export async function Presentation(
         )
       : await readBinary(input, admittedContext);
   const state = await loadShared(bytes, admittedContext);
-  return new LivePresentation(state, admittedContext, inputPath);
+  const chartParts = new Set(
+    state.index.inventory.relationships
+      .filter((edge) => edge.type.endsWith("/chart") && !edge.external)
+      .map((edge) => edge.targetPart)
+  );
+  const workbooks = new Map<string, { bytes: Uint8Array; reader: PackageReader } | Error>();
+  let workbookBytes = 0;
+  let workbookMembers = 0;
+  for (const edge of state.index.inventory.relationships) {
+    if (
+      !chartParts.has(edge.owner) ||
+      !edge.type.endsWith("/package") ||
+      edge.external ||
+      !edge.targetPart ||
+      workbooks.has(edge.targetPart)
+    )
+      continue;
+    const bytes = state.reader.get(edge.targetPart);
+    try {
+      const remainingBytes = admittedContext.archiveLimits.maxTotalBytes - workbookBytes;
+      const remainingMembers = admittedContext.archiveLimits.maxMembers - workbookMembers;
+      if (remainingBytes < 1 || remainingMembers < 1)
+        throw new OfficeError(
+          "resource-limit",
+          "Embedded workbook admission budget exceeded.",
+          "admit"
+        );
+      const reader = await readPackage(bytes, {
+        ...admittedContext,
+        archiveLimits: {
+          ...admittedContext.archiveLimits,
+          maxTotalBytes: remainingBytes,
+          maxEntryBytes: Math.min(admittedContext.archiveLimits.maxEntryBytes, remainingBytes),
+          maxMembers: remainingMembers
+        }
+      });
+      workbookBytes += reader.names.reduce((total, name) => total + reader.byteLength(name), 0);
+      workbookMembers += reader.entryCount;
+      workbooks.set(edge.targetPart, { bytes, reader });
+    } catch (error) {
+      if (
+        error instanceof OfficeError &&
+        (error.code === "cancelled" || error.code === "resource-limit")
+      )
+        throw error;
+      if (!(error instanceof Error)) throw error;
+      workbooks.set(edge.targetPart, error);
+    }
+  }
+  return new LivePresentation(state, admittedContext, inputPath, workbooks);
 }

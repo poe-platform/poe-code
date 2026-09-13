@@ -1,0 +1,709 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "source_case": "tests/chart/test_data.py::DescribeChartData::it_is_a_CategoryChartData_object",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::Describe_BaseChartData::it_can_generate_chart_part_XML_for_its_data",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::Describe_BaseChartData::it_knows_its_number_format[number_format_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::Describe_BaseChartData::it_knows_its_number_format[number_format_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::Describe_BaseSeriesData::it_knows_its_name[name_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::Describe_BaseSeriesData::it_knows_its_name[name_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::Describe_BaseSeriesData::it_knows_its_number_format[number_format_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::Describe_BaseSeriesData::it_knows_its_number_format[number_format_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::Describe_BaseDataPoint::it_knows_its_number_format[number_format_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::Describe_BaseDataPoint::it_knows_its_number_format[number_format_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategoryChartData::it_is_a__BaseChartData_object",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategoryChartData::it_knows_the_categories_range_ref",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategoryChartData::it_knows_the_values_range_ref_for_a_series",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategoryChartData::it_provides_access_to_its_categories",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategoryChartData::it_can_add_a_category",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategoryChartData::it_can_add_a_series",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategoryChartData::it_can_set_its_categories",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture2]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture3]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_numeric[are_numeric_fixture4]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture2]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture3]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_when_its_categories_are_dates[are_dates_fixture4]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture2]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture3]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_the_category_hierarchy_depth[depth_fixture4]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_the_idx_of_a_category",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_leaf_category_count[leaf_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_leaf_category_count[leaf_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_leaf_category_count[leaf_fixture2]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_levels[levels_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_levels[levels_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture2]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture3]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture4]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_knows_its_number_format[number_format_get_fixture5]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_can_change_its_number_format[number_format_set_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_can_change_its_number_format[number_format_set_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_raises_on_category_depth_not_uniform",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategories::it_can_add_a_category",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_depth[depth_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_depth[depth_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_depth[depth_fixture2]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_depth[depth_fixture3]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_idx[Categories]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_idx[Category]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_the_index_of_a_sub_category",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_leaf_category_count[leaf_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_leaf_category_count[leaf_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_leaf_category_count[leaf_fixture2]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_raises_on_depth_not_uniform",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_label[label_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_label[label_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_numeric_string_value[num_str_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_numeric_string_value[num_str_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_numeric_string_value[num_str_fixture2]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_knows_its_numeric_string_value[num_str_fixture3]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_provides_access_to_its_sub_categories",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_can_add_a_sub_category",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_calculates_an_excel_date_number_to_help[excel_date_fixture0]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_calculates_an_excel_date_number_to_help[excel_date_fixture1]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_calculates_an_excel_date_number_to_help[excel_date_fixture2]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategory::it_calculates_an_excel_date_number_to_help[excel_date_fixture3]",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategorySeriesData::it_knows_the_categories_range_ref",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategorySeriesData::it_knows_its_values",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategorySeriesData::it_knows_its_values_range_ref",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategorySeriesData::it_provides_access_to_the_chart_categories",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategorySeriesData::it_can_add_a_data_point",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeBubbleChartData::it_can_add_a_series",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeXyChartData::it_is_a__BaseChartData_object",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeXyChartData::it_can_add_a_series",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeBubbleSeriesData::it_can_add_a_data_point",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeXySeriesData::it_is_a__BaseSeriesData_object",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeXySeriesData::it_can_add_a_data_point",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategoryDataPoint::it_is_a__BaseDataPoint_object",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeCategoryDataPoint::it_knows_its_value",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeXyDataPoint::it_is_a__BaseDataPoint_object",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeXyDataPoint::it_knows_its_x_y_values",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeBubbleDataPoint::it_is_an_XyDataPoint_subclass",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    },
+    {
+      "source_case": "tests/chart/test_data.py::DescribeBubbleDataPoint::it_knows_its_x_y_size_values",
+      "source_file": "tests/chart/test_data.py",
+      "target_tests": [
+        "packages/pptx/src/chart-data-model.test.ts"
+      ],
+      "disposition": "original observable model acceptance; parameter variants retained by source id; source wrapper/mock identity is replaced by owned TypeScript objects"
+    }
+  ]
+}

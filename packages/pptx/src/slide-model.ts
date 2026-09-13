@@ -18,6 +18,12 @@ import { applyPictureUpdate, type SetImageOptions } from "./image-formatting.js"
 import type { Chart } from "./chart-model.js";
 import { chartTypes, type ChartData, type CreatableChartType } from "./chart-editing.js";
 import { XL_CHART_TYPE } from "./chart-enums.js";
+import {
+  toChartData,
+  type CategoryChartData,
+  type XyChartData,
+  type BubbleChartData
+} from "./chart-data-model.js";
 import { GroupShape } from "./group-model.js";
 import { Connector } from "./connectors-model.js";
 import { createConnectorXml, type ConnectorKind } from "./connectors.js";
@@ -245,9 +251,18 @@ export class SlidePlaceholder extends InheritedShape {
     await this.#owner.insertRich(id, "picture", { input, ...this.#geometry(), fit: "cover" });
     return new Picture(this.#owner, id);
   }
-  insert_chart(type: XL_CHART_TYPE, data: ChartData): GraphicFrame;
-  insert_chart(type: CreatableChartType, data: ChartData): GraphicFrame;
-  insert_chart(type: XL_CHART_TYPE | CreatableChartType, data: ChartData): GraphicFrame {
+  insert_chart(
+    type: XL_CHART_TYPE,
+    data: ChartData | CategoryChartData | XyChartData | BubbleChartData
+  ): GraphicFrame;
+  insert_chart(
+    type: CreatableChartType,
+    data: ChartData | CategoryChartData | XyChartData | BubbleChartData
+  ): GraphicFrame;
+  insert_chart(
+    type: XL_CHART_TYPE | CreatableChartType,
+    data: ChartData | CategoryChartData | XyChartData | BubbleChartData
+  ): GraphicFrame {
     const creationType =
       typeof type === "number"
         ? chartTypes.find((name) => XL_CHART_TYPE[name] === type)
@@ -258,7 +273,11 @@ export class SlidePlaceholder extends InheritedShape {
     const id = this.shape_id;
     if (!this.#owner.insertChart)
       throw new PropertyAccessError("Chart insertion requires a package owner.");
-    this.#owner.insertChart(id, { type: creationType, data, ...this.#geometry() });
+    this.#owner.insertChart(id, {
+      type: creationType,
+      data: toChartData(data),
+      ...this.#geometry()
+    });
     return new GraphicFrame(this.#owner, id);
   }
 }

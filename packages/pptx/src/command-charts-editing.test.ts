@@ -309,3 +309,76 @@ it("replaces synchronized data through opaque selection and validates explicit w
   )[0]!;
   expect(updated.plots[0]!.series[0]!.values!.points).toEqual([{ index: "0", value: "8" }]);
 });
+
+it("edits live chart objects through explicit schema-backed operations with atomic failures", async () => {
+  const f = await setup();
+  expect((await f.run([...add, "--in-place", "--json"])).exitCode).toBe(0);
+  const before = f.volume.readFileSync("/deck.pptx");
+  const command = [
+    "charts",
+    "set",
+    "/deck.pptx",
+    "--slide",
+    "1",
+    "--in-place",
+    "--json",
+    "--objects"
+  ];
+  const updates = [
+    { target: "chart", hasLegend: true },
+    { target: "legend", position: "BOTTOM", includeInLayout: false },
+    {
+      target: "font",
+      owner: "legend",
+      bold: true,
+      size: { value: 14, unit: "pt" },
+      color: { theme: "accent3", brightness: -0.2 }
+    },
+    { target: "valueAxis", minimumScale: 0, maximumScale: 20 },
+    {
+      target: "format",
+      owner: "valueMajorGridlines",
+      drawing: {
+        line: {
+          width: { value: 2, unit: "pt" },
+          fill: { kind: "solid", color: { theme: "accent2", brightness: 0.3 } }
+        }
+      }
+    },
+    { target: "plot", plot: 0, gapWidth: 80, hasDataLabels: true },
+    { target: "dataLabels", plot: 0, showValue: true, numberFormat: "0.0" }
+  ];
+  const schema = await f.run(["schema", "charts", "set", "--json"]);
+  expect(
+    compileJsonSchema(schema.value.data.operations["charts.set"].options).validate({
+      slide: 1,
+      inPlace: true,
+      objects: updates
+    }).ok
+  ).toBe(true);
+  const changed = await f.run([...command, JSON.stringify(updates)]);
+  expect(changed.exitCode, JSON.stringify(changed.value)).toBe(0);
+  expect(changed.value.affected).toBe(1);
+  const result = (
+    await readCharts(new Uint8Array(f.volume.readFileSync("/deck.pptx") as Buffer), {}, context)
+  )[0]!;
+  expect(result.legend!.xml).toContain('val="b"');
+  expect(result.legend!.xml).toContain('sz="1400"');
+  expect(result.legend!.xml).toContain('val="accent3"');
+  expect(result.axes.find((axis) => axis.type === "valAx")!.xml).toContain('val="20"');
+  expect(result.plots[0]!.xml).toContain('val="80"');
+  expect(result.axes.find((axis) => axis.type === "valAx")!.xml).toContain('w="25400"');
+  expect(result.axes.find((axis) => axis.type === "valAx")!.xml).toContain('val="accent2"');
+  expect(f.volume.readFileSync("/deck.pptx")).not.toEqual(before);
+  const preserved = f.volume.readFileSync("/deck.pptx");
+  const failed = await f.run([
+    ...command,
+    JSON.stringify([
+      { target: "chart", hasLegend: false },
+      { target: "plot", plot: 100, gapWidth: 20 }
+    ])
+  ]);
+  expect(failed.exitCode).toBe(1);
+  expect(failed.value.affected).toBe(0);
+  expect(f.volume.readFileSync("/deck.pptx")).toEqual(preserved);
+});

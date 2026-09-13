@@ -76,6 +76,12 @@ for returned graphic frames. Full titles/axes/series/plots/legend object graphs
 remain incomplete. These newer receipts supersede earlier absent-builder/handle
 statements only for the tested members; they do not claim whole-public-API parity.
 
+Current chart graph and builders: [integrated SDK/CLI receipt](chart-object-operation-evidence.md)
+links exact graph, builder, drawing, font and all-variant ledgers. These supersede
+older absent-live-chart/builder labels only for their tested members. The case
+ledgers retain fixture-payload uncertainty and explicit language/security mappings;
+no complete format or literal source-runtime parity is inferred.
+
 ## Sources and baseline
 
 - [Published API and user guides](https://python-pptx.readthedocs.io/en/latest/).

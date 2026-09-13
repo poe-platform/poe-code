@@ -6,9 +6,9 @@
   "authority": ["docs/specs/office-cli.md", "docs/specs/office-sdk.md", "docs/specs/pptx.md"],
   "inputEvidence": {
     "docs/specs/pptx.md": {
-      "sha256": "c4cac2ff3754153bcc3fb6910f23654d0ef88ce40e1589f1b0bfd657895c0083",
-      "previousSha256": "6ca5367fc275aac938ef36d2d95e42b7f53b5741d474b8c5a9b4c5ab9f3b2848",
-      "revisionReason": "Paragraph formatting units, null clearing, margins, line spacing, direction, numbering and tab grammar; whole-object text assignment remains planned.",
+      "sha256": "a9b86d82d37b5b1b6e93eafe18992a0d644763e42bf7e034cca1ac7b7d962f63",
+      "previousSha256": "c4cac2ff3754153bcc3fb6910f23654d0ef88ce40e1589f1b0bfd657895c0083",
+      "revisionReason": "Text-frame nullable configuration, vertical-text modes, signed inset/rotation bounds and metadata-only autofit preservation.",
       "history": [
         {
           "sha256": "d907f73d3fcf8b608d8ddd404654b3f87ac1fc236c40f0ed5cd429f61cd82e8f",
@@ -17,6 +17,10 @@
         {
           "sha256": "6ca5367fc275aac938ef36d2d95e42b7f53b5741d474b8c5a9b4c5ab9f3b2848",
           "reason": "Layout properties, placeholder defaults/inheritance, explicit application policy and direct command schema reconciliation."
+        },
+        {
+          "sha256": "c4cac2ff3754153bcc3fb6910f23654d0ef88ce40e1589f1b0bfd657895c0083",
+          "reason": "Paragraph formatting units, null clearing, margins, line spacing, direction, numbering and tab grammar; whole-object text assignment remains planned."
         }
       ]
     },
@@ -11693,7 +11697,20 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "currentImplementation": {
+        "scope": "Shape-frame metadata and explicit destructive text assignment; table-cell bodies excluded. Table/cell/paragraph/run-specific selection and full live owner graph remain planned. Existing just/dist anchors are read/preserve, not writable enum values.",
+        "engine": "packages/pptx/src/command-engine.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "sdk": "packages/pptx/src/text-frames.ts",
+        "tests": [
+          "packages/pptx/src/command-text-frames.test.ts",
+          "packages/pptx/src/text-frames.test.ts",
+          "packages/pptx/src/text-frame-cases.test.ts"
+        ],
+        "units": "Flags accept explicit Length units; SDK operation margins use points, model margins use Length. Rotation is signed degrees.",
+        "discovery": "text.frames.list/get/set; executable schemas enumerate the implemented subset. Metadata-only autofit does not implement text.fit."
+      }
     },
     "text.frames.get": {
       "path": ["text", "frames", "get"],
@@ -11820,7 +11837,20 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "currentImplementation": {
+        "scope": "Shape-frame metadata and explicit destructive text assignment; table-cell bodies excluded. Table/cell/paragraph/run-specific selection and full live owner graph remain planned. Existing just/dist anchors are read/preserve, not writable enum values.",
+        "engine": "packages/pptx/src/command-engine.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "sdk": "packages/pptx/src/text-frames.ts",
+        "tests": [
+          "packages/pptx/src/command-text-frames.test.ts",
+          "packages/pptx/src/text-frames.test.ts",
+          "packages/pptx/src/text-frame-cases.test.ts"
+        ],
+        "units": "Flags accept explicit Length units; SDK operation margins use points, model margins use Length. Rotation is signed degrees.",
+        "discovery": "text.frames.list/get/set; executable schemas enumerate the implemented subset. Metadata-only autofit does not implement text.fit."
+      }
     },
     "text.frames.set": {
       "path": ["text", "frames", "set"],
@@ -11836,25 +11866,67 @@
             "maxLength": 1048576
           },
           "marginLeft": {
-            "$ref": "#/$defs/Length"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "marginRight": {
-            "$ref": "#/$defs/Length"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "marginTop": {
-            "$ref": "#/$defs/Length"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "marginBottom": {
-            "$ref": "#/$defs/Length"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "verticalAnchor": {
-            "type": "string",
-            "enum": ["top", "middle", "bottom"]
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["top", "middle", "bottom"]
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "columns": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 16
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 16
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "wrap": {
             "anyOf": [
@@ -11867,11 +11939,39 @@
             ]
           },
           "autofit": {
-            "type": "string",
-            "enum": ["none", "shape", "text"]
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["none", "shape", "text"]
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "rotation": {
-            "$ref": "#/$defs/Degrees"
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": -35791.394133333335,
+                "maximum": 35791.39411666667
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verticalText": {
+            "enum": [
+              "horz",
+              "vert",
+              "vert270",
+              "wordArtVert",
+              "eaVert",
+              "mongolianVert",
+              "wordArtVertRtl",
+              null
+            ]
           }
         },
         "required": [],
@@ -11915,10 +12015,12 @@
         "columns": "--columns",
         "wrap": "--wrap",
         "autofit": "--autofit",
-        "rotation": "--rotation"
+        "rotation": "--rotation",
+        "verticalText": "--vertical-text"
       },
       "constraints": [
-        "Require at least one declared update field; unknown/inapplicable fields fail; no silent no-op."
+        "Require at least one declared update field; unknown/inapplicable fields fail; no silent no-op.",
+        "Frame insets serialize to signed 32-bit EMUs; frame rotation serializes to signed 32-bit 1/60000-degree units without modulo normalization. Null clears the selected local setting. Autofit is metadata-only and preserves an unchanged choice child."
       ],
       "batchOptions": {
         "type": "object",
@@ -12034,7 +12136,20 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "currentImplementation": {
+        "scope": "Shape-frame metadata and explicit destructive text assignment; table-cell bodies excluded. Table/cell/paragraph/run-specific selection and full live owner graph remain planned. Existing just/dist anchors are read/preserve, not writable enum values.",
+        "engine": "packages/pptx/src/command-engine.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "sdk": "packages/pptx/src/text-frames.ts",
+        "tests": [
+          "packages/pptx/src/command-text-frames.test.ts",
+          "packages/pptx/src/text-frames.test.ts",
+          "packages/pptx/src/text-frame-cases.test.ts"
+        ],
+        "units": "Flags accept explicit Length units; SDK operation margins use points, model margins use Length. Rotation is signed degrees.",
+        "discovery": "text.frames.list/get/set; executable schemas enumerate the implemented subset. Metadata-only autofit does not implement text.fit."
+      }
     },
     "fields.list": {
       "path": ["fields", "list"],

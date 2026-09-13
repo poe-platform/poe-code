@@ -184,3 +184,16 @@ export {
 } from "./text-paragraphs.js";
 
 export { Length, Emu, Inches, Cm, Mm, Pt, Centipoints } from "./length.js";
+
+export {
+  TextFrame,
+  MSO_AUTO_SIZE,
+  MSO_VERTICAL_ANCHOR,
+  MSO_ANCHOR,
+  textVerticalModes,
+  readTextFrames,
+  mutateTextFrames,
+  validateTextFrameOptions,
+  type TextFrameFormatting,
+  type MutateTextFramesOptions
+} from "./text-frames.js";

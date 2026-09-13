@@ -1,4 +1,10 @@
 import {
+  readTextFrames,
+  mutateTextFrames,
+  validateTextFrameOptions,
+  type MutateTextFramesOptions
+} from "./text-frames.js";
+import {
   readTextParagraphs,
   mutateTextParagraphs,
   validateTextParagraphOptions,
@@ -40,6 +46,9 @@ import {
   inspectSchema,
   textGetSchema,
   textReplaceSchema,
+  textFramesSetSchema,
+  textFramesGetSchema,
+  textFramesListSchema,
   textParagraphsSetSchema,
   textParagraphsGetSchema,
   textParagraphsListSchema,
@@ -133,6 +142,17 @@ const scopes: readonly Scope[] = [
   "presentation",
   "shared"
 ];
+const frameHelp =
+  "Usage: pptx text frames list|get|set INPUT [selection] [formatting] [output]\n" +
+  "Selection: --slide N --shape NAME --select TOKEN --scope SCOPE; --all (set only)\n" +
+  "Shape text frames only; table cells are excluded. Read anchor just/dist is preserved metadata.\n" +
+  "Formatting: --margin-left LENGTH --margin-right LENGTH --margin-top LENGTH --margin-bottom LENGTH\n" +
+  "  --vertical-anchor top|middle|bottom --columns 1..16 --wrap true|false\n" +
+  "  --vertical-text horz|vert|vert270|wordArtVert|eaVert|mongolianVert|wordArtVertRtl\n" +
+  "  --rotation DEGREES --autofit none|shape|text --text TEXT\n" +
+  "Lengths require emu/in/cm/mm/pt; SDK lengths use points. Null clears direct metadata.\n" +
+  "Autofit writes metadata only; no font measurement or text fitting is performed.\n" +
+  "Output: --output PATH | --in-place; --force --dry-run --json --allow-empty\n";
 const paragraphHelp =
   "Usage: pptx text paragraphs list|get|set INPUT [selection] [formatting] [output]\n" +
   "Selection: --slide N --shape NAME --paragraph N (one-based), --select TOKEN, --all (set only)\n" +
@@ -191,6 +211,7 @@ const help =
   "       pptx slides set INPUT [--name TEXT] [--hidden true|false] [--position N]\n" +
   "                       [--slide N | --select TOKEN | --all] [--allow-empty]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx text frames list|get|set INPUT [--vertical-anchor top|middle|bottom] [--autofit none|shape|text]\n" +
   "       pptx text paragraphs list|get|set INPUT [--paragraph N] [--alignment left|center|right] [--json]\n" +
   "       pptx text get INPUT [--slide N] [--shape NAME] [--scope SCOPE] [--json]\n" +
   "       pptx text runs set INPUT --slide N --shape NAME --font NAME --size 18pt --output PATH\n" +
@@ -302,6 +323,9 @@ interface Arguments {
     | "slides.split"
     | "text.get"
     | "text.replace"
+    | "text.frames.set"
+    | "text.frames.get"
+    | "text.frames.list"
     | "text.paragraphs.set"
     | "text.paragraphs.get"
     | "text.paragraphs.list"
@@ -354,6 +378,7 @@ interface Arguments {
   selection?: SelectionQuery | readonly SelectionQuery[];
   template?: string;
   runEdit?: MutateTextRunsOptions;
+  frameEdit?: MutateTextFramesOptions;
   paragraphEdit?: MutateTextParagraphsOptions;
   style?: { bold?: boolean; italic?: boolean };
   first?: boolean;
@@ -433,7 +458,22 @@ const paragraphFlags = [
   "--tabs"
 ];
 
+const frameFlags = [
+  "--text",
+  "--margin-left",
+  "--margin-right",
+  "--margin-top",
+  "--margin-bottom",
+  "--vertical-anchor",
+  "--columns",
+  "--wrap",
+  "--vertical-text",
+  "--rotation",
+  "--autofit"
+];
+
 const scalarOptions = [
+  ...frameFlags,
   ...paragraphFlags,
   ...runFlags,
   "--style-json",
@@ -569,7 +609,7 @@ function parse(
   if (invalidUtf8) usage("Arguments must be UTF-8.");
   if (
     args[0] === "text" &&
-    ["runs", "paragraphs"].includes(args[1]!) &&
+    ["runs", "paragraphs", "frames"].includes(args[1]!) &&
     ["get", "set", "list"].includes(args[2]!)
   ) {
     const path = `text.${args[1]}.${args[2]}`;
@@ -615,6 +655,9 @@ function parse(
       "inspect",
       "text.get",
       "text.replace",
+      "text.frames.set",
+      "text.frames.get",
+      "text.frames.list",
       "text.paragraphs.set",
       "text.paragraphs.get",
       "text.paragraphs.list",
@@ -645,7 +688,9 @@ function parse(
       continue;
     }
     if (
-      (operation.startsWith("text.runs.") || operation.startsWith("text.paragraphs.")) &&
+      (operation.startsWith("text.runs.") ||
+        operation.startsWith("text.paragraphs.") ||
+        operation.startsWith("text.frames.")) &&
       ["--help", "-h"].includes(argument)
     )
       return { operation: "help", json: output.json, schemaPath: operation };
@@ -696,6 +741,32 @@ function parse(
         ].includes(argument))
     )
       usage("Missing option value.");
+    if (operation.startsWith("text.frames.") && frameFlags.includes(argument)) {
+      const key = argument
+        .slice(2)
+        .split("-")
+        .map((part, index) => (index ? part[0]!.toUpperCase() + part.slice(1) : part))
+        .join("");
+      let parsed: unknown = value;
+      if (value === "null" && key !== "text") parsed = null;
+      else if (key.startsWith("margin")) parsed = commandLength(value, -2147483648) / 12700;
+      else if (key === "wrap") {
+        if (!["true", "false"].includes(value)) usage("Wrap requires true, false or null.");
+        parsed = value === "true";
+      } else if (key === "columns" || key === "rotation") {
+        const digits = key === "rotation" && value.startsWith("-") ? value.slice(1) : value;
+        const pieces = digits.split(".");
+        if (
+          pieces.length > (key === "columns" ? 1 : 2) ||
+          pieces.some((piece) => !piece || [...piece].some((c) => c < "0" || c > "9")) ||
+          !Number.isFinite(Number(value))
+        )
+          usage("Columns require an integer; rotation requires finite decimal degrees.");
+        parsed = Number(value);
+      }
+      result.frameEdit = { ...result.frameEdit, [key]: parsed };
+      continue;
+    }
     if (operation.startsWith("text.paragraphs.") && paragraphFlags.includes(argument)) {
       let key = argument
         .slice(2)
@@ -1383,11 +1454,13 @@ function parse(
     operation === "text.get" ||
     operation === "text.replace" ||
     operation.startsWith("text.runs.") ||
-    operation.startsWith("text.paragraphs.")
+    operation.startsWith("text.paragraphs.") ||
+    operation.startsWith("text.frames.")
   ) {
     const paragraphs = operation.startsWith("text.paragraphs.");
     const runs = operation.startsWith("text.runs.");
-    const formatting = runs || paragraphs;
+    const frames = operation.startsWith("text.frames.");
+    const formatting = runs || paragraphs || frames;
     const mutation = operation.endsWith(".set") || operation === "text.replace";
     const allowed = [
       "--json",
@@ -1396,6 +1469,7 @@ function parse(
       "--scope",
       "--slide",
       "--shape",
+      ...(frames && mutation ? frameFlags : []),
       ...(runs ? (mutation ? runFlags : ["--paragraph", "--run"]) : []),
       ...(paragraphs ? (mutation ? paragraphFlags : ["--paragraph"]) : []),
       ...(mutation
@@ -1440,6 +1514,8 @@ function parse(
       usage("Shape selection requires an owning slide.");
     result.input = positionals[0];
     if (mutation) {
+      if (frames)
+        validateTextFrameOptions({ ...result.frameEdit, ...(result.all ? { all: true } : {}) });
       if (paragraphs)
         validateTextParagraphOptions({
           ...result.paragraphEdit,
@@ -1874,6 +1950,9 @@ function parse(
         "slides.split",
         "text.get",
         "text.replace",
+        "text.frames.set",
+        "text.frames.get",
+        "text.frames.list",
         "text.paragraphs.set",
         "text.paragraphs.get",
         "text.paragraphs.list",
@@ -2125,11 +2204,13 @@ async function execute(
     output.operation = args.operation;
     const operation = args.operation;
     if (args.operation === "help") {
-      const usage = args.schemaPath?.startsWith("text.paragraphs.")
-        ? paragraphHelp
-        : args.schemaPath?.startsWith("text.runs.")
-          ? runHelp
-          : help;
+      const usage = args.schemaPath?.startsWith("text.frames.")
+        ? frameHelp
+        : args.schemaPath?.startsWith("text.paragraphs.")
+          ? paragraphHelp
+          : args.schemaPath?.startsWith("text.runs.")
+            ? runHelp
+            : help;
       result = success(operation, { usage });
       human = usage;
     } else if (args.operation === "version") {
@@ -2147,6 +2228,9 @@ async function execute(
             inspect: inspectSchema,
             "text.get": textGetSchema,
             "text.replace": textReplaceSchema,
+            "text.frames.set": textFramesSetSchema,
+            "text.frames.get": textFramesGetSchema,
+            "text.frames.list": textFramesListSchema,
             "text.paragraphs.set": textParagraphsSetSchema,
             "text.paragraphs.get": textParagraphsGetSchema,
             "text.paragraphs.list": textParagraphsListSchema,
@@ -2169,6 +2253,13 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          textFrames: {
+            level: "edit",
+            operation: "text.frames.set",
+            selectors: ["slide", "shape", "select"],
+            subset:
+              "Shape text frames only (table cells excluded): insets, vertical anchor, columns, wrapping, vertical text, rotation and autofit metadata; null clears direct metadata. No host measurement or text-fit calculation. Table/cell/paragraph/run selectors are unavailable."
+          },
           textParagraphs: {
             level: "edit",
             operation: "text.paragraphs.set",
@@ -2267,7 +2358,8 @@ async function execute(
     else if (
       args.operation === "text.replace" ||
       args.operation === "text.runs.set" ||
-      args.operation === "text.paragraphs.set"
+      args.operation === "text.paragraphs.set" ||
+      args.operation === "text.frames.set"
     ) {
       const context = { ...options.context, signal: request.signal };
       const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
@@ -2291,45 +2383,53 @@ async function execute(
         ...(args.shape === undefined ? {} : { shape: args.shape })
       };
       const changed =
-        args.operation === "text.paragraphs.set"
-          ? await mutateTextParagraphs(
+        args.operation === "text.frames.set"
+          ? await mutateTextFrames(
               bytes,
-              { ...args.paragraphEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+              { ...args.frameEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
               context
             )
-          : args.operation === "text.runs.set"
-            ? await mutateTextRuns(
+          : args.operation === "text.paragraphs.set"
+            ? await mutateTextParagraphs(
                 bytes,
-                { ...args.runEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+                { ...args.paragraphEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
                 context
               )
-            : await replacePresentationText(
-                bytes,
-                {
-                  ...selectedText,
-                  ...(args.style === undefined ? {} : { style: args.style }),
-                  find: args.find!,
-                  with: args.with!,
-                  ...(args.first ? { first: true } : {}),
-                  ...(args.all ? { all: true } : {}),
-                  ...(args.occurrence === undefined ? {} : { occurrence: args.occurrence })
-                },
-                context
-              );
+            : args.operation === "text.runs.set"
+              ? await mutateTextRuns(
+                  bytes,
+                  { ...args.runEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+                  context
+                )
+              : await replacePresentationText(
+                  bytes,
+                  {
+                    ...selectedText,
+                    ...(args.style === undefined ? {} : { style: args.style }),
+                    find: args.find!,
+                    with: args.with!,
+                    ...(args.first ? { first: true } : {}),
+                    ...(args.all ? { all: true } : {}),
+                    ...(args.occurrence === undefined ? {} : { occurrence: args.occurrence })
+                  },
+                  context
+                );
       const dryRun = args.dryRun ?? false;
       result = {
         ...success(
           operation,
-          args.operation === "text.paragraphs.set"
-            ? { paragraphs: changed.affected, dryRun }
-            : args.operation === "text.runs.set"
-              ? { runs: changed.affected, dryRun }
-              : { replacements: changed.affected, dryRun }
+          args.operation === "text.frames.set"
+            ? { frames: changed.affected, dryRun }
+            : args.operation === "text.paragraphs.set"
+              ? { paragraphs: changed.affected, dryRun }
+              : args.operation === "text.runs.set"
+                ? { runs: changed.affected, dryRun }
+                : { replacements: changed.affected, dryRun }
         ),
         affected: changed.affected,
         locations: changed.locations
       };
-      human = `${dryRun ? "Validated" : args.operation.endsWith(".set") ? "Updated" : "Replaced"} ${changed.affected} ${args.operation === "text.paragraphs.set" ? "paragraph(s)" : args.operation === "text.runs.set" ? "text run(s)" : "text match(es)"}\n`;
+      human = `${dryRun ? "Validated" : args.operation.endsWith(".set") ? "Updated" : "Replaced"} ${changed.affected} ${args.operation === "text.frames.set" ? "text frame(s)" : args.operation === "text.paragraphs.set" ? "paragraph(s)" : args.operation === "text.runs.set" ? "text run(s)" : "text match(es)"}\n`;
       const destination = args.inPlace ? args.input! : args.output;
       if (destination === "-" && !dryRun) binary = changed.bytes;
       else if (destination && destination !== "-") {
@@ -2352,7 +2452,9 @@ async function execute(
       args.operation === "text.runs.get" ||
       args.operation === "text.runs.list" ||
       args.operation === "text.paragraphs.get" ||
-      args.operation === "text.paragraphs.list"
+      args.operation === "text.paragraphs.list" ||
+      args.operation === "text.frames.get" ||
+      args.operation === "text.frames.list"
     ) {
       const context = { ...options.context, signal: request.signal };
       const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
@@ -2374,17 +2476,21 @@ async function execute(
               }),
         ...(args.shape === undefined ? {} : { shape: args.shape })
       };
-      const data = args.operation.startsWith("text.paragraphs.")
-        ? {
-            paragraphs: await readTextParagraphs(
-              bytes,
-              { ...textOptions, ...args.paragraphEdit },
-              context
-            )
-          }
-        : args.operation !== "text.get"
-          ? { runs: await readTextRuns(bytes, { ...textOptions, ...args.runEdit }, context) }
-          : await readPresentationText(bytes, textOptions, context);
+      const data = args.operation.startsWith("text.frames.")
+        ? { frames: await readTextFrames(bytes, textOptions, context) }
+        : args.operation.startsWith("text.paragraphs.")
+          ? {
+              paragraphs: await readTextParagraphs(
+                bytes,
+                { ...textOptions, ...args.paragraphEdit },
+                context
+              )
+            }
+          : args.operation !== "text.get"
+            ? { runs: await readTextRuns(bytes, { ...textOptions, ...args.runEdit }, context) }
+            : await readPresentationText(bytes, textOptions, context);
+      if (args.operation === "text.frames.get" && "frames" in data && data.frames.length !== 1)
+        throw new SelectionError(data.frames.length ? "ambiguous-selection" : "missing-selection");
       if (args.operation === "text.runs.get" && "runs" in data && data.runs.length !== 1)
         throw new SelectionError(data.runs.length ? "ambiguous-selection" : "missing-selection");
       if (
@@ -2398,16 +2504,20 @@ async function execute(
       result = {
         ...success(operation, data),
         locations:
-          "segments" in data
-            ? data.segments.map((segment) => segment.location)
-            : "paragraphs" in data
-              ? data.paragraphs.map((paragraph) => paragraph.location)
-              : data.runs.map((run) => run.location)
+          "frames" in data
+            ? data.frames.map((frame) => frame.location)
+            : "segments" in data
+              ? data.segments.map((segment) => segment.location)
+              : "paragraphs" in data
+                ? data.paragraphs.map((paragraph) => paragraph.location)
+                : data.runs.map((run) => run.location)
       };
       human =
         "text" in data
           ? data.text
-          : JSON.stringify("paragraphs" in data ? data.paragraphs : data.runs);
+          : JSON.stringify(
+              "frames" in data ? data.frames : "paragraphs" in data ? data.paragraphs : data.runs
+            );
     } else if (Object.hasOwn(masterSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(

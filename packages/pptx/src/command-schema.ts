@@ -2269,3 +2269,147 @@ export const textParagraphsSetSchema = {
     }
   }
 };
+
+const frameFormattingProperties = {
+  ...Object.fromEntries(
+    ["marginLeft", "marginRight", "marginTop", "marginBottom"].map((key) => [
+      key,
+      {
+        type: ["number", "null"],
+        minimum: -2147483648 / 12700,
+        maximum: 2147483647 / 12700,
+        description: "Points; CLI accepts explicit length suffixes."
+      }
+    ])
+  ),
+  verticalAnchor: { enum: [null, "top", "middle", "bottom", 1, 3, 4] },
+  columns: { type: ["integer", "null"], minimum: 1, maximum: 16 },
+  wrap: { type: ["boolean", "null"] },
+  verticalText: {
+    enum: [
+      null,
+      "horz",
+      "vert",
+      "vert270",
+      "wordArtVert",
+      "eaVert",
+      "mongolianVert",
+      "wordArtVertRtl"
+    ]
+  },
+  rotation: { type: ["number", "null"], minimum: -2147483648 / 60000, maximum: 2147483647 / 60000 },
+  autofit: { enum: [null, "none", "shape", "text", 0, 1, 2] }
+};
+export const textFramesGetSchema = {
+  description:
+    "Read local shape text frame metadata (table cells excluded) without measuring fonts or calculating text fit. Null means no direct override. Table/cell/paragraph/run selectors are unavailable.",
+  input: inspectSchema.input,
+  options: textGetSchema.options,
+  result: {
+    ...inspectSchema.result,
+    properties: {
+      ...inspectSchema.result.properties,
+      operation: { const: "text.frames.get" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["frames"],
+            properties: {
+              frames: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["location", "formatting"],
+                  properties: {
+                    location:
+                      textGetSchema.result.properties.data.oneOf[1]!.properties!.segments.items
+                        .properties.location,
+                    formatting: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: Object.keys(frameFormattingProperties),
+                      properties: {
+                        ...frameFormattingProperties,
+                        verticalAnchor: {
+                          enum: [...frameFormattingProperties.verticalAnchor.enum, "just", "dist"],
+                          description:
+                            "Raw just/dist tokens are retained on read; writes support top/middle/bottom only."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+};
+export const textFramesListSchema = {
+  ...textFramesGetSchema,
+  result: {
+    ...textFramesGetSchema.result,
+    properties: {
+      ...textFramesGetSchema.result.properties,
+      operation: { const: "text.frames.list" }
+    }
+  }
+};
+export const textFramesSetSchema = {
+  description:
+    "Set shape frame metadata (table cells excluded): insets, anchor, columns, wrap, vertical text, rotation and autofit metadata. Omitted fields stay unchanged; null clears direct metadata. Text replaces frame content. Autofit never measures fonts or calculates text fit. SDK lengths use points; CLI uses explicit length suffixes. Rotation uses degrees within signed DrawingML angle bounds.",
+  input: inspectSchema.input,
+  options: {
+    ...textGetSchema.options,
+    properties: {
+      ...textGetSchema.options.properties,
+      ...frameFormattingProperties,
+      text: { type: "string" },
+      all: { type: "boolean" },
+      allowEmpty: { type: "boolean" },
+      output: { type: "string", minLength: 1 },
+      inPlace: { type: "boolean" },
+      force: { type: "boolean" },
+      dryRun: { type: "boolean" }
+    },
+    allOf: [
+      ...textGetSchema.options.allOf,
+      ...xmlSetSchema.options.allOf.slice(xmlSelectionRules.length),
+      {
+        anyOf: [
+          ...["select", "slide", "shape"].map((key) => ({ required: [key] })),
+          { required: ["all"], properties: { all: { const: true } } }
+        ]
+      },
+      {
+        anyOf: [...Object.keys(frameFormattingProperties), "text"].map((key) => ({
+          required: [key]
+        }))
+      }
+    ]
+  },
+  result: {
+    ...textReplaceSchema.result,
+    properties: {
+      ...textReplaceSchema.result.properties,
+      operation: { const: "text.frames.set" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["frames", "dryRun"],
+            properties: { frames: { type: "integer", minimum: 0 }, dryRun: { type: "boolean" } }
+          }
+        ]
+      }
+    }
+  }
+};

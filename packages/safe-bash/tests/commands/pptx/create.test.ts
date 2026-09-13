@@ -127,6 +127,20 @@ async function fontDeck() {
   );
 }
 
+test("pptx frame metadata flows through a virtual script and byte pipeline", async () => {
+  const { shell, volume } = fixture({ ...context, validationLimits: { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64 } });
+  const original = await fontDeck();
+  volume.writeFileSync("/work/deck.pptx", original);
+  volume.writeFileSync("/work/frames.sh", "pptx text frames set deck.pptx --slide 1 --shape 'Coastal caption' --margin-left -1pt --margin-top 0pt --vertical-anchor bottom --columns 2 --wrap false --vertical-text vert --rotation -90 --autofit shape --output - | pptx xml get - --part /ppt/slides/slide1.xml --scope slides");
+  const output = await shell.exec("sh frames.sh");
+  assert.equal(output.exitCode, 0, output.stdout + output.stderr);
+  for (const attribute of ['lIns="-12700"', 'tIns="0"', 'anchor="b"', 'numCol="2"', 'wrap="none"', 'vert="vert"', 'rot="-5400000"', 'spAutoFit', 'v:tracking="keep"', 'sz="900"', 'Cliff &amp; cove']) assert.ok(output.stdout.includes(attribute), attribute);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), original);
+  const invalid = await shell.exec("pptx text frames set deck.pptx --all --columns 17 --dry-run --json");
+  assert.equal(invalid.exitCode, 2);
+  assert.equal(JSON.parse(invalid.stdout).operation, "text.frames.set");
+});
+
 test("pptx paragraph formatting flows through a virtual script and byte pipeline", async () => {
   const {shell, volume} = fixture({...context, validationLimits: {...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64}});
   volume.writeFileSync("/work/deck.pptx", await fontDeck());

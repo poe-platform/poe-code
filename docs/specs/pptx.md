@@ -344,7 +344,8 @@ a model helper (127 EMUs), not an extra common CLI suffix. Width/height, font
 size, row/column size and grid spacing must be positive; notes canvas dimensions
 are an explicit exception and may be zero. Margins, border widths, shadow blur
 and tolerances may be zero; positions may be negative. Angles are
-clockwise degrees in [-360000,360000], normalized modulo 360 only on assignment.
+clockwise degrees in [-360000,360000], normalized modulo 360 only on assignment,
+except signed text-frame rotation as defined below.
 Opacity and gradient-stop positions are fractions [0,1]. Stops are ordered,
 at least two, with endpoints 0 and 1; equal positions are allowed in given order.
 
@@ -528,8 +529,31 @@ Run underline uses the documented underline enum; strike is `none|single|double`
 baseline is a percentage in [-100,100]. Paragraph levels are 0..8; tabs are ordered
 nonnegative lengths. Bullet is one Unicode scalar or empty to remove the bullet;
 numbering is `decimal|lower-alpha|upper-alpha|lower-roman|upper-roman|none`.
-Bullet and numbering are mutually exclusive. Text frames have 1..16 columns;
-`autofit none|shape|text` writes metadata only. `text fit` requires admitted
+Bullet and numbering are mutually exclusive.
+
+Text-frame insets are signed 32-bit EMU coordinates, with defaults 91440 EMUs
+left/right and 45720 EMUs top/bottom when absent. Reads of direct formatting
+MUST distinguish absent attributes from these model getter defaults. Text-frame
+columns are 1..16, defaulting to one in the model. Vertical anchors are
+`top|middle|bottom` for assignment; valid existing justified/distributed anchor
+tokens MUST remain readable and preserved by unrelated updates. A model enum
+getter without a corresponding member MUST report unsupported behavior rather
+than misclassify these values as malformed XML. Vertical text modes are
+`horz|vert|vert270|wordArtVert|eaVert|mongolianVert|wordArtVertRtl`.
+Text-frame rotation is signed degrees converted to integer 1/60000-degree units,
+with serialized range [-2147483648,2147483647]; it MUST NOT normalize modulo 360.
+Insets and rotation MUST reject out-of-range inputs before and after conversion
+and round once, nearest with halfway away from zero. Frame configuration fields
+accept null to remove a local override; omitted fields MUST remain untouched.
+Wrap preserves true/false/null as wrapping/no wrapping/inheritance.
+
+`autofit none|shape|text` writes metadata only. Exactly one autofit choice is
+written, or none for null. An unchanged choice MUST retain its attributes and
+extension metadata, including existing scale and line-spacing reduction values.
+Configuration MUST preserve text, fonts, layout definitions, unknown metadata
+and unrelated parts. It MUST NOT measure text or modify font sizes. Explicit
+`text frames set --text` retains its separate destructive text-replacement scope.
+`text fit` requires admitted
 metrics, defaults to the documented model font family/max size/bold/italic values,
 and uses points for `maxSize`; it cannot discover or open a host font file.
 Field `update preserve` retains cached text; `explicit` requires supplied text,
@@ -962,7 +986,7 @@ schemas, not extra undocumented direct flags.
 | `text paragraphs set` / `text.paragraphs.set`   | 1      | `--text?: string` (planned whole-text assignment); `--alignment?: left / center / right / justify / distributed / justifyLow / thaiDistributed / null`; `--margin-left?`, `--margin-right?`, `--default-tab-size?`, `--space-before?`, `--space-after?`, `--indent?: Length / null`; `--line-spacing?: Length / line multiple / null`; `--level?: integer≥0≤8 / null`; `--bullet?: character / structured bullet / null`; `--numbering?: decimal / lower-alpha / upper-alpha / lower-roman / upper-roman / none / null`; `--tabs?: Length[] / aligned tabs / null`; `--direction?: ltr / rtl / null`; `--rtl?: boolean / null` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `text frames list` / `text.frames.list`         | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
 | `text frames get` / `text.frames.get`           | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; one; ambiguity fails; none                                 |
-| `text frames set` / `text.frames.set`           | 1      | `--text?: string`; `--margin-left?: Length`; `--margin-right?: Length`; `--margin-top?: Length`; `--margin-bottom?: Length`; `--vertical-anchor?: top / middle / bottom`; `--columns?: integer≥1≤16`; `--wrap?: boolean / null`; `--autofit?: none / shape / text`; `--rotation?: Degrees`                                                                             | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `text frames set` / `text.frames.set`           | 1      | `--text?: string`; `--margin-left?: Length / null`; `--margin-right?: Length / null`; `--margin-top?: Length / null`; `--margin-bottom?: Length / null`; `--vertical-anchor?: top / middle / bottom / null`; `--columns?: integer≥1≤16 / null`; `--wrap?: boolean / null`; `--autofit?: none / shape / text / null`; `--vertical-text?: horz / vert / vert270 / wordArtVert / eaVert / mongolianVert / wordArtVertRtl / null`; `--rotation?: signed text-frame degrees / null`                                                                             | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `text fit` / `text.fit`                         | 1      | `--font-family?: string`; `--max-size?: number`; `--bold?: boolean`; `--italic?: boolean`; `--metrics: FontMetrics`                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 
 ### A. images

@@ -2060,3 +2060,33 @@ timeouts and snapshot format are unchanged. Existing local/staged changes are pr
 gates and the previous caret finding. These are residual historical counts, not
 fresh whole-selection results. Duplicate prototype-setter early errors remain open.
 No task push, verified remote-main delivery or publication was performed.
+
+
+### qualify-language-semantics — duplicate prototype setters, 2026-09-13
+
+**Acceptance remains incomplete.** [Independent reproduction, repair and commands](qualify-language-semantics/proto-duplicate/audit.md)
+record eight failing tests before repair. Duplicate static prototype setters now
+fail during parsing, including eval and dynamic Function source, before side effects.
+Ordinary properties, repeated destructuring keys and JSON duplicate keys remain accepted.
+
+Final affected checks: **150 passed / zero failed or skipped**; maintained workspace
+build and targeted lint pass. Original pinned upstream execution: **18/18 variants**,
+including both duplicate-setter failures and both prior name-inference failures.
+[Per-case hash/mode reconciliation](qualify-language-semantics/proto-duplicate/reconciliation.json).
+Parent SHA `efe356f89a30c6999a91dfe199bae609052e6ff2`, preserved working changes,
+fingerprint `d3cd7eed6b01f8f7a385f54f1f147465a1e44ec196b46fd719a181fcbbe2e4d6`,
+Node **22.23.2 / ICU 78.2**. The target editions and extensions are unchanged.
+
+Built CLI/SDK reject at the same source location; the screenshot was inspected.
+Direct/indirect eval, dynamic source, host-escape controls and repeated pending/
+completed replay pass. Intermediate diagnostic-factory and lint-test errors remain
+recorded failed attempts. Runtime support, assertions, budgets and timeouts were not
+weakened. Review found no new host authority or snapshot/version changes.
+
+**Remaining acceptance blockers:** 179 prior primary nonpasses before edition/extension
+disposition, 126 prior secondary resource nonpasses, other-owner evidence reconciliation,
+full runtime/artifact gates and the previous trailing-newline caret issue. These are
+residual historical counts, not a new whole-selection report. Unrelated working/staged
+changes are preserved. The preceding name fix is local commit `efe356f89`; this parser
+repair has its own atomic commit. Neither repair was pushed or verified on remote main;
+no publication/release receipt exists for either repair.

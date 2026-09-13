@@ -56,7 +56,13 @@ it("reports empty media lists, missing singular reads and truthful capabilities"
   expect(get.exitCode).toBe(1);
   expect(JSON.parse(get.text).errors[0].code).toBe("missing-selection");
   const caps = JSON.parse((await f.run(["capabilities", "--json"])).text);
-  expect(caps.data.features.media.operations).toEqual(["media.list", "media.get"]);
+  expect(caps.data.features.media.operations).toEqual([
+    "media.list",
+    "media.get",
+    "media.add",
+    "media.replace",
+    "media.extract"
+  ]);
   expect((await f.run(["media", "list", "--help"])).text).toContain("does not prove playback");
 });
 it("rejects media mutation flags and mixed selectors before reading", async () => {

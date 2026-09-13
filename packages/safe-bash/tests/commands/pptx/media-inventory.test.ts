@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import test from "node:test";
+import test, { after, before, mock } from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, readMedia } from "pptx";
+import { createPresentation, createPptxCommandEngine, readMedia } from "pptx";
 import { compileJsonSchema } from "toolcraft-schema";
 import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
@@ -156,4 +156,55 @@ test("pptx media retains dual bindings, posters and associated timing in a close
   const human = await f.shell.exec("pptx media list 'harbor deck.pptx'");
   assert.ok(human.stdout.includes('"Harbor\\nclip"'));
   assert.ok(human.stdout.includes("2 embedded, 0 linked"));
+});
+
+before(() => {
+  const timer = globalThis.setTimeout;
+  mock.method(globalThis, "setTimeout", ((callback: () => void, delay?: number) =>
+    delay === 0 ? setImmediate(callback) : timer(callback, delay)) as typeof setTimeout);
+});
+after(() => mock.restoreAll());
+test("pptx media insertion and replacement share SDK behavior through explicit virtual bytes", async () => {
+  const clip = new Uint8Array([
+    0, 0, 0, 20, 102, 116, 121, 112, 105, 115, 111, 109, 0, 0, 0, 0, 105, 115, 111, 109
+  ]);
+  const poster = new Uint8Array([
+    71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 0, 0, 0, 0, 0, 255, 255, 255, 44, 0, 0, 0, 0, 1, 0, 1,
+    0, 0, 2, 2, 68, 1, 0, 59
+  ]);
+  const volume = Volume.fromJSON({
+    "/work/deck.pptx": Buffer.from(await createPresentation({ slides: [{}] }, context)),
+    "/work/clip.mp4": Buffer.from(clip),
+    "/work/poster.gif": Buffer.from(poster)
+  });
+  const fs = new MemoryFileSystem();
+  fs.readStream = async function* (path, options) {
+    options?.signal?.throwIfAborted();
+    yield new Uint8Array(volume.readFileSync(path) as Buffer);
+  };
+  const shell = new Shell({ fs, cwd: "/work" }).use(
+    pptxCommands({
+      engine: createPptxCommandEngine({ context, maxOutputBytes: 65536, maxArgumentBytes: 65536 })
+    })
+  );
+  const added = await shell.exec(
+    "pptx media add deck.pptx --slide 1 --file clip.mp4 --poster poster.gif --kind video --mime-type video/mp4 --left 0emu --top 0emu --width 1in --height 1in --trim-start 3 --trim-end 20 --loop true --volume 30000 --output -"
+  );
+  assert.equal(added.exitCode, 0, added.stderr);
+  volume.writeFileSync("/work/added.pptx", added.stdoutBytes);
+  const inventory = await readMedia(added.stdoutBytes, {}, context);
+  assert.equal(inventory.occurrences.length, 1);
+  assert.equal(inventory.occurrences[0]!.kind, "video");
+  assert.equal(inventory.occurrences[0]!.posters[0]!.contentType, "image/gif");
+  assert.equal(inventory.media[0]!.sha256, createHash("sha256").update(clip).digest("hex"));
+  const replaced = await shell.exec(
+    `pptx media replace added.pptx --slide 1 --shape '${inventory.occurrences[0]!.shapeName}' --file clip.mp4 --poster poster.gif --shared --output -`
+  );
+  assert.equal(replaced.exitCode, 0, replaced.stderr);
+  const replacement = await readMedia(replaced.stdoutBytes, {}, context);
+  assert.deepEqual(replacement.occurrences[0]!.timing, inventory.occurrences[0]!.timing);
+  const missing = await shell.exec(
+    "pptx media add deck.pptx --slide 1 --file clip.mp4 --kind video --mime-type video/mp4 --left 0emu --top 0emu --width 1in --height 1in --output - --json"
+  );
+  assert.equal(missing.exitCode, 2);
 });

@@ -413,3 +413,13 @@ export {
   type MediaPart,
   type MediaInventory
 } from "./media.js";
+
+export { extractMedia, type ExtractMediaOptions, type ExtractedMedia } from "./media-extraction.js";
+export {
+  addMedia,
+  replaceMedia,
+  type AddMediaOptions,
+  type ReplaceMediaOptions,
+  type ReplaceMediaResult,
+  type MediaPoster
+} from "./media-editing.js";

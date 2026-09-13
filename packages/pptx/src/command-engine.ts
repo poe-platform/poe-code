@@ -33,6 +33,8 @@ import { extractImages, type ExtractedImage } from "./image-extraction.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
 import { setImage, type SetImageOptions } from "./image-formatting.js";
 import { readMedia } from "./media.js";
+import { extractMedia, type ExtractedMedia } from "./media-extraction.js";
+import { validateMediaEditingCommand, executeMediaEditingCommand, type MediaEditingArguments } from "./command-media-editing.js";
 import { mediaSchemas, mediaUsage } from "./media-schema.js";
 import { imageSchemas } from "./images-schema.js";
 import { readCharts } from "./charts.js";
@@ -459,6 +461,9 @@ interface Arguments {
     | "images.extract"
     | "media.list"
     | "media.get"
+    | "media.add"
+    | "media.replace"
+    | "media.extract"
     | "images.list"
     | "charts.list"
     | "charts.get"
@@ -534,6 +539,10 @@ interface Arguments {
   slide?: number;
   image?: number;
   imageAdd?: Partial<AddImageOptions>;
+  mediaEdit?: NonNullable<MediaEditingArguments["mediaEdit"]>;
+  deduplicate?: boolean;
+  poster?: string;
+  posterContentType?: string;
   imageSet?: Partial<SetImageOptions>;
   chartEdit?: Partial<AddChartOptions>;
   chartWorkbookPolicy?: string;
@@ -650,6 +659,7 @@ const imageSetFlags = [
   "--alt-text"
 ];
 const scalarOptions = [
+  "--poster", "--poster-content-type", "--mime-type", "--trim-start", "--trim-end", "--loop", "--volume",
   ...imageSetFlags,
   "--content-type",
   "--fit",
@@ -1243,6 +1253,14 @@ function parse(
       result.unique = true;
       continue;
     }
+    if (argument === "--deduplicate" && operation === "media.extract") {
+      result.deduplicate = true;
+      continue;
+    }
+    if (argument === "--shared" && operation === "media.replace") {
+      result.mediaEdit = {...result.mediaEdit, shared:true};
+      continue;
+    }
     if (["--pretty", "--in-place", "--force", "--dry-run"].includes(argument)) {
       if (argument === "--pretty") result.pretty = true;
       else if (argument === "--in-place") result.inPlace = true;
@@ -1255,7 +1273,7 @@ function parse(
       continue;
     }
     if (argument === "--allow-partial-output") {
-      if (!["slides.split", "images.extract"].includes(operation))
+      if (!["slides.split", "images.extract", "media.extract"].includes(operation))
         usage("Partial output requires a multi-file operation.");
       result.allowPartialOutput = true;
       continue;
@@ -1286,6 +1304,19 @@ function parse(
         ].includes(argument))
     )
       usage("Missing option value.");
+    if (["media.add", "media.replace"].includes(operation) && ["--poster", "--poster-content-type", "--mime-type", "--kind", "--left", "--top", "--width", "--height", "--trim-start", "--trim-end", "--loop", "--volume"].includes(argument)) {
+      if (argument === "--poster") result.poster = value;
+      else if (argument === "--poster-content-type") result.posterContentType = value;
+      else {
+        const key = argument === "--mime-type" ? "contentType" : argument.slice(2).split("-").map((part, i) => i ? part[0]!.toUpperCase() + part.slice(1) : part).join("");
+        if (key === "kind" && !["audio", "video"].includes(value)) usage("Media kind requires audio or video.");
+        if (key === "loop" && !["true", "false"].includes(value)) usage("Loop requires true or false.");
+        const parsed = ["left", "top", "width", "height"].includes(key) ? commandLength(value, ["width", "height"].includes(key) ? 1 : -27273042316900) : key === "loop" ? value === "true" : ["trimStart", "trimEnd", "volume"].includes(key) ? Number(value) : value;
+        if (typeof parsed === "number" && !Number.isFinite(parsed)) usage("Media values must be finite.");
+        result.mediaEdit = {...result.mediaEdit, [key]:parsed};
+      }
+      continue;
+    }
     if (operation === "images.set" && imageSetFlags.includes(argument)) {
       const key = argument
         .slice(2)
@@ -1904,7 +1935,7 @@ function parse(
     if (argument === "--output-dir" || argument === "--slides") {
       if (
         operation !== "slides.split" &&
-        !(operation === "images.extract" && argument === "--output-dir")
+        !(["images.extract", "media.extract"].includes(operation) && argument === "--output-dir")
       )
         usage("Option requires a multi-file operation.");
       if (argument === "--output-dir") result.outputDir = value;
@@ -2199,7 +2230,7 @@ function parse(
           "maxNodes",
           "maxDepth",
           "maxOutputBytes",
-          ...(operation === "images.extract" ? ["maxOutputs"] : [])
+          ...(["images.extract", "media.extract"].includes(operation) ? ["maxOutputs"] : [])
         ].includes(name)
       )
         usage("Unknown limit name.");
@@ -2333,6 +2364,10 @@ function parse(
       usage("Replacing input requires --in-place.");
     if (result.output === "-" && result.json && !result.dryRun)
       usage("Binary stdout cannot be combined with JSON.");
+    return result;
+  }
+  if (["media.add", "media.replace", "media.extract"].includes(operation)) {
+    validateMediaEditingCommand(result, positionals, seen);
     return result;
   }
   if (Object.hasOwn(equationSchemas, operation)) {
@@ -3411,6 +3446,7 @@ async function execute(
     sourceSlide: number;
     sourceLocation: SelectionRecord["location"];
   }[] = [];
+  let mediaManifest: readonly (Omit<ExtractedMedia, "bytes"> & {path:string;bytes:number})[] | undefined;
   let imageManifest:
     | readonly (Omit<ExtractedImage, "bytes"> & { path: string; bytes: number })[]
     | undefined;
@@ -3889,10 +3925,10 @@ async function execute(
               "Explicit slide or group coordinates; distinct siblings; hidden objects participate and locked selections reject. Stable drawing order resolves ties. Alignment uses selection bounds, distribution preserves endpoints with equal edge gaps, and duplication requires signed offsets with fresh IDs and supported reference remapping. Unsupported geometry or references reject without publication."
           },
           media: {
-            level: "inspect",
+            level: "edit",
             operations: Object.keys(mediaSchemas),
             subset:
-              "Embedded and linked audio/video, hashes, posters, playback metadata, captions and timing associations. External targets remain inert. Metadata parsing does not prove playback. Editing, extraction and playback are unavailable."
+              "Embedded and linked audio/video, hashes, posters, playback metadata, captions and timing associations. External targets remain inert. Metadata parsing does not prove playback. Explicit supplied media and posters support insertion and occurrence-local or shared replacement. Timing is preserved. No playback or transcoding."
           },
           equations: {
             level: "edit",
@@ -3915,7 +3951,28 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (Object.hasOwn(mediaSchemas, args.operation)) {
+    else if (["media.add", "media.replace"].includes(args.operation)) {
+      const media = await executeMediaEditingCommand(args, request, options);
+      result = media.result; human = media.human; binary = media.binary; publication = media.publication;
+    } else if (args.operation === "media.extract") {
+      const context = {...options.context, signal:request.signal};
+      const bytes = await request.readInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));
+      const files = await extractMedia(bytes, {
+        ...(args.deduplicate === undefined ? {} : {deduplicate:args.deduplicate}),
+        ...(args.scope === undefined ? {} : {scope:args.scope}),
+        ...(args.slide === undefined ? {} : {slide:args.slide}),
+        ...(args.shape === undefined ? {} : {shape:args.shape}),
+        ...(args.token === undefined ? {} : {select:args.token}),
+        maxOutputBytes: options.maxOutputBytes,
+        maxOutputs: args.limits?.maxOutputs ?? context.archiveLimits.maxMembers
+      }, context);
+      mediaManifest = files.map(({bytes:content,...file}) => ({...file,path:`${args.outputDir}${args.outputDir!.endsWith("/") ? "" : "/"}${file.name}`,bytes:content.length}));
+      allowPartialOutput = args.allowPartialOutput ?? false;
+      if (!request.publishOutputs && (!allowPartialOutput || !request.publishOutput)) throw Object.assign(new Error("Media extraction requires atomic publication or explicit partial output."), {code:"publication-unsupported"});
+      publications = files.map((file,index) => ({inputPath:args.input!, outputPath:mediaManifest![index]!.path, bytes:file.bytes, originalBytes:bytes, inPlace:false, force:args.force ?? false, dryRun:false}));
+      result = {...success(operation,{outputs:mediaManifest,dryRun:false}),affected:files.length};
+      human = `Extracted ${files.length} media resource(s)\n${JSON.stringify(result.data,null,2)}\n`;
+    } else if (Object.hasOwn(mediaSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(
         args.input!,
@@ -5704,7 +5761,7 @@ async function execute(
     exitCode = limit
       ? 4
       : unsupported
-        ? output.operation === "images.extract"
+        ? ["images.extract", "media.extract"].includes(output.operation)
           ? 3
           : 1
         : office?.code === "cancelled"
@@ -5758,7 +5815,7 @@ async function execute(
       ok: false,
       affected: allowPartialOutput ? published : 0,
       locations: allowPartialOutput
-        ? imageManifest
+        ? mediaManifest ? [] : imageManifest
           ? imageManifest
               .slice(0, published)
               .flatMap((item) => item.occurrences.map((occurrence) => occurrence.location))
@@ -5766,7 +5823,7 @@ async function execute(
         : [],
       data:
         allowPartialOutput && published > 0
-          ? imageManifest
+          ? mediaManifest ? {outputs:mediaManifest.slice(0,published),dryRun:false} : imageManifest
             ? { outputs: imageManifest.slice(0, published), dryRun: false }
             : {
                 outputs: splitManifest
@@ -5783,12 +5840,12 @@ async function execute(
       new TextEncoder().encode(
         JSON.stringify({
           ...partialFailure("publication-unsupported", "publish"),
-          locations: imageManifest
+          locations: mediaManifest ? [] : imageManifest
             ? imageManifest.flatMap((item) =>
                 item.occurrences.map((occurrence) => occurrence.location)
               )
             : splitManifest.map((item) => item.sourceLocation),
-          data: imageManifest
+          data: mediaManifest ? {outputs:mediaManifest,dryRun:false} : imageManifest
             ? { outputs: imageManifest, dryRun: false }
             : {
                 outputs: splitManifest.map(({ path, sha256, bytes }) => ({ path, sha256, bytes })),
@@ -5836,7 +5893,7 @@ async function execute(
             ? 130
             : code === "resource-limit"
               ? 4
-              : (code === "publication-unsupported" && operation !== "images.extract") ||
+              : (code === "publication-unsupported" && !["images.extract", "media.extract"].includes(operation)) ||
                   code === "stale-input"
                 ? 1
                 : 3,

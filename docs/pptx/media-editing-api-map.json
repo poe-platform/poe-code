@@ -1,0 +1,2694 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "All 48 media-related public records retained from the complete 2407-record API inventory; operation-layer editing does not claim live public model parity.",
+  "counts": {
+    "rows": 48,
+    "implementedEnumValues": 4,
+    "pendingPublicModelRows": 44
+  },
+  "rows": [
+    {
+      "sourceId": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_MOVIE",
+      "target": {
+        "owner": "MSO_AUTO_SHAPE_TYPE",
+        "member": "ACTION_BUTTON_MOVIE",
+        "form": "enum-member",
+        "ts_signature": "readonly ACTION_BUTTON_MOVIE: MSO_AUTO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_AUTO_SHAPE_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:93-97",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": 136,
+      "documentationDrift": null,
+      "status": "implemented_enum_value",
+      "implementedCli": "Existing shape enum schemas; media.list consumes media classification separately.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "parameter": "ACTION_BUTTON_MOVIE",
+          "expectedValue": 136,
+          "verified": true
+        }
+      ],
+      "reason": "Existing exported enum symbol and independent value assertions verified; this does not implement Movie or add_movie.",
+      "editingStatus": "prior_verified_enum_value",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_SHAPE_TYPE.MEDIA",
+      "target": {
+        "owner": "MSO_SHAPE_TYPE",
+        "member": "MEDIA",
+        "form": "enum-member",
+        "ts_signature": "readonly MEDIA: MSO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_SHAPE_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:822-822",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": 16,
+      "documentationDrift": null,
+      "status": "implemented_enum_value",
+      "implementedCli": "Existing shape enum schemas; media.list consumes media classification separately.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "parameter": "MEDIA",
+          "expectedValue": 16,
+          "verified": true
+        }
+      ],
+      "reason": "Existing exported enum symbol and independent value assertions verified; this does not implement Movie or add_movie.",
+      "editingStatus": "prior_verified_enum_value",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_SHAPE_TYPE.WEB_VIDEO",
+      "target": {
+        "owner": "MSO_SHAPE_TYPE",
+        "member": "WEB_VIDEO",
+        "form": "enum-member",
+        "ts_signature": "readonly WEB_VIDEO: MSO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_SHAPE_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:846-846",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": 26,
+      "documentationDrift": null,
+      "status": "implemented_enum_value",
+      "implementedCli": "Existing shape enum schemas; media.list consumes media classification separately.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "parameter": "WEB_VIDEO",
+          "expectedValue": 26,
+          "verified": true
+        }
+      ],
+      "reason": "Existing exported enum symbol and independent value assertions verified; this does not implement Movie or add_movie.",
+      "editingStatus": "prior_verified_enum_value",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "PP_MEDIA_TYPE",
+        "form": "EnumType",
+        "ts_signature": "interface PP_MEDIA_TYPE extends EnumValue",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:856-888",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/enum/PpMediaType.rst",
+        "documentation_line": 1
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.MIXED",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "MIXED",
+        "form": "enum-member",
+        "ts_signature": "readonly MIXED: PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:880-884",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": -2,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.MOVIE",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "MOVIE",
+        "form": "enum-member",
+        "ts_signature": "readonly MOVIE: PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:871-871",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": 3,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.OTHER",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "OTHER",
+        "form": "enum-member",
+        "ts_signature": "readonly OTHER: PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:874-874",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": 1,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.SOUND",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "SOUND",
+        "form": "enum-member",
+        "ts_signature": "readonly SOUND: PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:877-877",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": 1,
+      "documentationDrift": {
+        "decision": "D09",
+        "resolution": "Use the reconciled return/signature and api-reconciliation.md."
+      },
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.name",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string",
+        "arguments": [],
+        "getter": "get name(): string",
+        "setter": null,
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": "() -> str",
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:856-888",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.value",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "value",
+        "form": "property",
+        "ts_signature": "get value(): number",
+        "arguments": [],
+        "getter": "get value(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": "() -> int | str",
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:856-888",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.MEDIA_CLIP",
+      "target": {
+        "owner": "PP_PLACEHOLDER_TYPE",
+        "member": "MEDIA_CLIP",
+        "form": "enum-member",
+        "ts_signature": "readonly MEDIA_CLIP: PP_PLACEHOLDER_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_PLACEHOLDER_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": null,
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/enum/shapes.py:929-929",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": 10,
+      "documentationDrift": null,
+      "status": "implemented_enum_value",
+      "implementedCli": "Existing shape enum schemas; media.list consumes media classification separately.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "parameter": "MEDIA_CLIP",
+          "expectedValue": 10,
+          "verified": true
+        }
+      ],
+      "reason": "Existing exported enum symbol and independent value assertions verified; this does not implement Movie or add_movie.",
+      "editingStatus": "prior_verified_enum_value",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie",
+      "target": {
+        "owner": "Movie",
+        "member": "Movie",
+        "form": "returned-interface",
+        "ts_signature": "interface Movie",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "Movie",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self, pic: CT_Picture, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.picture._BasePicture",
+        "evidence": "src/pptx/shapes/picture.py:98-139",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.__eq__",
+      "target": {
+        "owner": "Movie",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self, other: object) -> bool",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:32-40",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.__init__",
+      "target": {
+        "owner": "Movie",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = Movie",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "Movie",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self, pic: CT_Picture, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/shapes/picture.py:98-139",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.click_action",
+      "target": {
+        "owner": "Movie",
+        "member": "click_action",
+        "form": "lazyproperty",
+        "ts_signature": "get click_action(): ActionSetting",
+        "arguments": [],
+        "getter": "get click_action(): ActionSetting",
+        "setter": null,
+        "return_type": "ActionSetting",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> ActionSetting",
+        "getter": "(self) -> ActionSetting",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:48-57",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.crop_bottom",
+      "target": {
+        "owner": "Movie",
+        "member": "crop_bottom",
+        "form": "property",
+        "ts_signature": "get crop_bottom(): number; set crop_bottom(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get crop_bottom(): number",
+        "setter": "set crop_bottom(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> float",
+        "getter": "(self) -> float",
+        "setter": "(self, value: float)",
+        "declared_on": "pptx.shapes.picture._BasePicture",
+        "evidence": "src/pptx/shapes/picture.py:27-37",
+        "setter_evidence": "src/pptx/shapes/picture.py:36-38",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.crop_left",
+      "target": {
+        "owner": "Movie",
+        "member": "crop_left",
+        "form": "property",
+        "ts_signature": "get crop_left(): number; set crop_left(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get crop_left(): number",
+        "setter": "set crop_left(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> float",
+        "getter": "(self) -> float",
+        "setter": "(self, value: float)",
+        "declared_on": "pptx.shapes.picture._BasePicture",
+        "evidence": "src/pptx/shapes/picture.py:40-50",
+        "setter_evidence": "src/pptx/shapes/picture.py:49-51",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.crop_right",
+      "target": {
+        "owner": "Movie",
+        "member": "crop_right",
+        "form": "property",
+        "ts_signature": "get crop_right(): number; set crop_right(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get crop_right(): number",
+        "setter": "set crop_right(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> float",
+        "getter": "(self) -> float",
+        "setter": "(self, value: float)",
+        "declared_on": "pptx.shapes.picture._BasePicture",
+        "evidence": "src/pptx/shapes/picture.py:53-62",
+        "setter_evidence": "src/pptx/shapes/picture.py:61-63",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.crop_top",
+      "target": {
+        "owner": "Movie",
+        "member": "crop_top",
+        "form": "property",
+        "ts_signature": "get crop_top(): number; set crop_top(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get crop_top(): number",
+        "setter": "set crop_top(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> float",
+        "getter": "(self) -> float",
+        "setter": "(self, value: float)",
+        "declared_on": "pptx.shapes.picture._BasePicture",
+        "evidence": "src/pptx/shapes/picture.py:65-74",
+        "setter_evidence": "src/pptx/shapes/picture.py:73-75",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.element",
+      "target": {
+        "owner": "Movie",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> ShapeElement",
+        "getter": "(self) -> ShapeElement",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:60-66",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.get_or_add_ln",
+      "target": {
+        "owner": "Movie",
+        "member": "get_or_add_ln",
+        "form": "function",
+        "ts_signature": "get_or_add_ln(): LineView",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "LineView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self)",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.picture._BasePicture",
+        "evidence": "src/pptx/shapes/picture.py:76-81",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.has_chart",
+      "target": {
+        "owner": "Movie",
+        "member": "has_chart",
+        "form": "property",
+        "ts_signature": "get has_chart(): boolean",
+        "arguments": [],
+        "getter": "get has_chart(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:69-77",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.has_table",
+      "target": {
+        "owner": "Movie",
+        "member": "has_table",
+        "form": "property",
+        "ts_signature": "get has_table(): boolean",
+        "arguments": [],
+        "getter": "get has_table(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:80-88",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.has_text_frame",
+      "target": {
+        "owner": "Movie",
+        "member": "has_text_frame",
+        "form": "property",
+        "ts_signature": "get has_text_frame(): boolean",
+        "arguments": [],
+        "getter": "get has_text_frame(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:91-94",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.height",
+      "target": {
+        "owner": "Movie",
+        "member": "height",
+        "form": "property",
+        "ts_signature": "get height(): Length; set height(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get height(): Length",
+        "setter": "set height(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> Length",
+        "getter": "(self) -> Length",
+        "setter": "(self, value: Length)",
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:97-103",
+        "setter_evidence": "src/pptx/shapes/base.py:102-104",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.is_placeholder",
+      "target": {
+        "owner": "Movie",
+        "member": "is_placeholder",
+        "form": "property",
+        "ts_signature": "get is_placeholder(): boolean",
+        "arguments": [],
+        "getter": "get is_placeholder(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> bool",
+        "getter": "(self) -> bool",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:106-111",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.left",
+      "target": {
+        "owner": "Movie",
+        "member": "left",
+        "form": "property",
+        "ts_signature": "get left(): Length; set left(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get left(): Length",
+        "setter": "set left(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> Length",
+        "getter": "(self) -> Length",
+        "setter": "(self, value: Length)",
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:114-123",
+        "setter_evidence": "src/pptx/shapes/base.py:122-124",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.line",
+      "target": {
+        "owner": "Movie",
+        "member": "line",
+        "form": "lazyproperty",
+        "ts_signature": "get line(): LineFormat",
+        "arguments": [],
+        "getter": "get line(): LineFormat",
+        "setter": null,
+        "return_type": "LineFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> LineFormat",
+        "getter": "(self) -> LineFormat",
+        "setter": null,
+        "declared_on": "pptx.shapes.picture._BasePicture",
+        "evidence": "src/pptx/shapes/picture.py:84-86",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.ln",
+      "target": {
+        "owner": "Movie",
+        "member": "ln",
+        "form": "property",
+        "ts_signature": "get ln(): LineView | null",
+        "arguments": [],
+        "getter": "get ln(): LineView | null",
+        "setter": null,
+        "return_type": "LineView | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> CT_LineProperties | None",
+        "getter": "(self) -> CT_LineProperties | None",
+        "setter": null,
+        "declared_on": "pptx.shapes.picture._BasePicture",
+        "evidence": "src/pptx/shapes/picture.py:89-95",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.media_format",
+      "target": {
+        "owner": "Movie",
+        "member": "media_format",
+        "form": "lazyproperty",
+        "ts_signature": "get media_format(): _MediaFormat",
+        "arguments": [],
+        "getter": "get media_format(): _MediaFormat",
+        "setter": null,
+        "return_type": "_MediaFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> _MediaFormat",
+        "getter": "(self) -> _MediaFormat",
+        "setter": null,
+        "declared_on": "pptx.shapes.picture.Movie",
+        "evidence": "src/pptx/shapes/picture.py:106-111",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.media_type",
+      "target": {
+        "owner": "Movie",
+        "member": "media_type",
+        "form": "property",
+        "ts_signature": "get media_type(): PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": "get media_type(): PP_MEDIA_TYPE",
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> PP_MEDIA_TYPE",
+        "getter": "(self) -> PP_MEDIA_TYPE",
+        "setter": null,
+        "declared_on": "pptx.shapes.picture.Movie",
+        "evidence": "src/pptx/shapes/picture.py:114-119",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.name",
+      "target": {
+        "owner": "Movie",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string; set name(value: string)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "string",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get name(): string",
+        "setter": "set name(value: string)",
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> str",
+        "getter": "(self) -> str",
+        "setter": "(self, value: str)",
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:126-132",
+        "setter_evidence": "src/pptx/shapes/base.py:131-133",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.part",
+      "target": {
+        "owner": "Movie",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> BaseSlidePart",
+        "getter": "(self) -> BaseSlidePart",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:135-141",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.placeholder_format",
+      "target": {
+        "owner": "Movie",
+        "member": "placeholder_format",
+        "form": "property",
+        "ts_signature": "get placeholder_format(): _PlaceholderFormat",
+        "arguments": [],
+        "getter": "get placeholder_format(): _PlaceholderFormat",
+        "setter": null,
+        "return_type": "_PlaceholderFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> _PlaceholderFormat",
+        "getter": "(self) -> _PlaceholderFormat",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:144-152",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.poster_frame",
+      "target": {
+        "owner": "Movie",
+        "member": "poster_frame",
+        "form": "property",
+        "ts_signature": "get poster_frame(): Image | null",
+        "arguments": [],
+        "getter": "get poster_frame(): Image | null",
+        "setter": null,
+        "return_type": "Image | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shapes.picture.Movie",
+        "evidence": "src/pptx/shapes/picture.py:122-130",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.rotation",
+      "target": {
+        "owner": "Movie",
+        "member": "rotation",
+        "form": "property",
+        "ts_signature": "get rotation(): number; set rotation(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get rotation(): number",
+        "setter": "set rotation(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> float",
+        "getter": "(self) -> float",
+        "setter": "(self, value: float)",
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:155-165",
+        "setter_evidence": "src/pptx/shapes/base.py:164-166",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.shadow",
+      "target": {
+        "owner": "Movie",
+        "member": "shadow",
+        "form": "lazyproperty",
+        "ts_signature": "get shadow(): ShadowFormat",
+        "arguments": [],
+        "getter": "get shadow(): ShadowFormat",
+        "setter": null,
+        "return_type": "ShadowFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> ShadowFormat",
+        "getter": "(self) -> ShadowFormat",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:168-175",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.shape_id",
+      "target": {
+        "owner": "Movie",
+        "member": "shape_id",
+        "form": "property",
+        "ts_signature": "get shape_id(): number",
+        "arguments": [],
+        "getter": "get shape_id(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self) -> int",
+        "getter": "(self) -> int",
+        "setter": null,
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:178-183",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.shape_type",
+      "target": {
+        "owner": "Movie",
+        "member": "shape_type",
+        "form": "property",
+        "ts_signature": "get shape_type(): MSO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": "get shape_type(): MSO_SHAPE_TYPE",
+        "setter": null,
+        "return_type": "MSO_SHAPE_TYPE",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> MSO_SHAPE_TYPE",
+        "getter": "(self) -> MSO_SHAPE_TYPE",
+        "setter": null,
+        "declared_on": "pptx.shapes.picture.Movie",
+        "evidence": "src/pptx/shapes/picture.py:133-139",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.top",
+      "target": {
+        "owner": "Movie",
+        "member": "top",
+        "form": "property",
+        "ts_signature": "get top(): Length; set top(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get top(): Length",
+        "setter": "set top(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> Length",
+        "getter": "(self) -> Length",
+        "setter": "(self, value: Length)",
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:194-203",
+        "setter_evidence": "src/pptx/shapes/base.py:202-204",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.width",
+      "target": {
+        "owner": "Movie",
+        "member": "width",
+        "form": "property",
+        "ts_signature": "get width(): Length; set width(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get width(): Length",
+        "setter": "set width(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> Length",
+        "getter": "(self) -> Length",
+        "setter": "(self, value: Length)",
+        "declared_on": "pptx.shapes.base.BaseShape",
+        "evidence": "src/pptx/shapes/base.py:206-215",
+        "setter_evidence": "src/pptx/shapes/base.py:214-217",
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "_MediaFormat",
+        "form": "returned-interface",
+        "ts_signature": "interface _MediaFormat",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "_MediaFormat",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self, element: BaseOxmlElement, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shared.ParentedElementProxy",
+        "evidence": "src/pptx/shapes/picture.py:198-203",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.__eq__",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self, other: object) -> bool",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:24-33",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.__init__",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = _MediaFormat",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "_MediaFormat",
+        "ownership": "immutable value/type metadata"
+      },
+      "source": {
+        "declaration": "(self, element: BaseOxmlElement, parent: ProvidesPart)",
+        "getter": null,
+        "setter": null,
+        "declared_on": null,
+        "evidence": "src/pptx/shapes/picture.py:198-203",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.element",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shared.ElementProxy",
+        "evidence": "src/pptx/shared.py:41-43",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.parent",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "parent",
+        "form": "property",
+        "ts_signature": "get parent(): OwnedModel",
+        "arguments": [],
+        "getter": "get parent(): OwnedModel",
+        "setter": null,
+        "return_type": "OwnedModel",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self)",
+        "getter": "(self)",
+        "setter": null,
+        "declared_on": "pptx.shared.ParentedElementProxy",
+        "evidence": "src/pptx/shared.py:59-64",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.part",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self) -> XmlPart",
+        "getter": "(self) -> XmlPart",
+        "setter": null,
+        "declared_on": "pptx.shared.ParentedElementProxy",
+        "evidence": "src/pptx/shared.py:67-69",
+        "setter_evidence": null,
+        "documentation_file": null,
+        "documentation_line": null
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "collection": null,
+      "enumValue": null,
+      "documentationDrift": null,
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.add_movie",
+      "target": {
+        "owner": "SlideShapes",
+        "member": "add_movie",
+        "form": "function",
+        "ts_signature": "add_movie(movie_file: BinaryInput, left: Length, top: Length, width: Length, height: Length, poster_frame_image?: BinaryInput | null, mime_type?: string): Promise<Movie>",
+        "arguments": [
+          {
+            "name": "movie_file",
+            "target_binding": "movie_file",
+            "ts_type": "BinaryInput",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "left",
+            "target_binding": "left",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "top",
+            "target_binding": "top",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "width",
+            "target_binding": "width",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "height",
+            "target_binding": "height",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "poster_frame_image",
+            "target_binding": "poster_frame_image",
+            "ts_type": "BinaryInput | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          },
+          {
+            "name": "mime_type",
+            "target_binding": "mime_type",
+            "ts_type": "string",
+            "position": "positional",
+            "optional": true,
+            "source_default": "CT.VIDEO",
+            "target_default": "\"video/unknown\"",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "Promise<Movie>",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "source": {
+        "declaration": "(self, movie_file: str | IO[bytes], left: Length, top: Length, width: Length, height: Length, poster_frame_image: str | IO[bytes] | None=None, mime_type: str=CT.VIDEO) -> GraphicFrame",
+        "getter": null,
+        "setter": null,
+        "declared_on": "pptx.shapes.shapetree.SlideShapes",
+        "evidence": "src/pptx/shapes/shapetree.py:547-587",
+        "setter_evidence": null,
+        "documentation_file": "docs/api/shapes.rst",
+        "documentation_line": 16
+      },
+      "mappings": [
+        "J01",
+        "J06",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network.",
+        "Append the documented child/content to its owner in source order."
+      ],
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.SlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "enumValue": null,
+      "documentationDrift": {
+        "decision": "D03",
+        "resolution": "Use the reconciled return/signature and api-reconciliation.md."
+      },
+      "status": "pending_public_model",
+      "implementedCli": null,
+      "originalTests": [],
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "editingStatus": "unchanged_public_model_obligation",
+      "editingTests": []
+    }
+  ],
+  "priorInventoryEvidence": "media-api-map.json",
+  "operationMappings": [
+    {
+      "operation": "addMedia",
+      "signature": "addMedia(input: BinaryInput, options: AddMediaOptions, context: SelectionContext): Promise<Uint8Array>",
+      "cli": "media add",
+      "modelParity": false
+    },
+    {
+      "operation": "replaceMedia",
+      "signature": "replaceMedia(input: BinaryInput, options: ReplaceMediaOptions, context: SelectionContext): Promise<ReplaceMediaResult>",
+      "cli": "media replace",
+      "modelParity": false
+    },
+    {
+      "operation": "extractMedia",
+      "signature": "extractMedia(input: BinaryInput, options: ExtractMediaOptions, context: SelectionContext): Promise<readonly ExtractedMedia[]>",
+      "cli": "media extract",
+      "modelParity": false
+    }
+  ],
+  "operationSemantics": {
+    "posters": "Explicit Uint8Array and contentType required for both kinds under user instruction.",
+    "trimStart": "Optional integer milliseconds removed from start, range 0..2147483647.",
+    "trimEnd": "Optional integer milliseconds removed from end, range 0..2147483647.",
+    "loop": "Optional boolean: true indefinite repeat; false one iteration; absent leaves default/retained semantics.",
+    "volume": "Optional integer 0..100000.",
+    "geometry": "Explicit finite safe integer EMU left/top and positive width/height; one-based operation slide selector.",
+    "replacement": "Retains original playback/timing; shared false/default isolates selected occurrence, shared true explicitly replaces resource owners.",
+    "admission": "Only declared validated MIME profiles; file capability injection in adapter, no host I/O/network/native runtime.",
+    "errors": "OfficeError stable codes and common CLI phase/exit mapping; invalid input/unsupported edit/resource limits stay observable."
+  }
+}

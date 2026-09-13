@@ -307,12 +307,14 @@ export class ValueAxis extends BaseAxis {
 }
 class Crossing extends ChartNode {
   get crosses(): XL_AXIS_CROSSES {
-    return child(chartNode(this), "crossesAt")
-      ? XL_AXIS_CROSSES.CUSTOM
-      : XL_AXIS_CROSSES.from_xml(this.scalar("crosses") ?? "autoZero");
+    const value = this.scalar("crosses");
+    return value === null ? XL_AXIS_CROSSES.CUSTOM : XL_AXIS_CROSSES.from_xml(value);
   }
   set crosses(value: XL_AXIS_CROSSES) {
-    if (value === XL_AXIS_CROSSES.CUSTOM) return;
+    if (value === XL_AXIS_CROSSES.CUSTOM) {
+      if (this.crosses_at === null) this.crosses_at = 0;
+      return;
+    }
     const token = XL_AXIS_CROSSES.to_xml(value);
     chartPut(this, "crossesAt", null);
     this.setScalar("crosses", token);

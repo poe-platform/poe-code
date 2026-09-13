@@ -368,7 +368,7 @@ it("covers legend position enums, axis crossing alternatives and checked collect
     expect(axis.crosses_at).toBeNull();
   }
   axis.crosses_at = null;
-  expect(axis.crosses).toBe(XL_AXIS_CROSSES.AUTOMATIC);
+  expect(axis.crosses).toBe(XL_AXIS_CROSSES.CUSTOM);
   for (const unit of [null, 0.25, 17]) {
     axis.major_unit = unit;
     axis.minor_unit = unit;

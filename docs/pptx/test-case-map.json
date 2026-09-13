@@ -35,14 +35,14 @@
     "unit_without_prior_candidate": 875,
     "bdd_without_prior_candidate": 307,
     "reviewed_original_designs": 179,
-    "semantic_review_required": 2599,
-    "implemented": 12,
-    "executed": 12,
+    "semantic_review_required": 2585,
+    "implemented": 43,
+    "executed": 43,
     "shared_counterpart_obligations": 391,
     "api_records": 2407,
     "api_target_rows": 2424,
     "api_rows_without_prior_candidates": 1072,
-    "proposed_original_designs": 894,
+    "proposed_original_designs": 877,
     "deferred_public_behaviors": 1,
     "unit_behavior_evidence": 2700,
     "parameter_bindings_resolved": 2057,
@@ -18872,10 +18872,18 @@
         "case_id": "presentation-unit-ea3dea0126e9",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 0,
+          "receipt": "axis-crossing-case-map.json#/rows/0"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-ea3dea0126e9.adapt",
           "title": "Specify the observable contract for presentation case ea3dea0126e9",
@@ -18889,16 +18897,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_knows_the_other_axis_crossing_type[crosses_get_fixture0]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_knows_the_other_axis_crossing_type",
@@ -18943,10 +18955,18 @@
         "case_id": "presentation-unit-d243426cb5c9",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 1,
+          "receipt": "axis-crossing-case-map.json#/rows/1"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-d243426cb5c9.adapt",
           "title": "Specify the observable contract for presentation case d243426cb5c9",
@@ -18960,16 +18980,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_knows_the_other_axis_crossing_type[crosses_get_fixture1]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_knows_the_other_axis_crossing_type",
@@ -19014,10 +19038,18 @@
         "case_id": "presentation-unit-27cc749c2901",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 2,
+          "receipt": "axis-crossing-case-map.json#/rows/2"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-27cc749c2901.adapt",
           "title": "Specify the observable contract for presentation case 27cc749c2901",
@@ -19031,16 +19063,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_knows_the_other_axis_crossing_type[crosses_get_fixture2]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_knows_the_other_axis_crossing_type",
@@ -19085,10 +19121,18 @@
         "case_id": "presentation-unit-3ae1cfcea9d9",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "changes only the crossed axis mode",
+          "zero_based_table_row": 0,
+          "receipt": "axis-crossing-case-map.json#/rows/3"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-3ae1cfcea9d9.adapt",
           "title": "Specify the observable contract for presentation case 3ae1cfcea9d9",
@@ -19102,16 +19146,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_can_change_the_other_axis_crossing_type[crosses_set_fixture0]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_can_change_the_other_axis_crossing_type",
@@ -19156,10 +19204,18 @@
         "case_id": "presentation-unit-cddad0eccd42",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "changes only the crossed axis mode",
+          "zero_based_table_row": 1,
+          "receipt": "axis-crossing-case-map.json#/rows/4"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-cddad0eccd42.adapt",
           "title": "Specify the observable contract for presentation case cddad0eccd42",
@@ -19173,16 +19229,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_can_change_the_other_axis_crossing_type[crosses_set_fixture1]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_can_change_the_other_axis_crossing_type",
@@ -19227,10 +19287,18 @@
         "case_id": "presentation-unit-19e352a441e1",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "changes only the crossed axis mode",
+          "zero_based_table_row": 2,
+          "receipt": "axis-crossing-case-map.json#/rows/5"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-19e352a441e1.adapt",
           "title": "Specify the observable contract for presentation case 19e352a441e1",
@@ -19244,16 +19312,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_can_change_the_other_axis_crossing_type[crosses_set_fixture2]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_can_change_the_other_axis_crossing_type",
@@ -19298,10 +19370,18 @@
         "case_id": "presentation-unit-087094d8e8c4",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "changes only the crossed axis mode",
+          "zero_based_table_row": 3,
+          "receipt": "axis-crossing-case-map.json#/rows/6"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-087094d8e8c4.adapt",
           "title": "Specify the observable contract for presentation case 087094d8e8c4",
@@ -19315,16 +19395,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_can_change_the_other_axis_crossing_type[crosses_set_fixture3]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_can_change_the_other_axis_crossing_type",
@@ -19369,10 +19453,18 @@
         "case_id": "presentation-unit-3c2dfcb4699e",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 0,
+          "receipt": "axis-crossing-case-map.json#/rows/7"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-3c2dfcb4699e.adapt",
           "title": "Specify the observable contract for presentation case 3c2dfcb4699e",
@@ -19386,16 +19478,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_knows_the_other_axis_crossing_value[crosses_at_get_fixture0]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_knows_the_other_axis_crossing_value",
@@ -19440,10 +19536,18 @@
         "case_id": "presentation-unit-ff6cea0d576e",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 3,
+          "receipt": "axis-crossing-case-map.json#/rows/8"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-ff6cea0d576e.adapt",
           "title": "Specify the observable contract for presentation case ff6cea0d576e",
@@ -19457,16 +19561,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_knows_the_other_axis_crossing_value[crosses_at_get_fixture1]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_knows_the_other_axis_crossing_value",
@@ -19511,10 +19619,18 @@
         "case_id": "presentation-unit-025d4275b9fc",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 4,
+          "receipt": "axis-crossing-case-map.json#/rows/9"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-025d4275b9fc.adapt",
           "title": "Specify the observable contract for presentation case 025d4275b9fc",
@@ -19528,16 +19644,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_knows_the_other_axis_crossing_value[crosses_at_get_fixture2]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_knows_the_other_axis_crossing_value",
@@ -19582,10 +19702,18 @@
         "case_id": "presentation-unit-592b595749bc",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "replaces or clears a numeric crossing",
+          "zero_based_table_row": 0,
+          "receipt": "axis-crossing-case-map.json#/rows/10"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-592b595749bc.adapt",
           "title": "Specify the observable contract for presentation case 592b595749bc",
@@ -19599,16 +19727,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_can_change_the_other_axis_crossing_value[crosses_at_set_fixture0]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_can_change_the_other_axis_crossing_value",
@@ -19653,10 +19785,18 @@
         "case_id": "presentation-unit-035d2936f70f",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "replaces or clears a numeric crossing",
+          "zero_based_table_row": 1,
+          "receipt": "axis-crossing-case-map.json#/rows/11"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-035d2936f70f.adapt",
           "title": "Specify the observable contract for presentation case 035d2936f70f",
@@ -19670,16 +19810,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_can_change_the_other_axis_crossing_value[crosses_at_set_fixture1]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_can_change_the_other_axis_crossing_value",
@@ -19724,10 +19868,18 @@
         "case_id": "presentation-unit-9b0df5f87e0b",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "replaces or clears a numeric crossing",
+          "zero_based_table_row": 2,
+          "receipt": "axis-crossing-case-map.json#/rows/12"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-9b0df5f87e0b.adapt",
           "title": "Specify the observable contract for presentation case 9b0df5f87e0b",
@@ -19741,16 +19893,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_can_change_the_other_axis_crossing_value[crosses_at_set_fixture2]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_can_change_the_other_axis_crossing_value",
@@ -19795,10 +19951,18 @@
         "case_id": "presentation-unit-5fe2bc7a4662",
         "language": "TypeScript",
         "task_id": "upstream-chart-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
-        "implemented_test_files": [],
-        "executed": false,
+        "status": "original_ts_passed",
+        "original_case": {
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "replaces or clears a numeric crossing",
+          "zero_based_table_row": 3,
+          "receipt": "axis-crossing-case-map.json#/rows/13"
+        },
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true,
         "adaptation_task": {
           "id": "presentation-unit-5fe2bc7a4662.adapt",
           "title": "Specify the observable contract for presentation case 5fe2bc7a4662",
@@ -19812,16 +19976,20 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "fe3550b3ad438bfe7abced6d5c23aacf014cafd005ef6b7096c583a39809031a",
         "behavior": "test-behavior-evidence.json#/unit_cases/tests~1chart~1test_axis.py::DescribeValueAxis::it_can_change_the_other_axis_crossing_value[crosses_at_set_fixture3]",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "test_contract": "test-behavior-evidence.json#/functions/tests~1chart~1test_axis.py::DescribeValueAxis.it_can_change_the_other_axis_crossing_value",
@@ -203024,32 +203192,34 @@
         "case_id": "presentation-bdd-fd99c3ff5f32",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow fd99c3ff5f32",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of automatic."]
-          },
-          "act": ["Read the declared public model values and collections."],
-          "expected": ["Verify value_axis.crosses is AUTOMATIC."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 1,
+          "receipt": "axis-crossing-case-map.json#/rows/14"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/75",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203101,32 +203271,34 @@
         "case_id": "presentation-bdd-af82dacf70ba",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow af82dacf70ba",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of maximum."]
-          },
-          "act": ["Read the declared public model values and collections."],
-          "expected": ["Verify value_axis.crosses is MAXIMUM."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 5,
+          "receipt": "axis-crossing-case-map.json#/rows/15"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/76",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203178,32 +203350,34 @@
         "case_id": "presentation-bdd-543ef4010932",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow 543ef4010932",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of minimum."]
-          },
-          "act": ["Read the declared public model values and collections."],
-          "expected": ["Verify value_axis.crosses is MINIMUM."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 6,
+          "receipt": "axis-crossing-case-map.json#/rows/16"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/77",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203255,32 +203429,34 @@
         "case_id": "presentation-bdd-e0df89dc5070",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow e0df89dc5070",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of 2.75."]
-          },
-          "act": ["Read the declared public model values and collections."],
-          "expected": ["Verify value_axis.crosses is CUSTOM."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 7,
+          "receipt": "axis-crossing-case-map.json#/rows/17"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/78",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203336,32 +203512,34 @@
         "case_id": "presentation-bdd-b4c980d76ade",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow b4c980d76ade",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of automatic."]
-          },
-          "act": ["Assign MAXIMUM to value_axis.crosses."],
-          "expected": ["Verify value_axis.crosses is MAXIMUM."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "changes only the crossed axis mode",
+          "zero_based_table_row": 6,
+          "receipt": "axis-crossing-case-map.json#/rows/18"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/79",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203421,32 +203599,34 @@
         "case_id": "presentation-bdd-c7c3f043fd8e",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow c7c3f043fd8e",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of maximum."]
-          },
-          "act": ["Assign MINIMUM to value_axis.crosses."],
-          "expected": ["Verify value_axis.crosses is MINIMUM."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "changes only the crossed axis mode",
+          "zero_based_table_row": 7,
+          "receipt": "axis-crossing-case-map.json#/rows/19"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/80",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203506,32 +203686,34 @@
         "case_id": "presentation-bdd-38819d8b50d9",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow 38819d8b50d9",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of minimum."]
-          },
-          "act": ["Assign CUSTOM to value_axis.crosses."],
-          "expected": ["Verify value_axis.crosses is CUSTOM."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "changes only the crossed axis mode",
+          "zero_based_table_row": 8,
+          "receipt": "axis-crossing-case-map.json#/rows/20"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/81",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203591,32 +203773,34 @@
         "case_id": "presentation-bdd-e0d63f7ac5bd",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow e0d63f7ac5bd",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of 2.75."]
-          },
-          "act": ["Assign CUSTOM to value_axis.crosses."],
-          "expected": ["Verify value_axis.crosses is CUSTOM."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "changes only the crossed axis mode",
+          "zero_based_table_row": 9,
+          "receipt": "axis-crossing-case-map.json#/rows/21"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/82",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203672,32 +203856,34 @@
         "case_id": "presentation-bdd-afdb389390c4",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow afdb389390c4",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of automatic."]
-          },
-          "act": ["Read the declared public model values and collections."],
-          "expected": ["Verify value_axis.crosses_at is null."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 1,
+          "receipt": "axis-crossing-case-map.json#/rows/22"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/83",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203749,32 +203935,34 @@
         "case_id": "presentation-bdd-0b9330645bac",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow 0b9330645bac",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of maximum."]
-          },
-          "act": ["Read the declared public model values and collections."],
-          "expected": ["Verify value_axis.crosses_at is null."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 5,
+          "receipt": "axis-crossing-case-map.json#/rows/23"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/84",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203826,32 +204014,34 @@
         "case_id": "presentation-bdd-e2f63500fc9b",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow e2f63500fc9b",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of minimum."]
-          },
-          "act": ["Read the declared public model values and collections."],
-          "expected": ["Verify value_axis.crosses_at is null."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 6,
+          "receipt": "axis-crossing-case-map.json#/rows/24"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/85",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203903,32 +204093,34 @@
         "case_id": "presentation-bdd-d1bfc5b6a296",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow d1bfc5b6a296",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of 2.75."]
-          },
-          "act": ["Read the declared public model values and collections."],
-          "expected": ["Verify value_axis.crosses_at is 2.75."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 7,
+          "receipt": "axis-crossing-case-map.json#/rows/25"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/86",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -203980,32 +204172,34 @@
         "case_id": "presentation-bdd-dadec85ea149",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow dadec85ea149",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of -1.5."]
-          },
-          "act": ["Read the declared public model values and collections."],
-          "expected": ["Verify value_axis.crosses_at is -1.5."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "reads crossing state without mutation",
+          "zero_based_table_row": 8,
+          "receipt": "axis-crossing-case-map.json#/rows/26"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/87",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -204061,32 +204255,34 @@
         "case_id": "presentation-bdd-41c0e7434e8b",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow 41c0e7434e8b",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of automatic."]
-          },
-          "act": ["Assign 2.75 to value_axis.crosses_at."],
-          "expected": ["Verify value_axis.crosses_at is 2.75."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "replaces or clears a numeric crossing",
+          "zero_based_table_row": 6,
+          "receipt": "axis-crossing-case-map.json#/rows/27"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/88",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -204146,32 +204342,34 @@
         "case_id": "presentation-bdd-4defc38142d6",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow 4defc38142d6",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of 2.75."]
-          },
-          "act": ["Assign -1.5 to value_axis.crosses_at."],
-          "expected": ["Verify value_axis.crosses_at is -1.5."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "replaces or clears a numeric crossing",
+          "zero_based_table_row": 7,
+          "receipt": "axis-crossing-case-map.json#/rows/28"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/89",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -204231,32 +204429,34 @@
         "case_id": "presentation-bdd-30ace06cf8ab",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow 30ace06cf8ab",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of -1.5."]
-          },
-          "act": ["Assign null to value_axis.crosses_at."],
-          "expected": ["Verify value_axis.crosses_at is null."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "replaces or clears a numeric crossing",
+          "zero_based_table_row": 8,
+          "receipt": "axis-crossing-case-map.json#/rows/29"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/90",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -204316,32 +204516,34 @@
         "case_id": "presentation-bdd-891281af83a1",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "original_ts_passed",
         "original_case": {
-          "title": "Observe presentation workflow 891281af83a1",
-          "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a value axis having category axis crossing of automatic."]
-          },
-          "act": ["Assign null to value_axis.crosses_at."],
-          "expected": ["Verify value_axis.crosses_at is null."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "test_file": "packages/pptx/src/chart-axis-crossing.test.ts",
+          "assertion_group": "replaces or clears a numeric crossing",
+          "zero_based_table_row": 9,
+          "receipt": "axis-crossing-case-map.json#/rows/30"
         },
-        "implemented_test_files": [],
-        "executed": false
+        "implemented_test_files": [
+          "packages/pptx/src/chart-axis-crossing.test.ts",
+          "packages/safe-bash/tests/commands/pptx/chart-crossing.test.ts"
+        ],
+        "executed": true
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_exact_parameter_semantics",
+        "rationale": "Reviewed pinned fixture/example payload. Original XML changes IDs and packaging but retains crossing mode, numeric edge values, assignment and expected result. Independent SAX assertions check crossed-axis child order/value and preservation; getters cannot write."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "No crossing-member scope gap for this exact case; other axis/chart public members remain independent obligations.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "98f83001fbe747fef82921058b22f61456fad2e9b789efb7c7cc03d9a86a44a1",
         "behavior": "upstream-test-inventory.json#/bdd_cases/91",
-        "target_execution": null
+        "target_execution": {
+          "command": "npm run test --workspace=pptx",
+          "result": "6740 passed across 254 files",
+          "receipt": "axis-crossing-evidence.md"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [

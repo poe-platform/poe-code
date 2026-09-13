@@ -2,6 +2,11 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Current axis crossing correction: [exact parameter and JS mappings](axis-crossing-evidence.md)
+reconcile 14 unit variants and 17 BDD examples. Custom-mode initialization and
+null-removal reads are corrected with independent SDK and CLI evidence; this
+does not certify remaining chart-family parameter payloads.
+
 Current utility reconciliation: [package, XML and image-codec evidence](utility-reconciliation.md)
 links exact parameter ledgers, neutral public mappings and deliberate validation
 differences. It supersedes historical utility absence labels only for the tested

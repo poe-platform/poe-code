@@ -291,3 +291,31 @@ export {
   validateConnectorOptions
 } from "./connector-operations.js";
 export { Connector } from "./connectors-model.js";
+
+export { readDrawing, mutateDrawing } from "./drawing-operations.js";
+export {
+  applyDrawingUpdate,
+  readDrawingFormat,
+  validateDrawingUpdate,
+  patternPresets,
+  dashPresets,
+  type DrawingUpdate,
+  type DrawingFill,
+  type DrawingColor
+} from "./drawing-format.js";
+
+export {
+  MSO_FILL,
+  MSO_FILL_TYPE,
+  MSO_LINE,
+  MSO_LINE_DASH_STYLE,
+  MSO_PATTERN,
+  MSO_PATTERN_TYPE
+} from "./drawing-enums.js";
+export {
+  GradientStop as DrawingGradientStop,
+  GradientStop as _GradientStop,
+  GradientStops,
+  GradientStops as _GradientStops,
+  ShadowFormat
+} from "./shapes.js";

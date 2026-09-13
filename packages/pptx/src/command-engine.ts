@@ -1,3 +1,5 @@
+import { readDrawing, mutateDrawing } from "./drawing-operations.js";
+import { validateDrawingUpdate, type DrawingUpdate, type DrawingColor } from "./drawing-format.js";
 import { addShapePath, setShapePath, readShapePaths } from "./shape-path-operations.js";
 import {
   addConnector,
@@ -279,6 +281,8 @@ const help =
   "       pptx layouts remove INPUT --scope layouts|shared [--part URI | --select TOKEN | --all]\n" +
   "       pptx layouts apply INPUT [--slide N | --select TOKEN | --all] --layout NAME_OR_URI\n" +
   "                          --placeholder-policy type-index|reject-unmatched\n" +
+  "       pptx shapes drawing get|set INPUT [selection] [--fill JSON --line JSON] [output]\n" +
+  "       pptx shapes effects set INPUT [selection] --shadow true|false --opacity RATIO --shadow-blur LENGTH --shadow-color COLOR [output]\n" +
   "       pptx shapes list|get INPUT [--slide N --shape NAME] [--scope SCOPE] [--json]\n" +
   "       pptx shapes group INPUT --shapes LOCATIONS_JSON --tolerance LENGTH [output]\n" +
   "       pptx shapes ungroup INPUT [selection] --tolerance LENGTH [output]\n" +
@@ -347,6 +351,12 @@ interface Arguments {
   vertices?: unknown;
   close?: boolean;
   shapeEdit?: ShapeUpdate;
+  drawingEdit?: DrawingUpdate;
+  drawingFill?: Record<string, unknown>;
+  shadowEnabled?: boolean;
+  shadowOpacity?: number;
+  shadowBlur?: { value: number; unit: "emu" };
+  shadowColor?: DrawingColor;
   fieldEdit?: FieldUpdate;
   operation:
     | `connectors.${"list" | "get" | "add" | "set" | "remove"}`
@@ -359,6 +369,9 @@ interface Arguments {
     | "shapes.paths.set"
     | "shapes.add"
     | "shapes.set"
+    | "shapes.drawing.get"
+    | "shapes.drawing.set"
+    | "shapes.effects.set"
     | "shapes.remove"
     | "shapes.list"
     | "shapes.get"
@@ -589,6 +602,17 @@ const scalarOptions = [
   "--color-slot",
   "--font-slot",
   "--font",
+  "--fill-kind",
+  "--pattern",
+  "--mode",
+  "--foreground",
+  "--background",
+  "--line",
+  "--shadow",
+  "--shadow-blur",
+  "--shadow-color",
+  "--shadow-inherit",
+  "--opacity",
   "--stops",
   "--angle",
   "--style-index",
@@ -751,10 +775,10 @@ function parse(
   }
   if (
     args[0] === "shapes" &&
-    args[1] === "paths" &&
+    ["paths", "drawing", "effects"].includes(args[1]!) &&
     ["add", "set", "list", "get"].includes(args[2]!)
   ) {
-    const path = `shapes.paths.${args[2]}`;
+    const path = `shapes.${args[1]}.${args[2]}`;
     args.splice(0, 3, path);
     output.operation = path;
   }
@@ -1325,6 +1349,62 @@ function parse(
               ? commandJson(value)
               : value
       };
+      continue;
+    }
+    if (
+      operation === "shapes.drawing.set" &&
+      [
+        "--fill-kind",
+        "--color",
+        "--stops",
+        "--angle",
+        "--pattern",
+        "--mode",
+        "--foreground",
+        "--background"
+      ].includes(argument)
+    ) {
+      const key =
+        argument === "--fill-kind"
+          ? "kind"
+          : argument === "--pattern"
+            ? "preset"
+            : argument.slice(2);
+      const parsed =
+        ["angle", "stops"].includes(key) || value.startsWith("{") ? commandJson(value) : value;
+      result.drawingFill = { ...result.drawingFill, [key]: parsed };
+      continue;
+    }
+    if (
+      operation === "shapes.drawing.set" &&
+      ["--fill", "--line", "--shadow-inherit"].includes(argument)
+    ) {
+      if (argument === "--shadow-inherit" && !["true", "false"].includes(value))
+        usage("Shadow inheritance requires true or false.");
+      const key = argument === "--shadow-inherit" ? "shadowInherit" : argument.slice(2);
+      result.drawingEdit = { ...result.drawingEdit, [key]: commandJson(value) };
+      continue;
+    }
+    if (
+      operation === "shapes.effects.set" &&
+      ["--shadow", "--opacity", "--shadow-blur", "--shadow-color"].includes(argument)
+    ) {
+      if (argument === "--shadow") {
+        if (!["true", "false"].includes(value)) usage("Shadow requires true or false.");
+        result.shadowEnabled = value === "true";
+      } else if (argument === "--opacity") {
+        if (
+          !value.trim() ||
+          !Number.isFinite(Number(value)) ||
+          Number(value) < 0 ||
+          Number(value) > 1
+        )
+          usage("Opacity requires a ratio from zero to one.");
+        result.shadowOpacity = Number(value);
+      } else if (argument === "--shadow-blur")
+        result.shadowBlur = { value: commandLength(value, 0), unit: "emu" };
+      else
+        result.shadowColor = (value.startsWith("{") ? commandJson(value) : value) as DrawingColor;
       continue;
     }
     if (operation.startsWith("shapes.paths.") && argument === "--close") {
@@ -2003,6 +2083,50 @@ function parse(
       } else if (connector) {
         if (operation !== "connectors.remove")
           validateConnectorOptions(result.connectorEdit ?? {}, operation === "connectors.add");
+      } else if (operation === "shapes.effects.set" || operation === "shapes.drawing.set") {
+        if (operation === "shapes.effects.set") {
+          if (
+            result.shadowEnabled === undefined ||
+            result.shadowOpacity === undefined ||
+            result.shadowBlur === undefined ||
+            result.shadowColor === undefined
+          )
+            usage("Shadow requires explicit shadow, opacity, blur and color.");
+          result.drawingEdit = {
+            shadow: result.shadowEnabled
+              ? {
+                  blur: result.shadowBlur,
+                  color: result.shadowColor,
+                  opacity: result.shadowOpacity
+                }
+              : null
+          };
+        }
+        if (result.drawingFill) {
+          if (result.drawingEdit?.fill !== undefined)
+            usage("Structured fill and simple fill flags cannot be mixed.");
+          result.drawingEdit = {
+            ...result.drawingEdit,
+            fill: result.drawingFill as unknown as NonNullable<DrawingUpdate["fill"]>
+          };
+        }
+        if (result.file !== undefined) {
+          if (result.input === "-" && result.file === "-")
+            usage("Document and image cannot both use stdin.");
+          if (
+            result.drawingEdit?.fill?.kind !== "picture" ||
+            result.drawingEdit.fill.relationshipId !== undefined
+          )
+            usage("File requires picture fill without a relationship ID.");
+        }
+        validateDrawingUpdate(
+          result.file !== undefined && result.drawingEdit?.fill?.kind === "picture"
+            ? {
+                ...result.drawingEdit,
+                fill: { ...result.drawingEdit.fill, relationshipId: "pending" }
+              }
+            : (result.drawingEdit ?? {})
+        );
       } else if (selectionMutation) {
         if (
           result.shapes &&
@@ -2807,37 +2931,54 @@ async function execute(
                     "Transformed ungrouping supports quarter-turn rotation chains only.\n" +
                     "World geometry must remain within tolerance; unsupported geometry and references fail.\n" +
                     "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n"
-                  : args.schemaPath?.startsWith("shapes.")
-                    ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
-                      "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
+                  : args.schemaPath?.startsWith("shapes.drawing.") ||
+                      args.schemaPath === "shapes.effects.set"
+                    ? "Usage: pptx shapes drawing get|set INPUT [selection] [paint] [output]\n" +
+                      "       pptx shapes effects set INPUT [selection] --shadow true|false\n" +
+                      "         --opacity RATIO --shadow-blur LENGTH --shadow-color COLOR [output]\n" +
+                      "Paint: --fill-kind inherit|none|solid|gradient|pattern|picture\n" +
+                      "  --color COLOR; gradient: --stops JSON --angle DEGREES\n" +
+                      "  pattern: --pattern PRESET [--foreground COLOR --background COLOR]\n" +
+                      "  picture: --file PATH --mode stretch|tile\n" +
+                      "Advanced paint: --fill JSON --line JSON --shadow-inherit true|false\n" +
+                      "COLOR is six-digit RGB or JSON with rgb/theme, optional brightness and opacity.\n" +
+                      "Selection: --slide N --shape NAME | --part URI --scope SCOPE | --select TOKEN\n" +
                       "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
-                      "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
-                      "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
-                      "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
-                      "  --flip-horizontal true|false --flip-vertical true|false\n" +
-                      "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
-                      "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
-                      "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
-                      "Omitted values stay unchanged.\n" +
-                      "Null line width restores inherited width.\n" +
-                      "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
-                      "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
-                      "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
-                      "Set: --all edits every match; --allow-empty accepts zero matches.\n"
-                    : args.schemaPath?.startsWith("fields.")
-                      ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
-                        "Selection: --slide N --shape NAME | --select TOKEN\n" +
-                        "           --scope SCOPE --json --limit NAME=VALUE\n" +
-                        "Mutation:  --all --allow-empty\n" +
-                        "Output:    --output PATH | --in-place | --dry-run; --force\n" +
-                        "Set/add:   --kind slide-number|date|footer|header\n" +
-                        "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
-                        "Add requires --kind and one text body; appends to its last paragraph.\n" +
-                        "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
-                        "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
-                        "No field evaluation, automatic numbering or inherited-content flattening.\n" +
-                        "List/get are read-only; get requires one field. Remove accepts no policy.\n"
-                      : usage;
+                      "Set selects one shape unless --all; --allow-empty accepts zero matches.\n" +
+                      "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
+                      "Lengths require emu/in/cm/mm/pt. Simple shadows have zero offset.\n" +
+                      "Complex effects and 3D remain intact; editing unsupported effects fails.\n"
+                    : args.schemaPath?.startsWith("shapes.")
+                      ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
+                        "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
+                        "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
+                        "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
+                        "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
+                        "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
+                        "  --flip-horizontal true|false --flip-vertical true|false\n" +
+                        "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
+                        "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
+                        "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
+                        "Omitted values stay unchanged.\n" +
+                        "Null line width restores inherited width.\n" +
+                        "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
+                        "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
+                        "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
+                        "Set: --all edits every match; --allow-empty accepts zero matches.\n"
+                      : args.schemaPath?.startsWith("fields.")
+                        ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
+                          "Selection: --slide N --shape NAME | --select TOKEN\n" +
+                          "           --scope SCOPE --json --limit NAME=VALUE\n" +
+                          "Mutation:  --all --allow-empty\n" +
+                          "Output:    --output PATH | --in-place | --dry-run; --force\n" +
+                          "Set/add:   --kind slide-number|date|footer|header\n" +
+                          "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
+                          "Add requires --kind and one text body; appends to its last paragraph.\n" +
+                          "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
+                          "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
+                          "No field evaluation, automatic numbering or inherited-content flattening.\n" +
+                          "List/get are read-only; get requires one field. Remove accepts no policy.\n"
+                        : usage;
       result = success(operation, { usage: resolvedUsage });
       human = resolvedUsage;
     } else if (args.operation === "version") {
@@ -2884,6 +3025,18 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          drawing: {
+            level: "edit",
+            operations: ["shapes.drawing.get", "shapes.drawing.set", "shapes.effects.set"],
+            subset:
+              "Solid, linear gradient, picture and pattern fills, line fills/width/dash, alpha and zero-offset outer shadows; preserve theme references."
+          },
+          advancedDrawingEffects: {
+            level: "preserve",
+            operations: ["shapes.drawing.get"],
+            subset:
+              "Complex effect DAGs, advanced effect stacks, 3D scenes/materials and unknown effects remain intact; unsupported effect edits reject."
+          },
           connectors: {
             supported: true,
             level: "edit",
@@ -3292,11 +3445,14 @@ async function execute(
         ...(args.allowEmpty === undefined ? {} : { allowEmpty: args.allowEmpty })
       };
       if (args.operation.endsWith(".list") || args.operation.endsWith(".get")) {
-        const records = args.operation.startsWith("connectors.")
-          ? await readConnectors(bytes, selection, context)
-          : args.operation.startsWith("shapes.paths.")
-            ? await readShapePaths(bytes, selection, context)
-            : await readShapes(bytes, selection, context);
+        const records =
+          args.operation === "shapes.drawing.get"
+            ? await readDrawing(bytes, selection, context)
+            : args.operation.startsWith("connectors.")
+              ? await readConnectors(bytes, selection, context)
+              : args.operation.startsWith("shapes.paths.")
+                ? await readShapePaths(bytes, selection, context)
+                : await readShapes(bytes, selection, context);
         if (args.operation.endsWith(".get") && records.length !== 1)
           throw new SelectionError(
             records.length ? "ambiguous-selection" : "missing-selection",
@@ -3310,8 +3466,19 @@ async function execute(
           )
           .join("");
       } else {
-        const mutation =
-          args.operation === "shapes.remove"
+        const mutation = args.drawingEdit
+          ? await mutateDrawing(
+              bytes,
+              {
+                ...selection,
+                update: args.drawingEdit,
+                ...(args.file === undefined
+                  ? {}
+                  : { image: await request.readInput(args.file, context.limits.maxBytes) })
+              },
+              context
+            )
+          : args.operation === "shapes.remove"
             ? await removeShapes(
                 bytes,
                 {
@@ -3390,15 +3557,17 @@ async function execute(
                     : removing
                       ? "remove"
                       : "set",
-                feature: args.operation.startsWith("connectors.")
-                  ? "F26"
-                  : args.selectionEdit
-                    ? "F25"
-                    : ["shapes.group", "shapes.ungroup"].includes(args.operation)
-                      ? "F24"
-                      : args.operation.startsWith("shapes.paths.")
-                        ? "F23"
-                        : "F22"
+                feature: args.drawingEdit
+                  ? "F27"
+                  : args.operation.startsWith("connectors.")
+                    ? "F26"
+                    : args.selectionEdit
+                      ? "F25"
+                      : ["shapes.group", "shapes.ungroup"].includes(args.operation)
+                        ? "F24"
+                        : args.operation.startsWith("shapes.paths.")
+                          ? "F23"
+                          : "F22"
               })),
               outputs: dryRun
                 ? []
@@ -3418,6 +3587,7 @@ async function execute(
             });
           publication = {
             inputPath: args.input!,
+            ...(args.drawingEdit && args.file ? { protectedInputPaths: [args.file] } : {}),
             outputPath: destination,
             bytes: mutation.bytes,
             originalBytes: bytes,

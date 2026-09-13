@@ -3,13 +3,21 @@ import { Length } from "./length.js";
 import { attr, child } from "./masters.js";
 import { parseXmlPart, type XmlElement, type XmlPart, type XmlMerge } from "./xml.js";
 import { TextFrame, applyFrameFormatting } from "./text-frames.js";
-import { RGBColor, ColorPropertyAccessError, readRunColor } from "./text-run-color.js";
+import {
+  RGBColor,
+  ColorPropertyAccessError,
+  readRunColor,
+  colorMerge,
+  colorBrightnessMerge
+} from "./text-run-color.js";
 import { MSO_SHAPE_TYPE } from "./shape-types.js";
 export { MSO_SHAPE_TYPE } from "./shape-types.js";
 import { MSO_AUTO_SHAPE_TYPE, shapePresets } from "./shape-presets.js";
 import { PP_PLACEHOLDER_TYPE } from "./shape-placeholder-types.js";
 export { PP_PLACEHOLDER_TYPE, PP_PLACEHOLDER } from "./shape-placeholder-types.js";
 export { MSO_AUTO_SHAPE_TYPE, MSO_SHAPE, shapePresets } from "./shape-presets.js";
+import { applyDrawingUpdate, readDrawingFormat, readDrawingColor } from "./drawing-format.js";
+import { patternTokens, dashTokens } from "./drawing-enums.js";
 export type ShapeKind = "text-box" | keyof typeof shapePresets | MSO_AUTO_SHAPE_TYPE;
 export type ShapeLength =
   | Length
@@ -573,7 +581,7 @@ export function createShapeXml(
 export class Shape {
   #xml: XmlPart;
   constructor(xml: XmlPart) {
-    if (xml.root.name.localName !== "sp") invalid();
+    if (!["sp", "grpSp"].includes(xml.root.name.localName)) invalid();
     drawing(xml.root);
     this.#xml = xml;
   }
@@ -714,7 +722,18 @@ export class Shape {
       (update) => {
         this.#xml = applyShapeUpdate(this.#xml, this.element, update);
       },
-      false
+      false,
+      (transform) => {
+        this.#xml = transform(this.#xml, this.element);
+      }
+    );
+  }
+  get shadow(): ShadowFormat {
+    return new ShadowFormat(
+      () => this.#xml,
+      (transform) => {
+        this.#xml = transform(this.#xml, this.element);
+      }
     );
   }
   get line(): LineFormat {
@@ -722,6 +741,9 @@ export class Shape {
       () => this.#xml,
       (update) => {
         this.#xml = applyShapeUpdate(this.#xml, this.element, update);
+      },
+      (transform) => {
+        this.#xml = transform(this.#xml, this.element);
       }
     );
   }
@@ -755,67 +777,350 @@ export class Shape {
     this.#xml = applyShapeUpdate(this.#xml, this.element, { text: v });
   }
 }
+type DrawingEdit = (transform: (xml: XmlPart, shape: XmlElement) => XmlPart) => void;
+type ColorOwner = (shape: XmlElement) => XmlElement;
 export class ShapeColorFormat {
   constructor(
     private readonly read: () => XmlPart,
-    private readonly update: (value: ShapeUpdate) => void,
-    private readonly line: boolean
+    private readonly edit: DrawingEdit,
+    private readonly owner: ColorOwner
   ) {}
   get type() {
-    const node = this.read().root,
-      a = drawing(node),
-      pr = props(node),
-      owner = this.line ? pr && child(pr, "ln", a) : pr,
-      fill = owner && child(owner, "solidFill", a);
-    return fill ? (readRunColor(fill)?.type ?? null) : null;
+    return readRunColor(this.owner(this.read().root))?.type ?? null;
   }
   get rgb(): RGBColor {
-    const record = readShape(this.read().root);
-    const value = this.line ? record.lineColor : record.fill;
-    if (value === null) throw new ColorPropertyAccessError("RGB color is unavailable.");
-    return RGBColor.from_string(value);
+    const v = readRunColor(this.owner(this.read().root))?.rgb;
+    if (!v) throw new ColorPropertyAccessError("RGB color is unavailable.");
+    return RGBColor.from_string(v);
   }
-  set rgb(value: RGBColor) {
-    if (!(value instanceof RGBColor)) invalid("A color value object is required.");
-    this.update(this.line ? { lineColor: value.toString() } : { fill: value.toString() });
+  set rgb(v: RGBColor) {
+    if (!(v instanceof RGBColor)) invalid();
+    this.edit((doc, node) => {
+      const owner = this.owner(node);
+      return doc.merge(owner, colorMerge(v.toString(), owner.name.namespace));
+    });
+  }
+  get theme_color(): string {
+    const c = readRunColor(this.owner(this.read().root));
+    if (!c) throw new ColorPropertyAccessError("Theme color is unavailable.");
+    return c.theme ?? "NOT_THEME_COLOR";
+  }
+  set theme_color(v: string) {
+    this.edit((doc, node) => {
+      const owner = this.owner(node);
+      return doc.merge(owner, colorMerge({ theme: v }, owner.name.namespace));
+    });
+  }
+  get brightness() {
+    return readRunColor(this.owner(this.read().root))?.brightness ?? 0;
+  }
+  set brightness(v: number) {
+    this.edit((doc, node) => {
+      const owner = this.owner(node),
+        color = owner.children.find(
+          (n) =>
+            n.name.namespace === owner.name.namespace &&
+            ["srgbClr", "schemeClr", "scrgbClr", "hslClr", "sysClr", "prstClr"].includes(
+              n.name.localName
+            )
+        );
+      if (!color) invalid("Brightness requires a color.");
+      return doc.merge(color, colorBrightnessMerge(v, color.name.namespace));
+    });
+  }
+  get opacity() {
+    return readDrawingColor(this.owner(this.read().root))?.opacity ?? null;
+  }
+  set opacity(v: number | null) {
+    if (v !== null && (!Number.isFinite(v) || v < 0 || v > 1)) invalid();
+    this.edit((doc, node) => {
+      const owner = this.owner(node),
+        color = owner.children.find(
+          (n) =>
+            n.name.namespace === owner.name.namespace &&
+            ["srgbClr", "schemeClr", "scrgbClr", "hslClr", "sysClr", "prstClr"].includes(
+              n.name.localName
+            )
+        );
+      if (!color) invalid("Alpha requires a color.");
+      return doc.merge(color, {
+        children: {
+          sequence: [{ namespace: color.name.namespace, localName: "alpha" }],
+          remove: v === null ? [{ namespace: color.name.namespace, localName: "alpha" }] : [],
+          upsert:
+            v === null
+              ? []
+              : [
+                  {
+                    name: { namespace: color.name.namespace, localName: "alpha" },
+                    merge: {
+                      attributes: [
+                        { namespace: "", localName: "val", value: String(Math.round(v * 100000)) }
+                      ]
+                    }
+                  }
+                ]
+        }
+      });
+    });
   }
 }
 export class FillFormat {
   constructor(
     private readonly read: () => XmlPart,
     private readonly update: (value: ShapeUpdate) => void,
-    private readonly line: boolean
+    private readonly line: boolean,
+    private readonly edit?: DrawingEdit
   ) {}
+  private owner(node: XmlElement) {
+    const pr = props(node);
+    const result = this.line ? pr && child(pr, "ln", drawing(node)) : pr;
+    return result;
+  }
+  private fill(node: XmlElement) {
+    const owner = this.owner(node);
+    return owner?.children.find(
+      (n) =>
+        n.name.namespace === drawing(node) &&
+        ["solidFill", "gradFill", "pattFill", "blipFill", "noFill", "grpFill"].includes(
+          n.name.localName
+        )
+    );
+  }
+  private change(transform: (doc: XmlPart, node: XmlElement) => XmlPart) {
+    if (!this.edit) unsupported("This view does not support extended drawing edits.");
+    this.edit(transform);
+  }
   get type(): number | null {
-    const record = readShape(this.read().root);
-    const kind = this.line ? record.lineFillType : record.fillType;
-    const types: Record<string, number> = {
-      solidFill: 1,
-      pattFill: 2,
-      gradFill: 3,
-      blipFill: 6,
-      noFill: 5,
-      grpFill: 101
-    };
-    return kind === null ? null : (types[kind] ?? null);
+    const f = this.fill(this.read().root);
+    return f
+      ? ({ solidFill: 1, pattFill: 2, gradFill: 3, blipFill: 6, noFill: 5, grpFill: 101 }[
+          f.name.localName
+        ] ?? null)
+      : null;
   }
-  solid(): void {
-    if (this.type === 1) return;
-    this.update(this.line ? { lineColor: "solid" } : { fill: "solid" });
+  solid() {
+    if (this.type !== 1) this.update(this.line ? { lineColor: "solid" } : { fill: "solid" });
   }
-  background(): void {
+  background() {
     this.update(this.line ? { lineColor: null } : { fill: null });
   }
-  get fore_color(): ShapeColorFormat {
-    if (this.type !== 1)
-      throw new ColorPropertyAccessError("Foreground color requires a solid fill.");
-    return new ShapeColorFormat(this.read, this.update, this.line);
+  gradient() {
+    if (this.type === 3) return;
+    if (!this.owner(this.read().root)) this.solid();
+    this.change((doc, node) => {
+      const owner = this.owner(node)!,
+        fill = this.fill(node),
+        a = drawing(node);
+      return doc.spliceChildren(owner, fill ? owner.children.indexOf(fill) : 0, fill ? 1 : 0, [
+        `<a:gradFill xmlns:a="${a}" rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="accent1"><a:tint val="100000"/><a:shade val="100000"/><a:satMod val="130000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="accent1"><a:tint val="50000"/><a:shade val="100000"/><a:satMod val="350000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="16200000" scaled="1"/></a:gradFill>`
+      ]);
+    });
+  }
+  patterned() {
+    if (this.type === 2) return;
+    if (!this.owner(this.read().root)) this.solid();
+    this.change((doc, node) => {
+      const owner = this.owner(node)!,
+        fill = this.fill(node);
+      return doc.spliceChildren(owner, fill ? owner.children.indexOf(fill) : 0, fill ? 1 : 0, [
+        `<a:pattFill xmlns:a="${drawing(node)}"/>`
+      ]);
+    });
+  }
+  get gradient_angle(): number | null {
+    const fill = this.fill(this.read().root);
+    if (fill?.name.localName !== "gradFill" || child(fill, "path"))
+      throw new ColorPropertyAccessError("Linear gradient angle is unavailable.");
+    const lin = child(fill, "lin");
+    return lin ? (((360 - Number(attr(lin, "ang")) / 60000) % 360) + 360) % 360 : null;
+  }
+  set gradient_angle(v: number) {
+    void this.gradient_angle;
+    if (!Number.isFinite(v) || Math.abs(v) > 360000) invalid();
+    this.change((doc, node) => {
+      const fill = this.fill(node)!;
+      return doc.merge(fill, {
+        children: {
+          sequence: ["gsLst", "lin", "path", "tileRect"].map((localName) => ({
+            namespace: fill.name.namespace,
+            localName
+          })),
+          upsert: [
+            {
+              name: { namespace: fill.name.namespace, localName: "lin" },
+              merge: {
+                attributes: [
+                  {
+                    namespace: "",
+                    localName: "ang",
+                    value: String(
+                      Math.round(((((360 - (v % 360)) % 360) + 360) % 360) * 60000) % 21600000
+                    )
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      });
+    });
+  }
+  get gradient_stops(): GradientStops {
+    if (this.type !== 3) throw new ColorPropertyAccessError("Gradient stops are unavailable.");
+    if (!child(this.fill(this.read().root)!, "gsLst"))
+      this.change((doc, node) => {
+        const fill = this.fill(node)!;
+        return doc.spliceChildren(fill, 0, 0, [
+          `<a:gsLst xmlns:a="${fill.name.namespace}"><a:gs pos="0"><a:schemeClr val="accent1"><a:tint val="100000"/><a:shade val="100000"/><a:satMod val="130000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="accent1"><a:tint val="50000"/><a:shade val="100000"/><a:satMod val="350000"/></a:schemeClr></a:gs></a:gsLst>`
+        ]);
+      });
+    return new GradientStops(
+      this.read,
+      (t) => this.change(t),
+      (node) => child(this.fill(node)!, "gsLst")!
+    );
+  }
+  get pattern(): number | null {
+    if (this.type !== 2) throw new ColorPropertyAccessError("Pattern is unavailable.");
+    const token = attr(this.fill(this.read().root)!, "prst");
+    const key = Object.keys(patternTokens).find((k) => patternTokens[Number(k)] === token);
+    return key === undefined ? null : Number(key);
+  }
+  set pattern(v: number | null) {
+    if (this.type !== 2) throw new ColorPropertyAccessError("Pattern is unavailable.");
+    if (v !== null && (typeof v !== "number" || !Object.hasOwn(patternTokens, v))) invalid();
+    this.change((doc, node) =>
+      doc.merge(this.fill(node)!, {
+        attributes: [
+          { namespace: "", localName: "prst", value: v === null ? null : patternTokens[v]! }
+        ]
+      })
+    );
+  }
+  private color(back: boolean): ShapeColorFormat {
+    if ((this.type !== 1 && this.type !== 2) || (back && this.type !== 2))
+      throw new ColorPropertyAccessError("Fill color is unavailable.");
+    if (this.type === 2) {
+      const tag = back ? "bgClr" : "fgClr";
+      if (!child(this.fill(this.read().root)!, tag))
+        this.change((doc, node) => {
+          const fill = this.fill(node)!;
+          const afterForeground = fill.children.findIndex(
+            (n) => n.name.namespace !== fill.name.namespace || n.name.localName !== "fgClr"
+          );
+          return doc.spliceChildren(
+            fill,
+            back ? (afterForeground < 0 ? fill.children.length : afterForeground) : 0,
+            0,
+            [
+              `<a:${tag} xmlns:a="${fill.name.namespace}"><a:srgbClr val="${back ? "FFFFFF" : "000000"}"/></a:${tag}>`
+            ]
+          );
+        });
+    }
+    return new ShapeColorFormat(
+      this.read,
+      (t) => this.change(t),
+      (node) => {
+        const f = this.fill(node)!;
+        return f.name.localName === "pattFill" ? child(f, back ? "bgClr" : "fgClr")! : f;
+      }
+    );
+  }
+  get fore_color() {
+    return this.color(false);
+  }
+  get back_color() {
+    return this.color(true);
+  }
+}
+export class GradientStop {
+  constructor(
+    private readonly read: () => XmlPart,
+    private readonly edit: DrawingEdit,
+    private readonly owner: ColorOwner,
+    readonly index: number
+  ) {}
+  private node(shape: XmlElement) {
+    const n = this.owner(shape).children[this.index];
+    if (!n) invalid("Gradient stop is unavailable.");
+    return n;
+  }
+  get position() {
+    return Number(attr(this.node(this.read().root), "pos")) / 100000;
+  }
+  set position(v: number) {
+    if (!Number.isFinite(v) || v < 0 || v > 1) invalid();
+    this.edit((doc, node) =>
+      doc.merge(this.node(node), {
+        attributes: [{ namespace: "", localName: "pos", value: String(Math.round(v * 100000)) }]
+      })
+    );
+  }
+  get color() {
+    return new ShapeColorFormat(this.read, this.edit, (node) => this.node(node));
+  }
+}
+export class GradientStops implements Iterable<GradientStop> {
+  private readonly cache = new Map<number, GradientStop>();
+  constructor(
+    private readonly read: () => XmlPart,
+    private readonly edit: DrawingEdit,
+    private readonly owner: ColorOwner
+  ) {}
+  get length() {
+    return this.owner(this.read().root).children.length;
+  }
+  at(index: number) {
+    if (!Number.isInteger(index) || index < -this.length || index >= this.length)
+      invalid("Gradient stop index is out of range.");
+    const i = index < 0 ? index + this.length : index;
+    let stop = this.cache.get(i);
+    if (!stop) {
+      stop = new GradientStop(this.read, this.edit, this.owner, i);
+      this.cache.set(i, stop);
+    }
+    return stop;
+  }
+  *[Symbol.iterator]() {
+    for (let i = 0; i < this.length; i++) yield this.at(i);
+  }
+  slice(start?: number, end?: number) {
+    return Array.from(this).slice(start, end);
+  }
+  includes(value: GradientStop) {
+    return Array.from(this).includes(value);
+  }
+  count(value: GradientStop) {
+    return this.includes(value) ? 1 : 0;
+  }
+  index(value: GradientStop) {
+    const i = Array.from(this).indexOf(value);
+    if (i < 0) invalid("Gradient stop is not in this collection.");
+    return i;
+  }
+  reversed() {
+    return Array.from(this).reverse();
+  }
+}
+export class ShadowFormat {
+  constructor(
+    private readonly read: () => XmlPart,
+    private readonly edit: DrawingEdit
+  ) {}
+  get inherit() {
+    return readDrawingFormat(this.read().root).shadowInherit;
+  }
+  set inherit(value: boolean) {
+    this.edit((doc, node) => applyDrawingUpdate(doc, node, { shadowInherit: value }));
   }
 }
 export class LineFormat {
   constructor(
     private readonly read: () => XmlPart,
-    private readonly update: (value: ShapeUpdate) => void
+    private readonly update: (value: ShapeUpdate) => void,
+    private readonly edit?: DrawingEdit
   ) {}
   get width(): Length {
     return new Length(readShape(this.read().root).lineWidth ?? 0);
@@ -824,11 +1129,23 @@ export class LineFormat {
     if (value !== null && !(value instanceof Length)) invalid();
     this.update({ lineWidth: value });
   }
-  get fill(): FillFormat {
-    return new FillFormat(this.read, this.update, true);
+  get fill() {
+    return new FillFormat(this.read, this.update, true, this.edit);
   }
-  get color(): ShapeColorFormat {
+  get color() {
     if (this.fill.type !== 1) this.fill.solid();
-    return new ShapeColorFormat(this.read, this.update, true);
+    return this.fill.fore_color;
+  }
+  get dash_style(): number | null {
+    const token = readDrawingFormat(this.read().root).line.dash;
+    const key = Object.keys(dashTokens).find((k) => dashTokens[Number(k)] === token);
+    return key === undefined ? null : Number(key);
+  }
+  set dash_style(v: number | null) {
+    if (v !== null && (typeof v !== "number" || !Object.hasOwn(dashTokens, v))) invalid();
+    if (!this.edit) unsupported("Extended line editing is unavailable.");
+    this.edit((doc, node) =>
+      applyDrawingUpdate(doc, node, { line: { dash: v === null ? null : dashTokens[v]! } })
+    );
   }
 }

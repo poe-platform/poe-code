@@ -3,6 +3,8 @@ import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
 import {
   addConnector,
+  addShape,
+  readDrawing,
   createPptxCommandEngine,
   createPresentation,
   readFields,
@@ -259,4 +261,40 @@ pptx fields get dated.pptx --json`
     ),
     []
   );
+});
+
+test("drawing commands preserve theme paint through a quoted virtual script and SDK", async () => {
+  const { shell, volume } = fixture();
+  const shape = await addShape(
+    await createPresentation({ slides: [{}] }, context),
+    {
+      slide: 1,
+      update: {
+        kind: "RECTANGLE",
+        name: "Panel",
+        left: { value: 0, unit: "emu" },
+        top: { value: 0, unit: "emu" },
+        width: { value: 100, unit: "emu" },
+        height: { value: 100, unit: "emu" }
+      }
+    },
+    context
+  );
+  volume.writeFileSync("/work/input deck.pptx", shape.bytes);
+  volume.writeFileSync(
+    "/work/paint.sh",
+    `pptx shapes drawing set 'input deck.pptx' --slide 1 --shape Panel --fill-kind solid --color '{"theme":"accent3","opacity":0.5}' --output 'painted deck.pptx' --json
+pptx shapes drawing get 'painted deck.pptx' --slide 1 --shape Panel --json`
+  );
+  const result = await shell.exec("sh paint.sh");
+  assert.equal(result.exitCode, 0, result.stderr);
+  const record = JSON.parse(result.stdout.trim().split("\n").at(-1)!).data.records[0];
+  assert.equal(record.drawing.fill.color.theme, "accent3");
+  const sdk = await readDrawing(
+    new Uint8Array(volume.readFileSync("/work/painted deck.pptx") as Buffer),
+    { slide: 1, shape: "Panel" },
+    context
+  );
+  assert.equal(sdk[0]!.drawing.fill.color?.opacity, 0.5);
+  await shell.dispose();
 });

@@ -1,3 +1,4 @@
+import { drawingSchemaDefinitions } from "./drawing-schema.js";
 import { paragraphNumberingSchemes } from "./text-paragraphs.js";
 import { MSO_TEXT_UNDERLINE_TYPE } from "./text-runs.js";
 import { selectionQuerySchema } from "./selector-schema.js";
@@ -2022,154 +2023,227 @@ for (const action of ["move", "align", "distribute", "duplicate"]) {
   });
 }
 export const shapeSchemas = Object.fromEntries(
-  Object.entries(shapeSchemaDefinitions).map(([operation, schema]) => {
-    const mutation =
-      operation.endsWith(".add") ||
-      operation.endsWith(".set") ||
-      operation === "shapes.group" ||
-      operation === "shapes.ungroup" ||
-      ["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"].includes(operation);
-    const base = masterSchemas[mutation ? "shapes.set" : "masters.list"]!.result;
-    const data = base.properties.data.oneOf[1]!;
-    return [
-      operation,
-      {
-        ...schema,
-        options: {
-          ...schema.options,
-          allOf: [
-            ...(operation === "shapes.move"
-              ? [{ oneOf: [{ required: ["order"] }, { required: ["position"] }] }]
-              : []),
-            ...(["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"].includes(
-              operation
-            )
-              ? [
-                  {
-                    if: { required: ["shapes"] },
-                    then: {
-                      not: {
-                        anyOf: ["select", "slide", "part", "shape", "all", "allowEmpty"].map(
-                          (key) => ({
-                            required: [key]
-                          })
-                        )
+  Object.entries({ ...shapeSchemaDefinitions, ...drawingSchemaDefinitions }).map(
+    ([operation, schema]) => {
+      const mutation =
+        operation.endsWith(".add") ||
+        operation.endsWith(".set") ||
+        operation === "shapes.group" ||
+        operation === "shapes.ungroup" ||
+        ["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"].includes(
+          operation
+        );
+      const base = masterSchemas[mutation ? "shapes.set" : "masters.list"]!.result;
+      const data = base.properties.data.oneOf[1]!;
+      return [
+        operation,
+        {
+          ...schema,
+          options: {
+            ...schema.options,
+            allOf: [
+              ...(operation === "shapes.drawing.set"
+                ? [
+                    {
+                      anyOf: ["fill", "fillKind", "line", "shadowInherit"].map((key) => ({
+                        required: [key]
+                      }))
+                    },
+                    {
+                      if: { required: ["fill"] },
+                      then: {
+                        not: {
+                          anyOf: [
+                            "fillKind",
+                            "color",
+                            "stops",
+                            "angle",
+                            "pattern",
+                            "mode",
+                            "foreground",
+                            "background"
+                          ].map((key) => ({ required: [key] }))
+                        }
+                      }
+                    },
+                    {
+                      if: { required: ["file"] },
+                      then: {
+                        anyOf: [
+                          {
+                            required: ["fillKind", "mode"],
+                            properties: { fillKind: { const: "picture" } }
+                          },
+                          {
+                            required: ["fill"],
+                            properties: { fill: { properties: { kind: { const: "picture" } } } }
+                          }
+                        ]
                       }
                     }
+                  ]
+                : []),
+              ...(operation === "shapes.move"
+                ? [{ oneOf: [{ required: ["order"] }, { required: ["position"] }] }]
+                : []),
+              ...(["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"].includes(
+                operation
+              )
+                ? [
+                    {
+                      if: { required: ["shapes"] },
+                      then: {
+                        not: {
+                          anyOf: ["select", "slide", "part", "shape", "all", "allowEmpty"].map(
+                            (key) => ({
+                              required: [key]
+                            })
+                          )
+                        }
+                      }
+                    }
+                  ]
+                : []),
+              { not: { required: ["part", "slide"] } },
+              { not: { required: ["description", "altText"] } },
+              {
+                if: { required: ["select"] },
+                then: {
+                  not: {
+                    anyOf: ["part", "slide", "shape", "all"].map((key) => ({ required: [key] }))
                   }
-                ]
-              : []),
-            { not: { required: ["part", "slide"] } },
-            { not: { required: ["description", "altText"] } },
-            {
-              if: { required: ["select"] },
-              then: {
-                not: {
-                  anyOf: ["part", "slide", "shape", "all"].map((key) => ({ required: [key] }))
                 }
-              }
-            },
-            ...(mutation ? xmlSetSchema.options.allOf.slice(xmlSelectionRules.length) : []),
-            ...(mutation && operation.startsWith("shapes.paths.")
-              ? [
+              },
+              ...(mutation ? xmlSetSchema.options.allOf.slice(xmlSelectionRules.length) : []),
+              ...(mutation && operation.startsWith("shapes.paths.")
+                ? [
+                    {
+                      oneOf: [
+                        {
+                          required: ["path"],
+                          not: { anyOf: [{ required: ["vertices"] }, { required: ["close"] }] }
+                        },
+                        { required: ["vertices", "close"], not: { required: ["path"] } }
+                      ]
+                    }
+                  ]
+                : []),
+              ...(operation === "shapes.set"
+                ? [{ anyOf: Object.keys(shapeValues).map((key) => ({ required: [key] })) }]
+                : []),
+              ...(operation === "shapes.ungroup"
+                ? [
+                    {
+                      anyOf: ["shape", "select", "slide", "part"].map((key) => ({
+                        required: [key]
+                      }))
+                    }
+                  ]
+                : [])
+            ]
+          },
+          result: {
+            ...base,
+            properties: {
+              ...base.properties,
+              operation: { const: operation },
+              data: {
+                oneOf: [
+                  { type: "null" },
                   {
-                    oneOf: [
-                      {
-                        required: ["path"],
-                        not: { anyOf: [{ required: ["vertices"] }, { required: ["close"] }] }
-                      },
-                      { required: ["vertices", "close"], not: { required: ["path"] } }
-                    ]
-                  }
-                ]
-              : []),
-            ...(operation === "shapes.set"
-              ? [{ anyOf: Object.keys(shapeValues).map((key) => ({ required: [key] })) }]
-              : []),
-            ...(operation === "shapes.ungroup"
-              ? [
-                  {
-                    anyOf: ["shape", "select", "slide", "part"].map((key) => ({ required: [key] }))
-                  }
-                ]
-              : [])
-          ]
-        },
-        result: {
-          ...base,
-          properties: {
-            ...base.properties,
-            operation: { const: operation },
-            data: {
-              oneOf: [
-                { type: "null" },
-                {
-                  ...data,
-                  properties: mutation
-                    ? {
-                        ...data.properties,
-                        dryRun: { type: "boolean" },
-                        effects: {
-                          ...data.properties!.effects!,
-                          items: {
-                            ...data.properties!.effects!.items,
-                            properties: {
-                              ...data.properties!.effects!.items.properties,
-                              feature: [
-                                "shapes.move",
-                                "shapes.align",
-                                "shapes.distribute",
-                                "shapes.duplicate"
-                              ].includes(operation)
-                                ? { const: "F25" }
-                                : operation === "shapes.group" || operation === "shapes.ungroup"
-                                  ? { const: "F24" }
-                                  : data.properties!.effects!.items.properties.feature
+                    ...data,
+                    properties: mutation
+                      ? {
+                          ...data.properties,
+                          dryRun: { type: "boolean" },
+                          effects: {
+                            ...data.properties!.effects!,
+                            items: {
+                              ...data.properties!.effects!.items,
+                              properties: {
+                                ...data.properties!.effects!.items.properties,
+                                feature:
+                                  operation.startsWith("shapes.drawing.") ||
+                                  operation.startsWith("shapes.effects.")
+                                    ? { const: "F27" }
+                                    : [
+                                          "shapes.move",
+                                          "shapes.align",
+                                          "shapes.distribute",
+                                          "shapes.duplicate"
+                                        ].includes(operation)
+                                      ? { const: "F25" }
+                                      : operation === "shapes.group" ||
+                                          operation === "shapes.ungroup"
+                                        ? { const: "F24" }
+                                        : data.properties!.effects!.items.properties.feature
+                              }
                             }
                           }
                         }
-                      }
-                    : {
-                        records: {
-                          type: "array",
-                          items: {
-                            type: "object",
-                            additionalProperties: false,
-                            required: operation.startsWith("shapes.paths.")
-                              ? [
-                                  "path",
-                                  "xml",
-                                  "unsupported",
-                                  "shapeId",
-                                  "location",
-                                  "token",
-                                  "part"
-                                ]
-                              : Object.keys(shapeRecordProperties),
-                            properties: operation.startsWith("shapes.paths.")
-                              ? {
-                                  path: { anyOf: [pathValue, { type: "null" }] },
-                                  xml: { type: ["string", "null"] },
-                                  unsupported: { type: "boolean" },
-                                  shapeId: { type: "integer" },
-                                  name: { type: "string" },
-                                  location: shapeRecordProperties.location,
-                                  token: { type: "string" },
-                                  part: { type: "string" }
-                                }
-                              : shapeRecordProperties
+                      : {
+                          records: {
+                            type: "array",
+                            items: {
+                              type: "object",
+                              additionalProperties: false,
+                              required: operation.startsWith("shapes.paths.")
+                                ? [
+                                    "path",
+                                    "xml",
+                                    "unsupported",
+                                    "shapeId",
+                                    "location",
+                                    "token",
+                                    "part"
+                                  ]
+                                : Object.keys(shapeRecordProperties),
+                              properties: operation.startsWith("shapes.paths.")
+                                ? {
+                                    path: { anyOf: [pathValue, { type: "null" }] },
+                                    xml: { type: ["string", "null"] },
+                                    unsupported: { type: "boolean" },
+                                    shapeId: { type: "integer" },
+                                    name: { type: "string" },
+                                    location: shapeRecordProperties.location,
+                                    token: { type: "string" },
+                                    part: { type: "string" }
+                                  }
+                                : operation === "shapes.drawing.get"
+                                  ? {
+                                      ...shapeRecordProperties,
+                                      drawing: {
+                                        type: "object",
+                                        required: [
+                                          "fill",
+                                          "line",
+                                          "shadow",
+                                          "shadowInherit",
+                                          "preserved"
+                                        ],
+                                        properties: {
+                                          fill: { type: "object" },
+                                          line: { type: "object" },
+                                          shadow: { type: ["object", "null"] },
+                                          shadowInherit: { type: "boolean" },
+                                          preserved: { type: "array", items: { type: "string" } }
+                                        }
+                                      }
+                                    }
+                                  : shapeRecordProperties
+                            }
                           }
-                        }
-                      },
-                  required: mutation ? [...data.required!, "dryRun"] : ["records"]
-                }
-              ]
+                        },
+                    required: mutation ? [...data.required!, "dryRun"] : ["records"]
+                  }
+                ]
+              }
             }
           }
         }
-      }
-    ];
-  })
+      ];
+    }
+  )
 );
 
 export const textGetSchema = {

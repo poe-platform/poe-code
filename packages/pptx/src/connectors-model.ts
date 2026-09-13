@@ -37,6 +37,9 @@ export class Connector {
           ...(update.lineColor === undefined ? {} : { lineColor: update.lineColor }),
           ...(update.lineWidth === undefined ? {} : { lineWidth: update.lineWidth })
         });
+      },
+      (transform) => {
+        this.#xml = transform(this.#xml, this.element);
       }
     );
   }

@@ -1998,3 +1998,40 @@ The full inventory also assigns **126 resource failures** to this task as second
 Execution source fingerprint **`fc66620e5e52017f7c02257f3fbf2760d4c13b6da69cfcf2e270931f0a69d015`**, parent `eece392d0...` plus the preserved working tree and no-initializer repair; Node **22.23.2 / ICU 78.2**. A fresh post-run source comparison matches. Eight additional minimal counterexample/neighbor pairs reproduce unresolved semantic groups; they remain unrepaired. Both repaired CLI outputs were captured with the maintained screenshot script and visually inspected. The two original-context repair selections cover **17 previously failing variants plus 17 original controls**, separately reported at their exact revisions; selections at different fingerprints are not merged into a synthetic current-source pass.
 
 **Acceptance is incomplete:** 193 earlier primary-owner nonpasses (including visible extension/oracle dispositions), 126 current resource nonpasses, further focused-owner reconciliation and full runtime/recovery/artifact gates remain open. Local commits do not establish remote delivery or publication. No task push or release has occurred.
+
+
+### qualify-language-semantics — BigInt patterns and optional-chain early errors, 2026-09-13
+
+**Acceptance remains incomplete.** The complete V4 report's manifest, aggregate
+and mismatch-inventory hashes were independently reverified; all match the
+recorded receipt. The edition target and upstream revision are unchanged.
+[BigInt-pattern repair and exact evidence](qualify-language-semantics/bigint-pattern-key.md)
+is local commit `25dc53f1f`: five independent red cases, 76 final focused passes,
+then **3/3 original-context variants**, including both recorded failures.
+Candidate source fingerprint `b816e62f16eb1619c39062c88407ae421a271c534285b874ee418887e1a0ca6a`.
+Two source-changing upstream attempts remain explicitly aborted nonpasses.
+
+[Optional-chain template repair and exact evidence](qualify-language-semantics/optional-chain-template.md)
+starts at that commit: six independent red cases, 73 final focused passes,
+then **12/12 original-context variants**, including all eight recorded failures.
+Candidate fingerprint `566450c0e5ebfdf4395137a635689b13616e79b8a3a1c199c4976c2eee710c42`.
+Both candidates use Node 22.23.2 / ICU 78.2; targeted lint and maintained workspace
+builds pass. Each includes repeated pending/completed replay and CLI/SDK checks.
+BigInt dynamic-source controls retain closure state and absent host authority.
+Both CLI outputs were captured and visually inspected. Optional-chain rejection
+exposes an unresolved trailing-newline caret-placement interaction.
+
+Three prior minimal diagnostic reductions (arguments and ordinary/async generator
+creation) agree with their own native controls and do not validate their stated
+expected values. Their original upstream failures stay unresolved pending exact
+clause/context qualification; they are not converted to passes.
+
+**Remaining:** 183 prior primary-owner nonpasses, before edition/extension
+qualification, plus 126 previously reproduced secondary resource nonpasses;
+other-owner reconciliation, full runtime/artifact gates, saved-source origins
+and the observed caret display gap. No full-suite success is inferred. Budget,
+deadline, assertion, runtime support, isolation and replay contracts are unchanged.
+Unrelated working and staged changes are preserved. **Local commits exist;
+verified remote-main delivery and successful release/publication have not been
+performed for these fixes.** No push was requested and no task release receipt
+exists. The atomic optional-chain commit is identified by this section's history.

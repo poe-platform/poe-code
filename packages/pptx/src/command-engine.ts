@@ -32,6 +32,8 @@ import { readImages } from "./images.js";
 import { extractImages, type ExtractedImage } from "./image-extraction.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
 import { setImage, type SetImageOptions } from "./image-formatting.js";
+import { readMedia } from "./media.js";
+import { mediaSchemas, mediaUsage } from "./media-schema.js";
 import { imageSchemas } from "./images-schema.js";
 import { readCharts } from "./charts.js";
 import { chartSchemas } from "./charts-schema.js";
@@ -455,6 +457,8 @@ interface Arguments {
     | "text.runs.list"
     | "inspect"
     | "images.extract"
+    | "media.list"
+    | "media.get"
     | "images.list"
     | "charts.list"
     | "charts.get"
@@ -814,6 +818,7 @@ function parse(
       [
         "equations",
         "charts",
+        "media",
         "images",
         "tables",
         "connectors",
@@ -881,6 +886,7 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "media",
     "equations",
     "charts",
     "images",
@@ -909,6 +915,7 @@ function parse(
         : command;
   if (
     ![
+      ...Object.keys(mediaSchemas),
       ...Object.keys(imageSchemas),
       ...Object.keys(equationSchemas),
       ...Object.keys(chartSchemas),
@@ -965,7 +972,8 @@ function parse(
       continue;
     }
     if (
-      (operation.startsWith("images.") ||
+      (operation.startsWith("media.") ||
+        operation.startsWith("images.") ||
         operation.startsWith("equations.") ||
         operation.startsWith("charts.") ||
         operation.startsWith("tables.") ||
@@ -2377,6 +2385,32 @@ function parse(
       usage("Binary stdout cannot be combined with JSON.");
     return result;
   }
+  if (Object.hasOwn(mediaSchemas, operation)) {
+    const allowed = ["--json", "--limit", "--scope", "--slide", "--shape", "--select"];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to media inspection.");
+    if (positionals.length !== 1 || !positionals[0])
+      usage("Media inspection requires exactly one input.");
+    if (
+      result.scope !== undefined &&
+      ![
+        "slides",
+        "layouts",
+        "masters",
+        "notes",
+        "notes-master",
+        "handout-master",
+        "shared"
+      ].includes(result.scope)
+    )
+      usage("Unsupported media scope.");
+    if (result.token && ["--slide", "--shape", "--scope"].some((option) => seen.has(option)))
+      usage("Opaque and simple selectors cannot be combined.");
+    if (result.shape !== undefined && result.slide === undefined)
+      usage("Shape selection requires an owning slide.");
+    result.input = positionals[0];
+    return result;
+  }
   if (operation === "charts.list" || operation === "charts.get") {
     const allowed = ["--json", "--limit", "--scope", "--slide", "--shape", "--select"];
     if ([...seen].some((option) => !allowed.includes(option)))
@@ -3142,6 +3176,7 @@ function parse(
     if (
       (operation === "schema" || operation === "help") &&
       [
+        ...Object.keys(mediaSchemas),
         ...Object.keys(imageSchemas),
         ...Object.keys(equationSchemas),
         ...Object.keys(chartSchemas),
@@ -3558,6 +3593,7 @@ async function execute(
                             "No field evaluation, automatic numbering or inherited-content flattening.\n" +
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
+      if (args.schemaPath?.startsWith("media.")) resolvedUsage = mediaUsage;
       if (args.schemaPath === "images.set")
         resolvedUsage =
           "Usage: pptx images set INPUT [--slide N --image N | --select TOKEN] [options]\n" +
@@ -3645,6 +3681,7 @@ async function execute(
           Object.entries({
             ...imageSchemas,
             ...chartSchemas,
+            ...mediaSchemas,
             ...equationSchemas,
             ...fieldSchemas,
             ...membershipSchemas,
@@ -3851,6 +3888,12 @@ async function execute(
             subset:
               "Explicit slide or group coordinates; distinct siblings; hidden objects participate and locked selections reject. Stable drawing order resolves ties. Alignment uses selection bounds, distribution preserves endpoints with equal edge gaps, and duplication requires signed offsets with fresh IDs and supported reference remapping. Unsupported geometry or references reject without publication."
           },
+          media: {
+            level: "inspect",
+            operations: Object.keys(mediaSchemas),
+            subset:
+              "Embedded and linked audio/video, hashes, posters, playback metadata, captions and timing associations. External targets remain inert. Metadata parsing does not prove playback. Editing, extraction and playback are unavailable."
+          },
           equations: {
             level: "edit",
             operations: Object.keys(equationSchemas),
@@ -3872,7 +3915,41 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (Object.hasOwn(equationSchemas, args.operation)) {
+    else if (Object.hasOwn(mediaSchemas, args.operation)) {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const inventory = await readMedia(
+        bytes,
+        {
+          ...(args.scope === undefined ? {} : { scope: args.scope }),
+          ...(args.slide === undefined ? {} : { slide: args.slide }),
+          ...(args.shape === undefined ? {} : { shape: args.shape }),
+          ...(args.token === undefined ? {} : { select: args.token })
+        },
+        context
+      );
+      if (args.operation === "media.get" && inventory.occurrences.length !== 1)
+        throw new SelectionError(
+          inventory.occurrences.length ? "ambiguous-selection" : "missing-selection",
+          inventory.occurrences.map((item) => item.location)
+        );
+      result = {
+        ...success(operation, inventory),
+        locations: inventory.occurrences.map((item) => item.location)
+      };
+      human =
+        `Media occurrences: ${inventory.occurrences.length}\n` +
+        inventory.occurrences
+          .map(
+            (item) =>
+              `${item.kind} ${JSON.stringify(item.shapeName ?? item.sourcePart)}: ${item.relationships.filter((edge) => !edge.external).length} embedded, ${item.relationships.filter((edge) => edge.external).length} linked\n`
+          )
+          .join("") +
+        "External targets remain inert. Metadata parsing does not prove playback.\n";
+    } else if (Object.hasOwn(equationSchemas, args.operation)) {
       const equation = await executeEquationCommand(args, request, options);
       result = equation.result;
       human = equation.human;

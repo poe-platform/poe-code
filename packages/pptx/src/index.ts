@@ -403,3 +403,13 @@ export {
   type EquationRecord,
   type AddEquationOptions
 } from "./equations.js";
+
+export {
+  readMedia,
+  type ReadMediaOptions,
+  type MediaRelationship,
+  type MediaMetadata,
+  type MediaOccurrence,
+  type MediaPart,
+  type MediaInventory
+} from "./media.js";

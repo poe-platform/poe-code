@@ -1,0 +1,174 @@
+{
+  "input": ".cache/pptx-corpus/earth-system-media-large.pptx",
+  "bytes": 457525505,
+  "expectedSha256": "f1129e557eed26e1b84aaf3f1f422449ecb7b4e60c8f99dad42fceefeb1097a1",
+  "actualSha256": "f1129e557eed26e1b84aaf3f1f422449ecb7b4e60c8f99dad42fceefeb1097a1",
+  "productQa": "small_deck_passed_large_deck_limit_rejected",
+  "parts": [
+    {
+      "part": "ppt/media/media1.mp4",
+      "bytes": 453608531,
+      "expectedSha256": "f8ba554172faba15a61ed429cc40f30c78adc71864ae3d157a3d3c588c8646cd",
+      "actualSha256": "f8ba554172faba15a61ed429cc40f30c78adc71864ae3d157a3d3c588c8646cd"
+    }
+  ],
+  "relationships": [
+    {
+      "part": "ppt/slides/_rels/slide1.xml.rels",
+      "Id": "rId2",
+      "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/video",
+      "Target": "../media/media1.mp4"
+    },
+    {
+      "part": "ppt/slides/_rels/slide1.xml.rels",
+      "Id": "rId1",
+      "Type": "http://schemas.microsoft.com/office/2007/relationships/media",
+      "Target": "../media/media1.mp4"
+    }
+  ],
+  "slideMedia": [
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/drawingml/2006/main}videoFile",
+      "attributes": {
+        "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}link": "rId2"
+      }
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.microsoft.com/office/powerpoint/2010/main}media",
+      "attributes": {
+        "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed": "rId1"
+      }
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}stCondLst",
+      "attributes": {}
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}stCondLst",
+      "attributes": {}
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}stCondLst",
+      "attributes": {}
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}spTgt",
+      "attributes": {
+        "spid": "4"
+      }
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}video",
+      "attributes": {}
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}cMediaNode",
+      "attributes": {
+        "vol": "80000"
+      }
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}stCondLst",
+      "attributes": {}
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}spTgt",
+      "attributes": {
+        "spid": "4"
+      }
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}stCondLst",
+      "attributes": {}
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}spTgt",
+      "attributes": {
+        "spid": "4"
+      }
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}stCondLst",
+      "attributes": {}
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}stCondLst",
+      "attributes": {}
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}stCondLst",
+      "attributes": {}
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}spTgt",
+      "attributes": {
+        "spid": "4"
+      }
+    },
+    {
+      "part": "ppt/slides/slide1.xml",
+      "name": "{http://schemas.openxmlformats.org/presentationml/2006/main}spTgt",
+      "attributes": {
+        "spid": "4"
+      }
+    }
+  ],
+  "smallDeckQa": {
+    "input": ".cache/pptx-corpus/IXPE-Presentation-Template.pptx",
+    "result": {
+      "occurrences": [],
+      "media": [],
+      "playbackVerified": false
+    },
+    "limits": {
+      "limits": {
+        "maxBytes": 33554432,
+        "maxReads": 10000,
+        "chunkBytes": 65536
+      },
+      "archiveLimits": {
+        "maxArchiveBytes": 33554432,
+        "maxEntryBytes": 16777216,
+        "maxTotalBytes": 67108864,
+        "maxMembers": 5000,
+        "maxPathBytes": 1024,
+        "maxDepth": 64,
+        "maxPaxBytes": 65536,
+        "maxTextBytes": 8388608,
+        "chunkSize": 65536
+      },
+      "xmlLimits": {
+        "maxBytes": 8388608,
+        "maxNodes": 500000,
+        "maxDepth": 256
+      },
+      "relationshipLimits": {
+        "maxBytes": 8388608,
+        "maxParts": 5000,
+        "maxRelationships": 10000
+      }
+    }
+  },
+  "largeDeckQa": {
+    "status": "limit-rejected",
+    "code": "resource-limit",
+    "explicitByteLimit": 33554432,
+    "elevatedInventory": "not-run: 5.3 GB free memory observed; repeated full byte admission/package/index copies for a 457.5 MB input would leave insufficient safety margin during concurrent checks. Streaming independent QA verified all media hashes and both bindings; no product playback or large-deck inventory success claimed."
+  }
+}

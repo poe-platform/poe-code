@@ -106,7 +106,16 @@ export async function replacePresentationText(
   };
   validateTextReadingOptions(reading);
   const state = await loadShared(input, context);
-  const bodies = await readTextBodies(state.source, reading, context);
+  const bodies = await readTextBodies(state.source, reading, context).catch((error: unknown) => {
+    if (
+      options.allowEmpty &&
+      options.select?.token === undefined &&
+      error instanceof SelectionError &&
+      error.code === "missing-selection"
+    )
+      return [];
+    throw error;
+  });
   type Piece = { text: string; replacement: boolean };
   const edits = new Map<string, { document: XmlPart; values: Map<XmlElement, Piece[]> }>();
   const locations: Location[] = [];

@@ -1,7 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { SaxesParser } from "saxes";
 import { Volume } from "memfs";
-import { createPresentation, replacePresentationText, readPresentationText } from "./index.js";
+import {
+  createPresentation,
+  replacePresentationText,
+  readPresentationText,
+  readSelectionIndex
+} from "./index.js";
 import { writePackageArchive } from "./package-writer.js";
 import { inspectZip } from "../tests/zip-reader.js";
 const context = {
@@ -328,4 +333,99 @@ it("replaces combining and emoji sequences across mixed-script runs while preser
   expect((await readPresentationText(result.bytes, {}, context)).text).toBe(
     "مَرْحَبًا Å 🧑🏾‍🔬 日本語"
   );
+});
+
+describe("empty simple text selections", () => {
+  it.each([
+    {
+      select: {
+        kind: "slide" as const,
+        position: { coordinateSystem: "one-based" as const, value: 9 }
+      }
+    },
+    {
+      select: {
+        kind: "slide" as const,
+        position: { coordinateSystem: "one-based" as const, value: 1 }
+      },
+      shape: "Absent"
+    }
+  ])("requires explicit empty intent for %j", async (selection) => {
+    const source = await fixture(`<a:p>${run("seed")}</a:p>`);
+    for (const cardinality of [
+      { first: true as const },
+      { all: true as const },
+      { occurrence: 2 }
+    ]) {
+      const options = { find: "seed", with: "sprout", ...selection, ...cardinality };
+      await expect(replacePresentationText(source, options, context)).rejects.toMatchObject({
+        code: "missing-selection"
+      });
+      const result = await replacePresentationText(
+        source,
+        { ...options, allowEmpty: true },
+        context
+      );
+      expect(result).toEqual({ bytes: source, affected: 0, locations: [] });
+    }
+  });
+  it("does not suppress invalid positions or ambiguous labels", async () => {
+    const source = await createPresentation(
+      {
+        slides: [
+          {
+            shapes: [
+              { name: "Caption", x: 0, y: 0, width: 100, height: 100, text: "seed" },
+              { name: "Caption", x: 0, y: 0, width: 100, height: 100, text: "seed" }
+            ]
+          }
+        ]
+      },
+      context
+    );
+    for (const [value, shape, code] of [
+      [0, undefined, "invalid-selection"],
+      [0.5, undefined, "invalid-selection"],
+      [1, "Caption", "ambiguous-selection"]
+    ] as const) {
+      await expect(
+        replacePresentationText(
+          source,
+          {
+            find: "seed",
+            with: "sprout",
+            all: true,
+            allowEmpty: true,
+            select: { kind: "slide", position: { coordinateSystem: "one-based", value } },
+            ...(shape === undefined ? {} : { shape })
+          },
+          context
+        )
+      ).rejects.toMatchObject({ code });
+    }
+  });
+});
+
+it("keeps missing and stale fingerprint token failures with empty replacement intent", async () => {
+  const source = await fixture(`<a:p>${run("seed")}</a:p>`);
+  const index = await readSelectionIndex(source, context);
+  for (const [changes, code] of [
+    [{ objectId: "999" }, "missing-selection"],
+    [{ fingerprint: "0".repeat(64) }, "stale-selection"]
+  ] as const) {
+    const token = JSON.stringify({ ...index.objects[0]!.location, ...changes });
+    await expect(
+      replacePresentationText(
+        source,
+        {
+          find: "seed",
+          with: "sprout",
+          first: true,
+          allowEmpty: true,
+          select: { token }
+        },
+        context
+      )
+    ).rejects.toMatchObject({ code });
+  }
 });

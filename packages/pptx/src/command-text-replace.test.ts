@@ -5,6 +5,7 @@ import { createPresentation } from "./creation.js";
 import { inspectZip } from "../tests/zip-reader.js";
 import { storedArchive } from "../tests/fixtures/archive.js";
 import { getXmlPart } from "./xml-parts.js";
+import { readSelectionIndex } from "./index.js";
 import { readPresentationText } from "./text-reading.js";
 import { createPptxCommandEngine, type PptxPublicationRequest } from "./command-engine.js";
 
@@ -342,3 +343,121 @@ describe("literal replacement commands", () => {
     expect(compileJsonSchema(schema.result).validate(JSON.parse(decode(out.stdout))).ok).toBe(true);
   });
 });
+
+it.each([
+  ["--slide", "9"],
+  ["--slide", "1", "--shape", "Absent"]
+])(
+  "allows an explicitly empty simple selection %j without publishing a dry run",
+  async (...selection) => {
+    const f = await fixture();
+    for (const cardinality of [["--first"], ["--all"], ["--occurrence", "2"]]) {
+      const args = [
+        "text",
+        "replace",
+        "/deck.pptx",
+        ...selection,
+        "--find",
+        "雪",
+        "--with",
+        "海",
+        ...cardinality,
+        "--dry-run",
+        "--json"
+      ];
+      const missing = await f.run(args);
+      expect(missing.exitCode).toBe(1);
+      expect(JSON.parse(decode(missing.stdout)).errors[0].code).toBe("missing-selection");
+      const allowed = await f.run([...args, "--allow-empty"]);
+      expect(allowed.exitCode, decode(allowed.stdout)).toBe(0);
+      expect(JSON.parse(decode(allowed.stdout))).toMatchObject({
+        operation: "text.replace",
+        ok: true,
+        affected: 0,
+        locations: []
+      });
+    }
+    expect(f.publishOutput).not.toHaveBeenCalled();
+    expect(new Uint8Array(f.volume.readFileSync("/deck.pptx") as Buffer)).toEqual(f.bytes);
+  }
+);
+
+it("preserves fingerprint failures with empty intent through the command", async () => {
+  const f = await fixture();
+  const index = await readSelectionIndex(f.bytes, context);
+  for (const [changes, code] of [
+    [{ objectId: "999" }, "missing-selection"],
+    [{ fingerprint: "0".repeat(64) }, "stale-selection"]
+  ] as const) {
+    const token = JSON.stringify({ ...index.objects[0]!.location, ...changes });
+    const result = await f.run([
+      "text",
+      "replace",
+      "/deck.pptx",
+      "--select",
+      token,
+      "--find",
+      "雪",
+      "--with",
+      "海",
+      "--first",
+      "--allow-empty",
+      "--dry-run",
+      "--json"
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(decode(result.stdout)).errors[0].code).toBe(code);
+  }
+  expect(f.publishOutput).not.toHaveBeenCalled();
+});
+
+it("publishes the original bytes for an explicitly empty simple selection", async () => {
+  const f = await fixture();
+  const result = await f.run([
+    "text",
+    "replace",
+    "/deck.pptx",
+    "--slide",
+    "1",
+    "--shape",
+    "Absent",
+    "--find",
+    "雪",
+    "--with",
+    "海",
+    "--all",
+    "--allow-empty",
+    "--output",
+    "/out.pptx",
+    "--json"
+  ]);
+  expect(result.exitCode, decode(result.stdout)).toBe(0);
+  expect(JSON.parse(decode(result.stdout))).toMatchObject({ ok: true, affected: 0, locations: [] });
+  expect(new Uint8Array(f.volume.readFileSync("/out.pptx") as Buffer)).toEqual(f.bytes);
+  expect(new Uint8Array(f.volume.readFileSync("/deck.pptx") as Buffer)).toEqual(f.bytes);
+});
+
+it.each(["0", "0.5"])(
+  "rejects malformed slide position %s despite empty intent before reading",
+  async (slide) => {
+    const f = await fixture();
+    const result = await f.run([
+      "text",
+      "replace",
+      "/deck.pptx",
+      "--slide",
+      slide,
+      "--find",
+      "雪",
+      "--with",
+      "海",
+      "--first",
+      "--allow-empty",
+      "--dry-run",
+      "--json"
+    ]);
+    expect(result.exitCode).toBe(2);
+    expect(f.readInput).not.toHaveBeenCalled();
+    expect(f.publishOutput).not.toHaveBeenCalled();
+  }
+);

@@ -1,0 +1,129 @@
+{
+  "milestone": "workspace-foundation",
+  "scope": "Original byte transport and common type contracts; no document engine or CLI",
+  "accounting": {
+    "unitRows": 2700,
+    "bddRows": 973,
+    "apiInventoryRows": 2407,
+    "apiMapRows": 2424,
+    "exactSourcePointerIdentityAndLineJoin": true,
+    "allApiIdentitiesRetained": true,
+    "sourceCasesNewlyClaimedImplemented": 0
+  },
+  "transportAcceptance": {
+    "file": "packages/pptx/src/bytes.test.ts",
+    "cases": 21,
+    "origin": "original TypeScript byte/security boundary cases",
+    "documentCaseEquivalenceClaimed": false
+  },
+  "corpus": {
+    "documents": 14,
+    "downloaded": false,
+    "shipped": false,
+    "usedByUnitTests": false
+  },
+  "sourceInputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "39b73324f5e174ee3070f8537ff78c6cfe9222a8eb7f2a6697924903adbe07e9"
+    },
+    {
+      "path": "docs/specs/pptx.md",
+      "sha256": "d907f73d3fcf8b608d8ddd404654b3f87ac1fc236c40f0ed5cd429f61cd82e8f"
+    },
+    {
+      "path": "docs/specs/office-cli.md",
+      "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
+    },
+    {
+      "path": "docs/specs/office-sdk.md",
+      "sha256": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9"
+    },
+    {
+      "path": "docs/pptx/upstream-test-audit.md",
+      "sha256": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b"
+    },
+    {
+      "path": "docs/pptx/upstream-test-inventory.json",
+      "sha256": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d"
+    },
+    {
+      "path": "docs/pptx/upstream-api-audit.md",
+      "sha256": "8e755f16aff69fe329f78d640de6a0254af14b27396f1abce5c56740e7d3c5ec"
+    },
+    {
+      "path": "docs/pptx/upstream-api-inventory.json",
+      "sha256": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934"
+    },
+    {
+      "path": "docs/pptx/test-case-map.json",
+      "sha256": "e9f113b5aee839dfe34353f2db726885eb0226bedb90798bb5718e133bd37706"
+    },
+    {
+      "path": "docs/pptx/public-api-map.json",
+      "sha256": "705907588d468a7711a8451a74a578ca24dc247e3bcbe88ea894bc099d2e0340"
+    },
+    {
+      "path": "docs/pptx/api-language-mappings.md",
+      "sha256": "e5a68d5bfcea65bff45cc876cde12081e8fd86b689e69acc47cb5dcffde5bf2d"
+    },
+    {
+      "path": "docs/pptx/corpus-manifest.json",
+      "sha256": "f4c740aa929eb714b4b83ec63cb7d3641f278d5dffbc4c81303e02aee237169f"
+    },
+    {
+      "path": "docs/pptx/architecture.md",
+      "sha256": "dc7a1cb440b33c5df37262e3d5f25e4777b34ad31be5a5e2be645f22630010ba"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/archive/zip-format.ts",
+      "sha256": "448cab6d21012354e1e9a45e5a9e68074fb3b235ab85d2df557fc5bda646c066"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/bytes/compression/codec.ts",
+      "sha256": "fc42a42aa7182ed2549763fd9c3b9978cda1248a2019a66b29596598a3b9e3c8"
+    },
+    {
+      "path": "packages/safe-fs/src/xml.ts",
+      "sha256": "af8c41a39b4af8128c0086958bb5d0c7151121d370266508b9978021268b45ca"
+    }
+  ],
+  "limitations": [
+    "Shared contract and baseline test audit inputs included pre-existing untracked files; receipt does not commit them.",
+    "No full API or format conformance claimed.",
+    "No source ledger dispositions changed."
+  ],
+  "validation": {
+    "maintainedBuild": "npm run build:workspaces -- --workspace=pptx: passed",
+    "unit": "npm test --workspace=pptx: 80 passed in 4 files; 21 original transport, 1 type-contract, 58 existing fixture/assertion cases",
+    "lint": "npm run lint --workspace=pptx: ESLint, strict source and test type checks passed",
+    "testOwnership": "Maintained workspace selection owns packages/pptx/** exactly once",
+    "packedConsumer": {
+      "declarations": "strict NodeNext consumer passed, including negative type assertions",
+      "conditions": ["default", "browser", "workerd"],
+      "host": "Node.js 22.23.2",
+      "nativeBrowserOrWorkerdExecuted": false,
+      "files": [
+        "LICENSE",
+        "dist/bytes.d.ts",
+        "dist/bytes.js",
+        "dist/contracts.d.ts",
+        "dist/contracts.js",
+        "dist/errors.d.ts",
+        "dist/errors.js",
+        "dist/index.d.ts",
+        "dist/index.js",
+        "package.json"
+      ],
+      "imports": {
+        "bytes": ["./errors.js"],
+        "contracts": [],
+        "errors": [],
+        "index": ["./errors.js"]
+      },
+      "sha256": "0f4fd0c894016463eee4ec1974f0577c14499be79752663d9b8db4cb705fc90a"
+    },
+    "cli": "Not exposed in this milestone; no visual surface changed",
+    "remote": "No push or release"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "source": "const read=Function(\"eval('delete x;var x');return ()=>{try{return x}catch(e){return e.name}}\")();await 0;return [read(),Object.hasOwn(globalThis,\"x\")];",
+  "results": [
+    {
+      "node": "v18.18.0",
+      "icu": "73.2",
+      "original": [
+        "ReferenceError",
+        false
+      ],
+      "replay": [
+        "ReferenceError",
+        false
+      ]
+    },
+    {
+      "node": "v22.23.2",
+      "icu": "78.2",
+      "original": [
+        "ReferenceError",
+        false
+      ],
+      "replay": [
+        "ReferenceError",
+        false
+      ]
+    },
+    {
+      "node": "v24.14.0",
+      "icu": "78.2",
+      "original": [
+        "ReferenceError",
+        false
+      ],
+      "replay": [
+        "ReferenceError",
+        false
+      ]
+    }
+  ]
+}

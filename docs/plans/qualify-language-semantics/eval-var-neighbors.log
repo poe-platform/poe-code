@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/globals/dynamic-arguments-var.test.ts (17 tests) 727ms
+ ✓ packages/safe-js/src/interp/var-environment.test.ts (23 tests) 1394ms
+ ✓ packages/safe-js/src/snapshot/exception-function-hoisting.test.ts (6 tests) 616ms
+ ✓ packages/safe-js/src/parse/loop-var-conflicts.test.ts (17 tests) 13ms
+ ✓ packages/safe-js/src/interp/exception-function-hoisting.test.ts (7 tests) 168ms
+
+ Test Files  5 passed (5)
+      Tests  70 passed (70)
+   Start at  09:43:24
+   Duration  3.87s (transform 2.68s, setup 97ms, import 4.23s, tests 2.92s, environment 0ms)
+

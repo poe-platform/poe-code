@@ -1556,8 +1556,7 @@ async function evaluateVariableDeclaration(
     if (
       node.kind === "var" &&
       declarator.init === undefined &&
-      declarator.id.type === "Identifier" &&
-      context.scope.lookup(declarator.id.name).found
+      declarator.id.type === "Identifier"
     ) {
       continue;
     }

@@ -116,8 +116,10 @@ CLI command:
 node packages/safe-js/dist/cli.js docs/plans/qualify-language-semantics/eval-deleted-smoke.ajs
 ```
 
-No CLI rendering or visual-language code changed. This is behavioral parity,
-not screenshot or complete CLI certification. No full package/repository gate,
+No CLI rendering or visual-language code changed. A later combined-source
+[screenshot](eval-deleted-cli.png) was captured with the maintained screenshot
+script and visually inspected: the complete command and successful JSON result
+are readable. This is bounded behavioral/visual parity, not complete CLI certification. No full package/repository gate,
 full supported-runtime matrix or installed-release claim is made.
 
 ## Remaining scope and delivery

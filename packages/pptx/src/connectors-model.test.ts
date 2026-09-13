@@ -72,3 +72,54 @@ it("retains a live line format and mutable connector name in drawing XML", () =>
   line.width = null;
   expect(line.width.emu).toBe(0);
 });
+
+it("publishes connector mutations through a shared drawing owner and resolves current targets", () => {
+  let xml = drawing();
+  const owner = {
+    read: () => xml,
+    write: (value: typeof xml) => {
+      xml = value;
+    }
+  };
+  const connector = new Connector(xml, 3, owner);
+  const sibling = new Connector(xml, 3, owner);
+  const target = {
+    get element() {
+      return xml.root.children[0]!.children[0]!.children[0]!;
+    }
+  };
+  connector.begin_connect(target, 1);
+  sibling.end_connect(target, 2);
+  expect([
+    connector.begin_x.emu,
+    connector.begin_y.emu,
+    connector.end_x.emu,
+    connector.end_y.emu
+  ]).toEqual([100, 220, 140, 240]);
+  sibling.name = "Shared route";
+  expect(connector.name).toBe("Shared route");
+  const line = connector.line;
+  sibling.rotation = 15;
+  line.width = new Emu(100);
+  expect(sibling.line.width.emu).toBe(100);
+  expect(connector.rotation).toBe(15);
+});
+
+it.each([-1, 0.5, NaN, Infinity, 4])(
+  "rejects invalid binding site %s without publishing",
+  (site) => {
+    let xml = drawing();
+    const owner = {
+      read: () => xml,
+      write: (value: typeof xml) => {
+        xml = value;
+      }
+    };
+    const connector = new Connector(xml, 3, owner);
+    const before = xml;
+    const target = { element: xml.root.children[0]!.children[0]!.children[0]! };
+    expect(() => connector.begin_connect(target, site)).toThrow();
+    expect(() => connector.end_connect(target, site)).toThrow();
+    expect(xml).toBe(before);
+  }
+);

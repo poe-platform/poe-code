@@ -321,6 +321,21 @@ export function applyShapeUpdate(
   validateShapeOptions(options);
   if (
     node.name.localName !== "sp" &&
+    Object.keys(options).length &&
+    Object.keys(options).every((key) => ["name", "title", "description", "altText"].includes(key))
+  ) {
+    const identity = nv(node);
+    const properties = identity && child(identity, "cNvPr");
+    if (!properties) unsupported("Shape identity is required for metadata edits.");
+    return document.merge(properties, {
+      attributes: Object.entries(options).map(([key, value]) => ({
+        namespace: "",
+        localName: key === "description" || key === "altText" ? "descr" : key,
+        value: value as string | null
+      }))
+    });
+  }  if (
+    node.name.localName !== "sp" &&
     (!["pic", "cxnSp", "graphicFrame", "grpSp"].includes(node.name.localName) ||
       Object.keys(options).some(
         (key) =>
@@ -582,13 +597,23 @@ export function createShapeXml(
   return doc.markup(doc.root, true);
 }
 export class Shape {
-  #xml: XmlPart;
-  #textFrame: TextFrame | undefined;
-  constructor(xml: XmlPart) {
-    if (!["sp", "grpSp"].includes(xml.root.name.localName)) invalid();
-    drawing(xml.root);
-    this.#xml = xml;
+  #snapshot: XmlPart;
+  readonly #owner: { read(): XmlPart; write(xml: XmlPart): void } | undefined;
+  get #xml(): XmlPart {
+    return this.#owner?.read() ?? this.#snapshot;
   }
+  set #xml(xml: XmlPart) {
+    if (this.#owner) this.#owner.write(xml);
+    else this.#snapshot = xml;
+  }  #textFrame: TextFrame | undefined;
+  constructor(xml: XmlPart, owner?: { read(): XmlPart; write(xml: XmlPart): void }) {
+    if (
+      !["sp", "grpSp"].includes(xml.root.name.localName) &&
+      (new.target === Shape || !["pic", "graphicFrame"].includes(xml.root.name.localName))
+    )
+      invalid();    drawing(xml.root);
+    this.#snapshot = xml;
+    this.#owner = owner;  }
   get xml() {
     return this.#xml;
   }
@@ -763,6 +788,7 @@ export class Shape {
     return false;
   }
   get has_table() {
+    readShape(this.element);
     return false;
   }
   get text() {

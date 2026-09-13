@@ -1,3 +1,5 @@
+import { shapeOwnerTokens } from "./shape-owner-token.js";
+import { readShape } from "./shapes.js";
 import { applyConnectorUpdate, readConnector } from "./connectors.js";
 import { OfficeError, ValueError } from "./errors.js";
 import { Length } from "./length.js";
@@ -7,12 +9,25 @@ import { PP_PLACEHOLDER_TYPE } from "./shape-placeholder-types.js";
 import type { XmlElement, XmlPart } from "./xml.js";
 
 export class Connector {
-  #xml: XmlPart;
+  #snapshot: XmlPart;
+  readonly #owner: { read(): XmlPart; write(xml: XmlPart): void } | undefined;
+  get #xml(): XmlPart {
+    return this.#owner?.read() ?? this.#snapshot;
+  }
+  set #xml(xml: XmlPart) {
+    if (this.#owner) this.#owner.write(xml);
+    else this.#snapshot = xml;
+  }
   readonly #id: string;
   #shadow: ShadowFormat | undefined;
 
-  constructor(xml: XmlPart, shapeId?: number) {
-    this.#xml = xml;
+  constructor(
+    xml: XmlPart,
+    shapeId?: number,
+    owner?: { read(): XmlPart; write(xml: XmlPart): void }
+  ) {
+    this.#snapshot = xml;
+    this.#owner = owner;
     this.#id = String(shapeId ?? readConnector(xml.root).shapeId);
     readConnector(this.element);
   }
@@ -150,6 +165,13 @@ export class Connector {
   set rotation(value: number) {
     this.#xml = applyShapeUpdate(this.#xml, this.element, { rotation: value });
   }
+  #target(shape: { readonly element: XmlElement; readonly xml?: XmlPart }): XmlElement {
+    const element = shape.element;
+    const xml = shape.xml;
+    if (this.#owner && xml && shapeOwnerTokens.get(xml) === this.#owner && xml.root === element)
+      return nodeFor(this.#xml.root, String(readShape(element).shapeId));
+    return element;
+  }
   begin_connect(shape: { readonly element: XmlElement }, connectionSiteIdx: number): void {
     if (!shape || typeof shape !== "object" || !shape.element)
       throw new OfficeError("invalid-value", "A current target XML view is required.", "usage");
@@ -157,7 +179,7 @@ export class Connector {
       this.#xml,
       this.element,
       { site: connectionSiteIdx },
-      { begin: shape.element }
+      { begin: this.#target(shape) }
     );
   }
   end_connect(shape: { readonly element: XmlElement }, connectionSiteIdx: number): void {
@@ -167,7 +189,7 @@ export class Connector {
       this.#xml,
       this.element,
       { site: connectionSiteIdx },
-      { end: shape.element }
+      { end: this.#target(shape) }
     );
   }
 }

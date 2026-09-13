@@ -909,7 +909,13 @@
       "family": "Custom geometry",
       "requiredSubset": "Inspect/preserve arbitrary path geometry; create/edit a documented bounded path subset; reject unsupported formulas",
       "status": "implemented_bounded_subset",
-      "operationIds": ["inspect", "shapes.paths.list", "shapes.paths.get", "shapes.paths.add", "shapes.paths.set"],
+      "operationIds": [
+        "inspect",
+        "shapes.paths.list",
+        "shapes.paths.get",
+        "shapes.paths.add",
+        "shapes.paths.set"
+      ],
       "currentImplementation": {
         "authority": "docs/specs/pptx.md#c-shapepath",
         "usage": "docs/pptx/paths-usage.md",
@@ -919,7 +925,12 @@
         "supersedes": "Historical proposed shapes.paths add/set argument rows below: the current direct schema accepts either ShapePath or object vertices with explicit boolean close; add also requires explicit placement. List/get are read-only. Common selected scopes include slides/layouts/masters/shared with part selectors. Batch and full freeform model remain proposed.",
         "subset": "Literal local EMU move/line/quadratic/cubic/close commands; maximum 4096 commands and coordinate magnitude 2147483647; positive viewport; preserved command order and explicit closure. Unsupported existing geometry/formulas are inspect/preserve-only and replacement fails.",
         "sdk": ["addShapePath", "setShapePath", "readShapePaths"],
-        "tests": ["packages/pptx/src/shape-paths.test.ts", "packages/pptx/src/shape-path-security.test.ts", "packages/pptx/src/path-behavior-cases.test.ts", "packages/pptx/src/command-paths.test.ts"]
+        "tests": [
+          "packages/pptx/src/shape-paths.test.ts",
+          "packages/pptx/src/shape-path-security.test.ts",
+          "packages/pptx/src/path-behavior-cases.test.ts",
+          "packages/pptx/src/command-paths.test.ts"
+        ]
       },
       "levels": ["read", "edit", "preserve"],
       "inspection": {
@@ -1420,20 +1431,12 @@
         "text.frames.set",
         "text.replace"
       ],
-      "levels": [
-        "read",
-        "edit",
-        "preserve"
-      ],
+      "levels": ["read", "edit", "preserve"],
       "inspection": {
         "operation": "notes.list",
         "arguments": {}
       },
-      "tests": [
-        "speaker notes",
-        "notes relationship graph",
-        "safe-bash notes"
-      ],
+      "tests": ["speaker notes", "notes relationship graph", "safe-bash notes"],
       "evidence": {
         "existingProductTests": [
           "packages/pptx/src/notes.test.ts",
@@ -3668,10 +3671,7 @@
       "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
     },
     "template.apply": {
-      "path": [
-        "template",
-        "apply"
-      ],
+      "path": ["template", "apply"],
       "sdkOperationId": "template.apply",
       "version": 1,
       "status": "partial-direct-implementation",
@@ -3691,39 +3691,18 @@
         "additionalProperties": false,
         "oneOf": [
           {
-            "required": [
-              "dataFile"
-            ]
+            "required": ["dataFile"]
           },
           {
-            "required": [
-              "dataJson"
-            ]
+            "required": ["dataJson"]
           }
         ]
       },
-      "commonOptions": [
-        "json",
-        "limit",
-        "output",
-        "inPlace",
-        "force",
-        "dryRun"
-      ],
+      "commonOptions": ["json", "limit", "output", "inPlace", "force", "dryRun"],
       "commonProfile": "edit",
       "inputArity": 1,
-      "help": [
-        "pptx",
-        "help",
-        "template",
-        "apply"
-      ],
-      "schema": [
-        "pptx",
-        "schema",
-        "template",
-        "apply"
-      ],
+      "help": ["pptx", "help", "template", "apply"],
+      "schema": ["pptx", "schema", "template", "apply"],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
       "description": "Literal typed text/table/image bindings and deterministic designated-slide repetition with explicit media policy, aggregate limits and atomic publication.",
@@ -3734,12 +3713,7 @@
         "packages/pptx/src/slide-copy-media-policy.test.ts",
         "packages/safe-bash/tests/commands/pptx/template-repeat.test.ts"
       ],
-      "cli": [
-        "pptx",
-        "template",
-        "apply",
-        "INPUT"
-      ],
+      "cli": ["pptx", "template", "apply", "INPUT"],
       "flags": {
         "dataFile": "--data-file",
         "dataJson": "--data-json"
@@ -20982,10 +20956,7 @@
       "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
     },
     "slides.duplicate": {
-      "path": [
-        "slides",
-        "duplicate"
-      ],
+      "path": ["slides", "duplicate"],
       "sdkOperationId": "slides.duplicate",
       "version": 1,
       "status": "partial-direct-implementation",
@@ -20997,16 +20968,11 @@
             "$ref": "#/$defs/Position"
           },
           "mediaPolicy": {
-            "enum": [
-              "shared-media",
-              "isolated-instance"
-            ],
+            "enum": ["shared-media", "isolated-instance"],
             "default": "shared-media"
           }
         },
-        "required": [
-          "position"
-        ],
+        "required": ["position"],
         "additionalProperties": false
       },
       "commonOptions": [
@@ -21024,18 +20990,8 @@
       ],
       "commonProfile": "edit",
       "inputArity": 1,
-      "help": [
-        "pptx",
-        "help",
-        "slides",
-        "duplicate"
-      ],
-      "schema": [
-        "pptx",
-        "schema",
-        "slides",
-        "duplicate"
-      ],
+      "help": ["pptx", "help", "slides", "duplicate"],
+      "schema": ["pptx", "schema", "slides", "duplicate"],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
       "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
@@ -21044,12 +21000,7 @@
         "packages/pptx/src/slide-copy-media-policy.test.ts",
         "packages/pptx/src/command-slide-copy.test.ts"
       ],
-      "cli": [
-        "pptx",
-        "slides",
-        "duplicate",
-        "INPUT"
-      ],
+      "cli": ["pptx", "slides", "duplicate", "INPUT"],
       "flags": {
         "position": "--position",
         "mediaPolicy": "--media-policy"
@@ -182986,6 +182937,54 @@
       "tests": ["sdk.2424.1"],
       "originalTestContract": "public-api-map.json#/rows/2423/original_tests",
       "upstreamTestLeads": "public-api-map.json#/rows/2423/upstream_tests"
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.shape_offset_x",
+      "publicApiRecord": "public-api-map.json#/rows/2424",
+      "targetSignature": "readonly shape_offset_x: Length",
+      "targetMember": "shape_offset_x",
+      "kind": "property",
+      "disposition": "language-mapped",
+      "implementationStatus": "sdk_evidence_only_command_gap",
+      "mappingRules": ["J01", "J02", "J05", "J08", "J09", "J10"],
+      "bindings": [],
+      "plannedBindings": [
+        {
+          "operation": "shapes.freeform.shape_offset_x.get",
+          "status": "planned_not_registered"
+        }
+      ],
+      "gap": "SDK property evidence exists; no registered typed command or command acceptance evidence. Blocks shared CLI/SDK parity.",
+      "targetContract": "public-api-map.json#/rows/2424/target",
+      "effects": "public-api-map.json#/rows/2424/effects_by_access",
+      "errors": "public-api-map.json#/rows/2424/errors",
+      "tests": ["sdk.2425.1"],
+      "originalTestContract": "public-api-map.json#/rows/2424/original_tests",
+      "upstreamTestLeads": "public-api-map.json#/rows/2424/upstream_tests"
+    },
+    {
+      "sourceId": "pptx.shapes.freeform.FreeformBuilder.shape_offset_y",
+      "publicApiRecord": "public-api-map.json#/rows/2425",
+      "targetSignature": "readonly shape_offset_y: Length",
+      "targetMember": "shape_offset_y",
+      "kind": "property",
+      "disposition": "language-mapped",
+      "implementationStatus": "sdk_evidence_only_command_gap",
+      "mappingRules": ["J01", "J02", "J05", "J08", "J09", "J10"],
+      "bindings": [],
+      "plannedBindings": [
+        {
+          "operation": "shapes.freeform.shape_offset_y.get",
+          "status": "planned_not_registered"
+        }
+      ],
+      "gap": "SDK property evidence exists; no registered typed command or command acceptance evidence. Blocks shared CLI/SDK parity.",
+      "targetContract": "public-api-map.json#/rows/2425/target",
+      "effects": "public-api-map.json#/rows/2425/effects_by_access",
+      "errors": "public-api-map.json#/rows/2425/errors",
+      "tests": ["sdk.2426.1"],
+      "originalTestContract": "public-api-map.json#/rows/2425/original_tests",
+      "upstreamTestLeads": "public-api-map.json#/rows/2425/upstream_tests"
     }
   ],
   "collections": [
@@ -185915,14 +185914,7 @@
           {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "name",
-              "kind",
-              "scope",
-              "slide",
-              "cardinality",
-              "text"
-            ],
+            "required": ["name", "kind", "scope", "slide", "cardinality", "text"],
             "properties": {
               "name": {
                 "type": "string",
@@ -185941,10 +185933,7 @@
                 "maximum": 9007199254740991
               },
               "cardinality": {
-                "enum": [
-                  "one",
-                  "all"
-                ]
+                "enum": ["one", "all"]
               },
               "text": {
                 "type": "string",
@@ -185955,14 +185944,7 @@
           {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "name",
-              "kind",
-              "scope",
-              "slide",
-              "cardinality",
-              "table"
-            ],
+            "required": ["name", "kind", "scope", "slide", "cardinality", "table"],
             "properties": {
               "name": {
                 "type": "string",
@@ -185981,10 +185963,7 @@
                 "maximum": 9007199254740991
               },
               "cardinality": {
-                "enum": [
-                  "one",
-                  "all"
-                ]
+                "enum": ["one", "all"]
               },
               "table": {
                 "type": "array",
@@ -186005,14 +185984,7 @@
           {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "name",
-              "kind",
-              "scope",
-              "slide",
-              "cardinality",
-              "image"
-            ],
+            "required": ["name", "kind", "scope", "slide", "cardinality", "image"],
             "properties": {
               "name": {
                 "type": "string",
@@ -186031,18 +186003,12 @@
                 "maximum": 9007199254740991
               },
               "cardinality": {
-                "enum": [
-                  "one",
-                  "all"
-                ]
+                "enum": ["one", "all"]
               },
               "image": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": [
-                  "bytes",
-                  "contentType"
-                ],
+                "required": ["bytes", "contentType"],
                 "properties": {
                   "bytes": {
                     "type": "array",
@@ -263046,6 +263012,26 @@
       "act": "Pack with an unlisted neighboring file and then a wrong hash.",
       "expected": "Neighbor is never scanned; wrong hash fails before output; part paths cannot escape the capability root.",
       "fixturePolicy": "Small original in-memory graph/bytes; memfs for VFS; no downloads, native runtime or product network."
+    },
+    "sdk.2425.1": {
+      "status": "planned_not_run",
+      "implementationTest": null,
+      "operation": "shapes.freeform.shape_offset_x.get",
+      "language": "TypeScript",
+      "arrange": "Original owned builder starts at (12,18), moves to (20,30), then adds (-5,-7).",
+      "act": "Read shape_offset_x through a future registered typed batch operation and compare with the synchronous SDK property.",
+      "expected": "shape_offset_x.emu changes from 12 to -5; previously returned move applies at (25,37) in current bounds. Read does not mutate; foreign handles and unknown fields fail.",
+      "fixturePolicy": "Original in-memory graph; no downloads, native runtime, host access or product network."
+    },
+    "sdk.2426.1": {
+      "status": "planned_not_run",
+      "implementationTest": null,
+      "operation": "shapes.freeform.shape_offset_y.get",
+      "language": "TypeScript",
+      "arrange": "Original owned builder starts at (12,18), moves to (20,30), then adds (-5,-7).",
+      "act": "Read shape_offset_y through a future registered typed batch operation and compare with the synchronous SDK property.",
+      "expected": "shape_offset_y.emu changes from 18 to -7; previously returned move applies at (25,37) in current bounds. Read does not mutate; foreign handles and unknown fields fail.",
+      "fixturePolicy": "Original in-memory graph; no downloads, native runtime, host access or product network."
     }
   },
   "supportingTypes": "public-api-map.json#/supporting_types",
@@ -263187,13 +263173,14 @@
   ],
   "accounting": {
     "formatFeatures": 60,
-    "upstreamApiRecords": 2407,
+    "upstreamApiRecords": 2409,
     "boundedViewMembers": 17,
-    "publicApiRows": 2424,
+    "publicApiRows": 2426,
     "operationDeclarations": 1933,
-    "plannedAcceptanceCases": 6321,
+    "plannedAcceptanceCases": 6323,
     "implementedOperations": 0,
-    "executedProductCases": 0
+    "executedProductCases": 0,
+    "unregisteredPublicBindings": 2
   },
   "chartVariants": {
     "status": "proposed",

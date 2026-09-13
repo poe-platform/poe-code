@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Complete source-row and parameter accounting; 12 original byte-reader rows executed; remaining semantic adaptation and public API work pending",
+  "status": "Complete source-row and parameter accounting; 43 original TS passes recorded; 3630 rows remain semantic review, design or public deferral obligations",
   "scope": "Research/provenance ledger. Passing targets are explicitly linked; reserved IDs and proposed designs remain obligations.",
   "authorities": ["../specs/pptx.md", "../specs/office-cli.md", "../specs/office-sdk.md"],
   "input_sha256": {
@@ -310687,5 +310687,6 @@
   "current_evidence_baseline": "dfb4530bb0fcd3f8dc2d187ac16d8e283beaef5a",
   "current_evidence_notes": {
     "docs/pptx/corpus-manifest.json": "Historical input hash retained from the preexisting untracked acquisition manifest; current hash includes the later corpus verification link and maintained formatting. Historical acquisition dates, file/media hashes and counters remain unchanged."
-  }
+  },
+  "audit_receipt": "full-inventory-audit-20260913.json"
 }

@@ -1,6 +1,14 @@
 # PPTX standards coverage register
 
-Status: Standards acquisition and feature-level mapping complete; product implementation and behavioral validation not started.
+Status: Historical standards acquisition and feature-level mapping complete;
+bounded product evidence now exists. Whole-format conformance remains unverified.
+
+The [current full-inventory audit](full-inventory-audit-20260913.md) reconciles
+all F01–F60 rows, 3,673 source cases, 2,409 API inventory records, 2,426 target
+obligations and 14 manifest documents. The acquisition checkpoint below retains
+its historical counts. Its edit/preserve/reject levels describe requirements,
+not measured implementation coverage. Current statement/branch measurements and
+remaining corpus gaps are reported separately in that audit.
 
 This research register covers the first `pin-standards` task in
 [the pipeline](../plans/pptx-typescript-safe-bash.md). It does not close API
@@ -191,11 +199,11 @@ binding are product rules and do not acquire invented OOXML clauses.
 | F59 | Product comparison contract; P2 6.5 and P1 object graphs             | E structural/text/media/relationship diff; no visual equivalence                          | Deterministic changes, effective/raw distinction, diff exit 0/1/2/130                     |
 | F60 | P2 6–7, Annex B; P3 7–9; applicable part XSDs                        | E bounded validate/extract/pack/XML replacement                                           | Unsafe path/graph/content-type failures and original-byte preservation                    |
 
-## Coverage that remains open
+## Historical acquisition checkpoint and open coverage
 
-The test inventory still contains exactly 2,700 collected unit variants and 973
+At the acquisition checkpoint, the test inventory contained 2,700 collected unit variants and 973
 expanded BDD examples, all `unmapped_not_implemented`. The API candidate inventory
-still contains 719 records, all unimplemented; inherited members, aliases,
+contained 719 records, all unimplemented; inherited members, aliases,
 protocols and untested public behavior must still be reconciled. No source case
 has been reclassified as private, architecture-only, passed or out of scope here.
 Feature-level citations are not a many-to-one test equivalence disposition.
@@ -216,7 +224,7 @@ snake_case spelling, always-async admission/save, keyed collections, null/inheri
 UTC dates, explicit capabilities and supplied metrics come from the shared SDK
 contract. Standards citation does not waive any of these requirements.
 
-All 12 corpus documents retain their existing `not_run_product_not_implemented`
+At that checkpoint, all 12 corpus documents retained their `not_run_product_not_implemented`
 status. Their ZIP/XML census does not establish schema validity, editable feature
 support, visual fidelity or playback. No corpus document was edited or deleted
 in this task; no meaningful product finding exists to reduce yet. Preserve all

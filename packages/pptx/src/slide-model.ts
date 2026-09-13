@@ -892,6 +892,11 @@ export class Slide {
   get element() {
     return this.#owner.read().root;
   }
+  get part(): PartView {
+    this.#owner.read();
+    if (!this.#owner.part) throw new PropertyAccessError("Slide has no package part.");
+    return this.#owner.part;
+  }
   get name() {
     return attr(required(this.element, "cSld"), "name") ?? "";
   }

@@ -31,6 +31,8 @@ import { extractImages, type ExtractedImage } from "./image-extraction.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
 import { setImage, type SetImageOptions } from "./image-formatting.js";
 import { imageSchemas } from "./images-schema.js";
+import { readCharts } from "./charts.js";
+import { chartSchemas } from "./charts-schema.js";
 import { addShape, mutateShapes, readShapes, type ShapeSelection } from "./shape-operations.js";
 import { groupShapes, ungroupShape, validateGroupOptions } from "./shape-groups.js";
 import {
@@ -274,6 +276,7 @@ const help =
   "       pptx images add INPUT --slide N --file PATH [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
   "       pptx images extract INPUT --output-dir DIR [--unique] [--allow-partial-output]\n" +
   "       pptx images list INPUT [--slide N --image N] [--scope SCOPE] [--unique] [--json]\n" +
+  "       pptx charts list|get INPUT [--slide N --shape NAME | --select TOKEN] [--json]\n" +
   "       pptx schema tables list|get|add|set [--json]\n" +
   "       pptx schema text get [--json]\n" +
   "       Text uses structural shape-tree order, including hidden slides, cached fields and empty paragraphs.\n" +
@@ -441,6 +444,8 @@ interface Arguments {
     | "inspect"
     | "images.extract"
     | "images.list"
+    | "charts.list"
+    | "charts.get"
     | "images.add"
     | "images.set"
     | "xml.get"
@@ -790,6 +795,7 @@ function parse(
     } else if (
       index === 1 &&
       [
+        "charts",
         "images",
         "tables",
         "connectors",
@@ -857,6 +863,7 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "charts",
     "images",
     "tables",
     "connectors",
@@ -884,6 +891,7 @@ function parse(
   if (
     ![
       ...Object.keys(imageSchemas),
+      ...Object.keys(chartSchemas),
       ...Object.keys(fieldSchemas),
       ...Object.keys(connectorSchemas),
       ...Object.keys(tableSchemas),
@@ -938,6 +946,7 @@ function parse(
     }
     if (
       (operation.startsWith("images.") ||
+        operation.startsWith("charts.") ||
         operation.startsWith("tables.") ||
         operation.startsWith("connectors.") ||
         operation.startsWith("fields.") ||
@@ -2257,6 +2266,19 @@ function parse(
       usage("Binary stdout cannot be combined with JSON.");
     return result;
   }
+  if (operation === "charts.list" || operation === "charts.get") {
+    const allowed = ["--json", "--limit", "--scope", "--slide", "--shape", "--select"];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to chart inspection.");
+    if (positionals.length !== 1 || !positionals[0])
+      usage("Chart inspection requires exactly one input.");
+    if (result.scope !== undefined && result.scope !== "slides")
+      usage("Chart inspection supports slides scope.");
+    if (result.token && ["--slide", "--shape", "--scope"].some((option) => seen.has(option)))
+      usage("Opaque and simple selectors cannot be combined.");
+    result.input = positionals[0];
+    return result;
+  }
   if (operation === "images.list" || operation === "images.extract") {
     const extracting = operation === "images.extract";
     const allowed = [
@@ -3010,6 +3032,7 @@ function parse(
       (operation === "schema" || operation === "help") &&
       [
         ...Object.keys(imageSchemas),
+        ...Object.keys(chartSchemas),
         ...Object.keys(fieldSchemas),
         ...Object.keys(connectorSchemas),
         ...Object.keys(tableSchemas),
@@ -3443,6 +3466,13 @@ async function execute(
           "Original bytes with generated safe names and a SHA256 manifest; no rendering or fetching.\n" +
           "--force --dry-run --json --limit NAME=VALUE (including maxOutputs and maxOutputBytes).\n" +
           "Publication requires an atomic adapter transaction or explicit partial output.\n";
+      if (args.schemaPath === "charts.list" || args.schemaPath === "charts.get")
+        resolvedUsage =
+          "Usage: pptx charts list|get INPUT [--slide N --shape NAME | --select TOKEN]\n" +
+          "       [--scope slides] [--json] [--limit NAME=VALUE]\n" +
+          "List returns all matches; get requires exactly one. Slide positions are one-based.\n" +
+          "Inspect plots, axes, series, caches, formulas, styles and workbook links.\n" +
+          "Cached values are not recalculated; external links are never fetched. Unknown XML is retained.\n";
       if (args.schemaPath === "images.list")
         resolvedUsage =
           "Usage: pptx images list INPUT [--slide N --image N | --select TOKEN]\n" +
@@ -3462,6 +3492,7 @@ async function execute(
         operations: Object.fromEntries(
           Object.entries({
             ...imageSchemas,
+            ...chartSchemas,
             ...fieldSchemas,
             ...membershipSchemas,
             ...settingsSchemas,
@@ -3499,6 +3530,12 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          charts: {
+            level: "read",
+            operations: Object.keys(chartSchemas),
+            subset:
+              "Slide chart inventory: plots, axes, series, categories, labels, styles, caches, formulas and workbook links. No formula evaluation, workbook refresh, external fetching or chart mutation. Unsupported extensions retain raw XML."
+          },
           images: {
             level: "edit",
             operations: Object.keys(imageSchemas),
@@ -3950,6 +3987,83 @@ async function execute(
         locations: imageManifest.flatMap((file) => file.occurrences.map((item) => item.location))
       };
       human = `${dryRun ? "Validated" : "Extracted"} ${files.length} image resource(s)\n${JSON.stringify(result.data, null, 2)}\n`;
+    } else if (args.operation === "charts.list" || args.operation === "charts.get") {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const charts = await readCharts(
+        bytes,
+        {
+          ...(args.scope === undefined ? {} : { scope: args.scope }),
+          ...(args.slide === undefined ? {} : { slide: args.slide }),
+          ...(args.shape === undefined ? {} : { shape: args.shape }),
+          ...(args.token === undefined ? {} : { select: args.token })
+        },
+        context
+      );
+      if (args.operation === "charts.get" && charts.length !== 1)
+        throw new SelectionError(
+          charts.length ? "ambiguous-selection" : "missing-selection",
+          charts.map((chart) => chart.location)
+        );
+      result = {
+        ...success(operation, { charts }),
+        locations: charts.map((chart) => chart.location)
+      };
+      human =
+        `Charts: ${charts.length}\n` +
+        charts
+          .map((chart) => {
+            const plots = chart.plots
+              .map((plot) => {
+                const series = plot.series
+                  .map((item) => {
+                    const sources = [
+                      ["categories", item.categories],
+                      ["values", item.values],
+                      ["x", item.xValues],
+                      ["y", item.yValues],
+                      ["sizes", item.bubbleSizes]
+                    ] as const;
+                    return (
+                      `    Series ${item.index ?? "?"} ${JSON.stringify(item.name)}: ` +
+                      sources
+                        .filter(([, source]) => source !== null)
+                        .map(
+                          ([label, source]) =>
+                            `${label}=${source!.authority}${source!.cached ? "/cached" : ""} (${source!.points.length} points${source!.formula === null ? "" : `, formula ${JSON.stringify(source!.formula)}`})`
+                        )
+                        .join("; ") +
+                      "\n"
+                    );
+                  })
+                  .join("");
+                return `  Plot ${plot.type}: ${plot.series.length} series\n${series}`;
+              })
+              .join("");
+            return (
+              `${JSON.stringify(chart.name)} id=${JSON.stringify(chart.shapeId)} owner=${chart.part}\n` +
+              `  Chart part: ${chart.chartPart}\n` +
+              `  Style: ${chart.style ?? "not explicit"}; plots: ${chart.plots.length}; axes: ${chart.axes.length}\n` +
+              plots +
+              chart.axes
+                .map(
+                  (axis) => `  Axis ${axis.type} id=${axis.id ?? "?"} cross=${axis.crossAxisId ?? "?"}\n`
+                )
+                .join("") +
+              `  Links: ${chart.links.length}\n` +
+              chart.links
+                .map(
+                  (link) =>
+                    `    ${link.role} ${link.external ? "external" : "internal"} ${JSON.stringify(link.target)}${link.authoritative ? " (authoritative)" : ""}\n`
+                )
+                .join("") +
+              `  Unsupported: ${chart.unsupported.length}; use --json for complete metadata and preserved XML.\n`
+            );
+          })
+          .join("");
     } else if (args.operation === "images.list") {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(

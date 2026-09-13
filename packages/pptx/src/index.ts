@@ -17,6 +17,20 @@ export type {
   WriteOptions
 } from "./contracts.js";
 export { OfficeError, type ByteErrorCode, type OfficeErrorCode } from "./errors.js";
+export {
+  readCharts,
+  inspectChart,
+  type ChartSelection,
+  type ChartXmlNode,
+  type ChartPoint,
+  type ChartDataSource,
+  type ChartSeries,
+  type ChartPlot,
+  type ChartAxis,
+  type ChartInspection,
+  type ChartLink,
+  type ChartRecord
+} from "./charts.js";
 export { selectionQuerySchema } from "./selector-schema.js";
 export type { PresentationInventory, SlideInventory, PartInventory } from "./inventory.js";
 

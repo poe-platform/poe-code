@@ -5,9 +5,12 @@ Status: Proposed research decisions; no SDK implementation or passing product te
 Authority: [shared SDK](../specs/office-sdk.md), [shared CLI](../specs/office-cli.md)
 and [format contract](../specs/pptx.md). J01–J10 are referenced by individual
 [inventory records](upstream-api-inventory.json). Source signatures are evidence,
-not declarations to copy verbatim into TypeScript. The following pipeline task,
-`define-mirrored-js-api`, must elaborate concrete exported types and each operation
-schema; an unannotated source return is not permission to publish `any`.
+not declarations to copy verbatim into TypeScript. The completed
+[target API design](public-api-map.json) elaborates these mappings, and the later
+[command register](command-coverage.json) records route/schema corrections.
+Both remain proposed documentation; compiled exports, executable schemas and
+passing original tests are still required. An unannotated source return is not
+permission to publish `any`.
 
 ## J01 — Names, arguments and construction
 
@@ -19,6 +22,10 @@ parameters become a trailing typed options object, retaining their source names.
 Python examples using named positional arguments translate to positional calls;
 there is no inferred keyword-object overload. Operation JSON is independently
 camelCase, as required by the shared contract.
+
+The reserved positional parameter `default` binds as `default_value` in
+TypeScript. Its source identity stays in research; `default` remains a legal JSON
+object key. This is a specific language mapping, not a general rename policy.
 
 `Presentation(input?: BinaryInput | null, context?: OfficeContext)` always returns
 `Promise<Presentation>`. `CategoryChartData(number_format = "General")`,
@@ -63,9 +70,13 @@ columns, cells and chart points reject negative positions. Sequence slicing is
 supported for chart-data collections, chart plots and freeform operations; the
 source wrappers for slides, shapes, series, categories, gradient stops and
 adjustments do not correctly construct a sliced collection, so no blanket slice
-promise is made. Supported `.slice(start?, end?)` returns a readonly membership
-snapshot. An explicit step-aware overload remains necessary if exposing Python
-extended slicing; do not claim it from a two-argument signature.
+promise is made. The target register explicitly defines
+`.slice(start?, end?, step?)` for supported collections and the immutable RGB
+value. It returns a readonly membership snapshot. Omitted bounds depend on step
+direction, the end is exclusive, negative bounds normalize against length, and
+bounds clamp to the valid interval. Step must be a nonzero integer; zero raises
+`ValueError`. The ordinary two-argument form remains available under the shared
+SDK contract. Other collections do not acquire slicing through this mapping.
 
 `SlidePlaceholders[idx]` is sparse key lookup and missing keys raise `KeyError`.
 Iteration uses ascending placeholder `idx`; negative keys are not from-end
@@ -74,6 +85,11 @@ indexing and their documented `.get(...)` lookup semantics. Adjustment collectio
 items are numbers, not `Adjustment` objects, despite the introductory prose.
 Indexed assignment changes the effective adjustment and XML; it is not an array
 of detached values.
+
+For notes placeholders, `get(ph_type, default_value?)` returns a
+`NotesSlidePlaceholder` on a match and the supplied `MasterPlaceholder` fallback
+or null on a miss. This retains the corrected factory return and the explicit
+fallback type from D17; it does not reinterpret the fallback as a notes object.
 
 Inherited sequence operations remain accounted for: containment maps to
 `includes(value)`, reverse iteration to `reversed()`, and documented `count`/`index`
@@ -129,6 +145,13 @@ three distinct states; zero and empty string are not interchangeable with null.
 Existing negative or greater-than-one crop metadata is retained and readable;
 new edits still satisfy the format's visible-extent and finite-limit checks.
 
+D16 and D18 qualify color/fill absence in the target register: reading `rgb`
+without an sRGB color raises `PropertyAccessError`; reading `theme_color` without
+any color raises, while an existing non-scheme color returns `NOT_THEME_COLOR`.
+`FillFormat.type` is `MSO_FILL_TYPE | null`, with null for absent fill. These
+corrected returns/errors govern original cases instead of the conflicting source
+prose or nonnullable annotation.
+
 Core property strings retain the documented 255-Unicode-code-point bound and empty-string
 absence. Dates are UTC `Date` values or `null` on absent reads. Serialize whole
 UTC seconds, dropping subsecond precision explicitly; reject invalid dates and
@@ -179,12 +202,26 @@ stored metadata: even macro/run-program actions are never executed by the SDK.
 
 ## J08 — Errors
 
-Source value, type, index and key errors map to `ValueError`, `TypeError`,
-`IndexError` and `KeyError` with stable neutral codes. Missing optional lookups
-retain their documented default/null behavior. Package-not-found and invalid-XML
-errors remain typed under `OfficeError`; the source-branded base exception is not
-exported. Property misuse and invalidated handles use `InvalidHandleError` or an
-explicit read-only-property error, without leaking internal class names or paths.
+The target register defines these exact neutral error mappings:
+
+| Condition                          | Target class           | Stable code            |
+| ---------------------------------- | ---------------------- | ---------------------- |
+| Invalid value                      | `ValueError`           | `invalid-value`        |
+| Invalid type                       | `TypeError`            | `invalid-type`         |
+| Invalid sequence position          | `IndexError`           | `index-out-of-range`   |
+| Missing required key               | `KeyError`             | `missing-key`          |
+| Unavailable property               | `PropertyAccessError`  | `property-unavailable` |
+| Assignment to a read-only property | `PropertyAccessError`  | `read-only-property`   |
+| Invalidated model handle           | `InvalidHandleError`   | `invalid-handle`       |
+| Unsupported edit                   | `OfficeError`          | `unsupported-edit`     |
+| Missing input package              | `PackageNotFoundError` | `io-failure`           |
+| Invalid XML                        | `InvalidXmlError`      | `invalid-xml`          |
+
+Missing optional lookups retain their documented default/null behavior. A valid
+handle with an unavailable property is distinct from an invalidated handle.
+The source-branded base exception is not exported. Public errors must not leak
+internal class names or host paths. These are proposed error contracts, not a
+claim that target exception classes have been implemented.
 
 The CLI maps validation/unsupported/stale/selection failures to 1, usage/schema
 errors to 2, I/O/publication failures to 3, limits to 4 and cancellation to 130.
@@ -204,10 +241,11 @@ validation. `parent` exposes an owned model/view parent, not a host object.
 Do not mirror unrestricted lxml methods, arbitrary XPath, Python descriptor
 internals, filesystem access or package-loader callbacks. `ln`, `get_or_add_ln`
 and freeform `apply_operation_to`, where encountered through public views, are
-bounded line/path operations with creating side effects recorded. The typed API
-follow-up must enumerate concrete view operations and original tests before
-claiming these members implemented; `security-mapped` is a design disposition,
-not a coverage waiver. RST exclusions alone cannot hide returned public behavior.
+bounded line/path operations with creating side effects recorded. The target API
+map now enumerates 17 additional view members and their original acceptance
+obligations. Those declarations still need implementation and passing tests;
+`security-mapped` is a design disposition, not a coverage waiver. RST exclusions
+alone cannot hide returned public behavior.
 
 ## J10 — Model edits and shared commands
 

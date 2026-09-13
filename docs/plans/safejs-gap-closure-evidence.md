@@ -472,13 +472,17 @@ Remaining work is explicit: full corpus/variant execution and fixture-to-edition
 
 The manual documentation QA procedure (local historical evidence: `docs/plans/safejs-baseline-final-audit/ledger/manual-qa.md`) was executed after terminal checks. Final verification (local historical evidence: `docs/plans/safejs-baseline-final-audit/ledger/verification-final.json`) records map ownership, local links, command fences, receipt hashes and preservation comparisons. Only the canonical ledger and its category map changed among the 133 initially fingerprinted files; all unrelated files, all 11 exploratory tests, local HEAD and the staged binary diff remain unchanged. No screenshot applies because this evidence-only task changes no visual CLI behavior.
 
+
 ## Complete-conformance-runner execution — 2026-09-12
 
 Task qualification is in progress in [the runner execution ledger](complete-conformance-runner/qualification.md). The target remains ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), plus the already pinned extensions. Fresh official-source hashes match prior evidence. The clean Test262 pin is available. Execution will identify local `f314e261c96e444b8fc983117864462171db5bc4` plus task-owned source hashes on Node 22.23.2 / ICU 78.2; observed remote main `d72160a500ef9ac63961eb8af264272a39ec96f9` has eleven different SafeJS surfaces, so this local baseline will not be mislabeled current-remote runtime qualification. Preparation is not full-corpus acceptance. No task commit, remote delivery or release has occurred.
 
+
 The first complete-corpus attempt exposed a new validated orchestration defect: pinned `Array.prototype.push/S15.4.4.7_A3.js` enters CPU-bound host work and prevents the runner's event-loop timeout from firing. The external watchdog stopped the incomplete selection; a separately bounded reduced trigger and passing neighbor/native controls reproduce the distinction. [First-cohort accounting](complete-conformance-runner/first-cohort-summary.json) records9complete/4incomplete selections, and all initial results remain excluded from replacement aggregation. A runner-only hard-isolation repair is in progress; full baseline acceptance remains open. The compatibility target and3000ms budget contract are unchanged.
 
+
 Hard isolation is now qualified by140fast runner tests and a maintained CLI control: the formerly hanging pinned fixture produces two explicit3000ms timeout nonpasses, then its neighboring fixture passes both variants, and the command emits a complete final summary with exit1. The replacement full run started2026-09-12 04:38:15UTC under manifest `9436612867dbba331f104f0d3cd8e7f6f649e972fcdc695b21f25d87b53c0c94` / source hash `babb6a32e2a69931606306fe865366da0fd52a3d368c220b314b8f83a80321cc`, using all102,926variants in108bounded selections. [Replacement records](complete-conformance-runner/baseline-v2/manifest-crosscheck.json) are separate from every initial/diagnostic attempt. Completion and release remain unclaimed until their terminal receipts exist.
+
 
 The replacement run also identified an explicit oracle limitation: the runner's fatal unhandled-rejection policy makes some intentionally ignored, non-async Promise rejections into nonpasses even though their pinned source assertions complete normally. [Primary contract evidence](complete-conformance-runner/sync-rejection-policy.md) separates these as `unqualified-rejection-policy`, not ECMAScript defects. Original statuses remain retained; no result is relabeled as a pass and no corpus entry is filtered. Full policy qualification remains unresolved alongside the dedicated module/agent gaps, even when complete baseline accounting is achieved.
 
@@ -492,6 +496,7 @@ V3 encountered a recorded host-disk `ENOSPC` interruption. [Independent resumpti
 
 The recovery also preserved a [third, bootstrap-only ENOSPC failure](complete-conformance-runner/baseline-v3/enospc-bootstrap-recovery.json): no report or variant was created. An exclusive-log collision stopped the first resume safely; both retried result selections had already completed. The bootstrap log was preserved separately, all remaining paths were checked absent, and the same frozen-source schedule resumed.
 
+
 ### Final complete baseline disposition — 2026-09-12
 
 The [complete V3 baseline](complete-conformance-runner/baseline-v3/summary.md) covers all 53,876 pinned JavaScript files and 102,926 unique variants in 216 disjoint terminal selections: **93,157 passed, 6,451 failed, 3,318 unsupported**, zero metadata/file errors, omissions or duplicate passes. The maintained CLI aggregate returned exit **1** (`complete: true`, `success: false`), as required when any selected variant does not pass. Its fresh enumeration exactly matched the frozen manifest; independent inventory and historical replay cross-check all totals. [Exact command and exit receipt](complete-conformance-runner/baseline-v3/aggregate-receipt.json) and [actionable inventory](complete-conformance-runner/baseline-v3/inventory-summary.md) provide the reproducible evidence.
@@ -501,6 +506,7 @@ Source SHA remains `f314e261c96e444b8fc983117864462171db5bc4`, measured with rec
 Runner qualification has 145 passing fast tests plus focused TypeScript/lint success. Maintained package results remain 29,049 passed, **7 failed**, 47 skipped, from the earlier package run; focused runner success does not erase those failures. The 9,769 corpus nonpasses distinguish runtime candidates, host/backend limits, intentional capability boundaries and missing qualification evidence. Module/agent/shared-memory gaps stay visible; 74 unhandled-rejection policy nonpasses are not blanket ECMAScript defects. Resource failures retain unchanged 3,000 ms per-variant deadlines and static budgets. ENOSPC recovery preserved completed reports, excluded incomplete attempts and reran only their full disjoint selections; all final selected reports are accounted for. Earlier withdrawn cohorts contribute no passes.
 
 The complete baseline/reporting acceptance is evidenced, while compatibility success and the documented policy/backend/module/agent gaps remain unresolved. [Archive and reproduction instructions](complete-conformance-runner/baseline-v3/replay.md) distinguish historical audit from fresh current-code qualification. No task delivery on remote main or successful release is claimed; earlier publication receipts do not publish these changes. Local commit, remote delivery and release must be recorded separately.
+
 
 ### Committed runner revalidation receipt — 2026-09-12
 
@@ -524,9 +530,11 @@ See the [delivery and gate receipt](complete-conformance-runner/delivery-receipt
 
 At this receipt's preparation the verified source is ready to push through normal hooks, but **remote delivery, publication and the final current full-corpus report are still pending**. Early implementation delivery while the isolated cohort runs does not complete the task. Each actual local SHA, remote ancestry, required workflow result and independently verified npm publication must receive a separate subsequent receipt; predecessor versions do not establish publication of this work.
 
+
 ## Complete conformance runner: current merged-runtime audit (2026-09-12 13:08 UTC)
 
 [Independent current audit](complete-conformance-runner/qualification-current-audit.md) verifies 145/145 fast runner tests on merged local main `5f6446c4415a9320f53c9db611cd641886447e41`, Node v22.23.2 / ICU 78.2. The archived V3 manifest, all 216 terminal selections and complete 9,769-nonpass inventory independently reconcile: 102,926 variants = 93,157 passed + 6,451 failed + 3,318 unsupported. Historical aggregate semantic success remains false. Merged `interpreter.ts` and `jobs.ts` changed, with [current source fingerprint](complete-conformance-runner/qualification-merged-source-check.json) `b76c7df50cdfc4b6738ccf43ce8338ab6dc1ccd68dd4db3da326d213040e1f08`; historical results do not qualify that runtime. A fresh bounded complete cohort is pending final gate repairs/source freeze. No target, authority, budget, timeout or assertion was weakened. Remote delivery and publication remain separately pending, not inferred from local tests or historical replay.
+
 
 ## Complete conformance runner — complete current-source V4 baseline (2026-09-12)
 
@@ -539,6 +547,7 @@ The complete run took **13:43:37–16:17:22 UTC** on 2026-09-12 (approximately 2
 Disposition remains honest: **3,318 capability nonpasses** include module loading, agent/shared-memory, blocking, IsHTMLDDA and GC requirements; withheld host authority is not automatically an ECMAScript defect. **4,527 resource cases**, **141 harness-budget cases**, **74 conservative rejection-policy cases** (50 sync / 24 async, six actual secondary assertion diagnostics), **six generator state guards**, and **1,640 semantic candidates** remain separated by actual evidence and owner. The generated RegExp range's 500 nonpasses are 493 wall-timeouts and seven step-budget failures, not 500 proven language defects. Dedicated module/agent/realm/runtime-matrix and fixture-to-edition repairs remain visible. This closes the runner's complete-baseline/reporting acceptance; semantic all-pass compatibility remains false.
 
 Delivery is separate: local runner **`0b8daebe0`**, reconciliation **`5f6446c44`**, ISO repair **`a4476e3fa`**, and gate receipt **`5fd3b4f08463ebd03cc09203162acf58f5a05b9c`** were verified on remote main through normal hooks; [remote ancestry receipt](complete-conformance-runner/delivery-remote-receipt.json) retains the evidence. Initial [scoped release 34697326857](https://github.com/poe-platform/poe-code/actions/runs/34697326857) succeeded and published **@poe-platform/safe-js, @poe-platform/safe-fs and @poe-platform/safe-bash 0.1.561**. Initial [root Release 34697326933](https://github.com/poe-platform/poe-code/actions/runs/34697326933) succeeded and published **poe-code 15.0.26**. Per-package registry integrity/signature/SLSA and installed-artifact checks are in [scoped](complete-conformance-runner/scoped-publication-verification.md) and [root](complete-conformance-runner/root-publication-verification.md) receipts. These implementation publication receipts do not claim publication of the later V4 docs. Their final docs commit, verified remote SHA and required successor workflow/no-release outcome are to be recorded separately by delivery; no new version or completed final push is inferred here.
+
 
 ## verify-conformance-oracles — independent evidence-only delivery, 2026-09-12 13:00 CDT
 
@@ -583,6 +592,7 @@ Focused oracle/accounting acceptance is evidenced for the existing local candida
 
 This is an evidence-only local commit on main. Its SHA is reported in the task completion message (a commit cannot contain its own SHA). **Verified remote-main delivery: none. Release/publication: none.** No push was requested or performed; prior release receipts do not publish the current drafts. Pre-existing detailed local audit documents and artifacts remain uncommitted and are not made reproducible from this evidence-only commit alone.
 
+
 ## verify-conformance-oracles — authorized implementation delivery, 2026-09-12
 
 This execution treats the requested delivery to main as authorized. It adopts and delivers the reviewed task-specific oracle drafts, mutation controls, audit documents and receipts that earlier evidence-only runs left uncommitted. Unrelated local/staged work remains excluded. The preceding no-push statements describe those earlier runs, not this delivery.
@@ -606,28 +616,29 @@ Focused oracle/accounting acceptance is evidenced under the trusted pinned-fixtu
 
 The implementation commit contains this appendix, task-specific runner changes, tests and audit evidence. Existing ledger edits outside this appendix and unrelated staged Safe Bash edits are preserved using an isolated staging index. Local commit SHA, verified remote-main ancestry, required workflow conclusions and actual registry versions will be recorded separately after delivery. **Publication is pending at this point.** No explicitly associated issue number was supplied. Required recovery for publication failure: inspect the failed job, reproduce a product failure before repair, commit the atomic repair with tests, push normally, verify successor ancestry and independently verify each affected package. Never infer publication from a green gate or publish locally.
 
+
 ## verify-conformance-oracles — verified implementation publication, 2026-09-12
 
 **Local implementation commit:** `d5baada123a54174cfa6a31f65427d160d1c4ccb` (`fix(safe-js): reject incomplete conformance oracle reports`). **Remote main:** independently read back at that exact SHA after the normal push; subsequent fetch/ancestry check passed. **Root release tag:** `v15.0.27` resolves to the same implementation SHA. [Local commit/preservation receipt](verify-conformance-oracles/delivery-20260912/local-commit.json), [remote receipt](verify-conformance-oracles/delivery-20260912/remote-main.json), [complete publication receipt](verify-conformance-oracles/delivery-20260912/publication-receipt.json). No associated GitHub issue number was supplied, so no issue closure was performed.
 
 All required implementation workflows completed successfully on that exact source:
 
-| Workflow                                                                                             | Result                                                              | Receipt                                                                                                                                                                          |
-| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Release](https://github.com/poe-platform/poe-code/actions/runs/34710249835)                         | success, including uncached unit/native gate and publication        | [Job/step results](verify-conformance-oracles/delivery-20260912/root-workflow.json), [complete compressed log](verify-conformance-oracles/delivery-20260912/root-release.log.gz) |
-| [Release scoped safe packages](https://github.com/poe-platform/poe-code/actions/runs/34710249647)    | success, including installed-tarball checks and all three publishes | [Job/step results](verify-conformance-oracles/delivery-20260912/scoped-workflow.json), [log](verify-conformance-oracles/delivery-20260912/scoped-release.log)                    |
-| [Publish Schemas to GitHub Pages](https://github.com/poe-platform/poe-code/actions/runs/34710249608) | success                                                             | [Job/step results](verify-conformance-oracles/delivery-20260912/schema-workflow.json)                                                                                            |
+| Workflow | Result | Receipt |
+| --- | --- | --- |
+| [Release](https://github.com/poe-platform/poe-code/actions/runs/34710249835) | success, including uncached unit/native gate and publication | [Job/step results](verify-conformance-oracles/delivery-20260912/root-workflow.json), [complete compressed log](verify-conformance-oracles/delivery-20260912/root-release.log.gz) |
+| [Release scoped safe packages](https://github.com/poe-platform/poe-code/actions/runs/34710249647) | success, including installed-tarball checks and all three publishes | [Job/step results](verify-conformance-oracles/delivery-20260912/scoped-workflow.json), [log](verify-conformance-oracles/delivery-20260912/scoped-release.log) |
+| [Publish Schemas to GitHub Pages](https://github.com/poe-platform/poe-code/actions/runs/34710249608) | success | [Job/step results](verify-conformance-oracles/delivery-20260912/schema-workflow.json) |
 
 The clean committed SafeJS package unit task ran its maintained native pretest and reported **29,072 passed, zero failed, 47 skipped; 1,308 passing and two skipped files**. The 47 skips remain nonpasses; the case ledger above retains their explicit unavailable/optional/reference-gap dispositions. This successful clean-source CI gate does not repair or erase the preserved dirty-workspace exploratory native-Promise symbol-admission test and its explicitly owned host-capability gap. No full current-source Test262 semantic pass is claimed. The focused local oracle suite remains 212 passing tests with zero skips; historical complete-corpus accounting remains 102,926 variants exactly once, with its failures and unsupported outcomes retained.
 
 ### Actual published packages and independent artifact checks
 
-| Package                   | Published version | Publication source                                 | Independent installed smoke                                                                                             |
-| ------------------------- | ----------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `@poe-platform/safe-fs`   | **0.1.562**       | `d5baada123a54174cfa6a31f65427d160d1c4ccb`         | Explicit memory filesystem byte write/read passed                                                                       |
-| `@poe-platform/safe-js`   | **0.1.562**       | same SHA                                           | Arithmetic returned 42; ambient `process` remained absent                                                               |
-| `@poe-platform/safe-bash` | **0.1.562**       | same SHA                                           | Unregistered command rejected; explicitly registered `printf` passed with memory filesystem                             |
-| `poe-code`                | **15.0.27**       | same SHA; npm `gitHead` and release tag also match | CLI rendered exact installed version; published `poe-code/safe-js` export passed arithmetic and absent-process controls |
+| Package | Published version | Publication source | Independent installed smoke |
+| --- | --- | --- | --- |
+| `@poe-platform/safe-fs` | **0.1.562** | `d5baada123a54174cfa6a31f65427d160d1c4ccb` | Explicit memory filesystem byte write/read passed |
+| `@poe-platform/safe-js` | **0.1.562** | same SHA | Arithmetic returned 42; ambient `process` remained absent |
+| `@poe-platform/safe-bash` | **0.1.562** | same SHA | Unregistered command rejected; explicitly registered `printf` passed with memory filesystem |
+| `poe-code` | **15.0.27** | same SHA; npm `gitHead` and release tag also match | CLI rendered exact installed version; published `poe-code/safe-js` export passed arithmetic and absent-process controls |
 
 [Final registry metadata](verify-conformance-oracles/delivery-20260912/registry-final.json) independently verifies all four `latest` versions, exact tarball SHA-512 against downloaded bytes, attestation subject digests, signed source SHA and publishing invocation URLs. Scoped packages omit npm `gitHead`; their recorded SLSA resolved dependency supplies the publication commit. Full npm attestation bundles are retained beside these receipts. No source ancestry was inferred from workflow names or assumed from a successor.
 
@@ -671,6 +682,7 @@ The clean uncached CI SafeJS suite reports **29,074 passed, 47 skipped, zero fai
 Actual verified publications: **poe-code 15.0.28**, **@poe-platform/safe-fs 0.1.563**, **@poe-platform/safe-js 0.1.563**, **@poe-platform/safe-bash 0.1.563**. Each downloaded tarball matches npm SHA-512 integrity and its SLSA subject. Each SLSA source is exactly the recovery SHA, with the matching successful publishing invocation. Root npm gitHead and release tag additionally match. Fresh installed-artifact checks pass independently for explicit memory filesystem access, explicitly registered Bash commands, SafeJS arithmetic with absent ambient process authority, root SafeJS export, and the exact framed CLI version. npm verified **213 registry signatures and 42 available attestations**, exit 0. No workspace links or local publication were used. [Combined receipt](verify-conformance-oracles/delivery-20260912/recovery-publication-receipt.json).
 
 This evidence-only follow-up delivers the recovery's native controls, partial-propagation observations, per-package provenance, installed checks, and successful release receipts. JSON receipts parse successfully and Markdown/JSON whitespace checks pass; raw terminal logs retain their original bytes. Its own remote SHA and subsequent workflow conclusion necessarily follow the commit and will be recorded as a final observation. No new package publication is claimed for the documentation-only follow-up. No associated issue number was supplied. Unrelated working files and the original staged Safe Bash diff still match their initial hashes. Focused oracle acceptance remains established; this is not a current full-Test262 semantic pass or a resolution of the separately owned host capability gaps.
+
 
 ## repair-iso-month-formatting — current-source verification and open disposition, 2026-09-12
 
@@ -733,54 +745,31 @@ import { run } from "../../run.js";
 
 // CLDR 48 ISO yMMMM/yMMM patterns use year before the format-context month.
 it.each([
-  ["en-US", "long", "February"],
-  ["en-US", "short", "Feb"],
-  ["pl-PL", "long", "lutego"],
-  ["pl-PL", "short", "lut"],
-  ["ru-RU", "long", "февраля"],
-  ["ru-RU", "short", "февр."]
+  ["en-US", "long", "February"], ["en-US", "short", "Feb"],
+  ["pl-PL", "long", "lutego"], ["pl-PL", "short", "lut"],
+  ["ru-RU", "long", "февраля"], ["ru-RU", "short", "февр."]
 ])("keeps ISO year/month fields and grammatical context in %s/%s", async (locale, month, name) => {
-  expect(
-    await run(`
+  expect(await run(`
     const options={calendar:'iso8601',year:'numeric',month:${JSON.stringify(month)},timeZone:'UTC'};
     const f=new Intl.DateTimeFormat(${JSON.stringify(locale)},options);
     const ym=new Temporal.PlainYearMonth(2000,2);
     return [f.formatToParts(Date.UTC(2000,1,29)),f.format(ym),ym.toLocaleString(${JSON.stringify(locale)},options)];
-  `)
-  ).toMatchObject({
-    ok: true,
-    returnValue: [
-      [
-        { type: "year", value: "2000" },
-        { type: "literal", value: " " },
-        { type: "month", value: name }
-      ],
-      `2000 ${name}`,
-      `2000 ${name}`
-    ]
-  });
+  `)).toMatchObject({ ok: true, returnValue: [
+    [{ type: "year", value: "2000" }, { type: "literal", value: " " }, { type: "month", value: name }],
+    `2000 ${name}`, `2000 ${name}`
+  ] });
 });
 
-it.each(["long", "short"])("keeps ISO month/day fields for %s months", async (month) => {
+it.each(["long", "short"])("keeps ISO month/day fields for %s months", async month => {
   const name = month === "long" ? "February" : "Feb";
-  expect(
-    await run(`
+  expect(await run(`
     const options={calendar:'iso8601',month:${JSON.stringify(month)},day:'numeric',timeZone:'UTC'};
     const f=new Intl.DateTimeFormat('en-US',options),md=new Temporal.PlainMonthDay(2,29);
     return [f.formatToParts(Date.UTC(2000,1,29)),f.format(md),md.toLocaleString('en-US',options)];
-  `)
-  ).toMatchObject({
-    ok: true,
-    returnValue: [
-      [
-        { type: "month", value: name },
-        { type: "literal", value: " " },
-        { type: "day", value: "29" }
-      ],
-      `${name} 29`,
-      `${name} 29`
-    ]
-  });
+  `)).toMatchObject({ ok: true, returnValue: [
+    [{ type: "month", value: name }, { type: "literal", value: " " }, { type: "day", value: "29" }],
+    `${name} 29`, `${name} 29`
+  ] });
 });
 ```
 
@@ -830,162 +819,68 @@ The five entrypoint arguments, each run under every listed runtime, are:
 
 ```javascript
 const entry = await import(process.argv[2]);
-const { run } = entry;
-const { dump, restore } = process.argv[2].endsWith("/core")
-  ? await import(process.argv[2].slice(0, -5))
-  : entry;
-const checks = [];
-const record = (id, actual, expected) =>
-  checks.push({ id, pass: JSON.stringify(actual) === JSON.stringify(expected), actual, expected });
-const observe = (id, actual) => checks.push({ id, observation: actual });
-const start = Date.UTC(2000, 1, 29),
-  end = Date.UTC(2000, 2, 2),
-  next = Date.UTC(2001, 1, 2);
-const rows = [
-  ["en-US", ["February", "Feb", "F", "2", "02"], ["March", "Mar", "M", "3", "03"], "February"],
-  ["pl-PL", ["luty", "lut", "L", "2", "02"], ["marzec", "mar", "M", "3", "03"], "lutego"],
-  ["ru-RU", ["февраль", "февр.", "Ф", "2", "02"], ["март", "март", "М", "3", "03"], "февраля"]
-];
-const widths = ["long", "short", "narrow", "numeric", "2-digit"];
-for (const [locale, names, ends, contextLong] of rows)
-  for (const [i, month] of widths.entries()) {
-    const options = { calendar: "iso8601", month, timeZone: "UTC" };
-    const code = `const f=new Intl.DateTimeFormat(${JSON.stringify(locale)},${JSON.stringify(options)});
+const {run} = entry;
+const {dump,restore} = process.argv[2].endsWith('/core') ? await import(process.argv[2].slice(0,-5)) : entry;
+const checks=[];
+const record=(id,actual,expected)=>checks.push({id,pass:JSON.stringify(actual)===JSON.stringify(expected),actual,expected});
+const observe=(id,actual)=>checks.push({id,observation:actual});
+const start=Date.UTC(2000,1,29),end=Date.UTC(2000,2,2),next=Date.UTC(2001,1,2);
+const rows=[['en-US',['February','Feb','F','2','02'],['March','Mar','M','3','03'],'February'],['pl-PL',['luty','lut','L','2','02'],['marzec','mar','M','3','03'],'lutego'],['ru-RU',['февраль','февр.','Ф','2','02'],['март','март','М','3','03'],'февраля']];
+const widths=['long','short','narrow','numeric','2-digit'];
+for(const [locale,names,ends,contextLong] of rows) for(const [i,month] of widths.entries()) {
+ const options={calendar:'iso8601',month,timeZone:'UTC'};
+ const code=`const f=new Intl.DateTimeFormat(${JSON.stringify(locale)},${JSON.stringify(options)});
  const md=new Temporal.PlainMonthDay(2,29),ym=new Temporal.PlainYearMonth(2000,2);
  const p=f.formatToParts(${start}),r=f.formatRangeToParts(${start},${end}),cross=f.formatRangeToParts(${start},${next});
  return {single:[f.format(${start}),p,md.toLocaleString(${JSON.stringify(locale)},${JSON.stringify(options)}),ym.toLocaleString(${JSON.stringify(locale)},${JSON.stringify(options)}),f.format(md),f.format(ym)],range:r,cross,same:f.formatRangeToParts(${start},${start}),join:f.formatRange(${start},${end})===r.map(p=>p.value).join(''),calendar:f.resolvedOptions().calendar};`;
-    const pending = run(code);
-    const result = await pending;
-    record(`${locale}/${month}/ok`, result.ok, true);
-    if (!result.ok) {
-      observe("error", String(result.error));
-      continue;
-    }
-    const v = result.returnValue;
-    record(`${locale}/${month}/single`, v.single, [
-      names[i],
-      [{ type: "month", value: names[i] }],
-      names[i],
-      names[i],
-      names[i],
-      names[i]
-    ]);
-    record(
-      `${locale}/${month}/range`,
-      v.range.filter((p) => p.type === "month"),
-      [
-        { type: "month", value: names[i], source: "startRange" },
-        { type: "month", value: ends[i], source: "endRange" }
-      ]
-    );
-    record(`${locale}/${month}/join`, v.join, true);
-    record(`${locale}/${month}/calendar`, v.calendar, "iso8601");
-    record(`${locale}/${month}/same`, v.same, [
-      { type: "month", value: names[i], source: "shared" }
-    ]);
-    record(
-      `${locale}/${month}/cross-year-fields`,
-      v.cross.filter((p) => p.type !== "literal"),
-      [
-        { type: "month", value: names[i], source: "startRange" },
-        { type: "month", value: names[i], source: "endRange" }
-      ]
-    );
-    for (const mode of ["pending", "completed"]) {
-      const original = run(code);
-      if (mode === "completed") await original;
-      const saved = restore(JSON.parse(await dump(original)), { source: code });
-      record(`${locale}/${month}/${mode}-original`, (await original).returnValue, v);
-      record(
-        `${locale}/${month}/${mode}-replay`,
-        (await run(code, { snapshot: saved })).returnValue,
-        v
-      );
-    }
-    const native = new Intl.DateTimeFormat(locale, options);
-    observe(`${locale}/${month}/native`, {
-      single: native.formatToParts(start),
-      range: native.formatRangeToParts(start, end),
-      cross: native.formatRangeToParts(start, next)
-    });
-    if (["long", "short"].includes(month)) {
-      const mix = { ...options, year: "numeric" };
-      const mixed = await run(
-        `const o=${JSON.stringify(mix)},locale=${JSON.stringify(locale)},f=new Intl.DateTimeFormat(locale,o);return [f.formatToParts(${start}),new Temporal.PlainYearMonth(2000,2).toLocaleString(locale,o)];`
-      );
-      record(`${locale}/${month}/mixed-ok`, mixed.ok, true);
-      if (mixed.ok) {
-        record(
-          `${locale}/${month}/mixed-month-present`,
-          mixed.returnValue[0].some((p) => p.type === "month" && p.value.length > 0),
-          true
-        );
-        record(`${locale}/${month}/mixed`, mixed.returnValue, [
-          [
-            { type: "year", value: "2000" },
-            { type: "literal", value: " " },
-            { type: "month", value: month === "long" ? contextLong : names[i] }
-          ],
-          `2000 ${month === "long" ? contextLong : names[i]}`
-        ]);
-      }
-    }
-  }
-for (const calendar of ["gregory", "buddhist", "hebrew"]) {
-  const opts = { calendar, year: "numeric", month: "long", day: "numeric", timeZone: "UTC" };
-  const native = new Intl.DateTimeFormat("pl-PL", opts);
-  const result = await run(
-    `const f=new Intl.DateTimeFormat('pl-PL',${JSON.stringify(opts)});return [f.formatToParts(${start}),f.formatRangeToParts(${start},${end}),f.resolvedOptions().calendar];`
-  );
-  record(
-    `control/${calendar}`,
-    [result.ok, result.returnValue],
-    [true, [native.formatToParts(start), native.formatRangeToParts(start, end), calendar]]
-  );
+ const pending=run(code);const result=await pending;
+ record(`${locale}/${month}/ok`,result.ok,true);
+ if(!result.ok){observe('error',String(result.error));continue;}
+ const v=result.returnValue;
+ record(`${locale}/${month}/single`,v.single,[names[i],[{type:'month',value:names[i]}],names[i],names[i],names[i],names[i]]);
+ record(`${locale}/${month}/range`,v.range.filter(p=>p.type==='month'),[{type:'month',value:names[i],source:'startRange'},{type:'month',value:ends[i],source:'endRange'}]);
+ record(`${locale}/${month}/join`,v.join,true);
+ record(`${locale}/${month}/calendar`,v.calendar,'iso8601');
+ record(`${locale}/${month}/same`,v.same,[{type:'month',value:names[i],source:'shared'}]);
+ record(`${locale}/${month}/cross-year-fields`,v.cross.filter(p=>p.type!=='literal'),[{type:'month',value:names[i],source:'startRange'},{type:'month',value:names[i],source:'endRange'}]);
+ for(const mode of ['pending','completed']) {
+ const original=run(code);if(mode==='completed')await original;
+ const saved=restore(JSON.parse(await dump(original)),{source:code});
+ record(`${locale}/${month}/${mode}-original`,(await original).returnValue,v);
+ record(`${locale}/${month}/${mode}-replay`,(await run(code,{snapshot:saved})).returnValue,v);
+ }
+ const native=new Intl.DateTimeFormat(locale,options);
+ observe(`${locale}/${month}/native`,{single:native.formatToParts(start),range:native.formatRangeToParts(start,end),cross:native.formatRangeToParts(start,next)});
+ if(['long','short'].includes(month)) {
+ const mix={...options,year:'numeric'};
+ const mixed=await run(`const o=${JSON.stringify(mix)},locale=${JSON.stringify(locale)},f=new Intl.DateTimeFormat(locale,o);return [f.formatToParts(${start}),new Temporal.PlainYearMonth(2000,2).toLocaleString(locale,o)];`);
+ record(`${locale}/${month}/mixed-ok`,mixed.ok,true);
+ if(mixed.ok){record(`${locale}/${month}/mixed-month-present`,mixed.returnValue[0].some(p=>p.type==='month'&&p.value.length>0),true);record(`${locale}/${month}/mixed`,mixed.returnValue,[[{type:'year',value:'2000'},{type:'literal',value:' '},{type:'month',value:month==='long'?contextLong:names[i]}],`2000 ${month==='long'?contextLong:names[i]}`]);}
+ }
 }
-const coercion = await run(
-  `const log=[];const f=new Intl.DateTimeFormat(['pl-PL','en-US'],{calendar:{toString(){log.push('calendar');return 'iso8601'}},month:{toString(){log.push('month');return 'numeric'}},numberingSystem:'arab',timeZone:'UTC'});const errors=[];for(const args of [[NaN,0],[undefined,0],[0,Infinity]])try{f.formatRange(...args)}catch(e){errors.push(e.name)}return [log,f.format(${start}),f.resolvedOptions().locale,f.resolvedOptions().numberingSystem,errors,typeof process,typeof fetch];`
-);
-record(
-  "coercion/numbering/locale-order/authority",
-  [coercion.ok, coercion.returnValue],
-  [
-    true,
-    [
-      ["calendar", "month"],
-      "٢",
-      "pl-PL",
-      "arab",
-      ["RangeError", "TypeError", "RangeError"],
-      "undefined",
-      "undefined"
-    ]
-  ]
-);
-console.log(
-  JSON.stringify({
-    versions: process.versions,
-    entrypoint: process.argv[2],
-    checks,
-    passed: checks.filter((c) => c.pass === true).length,
-    failed: checks.filter((c) => c.pass === false).length,
-    observations: checks.filter((c) => c.observation !== undefined).length
-  })
-);
-process.exitCode = checks.some((c) => c.pass === false) ? 1 : 0;
+for(const calendar of ['gregory','buddhist','hebrew']) {
+ const opts={calendar,year:'numeric',month:'long',day:'numeric',timeZone:'UTC'};
+ const native=new Intl.DateTimeFormat('pl-PL',opts);
+ const result=await run(`const f=new Intl.DateTimeFormat('pl-PL',${JSON.stringify(opts)});return [f.formatToParts(${start}),f.formatRangeToParts(${start},${end}),f.resolvedOptions().calendar];`);
+ record(`control/${calendar}`,[result.ok,result.returnValue],[true,[native.formatToParts(start),native.formatRangeToParts(start,end),calendar]]);
+}
+const coercion=await run(`const log=[];const f=new Intl.DateTimeFormat(['pl-PL','en-US'],{calendar:{toString(){log.push('calendar');return 'iso8601'}},month:{toString(){log.push('month');return 'numeric'}},numberingSystem:'arab',timeZone:'UTC'});const errors=[];for(const args of [[NaN,0],[undefined,0],[0,Infinity]])try{f.formatRange(...args)}catch(e){errors.push(e.name)}return [log,f.format(${start}),f.resolvedOptions().locale,f.resolvedOptions().numberingSystem,errors,typeof process,typeof fetch];`);
+record('coercion/numbering/locale-order/authority',[coercion.ok,coercion.returnValue],[true,[['calendar','month'],'٢','pl-PL','arab',['RangeError','TypeError','RangeError'],'undefined','undefined']]);
+console.log(JSON.stringify({versions:process.versions,entrypoint:process.argv[2],checks,passed:checks.filter(c=>c.pass===true).length,failed:checks.filter(c=>c.pass===false).length,observations:checks.filter(c=>c.observation!==undefined).length}));
+process.exitCode=checks.some(c=>c.pass===false)?1:0;
 ```
 
 Results are identical across the five listed surfaces for each runtime:
 
-| Runtime      | ICU  | Passed | Failed | Exit |
-| ------------ | ---- | -----: | -----: | ---: |
-| Node 18.18.0 | 73.2 |    181 |      6 |    1 |
-| Node 18.20.8 | 74.2 |    181 |      6 |    1 |
-| Node 20.20.2 | 78.2 |    175 |     12 |    1 |
-| Node 22.23.2 | 78.2 |    175 |     12 |    1 |
-| Node 24.21.0 | 78.3 |    187 |      0 |    0 |
-| Node 26.8.2  | 78.3 |    187 |      0 |    0 |
-| Bun 1.3.11   | 74.2 |    183 |      4 |    1 |
+| Runtime | ICU | Passed | Failed | Exit |
+| --- | --- | ---: | ---: | ---: |
+| Node 18.18.0 | 73.2 | 181 | 6 | 1 |
+| Node 18.20.8 | 74.2 | 181 | 6 | 1 |
+| Node 20.20.2 | 78.2 | 175 | 12 | 1 |
+| Node 22.23.2 | 78.2 | 175 | 12 | 1 |
+| Node 24.21.0 | 78.3 | 187 | 0 | 0 |
+| Node 26.8.2 | 78.3 | 187 | 0 | 0 |
+| Bun 1.3.11 | 74.2 | 183 | 4 | 1 |
 
 Exact runtime executables used:
 
@@ -1020,20 +915,7 @@ missing-month outputs in this diagnostic. This does not certify their pinned
 locale profiles or all possible options.
 
 ```javascript
-const rows = [];
-for (const locale of ["en-US", "pl-PL", "ru-RU"])
-  for (const month of ["long", "short", "narrow", "numeric", "2-digit"])
-    for (const fields of [{}, { year: "numeric" }, { day: "numeric" }]) {
-      const options = { calendar: "iso8601", timeZone: "UTC", month, ...fields };
-      const f = new Intl.DateTimeFormat(locale, options);
-      rows.push({
-        locale,
-        options,
-        parts: f.formatToParts(Date.UTC(2000, 1, 29)),
-        range: f.formatRangeToParts(Date.UTC(2000, 1, 29), Date.UTC(2000, 2, 2))
-      });
-    }
-console.log(JSON.stringify({ versions: process.versions, rows }));
+const rows=[];for(const locale of ['en-US','pl-PL','ru-RU'])for(const month of ['long','short','narrow','numeric','2-digit'])for(const fields of [{},{year:'numeric'},{day:'numeric'}]){const options={calendar:'iso8601',timeZone:'UTC',month,...fields};const f=new Intl.DateTimeFormat(locale,options);rows.push({locale,options,parts:f.formatToParts(Date.UTC(2000,1,29)),range:f.formatRangeToParts(Date.UTC(2000,1,29),Date.UTC(2000,2,2))})}console.log(JSON.stringify({versions:process.versions,rows}));
 ```
 
 The following direct temporal-polyfill 1.0.4 control was also freshly run as
@@ -1046,32 +928,17 @@ all other tested runtimes (15 native-Temporal rows per runtime unexecuted).
 Native API absence is not counted as a failing or passing guest assertion.
 
 ```javascript
-import { Temporal as Backend, Intl as BackendIntl } from "temporal-polyfill/full/implementation";
-const rows = [];
-for (const locale of ["en-US", "pl-PL", "ru-RU"])
-  for (const month of ["long", "short", "narrow", "numeric", "2-digit"]) {
-    const options = { calendar: "iso8601", month, timeZone: "UTC" };
-    const md = new Backend.PlainMonthDay(2, 29),
-      ym = new Backend.PlainYearMonth(2000, 2);
-    const f = new BackendIntl.DateTimeFormat(locale, options);
-    const row = {
-      locale,
-      month,
-      backend: [
-        md.toLocaleString(locale, options),
-        ym.toLocaleString(locale, options),
-        f.formatToParts(ym)
-      ],
-      nativeTemporal: "unavailable"
-    };
-    if (typeof globalThis.Temporal !== "undefined")
-      row.nativeTemporal = [
-        new Temporal.PlainMonthDay(2, 29).toLocaleString(locale, options),
-        new Temporal.PlainYearMonth(2000, 2).toLocaleString(locale, options)
-      ];
-    rows.push(row);
-  }
-console.log(JSON.stringify({ versions: process.versions, rows }));
+import {Temporal as Backend, Intl as BackendIntl} from 'temporal-polyfill/full/implementation';
+const rows=[];
+for(const locale of ['en-US','pl-PL','ru-RU'])for(const month of ['long','short','narrow','numeric','2-digit']){
+ const options={calendar:'iso8601',month,timeZone:'UTC'};
+ const md=new Backend.PlainMonthDay(2,29),ym=new Backend.PlainYearMonth(2000,2);
+ const f=new BackendIntl.DateTimeFormat(locale,options);
+ const row={locale,month,backend:[md.toLocaleString(locale,options),ym.toLocaleString(locale,options),f.formatToParts(ym)],nativeTemporal:'unavailable'};
+ if(typeof globalThis.Temporal!=='undefined')row.nativeTemporal=[new Temporal.PlainMonthDay(2,29).toLocaleString(locale,options),new Temporal.PlainYearMonth(2000,2).toLocaleString(locale,options)];
+ rows.push(row);
+}
+console.log(JSON.stringify({versions:process.versions,rows}));
 ```
 
 ### Workerd and remaining acceptance boundaries
@@ -1122,6 +989,7 @@ versions above are historical package observations, not publication of this
 report or a repair. Acceptance stays open until an ISO-preserving backend
 repair and all required runtime/entrypoint qualifications are evidenced.
 
+
 ## repair-temporal-extremes — committed reproduction and unresolved disposition
 
 Source **`47c7f226ae1f4ce4f765846913f7d283529488e3`**, main, 2026-09-12.
@@ -1143,15 +1011,15 @@ processes completed, all stderr streams were empty, and every failed row was
 retained. Block 1 and block 4 exit **1** on every runtime; blocks 2 and 3 exit
 **0**. A successful arithmetic process does not excuse formatting failures.
 
-| Runtime      | ICU  | Block 1 formatting pass/fail | Block 2 arithmetic/admission pass/fail | Block 3 lower pass/fail |
-| ------------ | ---- | ---------------------------- | -------------------------------------- | ----------------------- |
-| Node 18.18.0 | 73.2 | 201/128                      | 35/0                                   | 25/0                    |
-| Node 18.20.8 | 74.2 | 201/128                      | 35/0                                   | 25/0                    |
-| Node 20.20.2 | 78.2 | 202/127                      | 35/0                                   | 25/0                    |
-| Node 22.23.2 | 78.2 | 206/123                      | 35/0                                   | 25/0                    |
-| Node 24.21.0 | 78.3 | 206/123                      | 35/0                                   | 25/0                    |
-| Node 26.8.2  | 78.3 | 206/123                      | 51/0                                   | 25/0                    |
-| Bun 1.3.11   | 74.2 | 206/123                      | 35/0                                   | 25/0                    |
+| Runtime | ICU | Block 1 formatting pass/fail | Block 2 arithmetic/admission pass/fail | Block 3 lower pass/fail |
+| --- | --- | --- | --- | --- |
+| Node 18.18.0 | 73.2 | 201/128 | 35/0 | 25/0 |
+| Node 18.20.8 | 74.2 | 201/128 | 35/0 | 25/0 |
+| Node 20.20.2 | 78.2 | 202/127 | 35/0 | 25/0 |
+| Node 22.23.2 | 78.2 | 206/123 | 35/0 | 25/0 |
+| Node 24.21.0 | 78.3 | 206/123 | 35/0 | 25/0 |
+| Node 26.8.2 | 78.3 | 206/123 | 51/0 | 25/0 |
+| Bun 1.3.11 | 74.2 | 206/123 | 35/0 | 25/0 |
 
 Every block-4 profile records **240 formatting passes / 480 formatting failures**,
 **144/144 transport controls**, **144/144 receiving-realm error controls**, and
@@ -1179,30 +1047,30 @@ Exact runtime commands (repository root; report block supplied on stdin):
 
 Executed block SHA256 values, identical across runtimes:
 
-| Block | SHA256                                                             |
-| ----- | ------------------------------------------------------------------ |
-| 1     | `e34c88f346013a30e4349a44b2cbbb4eb160e7868e1beb68e95404f45e1c0802` |
-| 2     | `07e9ae2e6dc863d3b3b24bd5a990bd877acb4bffc4ca74cd7a668667cfcee5e2` |
-| 3     | `05cd2c442ba6cff7024b2fe563fe2e1098266ad23a16111c21cd318356c82f34` |
-| 4     | `2eb9ee591e2217979970fbac7fe01eb7f2b620a7a3f2d2ce9e4d226cc81b94d6` |
+| Block | SHA256 |
+| --- | --- |
+| 1 | `e34c88f346013a30e4349a44b2cbbb4eb160e7868e1beb68e95404f45e1c0802` |
+| 2 | `07e9ae2e6dc863d3b3b24bd5a990bd877acb4bffc4ca74cd7a668667cfcee5e2` |
+| 3 | `05cd2c442ba6cff7024b2fe563fe2e1098266ad23a16111c21cd318356c82f34` |
+| 4 | `2eb9ee591e2217979970fbac7fe01eb7f2b620a7a3f2d2ce9e4d226cc81b94d6` |
 
 ### Every identified case: outcome or explicit blocker
 
-| Required case                                                             | Disposition                                                                                                                                                                                                                                                                                                                                         |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PlainDate, PlainDateTime, PlainYearMonth beyond TimeClip                  | **Unresolved implementation gap.** Valid lower PlainDate, lower/upper PlainDateTime and lower PlainYearMonth fail all five paths. Upper PlainDate and PlainYearMonth controls pass. The source passes private Temporal values through a numeric-epoch backend. No calendar-preserving unbounded formatter has been qualified.                       |
-| Calendar fields, weekdays, non-Latin numerals; format/parts/ranges/locale | Blocks 1 and 4 execute ISO/Gregorian/Buddhist profiles with Latin/Arabic numerals, expected fields and independent weekday controls. Node22+ and Bun retain 120 endpoint failures plus three cross-extreme range failures. Other calendars/locales remain unqualified, not implicitly covered.                                                      |
-| Invalid numeric Date values                                               | All four Intl methods reject NaN, infinities, both out-of-TimeClip signs and invalid Date; 24 separate receiving-realm controls pass per runtime. Ordinary numeric controls pass.                                                                                                                                                                   |
-| Fixed-offset zones on older supported runtimes                            | **Unresolved Node18/20 implementation gap:** four extra failures per profile for positive/negative Instant parts and ZonedDateTime locale. UTC and Node22+/Bun controls pass. No runtime minimum was raised.                                                                                                                                        |
-| Reversed PlainTime ranges                                                 | **Unresolved Node18 implementation gap:** one additional failure for 13:00 to 12:00. Forward and Node20+/Bun source-labelled controls pass. A field-swap approximation remains unqualified for interval patterns/shared dayPeriod. No descending-range rejection requirement was invented.                                                          |
-| Calendar/zone mismatch                                                    | Executed mismatch controls preserve required errors for incompatible calendars, ZonedDateTime's timeZone option and direct Intl admission. Calendars were not substituted.                                                                                                                                                                          |
-| Skipped civil day; DST gap/overlap                                        | Executed Apia skipped-day and New York disambiguation cases pass, including required reject behavior. This qualifies those cases rather than every historical timezone transition.                                                                                                                                                                  |
-| Overflow/rounding, all eight Temporal types                               | Blocks 2 and 3 execute actual upper/lower construction, arithmetic, difference-rounding and overflow behavior: 19 upper arithmetic and 25 lower assertions pass per runtime. PlainMonthDay has no round API by design; its real overflow/reference-date behavior passes. Minimum YearMonth intermediate-date rejection remains required by the pin. |
-| Host admission and custom prototypes                                      | All eight backend brands execute admission and foreign-subclass rejection controls; all eight native brands also execute on Node26. Separate 32-case transport run preserves custom prototypes, aliases, frozen objects and private slots. Pre-existing untracked test source was not committed.                                                    |
-| Realm ownership and repeated heap/replay                                  | Separate all-eight-type transport suite passes three host/heap/replay cycles. Block 4 passes private-field/authority and error-ownership controls through checkpoints and three completed public replay cycles, while preserving formatting failures. Raw prototype-linked replay refusal is an explicit authority boundary.                        |
-| Workerd                                                                   | **Unresolved integration blocker:** fresh build-to-bundle probe exits 1 resolving `#safe-fs-native-seek` from safe-fs. Guest execution, ICU and replay are unexecuted; no Node capability alias or import exclusion was introduced.                                                                                                                 |
-| Core, installed artifact and umbrella integration                         | No fresh core replay or installed/umbrella artifact qualification in this evidence-only change. Core's missing public dump export remains a capability boundary, not an ECMAScript defect. A future repair still needs these applicable integration checks and publication evidence.                                                                |
-| Mapped Test262 fixtures                                                   | No fresh Test262 execution claimed. Prior same-source results remain 58 fixtures / 116 variants: 98 pass, 18 fail, zero unsupported; nine no-TimeClip files fail in both modes. New manual results do not turn those failures into passes or qualify unselected fixtures.                                                                           |
+| Required case | Disposition |
+| --- | --- |
+| PlainDate, PlainDateTime, PlainYearMonth beyond TimeClip | **Unresolved implementation gap.** Valid lower PlainDate, lower/upper PlainDateTime and lower PlainYearMonth fail all five paths. Upper PlainDate and PlainYearMonth controls pass. The source passes private Temporal values through a numeric-epoch backend. No calendar-preserving unbounded formatter has been qualified. |
+| Calendar fields, weekdays, non-Latin numerals; format/parts/ranges/locale | Blocks 1 and 4 execute ISO/Gregorian/Buddhist profiles with Latin/Arabic numerals, expected fields and independent weekday controls. Node22+ and Bun retain 120 endpoint failures plus three cross-extreme range failures. Other calendars/locales remain unqualified, not implicitly covered. |
+| Invalid numeric Date values | All four Intl methods reject NaN, infinities, both out-of-TimeClip signs and invalid Date; 24 separate receiving-realm controls pass per runtime. Ordinary numeric controls pass. |
+| Fixed-offset zones on older supported runtimes | **Unresolved Node18/20 implementation gap:** four extra failures per profile for positive/negative Instant parts and ZonedDateTime locale. UTC and Node22+/Bun controls pass. No runtime minimum was raised. |
+| Reversed PlainTime ranges | **Unresolved Node18 implementation gap:** one additional failure for 13:00 to 12:00. Forward and Node20+/Bun source-labelled controls pass. A field-swap approximation remains unqualified for interval patterns/shared dayPeriod. No descending-range rejection requirement was invented. |
+| Calendar/zone mismatch | Executed mismatch controls preserve required errors for incompatible calendars, ZonedDateTime's timeZone option and direct Intl admission. Calendars were not substituted. |
+| Skipped civil day; DST gap/overlap | Executed Apia skipped-day and New York disambiguation cases pass, including required reject behavior. This qualifies those cases rather than every historical timezone transition. |
+| Overflow/rounding, all eight Temporal types | Blocks 2 and 3 execute actual upper/lower construction, arithmetic, difference-rounding and overflow behavior: 19 upper arithmetic and 25 lower assertions pass per runtime. PlainMonthDay has no round API by design; its real overflow/reference-date behavior passes. Minimum YearMonth intermediate-date rejection remains required by the pin. |
+| Host admission and custom prototypes | All eight backend brands execute admission and foreign-subclass rejection controls; all eight native brands also execute on Node26. Separate 32-case transport run preserves custom prototypes, aliases, frozen objects and private slots. Pre-existing untracked test source was not committed. |
+| Realm ownership and repeated heap/replay | Separate all-eight-type transport suite passes three host/heap/replay cycles. Block 4 passes private-field/authority and error-ownership controls through checkpoints and three completed public replay cycles, while preserving formatting failures. Raw prototype-linked replay refusal is an explicit authority boundary. |
+| Workerd | **Unresolved integration blocker:** fresh build-to-bundle probe exits 1 resolving `#safe-fs-native-seek` from safe-fs. Guest execution, ICU and replay are unexecuted; no Node capability alias or import exclusion was introduced. |
+| Core, installed artifact and umbrella integration | No fresh core replay or installed/umbrella artifact qualification in this evidence-only change. Core's missing public dump export remains a capability boundary, not an ECMAScript defect. A future repair still needs these applicable integration checks and publication evidence. |
+| Mapped Test262 fixtures | No fresh Test262 execution claimed. Prior same-source results remain 58 fixtures / 116 variants: 98 pass, 18 fail, zero unsupported; nine no-TimeClip files fail in both modes. New manual results do not turn those failures into passes or qualify unselected fixtures. |
 
 These are explicit unresolved implementation/qualification gaps, not missing
 permission or external approval requests. No endpoint clamping, calendar change,
@@ -1233,12 +1101,12 @@ made. The requested production repair is not complete.
 
 Relevant SHA256 fingerprints:
 
-| File                                                               | SHA256                                                             |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| `packages/safe-js/src/interp/intl-datetimeformat.ts`               | `b588e94daa9dd8b23fe80618fcaf6f8bff41ec751fd3016f21adaa5fe0c16b0f` |
+| File | SHA256 |
+| --- | --- |
+| `packages/safe-js/src/interp/intl-datetimeformat.ts` | `b588e94daa9dd8b23fe80618fcaf6f8bff41ec751fd3016f21adaa5fe0c16b0f` |
 | `packages/safe-js/src/snapshot/temporal-extreme-transport.test.ts` | `70ed8fd959ea02aa0ac756deb38d191599fd07f23f539ed620746313374263be` |
-| `node_modules/temporal-polyfill/chunks/classApi.js`                | `e1442e5883cc0d463812e1afcb3f4cc36e3aa25947572920d11bef7da3128204` |
-| `node_modules/temporal-polyfill/chunks/internal.js`                | `cbe619842f9e0e9d976bc9dbcf7b65052c0d169e4b4897c0674a5fa8562fc3a3` |
+| `node_modules/temporal-polyfill/chunks/classApi.js` | `e1442e5883cc0d463812e1afcb3f4cc36e3aa25947572920d11bef7da3128204` |
+| `node_modules/temporal-polyfill/chunks/internal.js` | `cbe619842f9e0e9d976bc9dbcf7b65052c0d169e4b4897c0674a5fa8562fc3a3` |
 
 ### Delivery and publication receipts
 
@@ -1276,15 +1144,15 @@ executed unchanged on all seven runtime profiles after the maintained selected
 SafeJS build. The [matrix receipt](repair-temporal-extremes/delivery-qualification-20260912/matrix.json)
 records exact commands, stdin hashes, Node/ICU versions, exits and summaries.
 
-| Runtime / ICU       | Block 1 pass/fail | Block 2 pass/fail | Block 3 pass/fail |
-| ------------------- | ----------------- | ----------------- | ----------------- |
-| Node 18.18.0 / 73.2 | 201/128           | 35/0              | 25/0              |
-| Node 18.20.8 / 74.2 | 201/128           | 35/0              | 25/0              |
-| Node 20.20.2 / 78.2 | 202/127           | 35/0              | 25/0              |
-| Node 22.23.2 / 78.2 | 206/123           | 35/0              | 25/0              |
-| Node 24.21.0 / 78.3 | 206/123           | 35/0              | 25/0              |
-| Node 26.8.2 / 78.3  | 206/123           | 51/0              | 25/0              |
-| Bun 1.3.11 / 74.2   | 206/123           | 35/0              | 25/0              |
+| Runtime / ICU | Block 1 pass/fail | Block 2 pass/fail | Block 3 pass/fail |
+| --- | --- | --- | --- |
+| Node 18.18.0 / 73.2 | 201/128 | 35/0 | 25/0 |
+| Node 18.20.8 / 74.2 | 201/128 | 35/0 | 25/0 |
+| Node 20.20.2 / 78.2 | 202/127 | 35/0 | 25/0 |
+| Node 22.23.2 / 78.2 | 206/123 | 35/0 | 25/0 |
+| Node 24.21.0 / 78.3 | 206/123 | 35/0 | 25/0 |
+| Node 26.8.2 / 78.3 | 206/123 | 51/0 | 25/0 |
+| Bun 1.3.11 / 74.2 | 206/123 | 35/0 | 25/0 |
 
 Each block-4 profile records **240 formatting passes / 480 failures**,
 **144/144 transport**, **144/144 receiving-realm error ownership**, and
@@ -1394,15 +1262,15 @@ The [corrected matrix](repair-temporal-extremes/delivery-qualification-20260912/
 records all fourteen reruns with exact commands, source SHA, Node/ICU versions,
 new stdin hashes and exits. The failure counts are unchanged:
 
-| Runtime / ICU      | Corrected block 1 pass/fail |
-| ------------------ | --------------------------- |
-| Node18.18.0 / 73.2 | 201/128                     |
-| Node18.20.8 / 74.2 | 201/128                     |
-| Node20.20.2 / 78.2 | 202/127                     |
-| Node22.23.2 / 78.2 | 206/123                     |
-| Node24.21.0 / 78.3 | 206/123                     |
-| Node26.8.2 / 78.3  | 206/123                     |
-| Bun1.3.11 / 74.2   | 206/123                     |
+| Runtime / ICU | Corrected block 1 pass/fail |
+| --- | --- |
+| Node18.18.0 / 73.2 | 201/128 |
+| Node18.20.8 / 74.2 | 201/128 |
+| Node20.20.2 / 78.2 | 202/127 |
+| Node22.23.2 / 78.2 | 206/123 |
+| Node24.21.0 / 78.3 | 206/123 |
+| Node26.8.2 / 78.3 | 206/123 |
+| Bun1.3.11 / 74.2 | 206/123 |
 
 Every corrected block4 profile retains **240 formatting passes / 480 failures**,
 **144/144 transport**, **144/144 error ownership**, **24/24 invalid numeric-Date
@@ -1720,6 +1588,7 @@ performed; no release was initiated; successful-release receipt is **null**.
 See `repair-promise-symbol-admission/final-receipt.json` and
 `proof-authority-qualification.json` for exact candidate and terminal results.
 
+
 ### Promise admission current-source audit — 2026-09-12
 
 Source SHA: `78b9470aed67ada59e23b0f94274661699a696f3`, branch `main`.
@@ -1779,6 +1648,7 @@ or initiate publication. Release receipt: **null**. The new evidence commit's
 SHA is reported separately after commit. No CLI behavior changed, so visual
 CLI screenshots do not apply.
 
+
 ### Promise admission delivery qualification and Workerd repair — 2026-09-12
 
 Source base: `4408e49a0c4ac0cdddc9af2b59cd772950d6ca08`. Node **22.23.2**, ICU **78.2**. Existing admission, proof-authority and export repairs were present before this execution. Fetch confirmed remote main `40b5ac20e91570772786e5f9cb961881b11d6692`, an ancestor. Unrelated working and staged changes remain preserved. The ECMA-262 edition 16 / ECMA-402 edition 12 target and separately tracked newer APIs remain unchanged.
@@ -1797,6 +1667,7 @@ Fresh commands and outcomes:
 
 The previous complete package result remains historical; the additional import repair is covered by the maintained build, focused filesystem suites and actual Workerd control. No budgets, assertions, runtime support or timeouts were weakened. No CLI rendering changed. No issue number is explicitly associated with this task. Local commit, remote ancestry and publication receipts follow separately; at this point a push/publication is not yet claimed.
 
+
 ### Promise admission published-artifact closure follow-up — 2026-09-12
 
 Source base: `11a7a80571a633cd452fde83a3fd57290fc019a4`; Node **22.23.2**, ICU **78.2**. Exact final candidate source hashes are in `repair-promise-symbol-admission/delivery-20260912/candidate-source-hashes.json`. The published ECMAScript edition target and separately pinned newer APIs are unchanged.
@@ -1810,7 +1681,6 @@ The full root command has not yet passed on this candidate. Preserved interrupte
 The restored broad attempt passed its first shared group (**917 files / 22,603 tests / two skips**) and a native stage (**313 passed / zero skips**), then correctly rejected uncommitted root metadata in the strict S3 archive admission check. An independent `node packages/safe-bash/tests/integration/s3-http-exports/verify.mjs HEAD <report>` reproduced `Peer binding requires the selected committed root metadata`. No revision override, optional profile, source fallback or assertion relaxation was introduced. Local atomic commits are being created before a complete rerun. The earlier partial groups are not presented as a successful full gate. Optional/unavailable comparator outputs remain nonclaims.
 
 Archived Test262 copies caused **58** full-lint errors because they require their external harness globals. Their bytes are now retained unchanged as `.js.txt` reference data with hash/restoration instructions; no lint rule or upstream assertion was suppressed, and the pinned external corpus used by the recorded conformance command is unchanged. The independent fixture archive, CLI enumeration and alias fixes have local commits:
-
 - `295f9e7ef140da5876a24e281d753464c0cd740c` — docs(safe-js): retain Test262 references as evidence data
 - `4c835cf8a96560e874e53207d687631168bbbbb0` — test: ignore non-package files in CLI startup checks
 - `bf672775f6bb50f5690787b23410d8b0f596996a` — fix(test): resolve nested workspace aliases before parents
@@ -1887,6 +1757,7 @@ publication. If publication remains unresolved, fetch remote main, verify the
 delivered commit's ancestry in any successor, inspect failed jobs and registry
 receipts, then retry the required workflow through GitHub; never publish locally.
 
+
 ### qualify-lexical-and-source-text — eval syntax spans, isolated audit, 2026-09-13
 
 **Acceptance remains open.** [Audit and reproducible checks](qualify-lexical-and-source-text/eval-span-audit/audit.md), [exact grammar cells](qualify-lexical-and-source-text/eval-span-audit/grammar.json), and [completed corpus with every nonpass](qualify-lexical-and-source-text/eval-span-audit/corpus-summary.json). The target remains ECMA-262 edition 16 / ECMA-402 edition 12 and Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, with separately tracked newer APIs unchanged.
@@ -1899,28 +1770,28 @@ TDD reproduced five missing/misattributed eval spans alongside five valid neighb
 
 Completed corpus at 2026-09-13T07:11:30.515Z, command exit **1**, unchanged 3,000 ms variant / 10,000 ms startup deadlines and no budget overrides. Counts: `{"executionErrors": 0, "failed": 112, "files": 1231, "fixtures": 0, "metadataErrors": 0, "passed": 2267, "unsupported": 2, "variants": 2381}`.
 
-| Category                                     | Variants | Passed | Failed | Unsupported |
-| -------------------------------------------- | -------: | -----: | -----: | ----------: |
-| language/asi                                 |      204 |    202 |      2 |           0 |
-| language/comments                            |       46 |     42 |      4 |           0 |
-| language/comments/hashbang                   |       35 |     34 |      0 |           1 |
-| language/expressions/template-literal        |      114 |    114 |      0 |           0 |
-| language/future-reserved-words               |       85 |     85 |      0 |           0 |
-| language/identifiers                         |      535 |    503 |     32 |           0 |
-| language/keywords                            |       50 |     50 |      0 |           0 |
-| language/line-terminators                    |       82 |     74 |      8 |           0 |
-| language/literals/bigint                     |       26 |     26 |      0 |           0 |
-| language/literals/bigint/numeric-separators  |       92 |     92 |      0 |           0 |
-| language/literals/boolean                    |        8 |      8 |      0 |           0 |
-| language/literals/null                       |        6 |      6 |      0 |           0 |
-| language/literals/numeric                    |      175 |    175 |      0 |           0 |
-| language/literals/numeric/numeric-separators |      126 |    126 |      0 |           0 |
-| language/literals/regexp                     |      368 |    302 |     66 |           0 |
-| language/literals/regexp/named-groups        |      112 |    112 |      0 |           0 |
-| language/literals/string                     |      128 |    128 |      0 |           0 |
-| language/reserved-words                      |       53 |     52 |      0 |           1 |
-| language/source-text                         |        2 |      2 |      0 |           0 |
-| language/white-space                         |      134 |    134 |      0 |           0 |
+| Category | Variants | Passed | Failed | Unsupported |
+| --- | ---: | ---: | ---: | ---: |
+| language/asi | 204 | 202 | 2 | 0 |
+| language/comments | 46 | 42 | 4 | 0 |
+| language/comments/hashbang | 35 | 34 | 0 | 1 |
+| language/expressions/template-literal | 114 | 114 | 0 | 0 |
+| language/future-reserved-words | 85 | 85 | 0 | 0 |
+| language/identifiers | 535 | 503 | 32 | 0 |
+| language/keywords | 50 | 50 | 0 | 0 |
+| language/line-terminators | 82 | 74 | 8 | 0 |
+| language/literals/bigint | 26 | 26 | 0 | 0 |
+| language/literals/bigint/numeric-separators | 92 | 92 | 0 | 0 |
+| language/literals/boolean | 8 | 8 | 0 | 0 |
+| language/literals/null | 6 | 6 | 0 | 0 |
+| language/literals/numeric | 175 | 175 | 0 | 0 |
+| language/literals/numeric/numeric-separators | 126 | 126 | 0 | 0 |
+| language/literals/regexp | 368 | 302 | 66 | 0 |
+| language/literals/regexp/named-groups | 112 | 112 | 0 | 0 |
+| language/literals/string | 128 | 128 | 0 | 0 |
+| language/reserved-words | 53 | 52 | 0 | 1 |
+| language/source-text | 2 | 2 | 0 | 0 |
+| language/white-space | 134 | 134 | 0 | 0 |
 
 Hashbang/comments, Unicode identifiers/escapes/surrogates, line terminators/ASI, radices/separators, templates/tagged raw/cooked values, regexp lexical goals and reserved/contextual/strict legacy syntax retain their pinned category and variant outcomes. Script grammar matches native in **37/37** selected cases. Native module parsing is an oracle only: the committed runner explicitly excludes module variants, while Agent Script embedding/lint are recorded separately. This is not a whole-edition compatibility claim.
 
@@ -1928,23 +1799,28 @@ Hashbang/comments, Unicode identifiers/escapes/surrogates, line terminators/ASI,
 
 **Delivery at this checkpoint:** local code is the containing commit (`git log -1 --format=%H -- packages/safe-js/src/parse/eval-syntax-positions.test.ts`); remote delivery and publication remain pending. Later receipts must name their actual SHAs, workflows and registry versions. No issue was explicitly associated.
 
+
 ### qualify-lexical-and-source-text — statement terminator repair, 2026-09-13
 
 Fetched-source corpus `eval-span-audit/corpus-summary.json` reproduces both Script modes of pinned `language/asi/do-while-same-line.js` failing with `Expected while`. The isolated regression reproduced **five failures / five valid controls** before adopting only the previously local statement-terminator hunks. After repair, **10/10 pass** via `npx vitest run packages/safe-js/src/parse/lexical-statement-terminators.test.ts`. Script execution, Agent Script execution and embedding lint are checked separately.
 
 Single-statement bodies now consume their own semicolon, and the enclosing statement does not demand another. The parser no longer silently discards extra empty statements before `else`; invalid `do {} ; while(0)`, `do ;; while(0)` and `if(true) 0;;else 1` remain rejected. Neighboring empty/block/nested-loop bodies are retained. No source text is rewritten, and no budget/timeout/authority changes. This atomic commit contains only the parser hunks, their ten regressions and this record. Broad validation and delivery receipts follow; lexical/source-origin acceptance remains open.
 
+
 ### qualify-lexical-and-source-text — regexp lexical goals, 2026-09-13
 
 The isolated corpus reproduced regexp parse/runtime mismatches against the pinned fixture expectations. Before adopting the minimal tokenizer repair, `npx vitest run packages/safe-js/src/parse/lexical-regexp-qualification.test.ts` had **21 failures / one valid control**; afterward **22/22 pass**. LF, CR, CRLF, LS and PS are rejected inside literal bodies, character classes and backslash sequences, while escaped pattern characters and constructor strings retain their values. Context selects `/=/` as a regexp where appropriate and preserves `x /= 2` as division assignment, including template interpolation. The literal scanner now rejects line terminators before regexp compilation; no timeout or budget was relaxed. This atomic commit adopts only the revalidated tokenizer hunks and their minimal regression file. Final corpus, lint/build and delivery receipts follow; acceptance remains open.
+
 
 ### qualify-lexical-and-source-text — unlocated host stack boundary, 2026-09-13
 
 Revalidated on the isolated fetched-source candidate: **one failure / two controls** before the formatter repair; **three passing parser controls** afterward (`npx vitest run packages/safe-js/src/parse/lexical-host-stack.test.ts`). The additional CLI filter matched no file on this fetched branch and is not counted. Native parser capacity varies: Vitest reaches its positioned parser guard for 1,024 parentheses, so the deterministic unlocated-error control independently verifies stack removal, original error identity/type/message, supplied guest filename and absent fabricated span. The 2,049-unit hostile source and shallow arithmetic/lint controls remain bounded. This commit adopts the four-line host-stack repair and three regressions; it does not alter recursion capacity, budgets or timeouts. Final direct-runtime/visual and release receipts follow.
 
+
 ### qualify-lexical-and-source-text — Unicode caret rendering, 2026-09-13
 
 On the isolated candidate, ASCII/astral/long-astral identifier and span controls reproduced **three failures / four passing neighbors** before the rendering repair; **7/7 pass** afterward (`npx vitest run packages/safe-js/src/parse/lexical-unicode-rendering.test.ts`). Diagnostic coordinates remain UTF-16 offsets, while clipping and caret padding count rendered code points. Long excerpts remain bounded to 120 code points and do not split a surrogate pair. The regression uses the existing location-bearing error-message interface, so no unrelated source-module formatter overload is adopted. Parser/embedding lint valid neighbors remain accepted. Final visual/runtime/build checks and delivery receipts follow; full source-origin acceptance remains open.
+
 
 ### qualify-lexical-and-source-text — isolated CLI origin port, 2026-09-13
 
@@ -1952,11 +1828,13 @@ Local `bc6107ba5a308e94335f2d419d51d122ed17e6c3` is not an ancestor of fetched r
 
 Reproduction on the fetched candidate: **one failure / three controls** before the port. Afterward, `npx vitest run packages/safe-js/src/cli.unlocated-diagnostics.test.ts packages/safe-js/src/cli.test.ts` passes **50/50**. Unlocated errors show their supplied filename and kind without invented coordinates; ordinary startup failures retain their messages and runtime exit code 1. Final corpus/build/runtime/screenshots and release receipts follow.
 
+
 ### qualify-lexical-and-source-text — startup excerpts and supplied CLI paths, 2026-09-13
 
 Final screenshot review exposed a startup boundary that reduced positioned parser diagnostics to plain messages. A fresh regression reproduced **one failure / two controls**. A separate runtime-path assertion reproduced **one failure / two controls**, exposing the resolved `/guest/` prefix rather than the supplied relative filename. The CLI now formats structured startup ParseError excerpts and consistently supplies the original argument filename to lint, execution and error formatting. File reads still use the resolved path; no filesystem authority changes.
 
 After repair, `npx vitest run packages/safe-js/src/cli.original-source.test.ts packages/safe-js/src/cli.unlocated-diagnostics.test.ts packages/safe-js/src/cli.test.ts` passes **53/53**. Guest-thrown SyntaxError remains runtime exit 1; invalid source remains parse exit 2; a valid astral-identifier/CRLF neighbor executes normally. The earlier combined gate passed **3,023 tests / one opt-in fuzz skip** before this final CLI-only repair. Final lint/build/screenshots/corpus and publication receipts follow; unresolved dynamic runtime/Function/module/restored-source origins remain open.
+
 
 ### qualify-lexical-and-source-text — final isolated candidate, 2026-09-13
 
@@ -1966,28 +1844,28 @@ Published edition and API pins are unchanged. Candidate **`f5805d989da0a212b934e
 
 Completed 2026-09-13T07:21:53.703Z, exit **1**: **1,231 files / 2,381 variants; 2,335 passed, 44 timeout failures, two explicitly unsupported module variants**, zero metadata/execution accounting errors. All 70 initial non-timeout mismatches are repaired. The timeout count increases from 42 to 44 because two formerly early-failing regexp variants now reach their exhaustive execution; this is not claimed as improved timing. Deadlines remain **3,000 ms per variant / 10,000 ms startup**, without budget overrides.
 
-| Category                                     | Variants | Passed | Timeout failures | Unsupported |
-| -------------------------------------------- | -------: | -----: | ---------------: | ----------: |
-| language/asi                                 |      204 |    204 |                0 |           0 |
-| language/comments                            |       46 |     42 |                4 |           0 |
-| language/comments/hashbang                   |       35 |     34 |                0 |           1 |
-| language/expressions/template-literal        |      114 |    114 |                0 |           0 |
-| language/future-reserved-words               |       85 |     85 |                0 |           0 |
-| language/identifiers                         |      535 |    503 |               32 |           0 |
-| language/keywords                            |       50 |     50 |                0 |           0 |
-| language/line-terminators                    |       82 |     82 |                0 |           0 |
-| language/literals/bigint                     |       26 |     26 |                0 |           0 |
-| language/literals/bigint/numeric-separators  |       92 |     92 |                0 |           0 |
-| language/literals/boolean                    |        8 |      8 |                0 |           0 |
-| language/literals/null                       |        6 |      6 |                0 |           0 |
-| language/literals/numeric                    |      175 |    175 |                0 |           0 |
-| language/literals/numeric/numeric-separators |      126 |    126 |                0 |           0 |
-| language/literals/regexp                     |      368 |    360 |                8 |           0 |
-| language/literals/regexp/named-groups        |      112 |    112 |                0 |           0 |
-| language/literals/string                     |      128 |    128 |                0 |           0 |
-| language/reserved-words                      |       53 |     52 |                0 |           1 |
-| language/source-text                         |        2 |      2 |                0 |           0 |
-| language/white-space                         |      134 |    134 |                0 |           0 |
+| Category | Variants | Passed | Timeout failures | Unsupported |
+| --- | ---: | ---: | ---: | ---: |
+| language/asi | 204 | 204 | 0 | 0 |
+| language/comments | 46 | 42 | 4 | 0 |
+| language/comments/hashbang | 35 | 34 | 0 | 1 |
+| language/expressions/template-literal | 114 | 114 | 0 | 0 |
+| language/future-reserved-words | 85 | 85 | 0 | 0 |
+| language/identifiers | 535 | 503 | 32 | 0 |
+| language/keywords | 50 | 50 | 0 | 0 |
+| language/line-terminators | 82 | 82 | 0 | 0 |
+| language/literals/bigint | 26 | 26 | 0 | 0 |
+| language/literals/bigint/numeric-separators | 92 | 92 | 0 | 0 |
+| language/literals/boolean | 8 | 8 | 0 | 0 |
+| language/literals/null | 6 | 6 | 0 | 0 |
+| language/literals/numeric | 175 | 175 | 0 | 0 |
+| language/literals/numeric/numeric-separators | 126 | 126 | 0 | 0 |
+| language/literals/regexp | 368 | 360 | 8 | 0 |
+| language/literals/regexp/named-groups | 112 | 112 | 0 | 0 |
+| language/literals/string | 128 | 128 | 0 | 0 |
+| language/reserved-words | 53 | 52 | 0 | 1 |
+| language/source-text | 2 | 2 | 0 | 0 |
+| language/white-space | 134 | 134 | 0 | 0 |
 
 This table records all requested lexical cohorts, with hashbang and separator subcategories explicit. Standard Script matches the native oracle in 37/37 selected cases; module oracle results are not engine execution claims, and public embedding/lint remain separate. No unsupported authority is counted as an ECMAScript defect.
 
@@ -1996,6 +1874,7 @@ This table records all requested lexical cohorts, with hashbang and separator su
 **Still unresolved:** 44 unchanged-deadline exhaustive failures; runtime eval/caller filenames; Function wrapper positions; imported and restored executable-source identity. Current eval SyntaxError is correctly located in `<eval>` text but does not identify nested callers. Full qualification is not complete. No associated issue was supplied.
 
 **Delivery checkpoint:** local code commits are listed in the source receipt. Remote-main ancestry and registry publication are not yet claimed; the following delivery receipt must record them independently.
+
 
 ### qualify-lexical-and-source-text — partial publication and CI repair, 2026-09-13
 
@@ -2013,6 +1892,7 @@ The remaining corpus/source-origin qualification is still open. Follow-up parser
 
 Visual review of the built CRLF-regexp CLI preserves the original line 1/column 3 and removes host frames, but exposes an additional lint comment-scanner boundary: it emits a plain message without filename/excerpt and uses runtime exit 1. This is a newly validated failure for a separate diagnostic repair, not a visual acceptance pass.
 
+
 ### qualify-lexical-and-source-text — lint lexical-origin boundary, 2026-09-13
 
 The CRLF CLI screenshot exposed a second concrete failure: `collectComments` threw a raw tokenizer Error before lint could preserve its source diagnostic. New Script-embedding/parser versus public-lint parity checks cover LF, CR, CRLF, LS and PS with an astral comment prefix, both lint/fix modes, header-only stacks and a valid escaped-regexp neighbor. CLI controls require parse exit 2, the supplied relative filename and original excerpt in normal/`--fix` mode; their writer throws if invalid source is rewritten. Red: **seven failures / four controls**. After preserving parser diagnostics at the comment-scanner boundary: **11/11 pass**. Compile-policy controls additionally require unchanged fatal SandboxError precedence through lint.
@@ -2020,6 +1900,7 @@ The CRLF CLI screenshot exposed a second concrete failure: `collectComments` thr
 Broader regexp/parser/lint/error/CLI verification passes **2,628 tests / one opt-in fuzz skip**, 147 passing files and one skip, 34.37 seconds. Exact-source ESLint passes for all four changed files; the maintained SafeJS build closure and eight built-import checks pass. `lint-origin-visual.png` was inspected: supplied fixture filename, line 1/column 3, original two-line CRLF source and caret are displayed with no host frames. The supplied absolute fixture path is explicit caller input; separate CLI tests reject leakage of resolved `/guest/` paths. No program source is rewritten.
 
 This is a separate atomic repair after remote-main `d92879b57436f4e65441cf217227b948ea2a2ccc`, which fixes the failed release's CRLF budget order. The successor must contain both repairs and all earlier source commits. Required release monitoring, corpus rerun and final independent registry receipts remain pending; full qualification is still open.
+
 
 ### qualify-lexical-and-source-text — recovery candidate corpus, 2026-09-13
 
@@ -2031,16 +1912,17 @@ Release recovery at this checkpoint: the budget-fix scoped run **34746694706** s
 
 **Acceptance remains open:** unchanged-deadline exhaustive timeouts and original runtime eval/Function/restored-source identity remain unresolved. Imported-source execution is unsupported by the committed capability surface; uncommitted module work is not delivered or counted as a standard failure. The recorded profiling narrows Script/global data-accounting cost but does not justify weakening accounting. A complete follow-up needs bounded accounting regression evidence and a source identity/coordinate model shared with snapshot restoration.
 
+
 ### qualify-lexical-and-source-text — verified publication receipts, 2026-09-13
 
 **Release delivery is verified; lexical qualification is still open.** All nine atomic source fixes and both evidence checkpoints are ancestors of remote-main **`04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7`**, re-fetched and verified after publication. The source-only candidate remains **`1b4a46948ad735414f75e4b07290c26c3a8942f2`**, content SHA-256 **`2d897c00268b8a654abe7c690eef16b7f4907442e88e2a38035307b64e1fe9a3`**. [Publication receipt](qualify-lexical-and-source-text/eval-span-audit/publication-receipt.json) lists every local commit, remote ancestry and required workflow conclusion separately.
 
-| Published package         | Actual version | Provenance source commit                   | Verification                                                                                                                                                                          |
-| ------------------------- | -------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@poe-platform/safe-js`   | `0.1.568`      | `1b4a46948ad735414f75e4b07290c26c3a8942f2` | SRI/SHA-1, SLSA subject/source, independent installed Node 18/22 and Bun, signatures/attestations, CLI/lint origins, CRLF budget precedence, actual Workerd                           |
-| `@poe-platform/safe-fs`   | `0.1.568`      | `1b4a46948ad735414f75e4b07290c26c3a8942f2` | SRI/SHA-1, SLSA subject/source, independent installed Node 18/22 filesystem smoke, signatures/attestations                                                                            |
-| `@poe-platform/safe-bash` | `0.1.568`      | `1b4a46948ad735414f75e4b07290c26c3a8942f2` | SRI/SHA-1, SLSA subject/source, independent installed Node 18/22 shell smoke, signatures/attestations                                                                                 |
-| `poe-code`                | `15.0.31`      | `04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7` | SRI/SHA-1, SLSA subject/source, independent installed public SafeJS export on Node 18/22 and Bun, lint/source and budget controls, 208 verified registry signatures / 38 attestations |
+| Published package | Actual version | Provenance source commit | Verification |
+| --- | --- | --- | --- |
+| `@poe-platform/safe-js` | `0.1.568` | `1b4a46948ad735414f75e4b07290c26c3a8942f2` | SRI/SHA-1, SLSA subject/source, independent installed Node 18/22 and Bun, signatures/attestations, CLI/lint origins, CRLF budget precedence, actual Workerd |
+| `@poe-platform/safe-fs` | `0.1.568` | `1b4a46948ad735414f75e4b07290c26c3a8942f2` | SRI/SHA-1, SLSA subject/source, independent installed Node 18/22 filesystem smoke, signatures/attestations |
+| `@poe-platform/safe-bash` | `0.1.568` | `1b4a46948ad735414f75e4b07290c26c3a8942f2` | SRI/SHA-1, SLSA subject/source, independent installed Node 18/22 shell smoke, signatures/attestations |
+| `poe-code` | `15.0.31` | `04b784cd0c85d9e4c93d1ae694f94ca9a4d8acd7` | SRI/SHA-1, SLSA subject/source, independent installed public SafeJS export on Node 18/22 and Bun, lint/source and budget controls, 208 verified registry signatures / 38 attestations |
 
 The [final scoped workflow](https://github.com/poe-platform/poe-code/actions/runs/34746761936) succeeded. [SafeJS artifact receipt](qualify-lexical-and-source-text/eval-span-audit/scoped568-js-retry2-publication.json), [FS/Bash artifact receipt](qualify-lexical-and-source-text/eval-span-audit/scoped568-retry-publication.json), [Workerd receipt](qualify-lexical-and-source-text/eval-span-audit/scoped568-workerd-publication.json), [installed budget check](qualify-lexical-and-source-text/eval-span-audit/scoped568-budget-order.json). Earlier **0.1.567** publications were independently verified as well; failed propagation reads/install attempts remain recorded, not erased or counted as passes. SafeJS 0.1.568 required repeated exact-metadata retries; FS/Bash installs initially returned ETARGET despite available exact tarball/provenance and succeeded with a normal online retry.
 
@@ -2051,6 +1933,7 @@ The installed consumers use the exact published names/versions with lifecycle sc
 The shared checkout remains at **`bc6107ba5a308e94335f2d419d51d122ed17e6c3`** and the original staged-patch SHA-256 remains **`839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8`**. Unrelated local commits and staged/working changes were preserved. No associated issue was supplied, so no issue was closed. No local publication, force-push, unpublish or destructive rollback occurred.
 
 **Unresolved acceptance:** 44 unchanged-deadline exhaustive timeouts; runtime eval/caller filenames; Function wrapper-relative positions; restored executable-source identity. Module/import execution unavailable by design is recorded separately from ECMAScript defects. The task is not claimed complete. The final receipt-only commit must finish its normal workflows; since all source fixes are now published, a successful no-new-version result is expected but must be observed rather than assumed.
+
 
 ## qualify-async-job-order — 2026-09-13 candidate qualification
 
@@ -2070,6 +1953,7 @@ Additional tests verify callback mutation of shared guest state, joined resume p
 
 **Delivery disposition:** no local commit, remote-main push or publication has been performed for these changes. Read-only observed workflow/registry receipts in the task directory describe predecessor releases, not delivery of this candidate. No README or visual CLI behavior was changed. Selected semantic qualification is evidenced; the overall task remains open until maintained-check and delivery disposition are terminal. This record does not claim full-corpus compatibility or adopt newer Promise.try behavior.
 
+
 ### Terminal local qualification and commit receipts — 2026-09-13
 
 The fresh maintained `npm test --workspace=@poe-code/safe-js` invocation completed with **exit 0**: **29,527 passing / zero failing / 47 skipped tests**, **1,359 passing / two skipped files**, in **1,441.94 seconds** ([full log](qualify-async-job-order/package-test-final.log), [machine-readable result](qualify-async-job-order/terminal-checks.json)). The 47 skipped cases remain nonpasses. This supersedes the mixed-source invocation as the package gate; its interrupted log remains historical. Before/after provenance matches the final pinned fixture run exactly: source SHA `bc6107ba5a308e94335f2d419d51d122ed17e6c3`, source hash `2f863dc2167796f6e081d7b2147ca77ea469e5017c0fc00b4b22cbeb9d014d3c` ([terminal source receipt](qualify-async-job-order/terminal-source-provenance.json)). No runtime or test assertion changed during the successful run.
@@ -2085,17 +1969,18 @@ A further [cancellation replay receipt](qualify-async-job-order/cancellation-rep
 
 **Acceptance disposition:** the stated local Promise/async ordering, replay, cancellation and rejection-policy checks are evidenced. The pinned runner's fourteen policy failures and four post-edition Promise.try conflicts retain their explicit nonpass classifications; no unsupported case is called a pass. The task does not claim full-corpus or unrelated-category compatibility. **Remote-main delivery: not performed. Release/publication of these fixes: not performed.** No push was requested or made; predecessor registry/workflow observations are separate receipts and do not qualify this candidate as released.
 
+
 ### qualify-async-job-order — reconciled remote delivery, 2026-09-13
 
 This execution authorizes and performs delivery. The shared worktree remains on `2d36d34699ea800144d3176f919d41dac697a5e4`; its source fingerprint remains `2f863dc2167796f6e081d7b2147ca77ea469e5017c0fc00b4b22cbeb9d014d3c`. Fresh shared-worktree focused verification: **132 passed / zero failed / zero skipped**, twelve files, **13.55 seconds**; candidate ESLint exit **0** ([commands/exits](qualify-async-job-order/request-current-checks.json)). Original staged-diff SHA-256 remains `839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8`. No unrelated local commit or dirty/staged change was included in delivery.
 
 Fetched remote main `8e890a5324a52a76a0a67da6ff0503efda76cb6b` into an isolated checkout on **main**, reconciled each existing task commit there, and pushed each atomic improvement normally with configured hooks and without force. The only content conflict was the append-only evidence ledger: preserved the complete remote ledger and appended only the task addition. [Reproduction and setup dispositions](qualify-async-job-order/delivery-commands.md).
 
-| Local original commit                      | Reconciled commit, verified ancestor of remote main | Improvement                                                                  |
-| ------------------------------------------ | --------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `26d6b7722ad5da347f7c08a7386f953b6e1eab10` | `8c84edac0e47b48542c0c6a438d7e60713ce74fb`          | Async-generator return assimilation and restoration                          |
-| `cff1a62cdedc5072d56deada513c576211083f5a` | `a8b21b4939969d5465d64fb4419dca646c893f64`          | Finally-handler metadata                                                     |
-| `8f6b7826cf71d6cc58e7eb7b0fd78f33e6dd2208` | `4d44bf1342b5a0e8193801120ca5127e4b48e1d1`          | Independent ordering, recovery, lifecycle and rejection-policy qualification |
+| Local original commit | Reconciled commit, verified ancestor of remote main | Improvement |
+| --- | --- | --- |
+| `26d6b7722ad5da347f7c08a7386f953b6e1eab10` | `8c84edac0e47b48542c0c6a438d7e60713ce74fb` | Async-generator return assimilation and restoration |
+| `cff1a62cdedc5072d56deada513c576211083f5a` | `a8b21b4939969d5465d64fb4419dca646c893f64` | Finally-handler metadata |
+| `8f6b7826cf71d6cc58e7eb7b0fd78f33e6dd2208` | `4d44bf1342b5a0e8193801120ca5127e4b48e1d1` | Independent ordering, recovery, lifecycle and rejection-policy qualification |
 
 [Ancestry receipt](qualify-async-job-order/delivery-remote-ancestry.json) separately identifies original local commits, reconciled local commits and verified remote delivery. No explicitly associated issue was supplied, so no issue was closed. The earlier no-push entries are historical and are superseded by this delivery receipt.
 
@@ -2107,15 +1992,18 @@ Fresh maintained pinned run on delivered source `4d44bf1342b5a0e8193801120ca5127
 
 Recovery path if publication is interrupted: retain all delivered commits; inspect the successor jobs and any failed step; reproduce actual failures before repairing them in separate atomic commits with tests. Follow any newer successor only after checking ancestry. Independently query all three scoped packages and poe-code, install the exact affected versions, verify the maintained artifact smoke and async traces, check registry tarball integrity and provenance/source-workflow binding, then append actual publication receipts. Do not locally publish, unpublish, roll back, or count a green no-version run as publication. Until those receipts exist the release portion of this task remains unresolved.
 
+
 Scoped publication receipt (2026-09-13 10:46 UTC): [Release scoped safe packages 34752098668](https://github.com/poe-platform/poe-code/actions/runs/34752098668) **succeeded** at `4d44bf1342b5a0e8193801120ca5127e4b48e1d1`, publishing **@poe-platform/safe-js@0.1.569**, **@poe-platform/safe-fs@0.1.569**, and **@poe-platform/safe-bash@0.1.569**. Registry visibility was partial: SafeJS metadata initially returned 404, then metadata/provenance became visible before its tarball. Cache-independent read-only retries finally downloaded its tarball at 10:45:19 UTC. No version was republished or rolled back. [Partial independent integrity/provenance checks](qualify-async-job-order/delivery-partial-integrity.json), [SafeJS integrity/provenance receipt](qualify-async-job-order/delivery-safe-js-integrity.json), [propagation receipt](qualify-async-job-order/delivery-safe-js-propagation.jsonl).
 
 Installed registry verification uses `/Users/kjopek/Workspace/poe-code-async-consumer-20260913`, with exact downloaded tarballs and independent dependencies. SafeFS-only Node/Bun smoke passed during partial publication; Safe Bash's independent memory-filesystem shell smoke passed. After SafeJS became downloadable, the maintained `node safe-packages-smoke.mjs` and `bun safe-packages-smoke.mjs` passed against all three exact registry artifacts. `npm audit signatures --json` exited 0 with **no invalid or missing entries** ([audit](qualify-async-job-order/delivery-scoped-signatures.json)). Every downloaded SHA-512 matches registry integrity and its provenance subject; all three source bindings identify `4d44bf134…` and workflow `34752098668`. Published SafeJS passes **9/9** literal traces in original/pending/completed modes with exactly two host gate calls per three-phase execution ([records](qualify-async-job-order/delivery-installed-node-traces.json)), and finally handlers report `[1,1,"","",true,true]`. These are installed published-artifact checks, distinct from earlier built-worktree runtime receipts. The root poe-code release remains pending until its separate receipt below.
+
 
 Root publication receipt (2026-09-13 11:13 UTC): [Release 34752098772](https://github.com/poe-platform/poe-code/actions/runs/34752098772) **succeeded**. All required build, audit, packed-CLI, fresh-unit/native, cache-eligible and four Bash-shard jobs passed. The fresh declared route reports **UNCACHED** execution; its SafeJS portion passed **29,222 tests / 47 skipped / zero failed**, **1,327 passing / two skipped files**. Its separate root Vitest portion passed **19,063 / one skipped / zero failed**. These are observed route outputs, not fixed task-membership assumptions, and absent declared tests are explicitly not passes. [Fresh-unit receipt](qualify-async-job-order/delivery-ci-unit-summary.json), [lossless full unit log](qualify-async-job-order/delivery-unit.log.gz), [lossless full root workflow log](qualify-async-job-order/delivery-root-release.log.gz).
 
 The workflow published **poe-code@15.0.32**. Registry gitHead and SLSA source binding both equal `4d44bf1342b5a0e8193801120ca5127e4b48e1d1`; the provenance invocation identifies root workflow `34752098772`. The independently downloaded tarball's SHA-512 matches registry integrity and the provenance subject ([integrity receipt](qualify-async-job-order/delivery-root-integrity.json)). In separate consumer `/Users/kjopek/Workspace/poe-code-async-root-consumer-20260913`, exact tarball installation passed; `poe-code --version` reports **15.0.32**; `npm audit signatures --json` exits **0** with no invalid/missing entries. The installed `poe-code/safe-js` export passes **9/9** literal traces in all three execution modes with exactly two host gate calls ([records](qualify-async-job-order/delivery-installed-root-traces.json)) and the finally metadata assertion ([record](qualify-async-job-order/delivery-installed-root-finally.json)). Root and scoped package publication are independently verified; no local publishing occurred. The schema successor [34752098654](https://github.com/poe-platform/poe-code/actions/runs/34752098654) also succeeded at the same delivered source.
 
 **Acceptance and source-release disposition:** stated Promise/async ordering, host completion, original/pending/completed replay, shared callback mutation, exact host operation counts, iterator cleanup, cancellation, realm close and separately defined rejection-policy acceptance are evidenced. The pinned edition and 18 explicitly classified nonpasses remain unchanged. Both repairs and qualification are verified on remote main, and every affected root/scoped artifact is published and independently checked. The final documentation-only receipt commit is recorded separately after normal push; its required workflow is monitored through a terminal result. It does not constitute another runtime release. All unrelated original local/staged changes remain preserved.
+
 
 ## qualify-error-completions — direct host Proxy boundary repair, 2026-09-13
 
@@ -2130,6 +2018,7 @@ The clean delivery candidate has distinct fingerprint `cfdb6af260cadb631198fb201
 Target remains **ECMA-262 edition 16 / ECMA-402 edition 12**, Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and separately tracked resource-management proposal `38c13295dc20c2273ba0a6ed82555f1fabb37764`. SuppressedError/resource APIs and newer stack-accessor failures retain their separate extension status. Variant/startup deadlines remain **3000/10000 ms**. Full supported-platform and failure-path replay qualification remains open.
 
 [Delivery receipt](qualify-error-completions/current-audit-20260913/delivery-receipt.json) separates the local repair commit, remote-main ancestry, required workflow results and actual versions. At this candidate commit, push/publication verification is pending. No issue was explicitly associated. [Preservation](qualify-error-completions/current-audit-20260913/preservation.json) confirms the original staged hash remains `839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8`; unrelated working changes remain intact.
+
 
 ## qualify-error-completions — verified narrow repair publication, 2026-09-13
 
@@ -2175,6 +2064,7 @@ Execution source fingerprint **`fc66620e5e52017f7c02257f3fbf2760d4c13b6da69cfcf2
 
 **Acceptance is incomplete:** 193 earlier primary-owner nonpasses (including visible extension/oracle dispositions), 126 current resource nonpasses, further focused-owner reconciliation and full runtime/recovery/artifact gates remain open. Local commits do not establish remote delivery or publication. No task push or release has occurred.
 
+
 ### qualify-language-semantics — BigInt patterns and optional-chain early errors, 2026-09-13
 
 **Acceptance remains incomplete.** The complete V4 report's manifest, aggregate
@@ -2211,6 +2101,7 @@ verified remote-main delivery and successful release/publication have not been
 performed for these fixes.** No push was requested and no task release receipt
 exists. The atomic optional-chain commit is identified by this section's history.
 
+
 ### qualify-language-semantics — prototype setter function names, 2026-09-13
 
 **Acceptance remains incomplete.** [Atomic repair and exact commands](qualify-language-semantics/proto-name/audit.md)
@@ -2234,6 +2125,7 @@ timeouts and snapshot format are unchanged. Existing local/staged changes are pr
 gates and the previous caret finding. These are residual historical counts, not
 fresh whole-selection results. Duplicate prototype-setter early errors remain open.
 No task push, verified remote-main delivery or publication was performed.
+
 
 ### qualify-language-semantics — duplicate prototype setters, 2026-09-13
 
@@ -2487,3 +2379,14 @@ and build pass. All10 original/neighbor variants pass with original hashes and c
 Seven runtime SDK probes retain suspension/replay, saved source, host-escape and budget
 controls; CLI screenshot inspected. Residual accounting is151 nonpasses, not a complete
 rerun. Whole-task acceptance and required publication remain unresolved.
+
+### qualify-language-semantics — object-environment reads, 2026-09-13
+
+[Atomic repair and evidence](qualify-language-semantics/object-binding-read/audit.md)
+restore the required HasProperty before object-environment reads and strict absent-binding
+errors. Five independent regressions become52 focused passes; lint/build pass. Four/four
+original/neighbor variants pass. The pinned specification overrides Node's nonconforming
+lookup sequence; the discrepancy and corrected maintained oracle remain visible. Seven
+runtime SDK replay/source/host-escape controls and inspected CLI output pass. Residual
+arithmetic is148 nonpasses; full acceptance and publication remain open. This append also
+undoes only the prior commit's incidental formatting of existing ledger prose.

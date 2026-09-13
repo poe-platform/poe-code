@@ -1476,12 +1476,23 @@ function bindingOperations(context: EvaluationContext) {
 function getReferenceValue(reference: Extract<BindingReference, {kind: "binding"}>, context: EvaluationContext): SandboxValue;
 function getReferenceValue(reference: BindingReference, context: EvaluationContext): SandboxValue | Promise<SandboxValue>;
 function getReferenceValue(reference: BindingReference, context: EvaluationContext): SandboxValue | Promise<SandboxValue> {
-  if (reference.kind === "object") return getPropertyValue(reference.object, reference.name, context);
+  if (reference.kind === "object") return getObjectReferenceValue(reference, context);
   if (reference.kind === "binding") {
     const binding = reference.scope.lookup(reference.name);
     if (binding.found) return binding.value;
   }
   throw new ReferenceError(`Identifier '${reference.name}' is not defined.`);
+}
+
+async function getObjectReferenceValue(
+  reference: Extract<BindingReference, {kind: "object"}>,
+  context: EvaluationContext
+): Promise<SandboxValue> {
+  if (!await bindingOperations(context).has(reference.object, reference.name)) {
+    if (context.strict !== false) throw new ReferenceError(`Identifier '${reference.name}' is not defined.`);
+    return undefined;
+  }
+  return getPropertyValue(reference.object, reference.name, context);
 }
 
 async function evaluateThisExpression(

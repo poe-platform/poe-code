@@ -1,13 +1,15 @@
 import { applyConnectorUpdate, readConnector } from "./connectors.js";
-import { OfficeError } from "./errors.js";
+import { OfficeError, ValueError } from "./errors.js";
 import { Length } from "./length.js";
 import { nodeFor } from "./shape-operations.js";
-import { applyShapeUpdate, LineFormat } from "./shapes.js";
+import { applyShapeUpdate, LineFormat, ShadowFormat } from "./shapes.js";
+import { PP_PLACEHOLDER_TYPE } from "./shape-placeholder-types.js";
 import type { XmlElement, XmlPart } from "./xml.js";
 
 export class Connector {
   #xml: XmlPart;
   readonly #id: string;
+  #shadow: ShadowFormat | undefined;
 
   constructor(xml: XmlPart, shapeId?: number) {
     this.#xml = xml;
@@ -57,6 +59,20 @@ export class Connector {
   }
   get is_placeholder(): boolean {
     return readConnector(this.element).placeholder !== null;
+  }
+  get placeholder_format() {
+    const placeholder = readConnector(this.element).placeholder;
+    if (!placeholder) throw new ValueError("Connector is not a placeholder.");
+    return { ...placeholder, type: PP_PLACEHOLDER_TYPE.from_xml(placeholder.type) };
+  }
+  get shadow(): ShadowFormat {
+    this.#shadow ??= new ShadowFormat(
+      () => this.#xml.subtree(this.element),
+      (transform) => {
+        this.#xml = transform(this.#xml, this.element);
+      }
+    );
+    return this.#shadow;
   }
   get begin_x(): Length {
     return new Length(readConnector(this.element).beginX);

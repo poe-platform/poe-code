@@ -38,6 +38,13 @@ Current bounded workbook data: [implementation, exact mappings and gaps](workboo
 XY and bubble sheets have synchronized replacement; detached operation records
 do not implement live data builders or full workbook/chart-part APIs.
 
+Current public values: [enum coverage](public-enums-evidence.md),
+[unit/color helpers](public-helpers-evidence.md), [live collection protocols](public-collections-evidence.md)
+and [font language/error integration](public-values-integration-evidence.md).
+All 25 registered enum families are available; absent live slide/placeholder,
+chart and freeform collections remain explicitly outstanding. These receipts
+supersede the historical not-implemented labels only for their tested members.
+
 ## Sources and baseline
 
 - [Published API and user guides](https://python-pptx.readthedocs.io/en/latest/).

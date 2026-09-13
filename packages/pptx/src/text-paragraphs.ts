@@ -1,6 +1,7 @@
 import { FillFormat } from "./shapes.js";
 import { ColorFormat } from "./text-run-color.js";
 import { Length, Pt } from "./length.js";
+import { MSO_LANGUAGE_ID } from "./language-enum.js";
 import type { BinaryInput, Location } from "./contracts.js";
 import { OfficeError, InvalidHandleError } from "./errors.js";
 import { SaxesParser } from "saxes";
@@ -1019,6 +1020,16 @@ export class Font {
   }
   set bold(value: boolean | null) {
     this.#set({ bold: value });
+  }
+  get language_id(): MSO_LANGUAGE_ID {
+    const value = this.#format.language;
+    return value === null ? MSO_LANGUAGE_ID.NONE : MSO_LANGUAGE_ID.from_xml(value);
+  }
+  set language_id(value: MSO_LANGUAGE_ID | null) {
+    this.#set({
+      language:
+        value === null || value === MSO_LANGUAGE_ID.NONE ? null : MSO_LANGUAGE_ID.to_xml(value)
+    });
   }
   get italic(): boolean | null {
     return this.#format.italic;

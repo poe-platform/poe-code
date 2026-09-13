@@ -241,6 +241,22 @@ into “valid deck” or use one track to excuse another.
 
 ## Fonts, render comparison and playback
 
+Application entry evidence: [September 13 availability attempt](pptx-application-entry-20260913.md).
+Keynote selection was denied by Computer Use; that attempt supplies no application,
+rendering or playback pass. Installation alone does not establish usable access.
+
+For custom shows, inspect baseline and output show names and ordered membership
+separately from the ordinary slide list. Resolve membership to stable slide IDs,
+including repeated members and hidden slides when present. For a slide move,
+verify the ordinary order changes as requested while each custom show's explicit
+order remains unchanged. For a deletion, compare the result with the operation's
+declared membership policy. Run each selected custom show only in an application
+that exposes it, recording actual navigation order and return behavior. If the
+application cannot expose or play custom shows, record that check as limited or
+not-run; a normal slideshow does not establish custom-show fidelity. An absent
+custom show in a selected fixture is a coverage gap requiring an original control,
+not a passing check. Keep all external hyperlink targets inert.
+
 1. Record renderer/build, OS, slide dimensions, export resolution (start at 144 DPI),
    color profile, locale and font family/version/file hashes and substitution log.
    Install/use fonts only in the explicitly authorized QA environment. Font filenames

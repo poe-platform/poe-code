@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "campaign": "application-entry-20260913",
+  "baseline": "566b942ad1318584e62707acb67e70c62fadccdc",
+  "scope": "Documentation bookkeeping and application availability only; no product execution or full pipeline.",
+  "input_sha256": {
+    "docs/specs/pptx.md": "b36dde97de4d949b3b1272f93a39a93bdb82fd7073403f42e5da63e576dfe6fd",
+    "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+    "docs/specs/office-sdk.md": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9",
+    "docs/pptx/upstream-test-audit.md": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b",
+    "docs/pptx/upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "docs/pptx/test-case-map.json": "2f6e6cc87027a91acb899a4744ffaf00f8c4b6cfe4cc6240abffb5a330fd89a9",
+    "docs/pptx/upstream-api-audit.md": "ad0b9e0055397e38532ca8aeb499f539da16dd3caed2a1d3630302d90fc0b83c",
+    "docs/pptx/upstream-api-inventory.json": "119a4ba61a96c88f487fb769fa268bc3a5d520b58315b8aa08606540fc92b421",
+    "docs/pptx/public-api-map.json": "6ba1596cf4782670c71336057115245e63fefbc3f97cfa1d841c6e017cbe99f6",
+    "docs/pptx/api-language-mappings.md": "ab20d566f5a1ff2e4ec4726017cd4cd206f0cca621e5cdfb6db18e75bfdd1541",
+    "docs/pptx/corpus-manifest.json": "f4c740aa929eb714b4b83ec63cb7d3641f278d5dffbc4c81303e02aee237169f"
+  },
+  "accounting": {
+    "unit_variants": 2700,
+    "bdd_examples": 973,
+    "adaptation_rows": 3673,
+    "central_status_counts": {
+      "semantic_review_required": 2585,
+      "original_ts_passed": 43,
+      "specified_not_implemented": 167,
+      "proposed_design_not_implemented": 877,
+      "deferred_public_behavior": 1
+    },
+    "shared_package_obligations": 391,
+    "api_inventory_records": 2409,
+    "api_target_rows": 2426,
+    "api_acceptance_obligations": 2426,
+    "no_candidate_api_obligations": 1072,
+    "problems": []
+  },
+  "application": {
+    "name": "Keynote",
+    "installed_version": "14.4",
+    "platform": "macOS 26.4.1 (25E253)",
+    "selection_result": "Computer Use was not approved to use Keynote",
+    "status": "blocked",
+    "version_source": "Installed application Info.plist; no successful application session"
+  },
+  "fixtures": [
+    {
+      "cache_path": ".cache/pptx-corpus/IXPE-Presentation-Template.pptx",
+      "expected_sha256": "885e923f148cdf4680372abe54496c824ab3a2a2d8a59fd9703d66e0aeb1164c",
+      "observed_sha256": "885e923f148cdf4680372abe54496c824ab3a2a2d8a59fd9703d66e0aeb1164c",
+      "expected_bytes": 1202514,
+      "observed_bytes": 1202514,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/CERN-intro-2025-v2.pptx",
+      "expected_sha256": "62ab3f5c42e7a967af1f4cfc07cede3909a88b6c75f8432231e83a6e8d17e134",
+      "observed_sha256": "62ab3f5c42e7a967af1f4cfc07cede3909a88b6c75f8432231e83a6e8d17e134",
+      "expected_bytes": 28011433,
+      "observed_bytes": 28011433,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/CERN-job-opp-250925.pptx",
+      "expected_sha256": "85cc7b338a11b9d1a9dfcaaaa504bf21ab643e4c30004a478152f390ee9f5f1d",
+      "observed_sha256": "85cc7b338a11b9d1a9dfcaaaa504bf21ab643e4c30004a478152f390ee9f5f1d",
+      "expected_bytes": 43231,
+      "observed_bytes": 43231,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/ISOLDE-drawings.pptx",
+      "expected_sha256": "d684281d2f8731787951a0c568a1f6acb8bdbc6cf5de2a64c97c358af1fa92c7",
+      "observed_sha256": "d684281d2f8731787951a0c568a1f6acb8bdbc6cf5de2a64c97c358af1fa92c7",
+      "expected_bytes": 4223514,
+      "observed_bytes": 4223514,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/SEWP_Training_Slides_May 2026.pptx",
+      "expected_sha256": "83a63c49e09d89f7804a6dcad64fb9d61bc3401dc10d3351cc5222821c85bcf7",
+      "observed_sha256": "83a63c49e09d89f7804a6dcad64fb9d61bc3401dc10d3351cc5222821c85bcf7",
+      "expected_bytes": 8141046,
+      "observed_bytes": 8141046,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/SEWP_Provider_Training_Slides_05_12_25.pptx",
+      "expected_sha256": "3695972c410e1a8862f72962d706bdfde1e680a144b48bf2bb9bb8095ecca3b5",
+      "observed_sha256": "3695972c410e1a8862f72962d706bdfde1e680a144b48bf2bb9bb8095ecca3b5",
+      "expected_bytes": 6824998,
+      "observed_bytes": 6824998,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/SEWP_CH_Training_Presentation_05_12_25.pptx",
+      "expected_sha256": "c0655717508915de86efcfb1d027d9b60ce382331d66c3d6f22b7dcbfc6f6614",
+      "observed_sha256": "c0655717508915de86efcfb1d027d9b60ce382331d66c3d6f22b7dcbfc6f6614",
+      "expected_bytes": 10490534,
+      "observed_bytes": 10490534,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/WWL-template-1slide.pptx",
+      "expected_sha256": "0c728ea3fd2ab76906247931fcb5c966074d21e804187893d954cc913cc89689",
+      "observed_sha256": "0c728ea3fd2ab76906247931fcb5c966074d21e804187893d954cc913cc89689",
+      "expected_bytes": 213136,
+      "observed_bytes": 213136,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/slides-public-engagement-DEC-2021.pptx",
+      "expected_sha256": "0377c715798aa4462b826670dd0bb2bcf1b3fca98cdf546b1f326cdd6ffd397e",
+      "observed_sha256": "0377c715798aa4462b826670dd0bb2bcf1b3fca98cdf546b1f326cdd6ffd397e",
+      "expected_bytes": 34701614,
+      "observed_bytes": 34701614,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/CluestotheCosmos.pptx",
+      "expected_sha256": "74e3f1b48b7ea6892a8c0400e02eb8f6b5d939212e83216118d3958757f06a2d",
+      "observed_sha256": "74e3f1b48b7ea6892a8c0400e02eb8f6b5d939212e83216118d3958757f06a2d",
+      "expected_bytes": 19006142,
+      "observed_bytes": 19006142,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/20120418_Jedlovec_SuomiNPP.pptx",
+      "expected_sha256": "884611296fe0c5f36b2e4e3abf0ae7b16124879434834c45dadb457bdf8d9a01",
+      "observed_sha256": "884611296fe0c5f36b2e4e3abf0ae7b16124879434834c45dadb457bdf8d9a01",
+      "expected_bytes": 14660024,
+      "observed_bytes": 14660024,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/earth-system-media-large.pptx",
+      "expected_sha256": "f1129e557eed26e1b84aaf3f1f422449ecb7b4e60c8f99dad42fceefeb1097a1",
+      "observed_sha256": "f1129e557eed26e1b84aaf3f1f422449ecb7b4e60c8f99dad42fceefeb1097a1",
+      "expected_bytes": 457525505,
+      "observed_bytes": 457525505,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/global-outlook-2026.pptx",
+      "expected_sha256": "f05d30f82013e31ecf3d6705d34c83e26a1d6b44e5f3e9f608b98b6c8e4ee582",
+      "observed_sha256": "f05d30f82013e31ecf3d6705d34c83e26a1d6b44e5f3e9f608b98b6c8e4ee582",
+      "expected_bytes": 5191954,
+      "observed_bytes": 5191954,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    },
+    {
+      "cache_path": ".cache/pptx-corpus/data-visualization-course.pptx",
+      "expected_sha256": "ce874bc9782258175b84f5e438123552b78c993e0add9015f35d8ca2dd5c45d2",
+      "observed_sha256": "ce874bc9782258175b84f5e438123552b78c993e0add9015f35d8ca2dd5c45d2",
+      "expected_bytes": 52907926,
+      "observed_bytes": 52907926,
+      "integrity_status": "matched",
+      "ignored": true,
+      "application_status": "not-run"
+    }
+  ]
+}

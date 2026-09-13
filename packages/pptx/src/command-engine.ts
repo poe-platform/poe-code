@@ -29,6 +29,9 @@ import { fieldSchemas } from "./fields-schema.js";
 import { transitionSchemas, transitionsUsage } from "./transitions-schema.js";
 import { animationSchemas, animationsUsage, animationItems } from "./animations-schema.js";
 import { readAnimations } from "./animations.js";
+import { mutateAnimations, mutateAnimationsBatch, validateAnimationOptions, type MutateAnimationsOptions } from "./animation-editing.js";
+import { animationTargetArgument, parseAnimationBatch, resolveAnimationBatch, type AnimationBatchItem } from "./animation-batch-command.js";
+import { animationBatchSchema, animationBatchUsage } from "./animation-batch-schema.js";
 import { readTransitions, mutateTransitions, validateTransitionOptions, type MutateTransitionsOptions } from "./transitions.js";
 import { equationSchemas, equationsUsage } from "./equations-schema.js";
 import { validateEquationCommand, executeEquationCommand } from "./command-equations.js";
@@ -340,7 +343,7 @@ const help =
   "       pptx themes set INPUT --scope shared [--slide N | --part URI | --select TOKEN]\n" +
   "                       [--name TEXT] [--color-slot SLOT --color RRGGBB] [--font-slot SLOT --font TEXT]\n" +
   "       pptx transitions list|get|add|set|remove INPUT [--slide N] [options]\n" +
-  "       pptx animations list|get INPUT [--slide N --shape NAME] [--json]\n" +
+  "       pptx animations list|get|add|set|remove INPUT [--slide N --shape NAME] [options]\n" +
   "       pptx backgrounds list|get INPUT [--slide N | --part URI] [--scope SCOPE] [--json]\n" +
   "       pptx backgrounds set INPUT [--slide N | --part URI | --select TOKEN] [--scope SCOPE]\n" +
   "                       --kind solid --color RRGGBB | --kind gradient --stops JSON [--angle N]\n" +
@@ -413,13 +416,17 @@ interface Arguments {
   shadowColor?: DrawingColor;
   fieldEdit?: FieldUpdate;
   transitionEdit?: Omit<MutateTransitionsOptions, "selection">;
+  animationEdit?: Omit<MutateAnimationsOptions, "selection">;
+  animationBatch?: readonly AnimationBatchItem[];
+  opsFile?: string;
   operation:
+    | "batch"
     | `equations.${"list" | "get" | "add"}`
     | `tables.${"list" | "get" | "add" | "set" | "merge" | "split" | "rows.add" | "rows.remove" | "columns.add" | "columns.remove"}`
     | `connectors.${"list" | "get" | "add" | "set" | "remove"}`
     | `fields.${"list" | "get" | "set" | "add" | "remove"}`
     | `transitions.${"list" | "get" | "set" | "add" | "remove"}`
-    | `animations.${"list" | "get"}`
+    | `animations.${"list" | "get" | "add" | "set" | "remove"}`
     | `masters.${"list" | "get" | "add" | "set"}`
     | `layouts.${"list" | "get" | "add" | "set" | "remove" | "apply"}`
     | "shapes.paths.list"
@@ -668,6 +675,7 @@ const imageSetFlags = [
   "--alt-text"
 ];
 const scalarOptions = [
+  "--trigger", "--delay", "--target", "--ops-json", "--ops-file",
   "--duration",
   "--advance-after",
   "--advance-on-click",
@@ -823,7 +831,7 @@ function parse(
             ? "version"
             : argument;
       if (command === "text") output.operation = "text.get";
-      if (["create", "inspect", "schema", "capabilities", "help", "version"].includes(command))
+      if (["create", "inspect", "schema", "capabilities", "help", "version", "batch"].includes(command))
         output.operation = command;
     } else if (index === 1 && args[0] === "text" && ["get", "replace", "fit"].includes(argument)) {
       output.operation = `text.${argument}`;
@@ -942,6 +950,7 @@ function parse(
   if (
     ![
       ...Object.keys(animationSchemas),
+      "batch",
       ...Object.keys(transitionSchemas),
       ...Object.keys(mediaSchemas),
       ...Object.keys(imageSchemas),
@@ -1013,7 +1022,7 @@ function parse(
         operation.startsWith("text.runs.") ||
         operation.startsWith("text.paragraphs.") ||
         operation.startsWith("text.frames.") ||
-        operation === "text.fit") &&
+        operation === "text.fit" || operation === "batch") &&
       ["--help", "-h"].includes(argument)
     )
       return { operation: "help", json: output.json, schemaPath: operation };
@@ -1259,6 +1268,29 @@ function parse(
         ...result.fieldEdit,
         [key]: key === "timestamp" ? commandTimestamp(value) : value
       };
+      continue;
+    }
+    if (operation.startsWith("animations.") && ["--kind", "--trigger", "--duration", "--delay", "--target"].includes(argument)) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Animation option requires a value.");
+      let parsed: unknown = value;
+      if (argument === "--duration" || argument === "--delay") {
+        if (!value.length || [...value].some(character => character < "0" || character > "9")) usage("Timing requires integer milliseconds.");
+        parsed = Number(value);
+      }
+      if (argument === "--target") parsed = animationTargetArgument(value.trimStart().startsWith("{") ? commandJson(value) : value);
+      result.animationEdit = { ...result.animationEdit, [argument.slice(2)]: parsed };
+      continue;
+    }
+    if (operation === "batch" && ["--ops-json", "--ops-file"].includes(argument)) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (!value) usage("Batch option requires a value.");
+      if (argument === "--ops-json") result.animationBatch = parseAnimationBatch(commandJson(value));
+      else result.opsFile = value;
       continue;
     }
     if (operation.startsWith("transitions.") && ["--kind", "--direction", "--duration", "--advance-after", "--advance-on-click"].includes(argument)) {
@@ -2529,14 +2561,43 @@ function parse(
     result.input = positionals[0];
     return result;
   }
+  if (operation === "batch") {
+    const allowed = ["--json", "--limit", "--ops-json", "--ops-file", "--output", "--in-place", "--force", "--dry-run"];
+    if ([...seen].some(flag => !allowed.includes(flag))) usage("Option does not apply to batch.");
+    if (positionals.length !== 1 || !positionals[0]) usage("Batch requires one input.");
+    if ((result.animationBatch !== undefined) === (result.opsFile !== undefined)) usage("Batch requires exactly one operation source.");
+    result.input = positionals[0];
+    if (result.input === "-" && result.opsFile === "-") usage("Document and batch cannot both use stdin.");
+    if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+    if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+    if (result.animationBatch?.length && !result.dryRun && !result.inPlace && !result.output) usage("Mutation requires a destination.");
+    if (result.force && !result.output) usage("Force requires an explicit output destination.");
+    if (result.output === result.input && result.output !== "-") usage("Replacing input requires --in-place.");
+    if (result.output === "-" && result.json && !result.dryRun) usage("Binary stdout cannot be combined with JSON.");
+    return result;
+  }
   if (Object.hasOwn(animationSchemas, operation)) {
-    const allowed = ["--json", "--limit", "--select", "--scope", "--slide", "--shape"];
+    const mutation = !["animations.list", "animations.get"].includes(operation);
+    const editing = ["animations.add", "animations.set"].includes(operation);
+    const allowed = ["--json", "--limit", "--select", "--scope", "--slide", "--shape",
+      ...(mutation ? ["--all", "--allow-empty", "--output", "--in-place", "--force", "--dry-run"] : []),
+      ...(editing ? ["--kind", "--trigger", "--duration", "--delay", "--target"] : [])];
     if ([...seen].some(flag => !allowed.includes(flag))) usage("Option does not apply to animations.");
     if (positionals.length !== 1 || !positionals[0]) usage("Animations require one input.");
     result.input = positionals[0];
     if (result.scope !== undefined && result.scope !== "slides") usage("Animations require slides scope.");
     if (result.token && ["--scope", "--slide", "--shape"].some(flag => seen.has(flag))) usage("Opaque and simple selectors cannot be combined.");
     if (result.shape !== undefined && result.slide === undefined) usage("Shape selection requires a slide.");
+    if (mutation) {
+      validateAnimationOptions(operation.slice(11) as "add" | "set" | "remove", result.animationEdit ?? {});
+      if (operation !== "animations.add" && !result.token && result.slide === undefined && !result.all) usage("Animation mutation requires a selector or --all.");
+      if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+      if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+      if (!result.dryRun && !result.inPlace && !result.output) usage("Mutation requires a destination.");
+      if (result.force && !result.output) usage("Force requires an explicit output destination.");
+      if (result.output === result.input && result.output !== "-") usage("Replacing input requires --in-place.");
+      if (result.output === "-" && result.json && !result.dryRun) usage("Binary stdout cannot be combined with JSON.");
+    }
     return result;
   }
   if (operation.startsWith("transitions.")) {
@@ -3285,6 +3346,7 @@ function parse(
     if (
       (operation === "schema" || operation === "help") &&
       [
+        "batch",
         ...Object.keys(animationSchemas),
         ...Object.keys(transitionSchemas),
         ...Object.keys(mediaSchemas),
@@ -3707,6 +3769,7 @@ async function execute(
                           : usage;
       if (args.schemaPath?.startsWith("transitions.")) resolvedUsage = transitionsUsage;
       if (args.schemaPath?.startsWith("animations.")) resolvedUsage = animationsUsage;
+      if (args.schemaPath === "batch") resolvedUsage = animationBatchUsage;
       if (args.schemaPath?.startsWith("media.")) resolvedUsage = mediaUsage;
       if (args.schemaPath === "images.set")
         resolvedUsage =
@@ -3794,6 +3857,7 @@ async function execute(
         operations: Object.fromEntries(
           Object.entries({
             ...animationSchemas,
+            batch: animationBatchSchema,
             ...transitionSchemas,
             ...imageSchemas,
             ...chartSchemas,
@@ -3890,9 +3954,13 @@ async function execute(
           },
           animations: {
             supported: true,
-            level: "read",
+            level: "edit",
             operations: Object.keys(animationSchemas),
-            subset: "Bounded timing graphs, targets, triggers and media interactions. Complex timelines and motion paths remain inert. Get selects one slide graph."
+            subset: "Appear, fade-in, fade-out and pulse on shape targets in a simple main sequence; on-click, with-previous and after-previous triggers. Complex timelines remain preserved and unsafe edits are rejected. No playback execution."
+          },
+          batch: {
+            supported: true, level: "edit", operations: ["batch"],
+            subset: "Version 1 ordered animation add/set/remove operations only; validate every item before mutation and publish once. No model handles or arbitrary operation dispatch."
           },
           transitions: {
             supported: true,
@@ -4098,6 +4166,35 @@ async function execute(
           )
           .join("") +
         "External targets remain inert. Metadata parsing does not prove playback.\n";
+    } else if (args.operation === "batch") {
+      const context = { ...options.context, signal: request.signal };
+      let items = args.animationBatch;
+      if (args.opsFile) {
+        const encoded = await request.readInput(args.opsFile, Math.min(context.limits.maxBytes, context.xmlLimits.maxBytes));
+        let text: string;
+        try { text = new TextDecoder("utf-8", { fatal: true }).decode(encoded); }
+        catch { usage("Batch JSON must be UTF-8."); }
+        items = parseAnimationBatch(commandJson(text));
+      }
+      if (items!.length && !args.dryRun && !args.inPlace && !args.output) usage("Mutation requires a destination.");
+      const bytes = await request.readInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));
+      const index = await readSelectionIndex(bytes, context);
+      const changed = await mutateAnimationsBatch(bytes, resolveAnimationBatch(items!, index), context);
+      const dryRun = args.dryRun ?? false;
+      const destination = args.inPlace ? args.input! : args.output;
+      const fingerprint = Array.from(sha256(changed.bytes), byte => byte.toString(16).padStart(2, "0")).join("");
+      result = { ...success(operation, {
+        results: changed.results.map((entry, i) => ({ ...success(items![i]!.operation, {
+          effects: entry.locations.map(location => ({ location, action: items![i]!.operation.slice(11), feature: "F46" })), outputs: [], fingerprint: null
+        }), affected: entry.affected, locations: entry.locations })),
+        outputs: dryRun || !changed.affected ? [] : [{ path: destination!, sha256: fingerprint, bytes: changed.bytes.length }]
+      }), affected: changed.affected, locations: changed.locations };
+      human = `${dryRun ? "Validated" : "Updated"} ${changed.affected} animation(s) in ${items!.length} operation(s)\n`;
+      if (destination === "-" && !dryRun && changed.affected) binary = changed.bytes;
+      else if (destination && destination !== "-" && changed.affected) {
+        if (!request.publishOutput) throw Object.assign(new Error("Output publication capability is unavailable."), { code: "publication-unsupported" });
+        publication = { inputPath: args.input!, ...(args.opsFile ? { protectedInputPaths: [args.opsFile] } : {}), outputPath: destination, bytes: changed.bytes, originalBytes: bytes, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
+      }
     } else if (Object.hasOwn(animationSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));
@@ -4106,13 +4203,38 @@ async function execute(
       };
       if (args.shape !== undefined) {
         const index = await readSelectionIndex(bytes, context);
-        const slide = index.select(selection!)[0]!;
-        selection = { kind: "object", scope: "slides", owner: slide.part, name: args.shape };
+        try {
+          const slide = index.select(selection!)[0]!;
+          selection = { kind: "object", scope: "slides", owner: slide.part, name: args.shape };
+        } catch (error) {
+          if (!(args.allowEmpty && error instanceof SelectionError && error.code === "missing-selection")) throw error;
+        }
       }
+      if (args.all) selection = { ...(selection ?? { kind: "slide", scope: "slides" }), all: true };
+      if (!["animations.list", "animations.get"].includes(args.operation)) {
+        const action = args.operation.slice(11) as "add" | "set" | "remove";
+        const changed = await mutateAnimations(bytes, action, { ...args.animationEdit, ...(selection ? { selection } : {}), ...(args.allowEmpty ? { allowEmpty: true } : {}) }, context);
+        const locations = changed.locations;
+        const dryRun = args.dryRun ?? false;
+        const destination = args.inPlace ? args.input! : args.output;
+        const fingerprint = Array.from(sha256(changed.bytes), byte => byte.toString(16).padStart(2, "0")).join("");
+        result = { ...success(operation, {
+          effects: locations.map(location => ({ location, action, feature: "F46" })),
+          outputs: dryRun || !locations.length ? [] : [{ path: destination!, sha256: fingerprint, bytes: changed.bytes.length }],
+          fingerprint: dryRun || !locations.length ? null : fingerprint
+        }), affected: changed.affected, locations };
+        human = `${dryRun ? "Validated" : "Updated"} ${changed.affected} animation(s)\n`;
+        if (destination === "-" && !dryRun && locations.length) binary = changed.bytes;
+        else if (destination && destination !== "-" && locations.length) {
+          if (!request.publishOutput) throw Object.assign(new Error("Output publication capability is unavailable."), { code: "publication-unsupported" });
+          publication = { inputPath: args.input!, outputPath: destination, bytes: changed.bytes, originalBytes: bytes, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
+        }
+      } else {
       const records = await readAnimations(bytes, selection ? { selection } : {}, context);
       if (args.operation === "animations.get" && records.length !== 1) throw new SelectionError(records.length ? "ambiguous-selection" : "missing-selection");
       result = { ...success(operation, { items: animationItems(records) }), locations: records.map(record => record.location) };
       human = records.map(record => `Slide ${record.slide}: ${record.nodes.length} timing nodes, ${record.targetShapeIds.length} targets\n`).join("") + "Timing metadata only; no animation or media execution.\n";
+      }
     } else if (Object.hasOwn(transitionSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));

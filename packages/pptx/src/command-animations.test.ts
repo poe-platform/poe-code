@@ -40,7 +40,7 @@ it("discovers bounded read-only animation inventories and validates empty result
   expect(JSON.parse(out.text).data).toEqual({ items: [] });
   const descriptor = JSON.parse((await f.run(["schema", "animations", "list", "--json"])).text).data.operations["animations.list"];
   expect(compileJsonSchema(descriptor.result).validate(JSON.parse(out.text)).ok).toBe(true);
-  expect(JSON.parse((await f.run(["capabilities", "--json"])).text).data).toHaveProperty("features.animations.operations", ["animations.list", "animations.get"]);
+  expect(JSON.parse((await f.run(["capabilities", "--json"])).text).data).toHaveProperty("features.animations.operations", ["animations.list", "animations.get", "animations.add", "animations.set", "animations.remove"]);
   expect((await f.run(["animations", "get", "/deck.pptx", "--json"])).exitCode).toBe(1);
   expect((await f.run(["animations", "get", "/deck.pptx", "--slide", "1", "--json"])).exitCode).toBe(0);
   expect((await f.run(["animations", "list", "/deck.pptx", "--limit", "maxNodes=1", "--json"])).exitCode).toBe(4);

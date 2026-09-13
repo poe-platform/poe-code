@@ -25,6 +25,7 @@ export {
   type AnimationTimingReference
 } from "./animations.js";
 export { readTransitions, mutateTransitions, validateTransitionOptions, type TransitionKind, type TransitionDirection, type TransitionRecord, type MutateTransitionsOptions } from "./transitions.js";
+export { mutateAnimations, mutateAnimationsBatch, validateAnimationOptions, type AnimationKind, type AnimationTrigger, type AnimationTarget, type MutateAnimationsOptions, type AnimationEditResult, type AnimationBatchOperation, type AnimationBatchResult } from "./animation-editing.js";
 export {
   readCharts,
   inspectChart,

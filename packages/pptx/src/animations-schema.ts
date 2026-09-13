@@ -1,8 +1,16 @@
 import { inspectSchema, textGetSchema } from "./command-schema.js";
 import type { AnimationRecord } from "./animations.js";
+import { transitionSchemas } from "./transitions-schema.js";
 
 export const animationsUsage =
-  "Usage: pptx animations list|get INPUT [selection] [--json]\n" +
+  "Usage: pptx animations list|get|add|set|remove INPUT [selection] [output]\n" +
+  "Edits: --kind appear|fade-in|fade-out|pulse --trigger on-click|with-previous|after-previous\n" +
+  "       --target TOKEN_OR_JSON --duration MS --delay MS\n" +
+  "Target JSON: {\"slide\":1,\"shape\":\"Badge\"}; slide positions are one-based.\n" +
+  "Add requires kind, trigger and target. Set/remove select one effect unless --all.\n" +
+  "Timing: integer milliseconds 0..2147483647; duration defaults 500 (appear 0), delay 0.\n" +
+  "Dependent triggers require a previous effect; unsafe timeline changes fail.\n" +
+  "Output: --output PATH | --in-place | --dry-run; --force requires --output.\n" +
   "Selection: --slide N --shape NAME | --select TOKEN; --scope slides\n" +
   "Common: --limit NAME=VALUE lowers XML and output budgets.\n" +
   "Get selects one slide graph; multiple slide graphs are ambiguous.\n" +
@@ -47,7 +55,7 @@ export function animationItems(records: readonly AnimationRecord[]) {
     }).map(([name, value]) => ({ name, value: wire(value) }))
   })));
 }
-export const animationSchemas = Object.fromEntries(["list", "get"].map(action => [`animations.${action}`, {
+const inventorySchemas = Object.fromEntries(["list", "get"].map(action => [`animations.${action}`, {
   description: animationsUsage,
   input: inspectSchema.input,
   options: {
@@ -77,3 +85,45 @@ export const animationSchemas = Object.fromEntries(["list", "get"].map(action =>
     }
   }
 }]));
+
+export const animationUpdates = {
+  kind: { enum: ["appear", "fade-in", "fade-out", "pulse"] },
+  trigger: { enum: ["on-click", "with-previous", "after-previous"] },
+  duration: { type: "integer", minimum: 0, maximum: 2147483647 },
+  delay: { type: "integer", minimum: 0, maximum: 2147483647 },
+  target: { oneOf: [
+    { type: "string", minLength: 1 },
+    inspectSchema.result.$defs.location,
+    { type: "object", additionalProperties: false, required: ["slide", "shape"], properties: {
+      slide: { type: "integer", minimum: 1 },
+      shape: { type: "string", minLength: 1 }
+    } }
+  ] }
+};
+export const animationSchemas = {
+  ...inventorySchemas,
+  ...Object.fromEntries(["add", "set", "remove"].map(action => {
+    const transition = transitionSchemas[`transitions.${action}`]!;
+    const base = transitionSchemas["transitions.remove"]!;
+    const result = structuredClone(transition.result);
+    result.properties.operation = { const: `animations.${action}` };
+    const mutation = result.properties.data.oneOf[1]!;
+    if ("properties" in mutation && mutation.properties?.effects) mutation.properties.effects.items.properties.feature = { const: "F46" };
+    return [`animations.${action}`, {
+      description: animationsUsage, input: inspectSchema.input,
+      options: {
+        ...base.options,
+        properties: { ...base.options.properties, shape: textGetSchema.options.properties.shape, ...(action === "remove" ? {} : animationUpdates) },
+        ...(action === "add" ? { required: ["kind", "trigger", "target"] } : {}),
+        allOf: [
+          ...base.options.allOf.slice(1).filter((_, index) => action !== "add" || index !== 0),
+          { if: { required: ["select"] }, then: { not: { anyOf: ["scope", "slide", "shape"].map(name => ({ required: [name] })) } } },
+          { if: { required: ["shape"] }, then: { required: ["slide"] } },
+          ...(action === "set" ? [{ anyOf: Object.keys(animationUpdates).map(name => ({ required: [name] })) }] : []),
+          ...(action !== "remove" ? [{ if: { required: ["kind"], properties: { kind: { const: "appear" } } }, then: { properties: { duration: { const: 0 } } } }] : [])
+        ]
+      },
+      result
+    }];
+  }))
+};

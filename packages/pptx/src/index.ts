@@ -253,3 +253,10 @@ export {
   type AddShapePathOptions,
   type SetShapePathOptions
 } from "./shape-path-operations.js";
+
+export {
+  groupShapes,
+  ungroupShape,
+  type GroupShapesOptions,
+  type UngroupShapeOptions
+} from "./shape-groups.js";

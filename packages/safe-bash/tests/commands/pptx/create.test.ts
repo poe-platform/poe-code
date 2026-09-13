@@ -6,6 +6,9 @@ import { SaxesParser } from "saxes";
 import {
   addShape,
   readShapes,
+  groupShapes,
+  ungroupShape,
+  Emu,
   addSlide,
   createPptxCommandEngine,
   createPresentation,
@@ -20,6 +23,34 @@ import {
   readPresentationSettings,
   readSelectionIndex
 } from "pptx";
+
+test("pptx groups retain geometry and identities through a quoted shell script and byte SDK", async () => {
+  const f = fixture();
+  const input = await createPresentation({ slides: [{ shapes: [
+    { x: 10, y: 20, width: 40, height: 20, text: "First" },
+    { x: 70, y: 20, width: 20, height: 40, text: "Second" }
+  ] }] }, context);
+  f.volume.writeFileSync("/work/deck.pptx", input);
+  const locations = (await readShapes(input, {}, context)).map(record => record.location);
+  f.volume.writeFileSync("/work/groups.sh", `pptx shapes group deck.pptx --shapes '${JSON.stringify(locations)}' --tolerance 0emu --output 'grouped deck.pptx' --json`);
+  const result = await f.shell.exec("sh groups.sh");
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  const grouped = new Uint8Array(f.volume.readFileSync("/work/grouped deck.pptx") as Buffer);
+  const expected = await groupShapes(input, { shapes: locations, tolerance: new Emu(0) }, context);
+  assert.deepEqual(grouped, expected.bytes);
+  const records = await readShapes(grouped, {}, context);
+  assert.deepEqual(records.map(record => record.shapeId), [4, 2, 3]);
+  assert.deepEqual(records[1]!.geometry?.corners, [{ x: 10, y: 20 }, { x: 50, y: 20 }, { x: 50, y: 40 }, { x: 10, y: 40 }]);
+  const token = records[0]!.token;
+  const ungrouped = await f.shell.exec(`pptx shapes ungroup 'grouped deck.pptx' --select '${token}' --tolerance 0emu --output restored.pptx --json`);
+  assert.equal(ungrouped.exitCode, 0, ungrouped.stdout + ungrouped.stderr);
+  const restored = new Uint8Array(f.volume.readFileSync("/work/restored.pptx") as Buffer);
+  assert.deepEqual(restored, (await ungroupShape(grouped, { select: token, tolerance: new Emu(0) }, context)).bytes);
+  assert.deepEqual((await readShapes(restored, {}, context)).map(record => record.shapeId), [2, 3]);
+  const missing = await f.shell.exec("pptx shapes ungroup restored.pptx --in-place --json");
+  assert.equal(missing.exitCode, 2);
+  assert.deepEqual(new Uint8Array(f.volume.readFileSync("/work/restored.pptx") as Buffer), restored);
+});
 
 test("pptx shapes uses quoted names and explicit units with SDK-equivalent publication", async () => {
   const f = fixture();

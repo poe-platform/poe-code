@@ -3,6 +3,8 @@ import { validateShapePath, pathFromVertices, type ShapePath } from "./shape-pat
 import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
 import { fieldSchemas } from "./fields-schema.js";
 import { addShape, mutateShapes, readShapes, type ShapeSelection } from "./shape-operations.js";
+import { groupShapes, ungroupShape, validateGroupOptions } from "./shape-groups.js";
+import { Emu } from "./length.js";
 import { validateShapeOptions, type ShapeUpdate } from "./shapes.js";
 import { fitTextFrames, validateTextFitOptions, type TextFitOptions } from "./text-fitting.js";
 import { admitFontMetrics } from "./font-metrics.js";
@@ -45,7 +47,7 @@ import {
   type SelectionQuery,
   type SelectionRecord
 } from "./selectors.js";
-import type { Diagnostic, OfficeResult, Scope } from "./contracts.js";
+import type { Diagnostic, Location, OfficeResult, Scope } from "./contracts.js";
 import {
   masterSchemas,
   shapeSchemas,
@@ -263,6 +265,8 @@ const help =
   "       pptx layouts apply INPUT [--slide N | --select TOKEN | --all] --layout NAME_OR_URI\n" +
   "                          --placeholder-policy type-index|reject-unmatched\n" +
   "       pptx shapes list|get INPUT [--slide N --shape NAME] [--scope SCOPE] [--json]\n" +
+  "       pptx shapes group INPUT --shapes LOCATIONS_JSON --tolerance LENGTH [output]\n" +
+  "       pptx shapes ungroup INPUT [selection] --tolerance LENGTH [output]\n" +
   "       pptx shapes paths list|get|add|set INPUT [selection] [--path JSON]\n" +
   "       pptx shapes add INPUT --slide N --kind text-box|PRESET\n" +
   "                       --left LENGTH --top LENGTH --width LENGTH --height LENGTH [--name TEXT] [--text TEXT]\n" +
@@ -277,7 +281,7 @@ const help =
   "                       --kind picture --file PATH | --kind inherit\n" +
   "                       --kind style-reference --style-index N --style-color RRGGBB\n" +
   "       Shared mutations: [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-  "       pptx schema masters list|get|add|set | layouts list|get|add|set|remove|apply | shapes list|get|add|set | backgrounds set [--json]\n" +
+  "       pptx schema masters list|get|add|set | layouts list|get|add|set|remove|apply | shapes list|get|add|set|group|ungroup | backgrounds set [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "       pptx settings list|get INPUT [--json]\n" +
   "       pptx settings set INPUT [--width LENGTH] [--height LENGTH]\n" +
@@ -319,6 +323,8 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  shapes?: readonly Location[];
+  tolerance?: Emu;
   path?: ShapePath;
   vertices?: unknown;
   close?: boolean;
@@ -336,6 +342,8 @@ interface Arguments {
     | "shapes.set"
     | "shapes.list"
     | "shapes.get"
+    | "shapes.group"
+    | "shapes.ungroup"
     | `backgrounds.${"list" | "get" | "set"}`
     | `themes.${"list" | "get" | "set"}`
     | `settings.${"list" | "get" | "set"}`
@@ -583,6 +591,8 @@ const scalarOptions = [
   "--selection-json",
   "--slide",
   "--shape",
+  "--shapes",
+  "--tolerance",
   "--part",
   "--select",
   "--scope",
@@ -660,7 +670,7 @@ function parse(
       ["sections", "shows", "masters", "layouts", "shapes", "backgrounds", "themes"].includes(
         args[0]!
       ) &&
-      ["list", "get", "add", "set", "remove", "apply"].includes(argument)
+      ["list", "get", "add", "set", "remove", "apply", "group", "ungroup"].includes(argument)
     ) {
       output.operation = `${args[0]}.${argument}`;
     } else if (index === 1 && args[0] === "settings" && ["list", "get", "set"].includes(argument)) {
@@ -776,6 +786,23 @@ function parse(
       ["--help", "-h"].includes(argument)
     )
       return { operation: "help", json: output.json, schemaPath: operation };
+    if (
+      ["shapes.group", "shapes.ungroup"].includes(operation) &&
+      ["--shapes", "--tolerance"].includes(argument)
+    ) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Group option requires a value.");
+      if (argument === "--tolerance") result.tolerance = new Emu(commandLength(value, 0));
+      else {
+        const locations = commandJson(value);
+        if (!Array.isArray(locations) || locations.length < 2)
+          usage("Grouping requires at least two shape locations.");
+        result.shapes = locations as Location[];
+      }
+      continue;
+    }
     if (
       operation.startsWith("fields.") &&
       ["--kind", "--text", "--update", "--timestamp"].includes(argument)
@@ -1780,7 +1807,8 @@ function parse(
     return result;
   }
   if (Object.hasOwn(shapeSchemas, operation)) {
-    const mutation = operation.endsWith(".add") || operation.endsWith(".set");
+    const grouping = operation === "shapes.group" || operation === "shapes.ungroup";
+    const mutation = grouping || operation.endsWith(".add") || operation.endsWith(".set");
     const flags = Object.keys(shapeSchemas[operation]!.options.properties).map(
       (key) =>
         "--" + [...key].map((c) => (c >= "A" && c <= "Z" ? "-" + c.toLowerCase() : c)).join("")
@@ -1792,7 +1820,25 @@ function parse(
     if (result.token && (result.slide !== undefined || result.part || result.shape || result.all))
       usage("Opaque and simple selectors cannot be combined.");
     if (mutation) {
-      if (operation.startsWith("shapes.paths.")) {
+      if (grouping) {
+        if (result.tolerance === undefined) usage("Grouping requires explicit tolerance.");
+        if (operation === "shapes.group" && result.shapes === undefined)
+          usage("Grouping requires shape locations.");
+        validateGroupOptions(
+          {
+            tolerance: result.tolerance,
+            ...(result.shapes === undefined ? {} : { shapes: result.shapes }),
+            ...(result.scope === undefined ? {} : { scope: result.scope }),
+            ...(result.slide === undefined ? {} : { slide: result.slide }),
+            ...(result.part === undefined ? {} : { part: result.part }),
+            ...(result.shape === undefined ? {} : { shape: result.shape }),
+            ...(result.token === undefined ? {} : { select: result.token }),
+            ...(result.all === undefined ? {} : { all: result.all }),
+            ...(result.allowEmpty === undefined ? {} : { allowEmpty: result.allowEmpty })
+          },
+          operation === "shapes.group"
+        );
+      } else if (operation.startsWith("shapes.paths.")) {
         if (
           result.path !== undefined &&
           (result.vertices !== undefined || result.close !== undefined)
@@ -2514,37 +2560,49 @@ async function execute(
           "Scopes: slides (default), layouts, masters; shared requires --part URI.\n" +
           "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
           "Unsupported formulas, arcs and arbitrary existing geometry are preserve-only.\n"
-        : args.schemaPath?.startsWith("shapes.")
-          ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
-            "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
-            "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
-            "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
-            "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
-            "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
-            "  --flip-horizontal true|false --flip-vertical true|false\n" +
-            "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
-            "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
-            "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
-            "Omitted values stay unchanged.\n" +
-            "Null line width restores inherited width.\n" +
-            "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
-            "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
-            "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
-            "Set: --all edits every match; --allow-empty accepts zero matches.\n"
-          : args.schemaPath?.startsWith("fields.")
-            ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
-              "Selection: --slide N --shape NAME | --select TOKEN\n" +
-              "           --scope SCOPE --json --limit NAME=VALUE\n" +
-              "Mutation:  --all --allow-empty\n" +
-              "Output:    --output PATH | --in-place | --dry-run; --force\n" +
-              "Set/add:   --kind slide-number|date|footer|header\n" +
-              "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
-              "Add requires --kind and one text body; appends to its last paragraph.\n" +
-              "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
-              "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
-              "No field evaluation, automatic numbering or inherited-content flattening.\n" +
-              "List/get are read-only; get requires one field. Remove accepts no policy.\n"
-            : usage;
+        : ["shapes.group", "shapes.ungroup"].includes(args.schemaPath ?? "")
+          ? "Usage: pptx shapes group|ungroup INPUT --tolerance LENGTH [selection] [output]\n" +
+            "Group: --shapes JSON array of at least two inspected Location objects.\n" +
+            "Shapes must be distinct contiguous siblings; original IDs and z-order are retained.\n" +
+            "Ungroup: --slide N --shape NAME | --select TOKEN; selects one group.\n" +
+            "Selection: --part URI --scope SCOPE. Exact cardinality; --all/--allow-empty are unsupported.\n" +
+            "Tolerance is explicit nonnegative EMU precision using emu/in/cm/mm/pt lengths.\n" +
+            "Identity groups preserve child XML; transformed ungrouping supports nested groups and rectangles\n" +
+            "without text, styles or strokes.\n" +
+            "Transformed ungrouping supports quarter-turn rotation chains only.\n" +
+            "World geometry must remain within tolerance; unsupported geometry and references fail.\n" +
+            "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n"
+          : args.schemaPath?.startsWith("shapes.")
+            ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
+              "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
+              "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
+              "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
+              "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
+              "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
+              "  --flip-horizontal true|false --flip-vertical true|false\n" +
+              "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
+              "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
+              "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
+              "Omitted values stay unchanged.\n" +
+              "Null line width restores inherited width.\n" +
+              "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
+              "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
+              "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
+              "Set: --all edits every match; --allow-empty accepts zero matches.\n"
+            : args.schemaPath?.startsWith("fields.")
+              ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
+                "Selection: --slide N --shape NAME | --select TOKEN\n" +
+                "           --scope SCOPE --json --limit NAME=VALUE\n" +
+                "Mutation:  --all --allow-empty\n" +
+                "Output:    --output PATH | --in-place | --dry-run; --force\n" +
+                "Set/add:   --kind slide-number|date|footer|header\n" +
+                "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
+                "Add requires --kind and one text body; appends to its last paragraph.\n" +
+                "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
+                "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
+                "No field evaluation, automatic numbering or inherited-content flattening.\n" +
+                "List/get are read-only; get requires one field. Remove accepts no policy.\n"
+              : usage;
       result = success(operation, { usage: resolvedUsage });
       human = resolvedUsage;
     } else if (args.operation === "version") {
@@ -2590,6 +2648,13 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          shapeGroups: {
+            supported: true,
+            level: "edit",
+            operations: ["shapes.group", "shapes.ungroup"],
+            subset:
+              "Contiguous sibling grouping and single-group ungrouping with explicit EMU tolerance; retain original shape IDs, world geometry and z-order. Identity groups preserve child XML; transformed ungrouping requires rectangles without text, styles or strokes, nested groups and quarter-turn rotation chains. Unsupported geometry and affected references are rejected."
+          },
           fields: {
             supported: true,
             level: "edit",
@@ -2703,7 +2768,7 @@ async function execute(
           shapes: {
             level: "edit",
             subset:
-              "Text boxes and documented presets on slides, layouts and masters. Names, read-only allocated IDs, title/description, locks and basic solid fill/line. Position, size, rotation and flips also edit pictures, connectors, groups and graphic frames. Stored geometry uses parent coordinates; inspection projects explicit nested transforms into slide EMUs. Missing inherited geometry is not resolved. Group/ungroup and advanced formatting remain unavailable."
+              "Text boxes and documented presets on slides, layouts and masters. Names, read-only allocated IDs, title/description, locks and basic solid fill/line. Position, size, rotation and flips also edit pictures, connectors, groups and graphic frames. Stored geometry uses parent coordinates; inspection projects explicit nested transforms into slide EMUs. Missing inherited geometry is not resolved. Group/ungroup requires explicit tolerance and supported geometry. Advanced formatting remains unavailable."
           },
           xml: {
             level: options.context.validationLimits ? "edit" : "reject",
@@ -2992,17 +3057,25 @@ async function execute(
           .join("");
       } else {
         const mutation =
-          args.operation === "shapes.paths.add"
-            ? await addShapePath(
+          args.operation === "shapes.group"
+            ? await groupShapes(
                 bytes,
-                { ...selection, path: args.path!, update: args.shapeEdit! },
+                { ...selection, shapes: args.shapes!, tolerance: args.tolerance! },
                 context
               )
-            : args.operation === "shapes.paths.set"
-              ? await setShapePath(bytes, { ...selection, path: args.path! }, context)
-              : args.operation === "shapes.add"
-                ? await addShape(bytes, { ...selection, update: args.shapeEdit! }, context)
-                : await mutateShapes(bytes, { ...selection, update: args.shapeEdit! }, context);
+            : args.operation === "shapes.ungroup"
+              ? await ungroupShape(bytes, { ...selection, tolerance: args.tolerance! }, context)
+              : args.operation === "shapes.paths.add"
+                ? await addShapePath(
+                    bytes,
+                    { ...selection, path: args.path!, update: args.shapeEdit! },
+                    context
+                  )
+                : args.operation === "shapes.paths.set"
+                  ? await setShapePath(bytes, { ...selection, path: args.path! }, context)
+                  : args.operation === "shapes.add"
+                    ? await addShape(bytes, { ...selection, update: args.shapeEdit! }, context)
+                    : await mutateShapes(bytes, { ...selection, update: args.shapeEdit! }, context);
         const after = await readSelectionIndex(mutation.bytes, context);
         const dryRun = args.dryRun ?? false;
         const destination = args.inPlace ? args.input! : args.output;
@@ -3019,7 +3092,11 @@ async function execute(
               effects: changed.map((x) => ({
                 location: x.location,
                 action: args.operation.endsWith(".add") ? "add" : "set",
-                feature: args.operation.startsWith("shapes.paths.") ? "F23" : "F22"
+                feature: ["shapes.group", "shapes.ungroup"].includes(args.operation)
+                  ? "F24"
+                  : args.operation.startsWith("shapes.paths.")
+                    ? "F23"
+                    : "F22"
               })),
               outputs: dryRun
                 ? []

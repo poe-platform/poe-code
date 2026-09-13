@@ -1,0 +1,766 @@
+{
+  "schemaVersion": 1,
+  "scope": "All 43 group-related unit variants and 15 expanded BDD scenarios retained individually. Existing common geometry cases remain in transform-case-map.json; paths remain in path-case-map.json.",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "notice": "Research/provenance only. Original authored TypeScript assertions and XML; research notices remain standalone. No copied product material.",
+  "selection": "Case identity/source includes group (case-insensitive), including inherited group collection helpers. Shared geometry cases referenced through transform-case-map.json rather than duplicated.",
+  "rows": [
+    {
+      "id": "presentation-unit-3f99db94d2ec",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1349",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_graphicFrame_element_containing_a_table",
+        "behavior": "test-case-map.json#/rows/1349/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-1c1a3a6218f4",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1350",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_grpSp_element",
+        "behavior": "test-case-map.json#/rows/1350/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-d7a629dc9a2d",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1351",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_pic_element_representing_a_picture",
+        "behavior": "test-case-map.json#/rows/1351/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-839cad6acda0",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1352",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_an_sp_element_for_a_placeholder",
+        "behavior": "test-case-map.json#/rows/1352/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-be33b60feb98",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1353",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_an_sp_element_for_an_autoshape",
+        "behavior": "test-case-map.json#/rows/1353/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-43875e3ff8c7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1354",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_textbox_sp_element",
+        "behavior": "test-case-map.json#/rows/1354/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-4db98acaf844",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1355",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_recalculate_its_pos_and_size[recalc_fixture0]",
+        "behavior": "test-case-map.json#/rows/1355/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "The source slide-root recalc helper is a no-op and verifies absence of a parent callback. The bounded operation does not expose this helper; root preservation is checked as part of serialized group operations. Automatic live collection recalculation remains a separate public gap.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-dbcc7b8936f2",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1356",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_recalculate_its_pos_and_size[recalc_fixture1]",
+        "behavior": "test-case-map.json#/rows/1356/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "The source rewrites off/ext/chOff/chExt from one child union and recursively recalculates its parent. Safe grouping authors an identity mapping; automatic live collection ancestor resizing remains unimplemented and cannot be replaced by resetting a scaled existing ancestor.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-39755adea5dd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1357",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture0]",
+        "behavior": "test-case-map.json#/rows/1357/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Source empty model group has zero off/ext/chOff/chExt. Safe grouping requires at least two shapes, and singular child mapping is rejected for projection/ungroup. Empty live-model group construction/readback remains a visible public gap, not equivalent behavior.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-b55abecd44fc",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1358",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture1]",
+        "behavior": "test-case-map.json#/rows/1358/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Source single-child collection recalculates its group to exactly that child bounds. The operation minimum is two; one-child model collection insertion/automatic resizing remains unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-625bde34d404",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1359",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture2]",
+        "behavior": "test-case-map.json#/rows/1359/original_behavior"
+      },
+      "status": "original-domain-behavior-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/shape-groups.test.ts",
+        "name": "calculates the stored sibling union $expected",
+        "variant": {
+          "expected": [1, 2, 39, 58]
+        }
+      },
+      "reason": "Literal original input boxes and expected union retained exactly. Assertions independently check off, ext, chOff and chExt in serialized XML. The operation grouping path covers union geometry; automatic live GroupShape collection insertion/recalculation remains a separate model gap.",
+      "wholePublicApiParity": false,
+      "verification": "Engine owner reports focused tests passed; final maintained suite receipt recorded by coordinator."
+    },
+    {
+      "id": "presentation-unit-c131dd494437",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1360",
+        "identity": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_calculates_its_child_extents_to_help[child_exts_fixture3]",
+        "behavior": "test-case-map.json#/rows/1360/original_behavior"
+      },
+      "status": "original-domain-behavior-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/shape-groups.test.ts",
+        "name": "calculates the stored sibling union $expected",
+        "variant": {
+          "expected": [50, 50, 125, 75]
+        }
+      },
+      "reason": "Literal original input boxes and expected union retained exactly. Assertions independently check off, ext, chOff and chExt in serialized XML. The operation grouping path covers union geometry; automatic live GroupShape collection insertion/recalculation remains a separate model gap.",
+      "wholePublicApiParity": false,
+      "verification": "Engine owner reports focused tests passed; final maintained suite receipt recorded by coordinator."
+    },
+    {
+      "id": "presentation-unit-e23afcb8c3f0",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1896",
+        "identity": "tests/shapes/test_group.py::DescribeGroupShape::it_raises_on_access_click_action",
+        "behavior": "test-case-map.json#/rows/1896/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-0fe8427455a1",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1897",
+        "identity": "tests/shapes/test_group.py::DescribeGroupShape::it_provides_access_to_its_shadow",
+        "behavior": "test-case-map.json#/rows/1897/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-d2eeca5129cf",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1898",
+        "identity": "tests/shapes/test_group.py::DescribeGroupShape::it_knows_its_shape_type",
+        "behavior": "test-case-map.json#/rows/1898/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-94075bb660b4",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1899",
+        "identity": "tests/shapes/test_group.py::DescribeGroupShape::it_provides_access_to_its_sub_shapes",
+        "behavior": "test-case-map.json#/rows/1899/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-f19dbe1273c3",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2007",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_chart",
+        "behavior": "test-case-map.json#/rows/2007/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-590214002c1c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2008",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_connector_shape",
+        "behavior": "test-case-map.json#/rows/2008/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-5181ebec853b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2009",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture0]",
+        "behavior": "test-case-map.json#/rows/2009/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-5bc93f4be53f",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2010",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture1]",
+        "behavior": "test-case-map.json#/rows/2010/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-538eb9a0ab2b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2011",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture2]",
+        "behavior": "test-case-map.json#/rows/2011/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-370c3a94da95",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2012",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_group_shape",
+        "behavior": "test-case-map.json#/rows/2012/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-81031efd142b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2013",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_an_ole_object",
+        "behavior": "test-case-map.json#/rows/2013/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-8bd6e59f5d89",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2014",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_picture",
+        "behavior": "test-case-map.json#/rows/2014/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-192f70ea86a7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2015",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_shape",
+        "behavior": "test-case-map.json#/rows/2015/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-fb7fc0b66e7d",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2016",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_a_textbox",
+        "behavior": "test-case-map.json#/rows/2016/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-0e0fbcec998b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2017",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture0]",
+        "behavior": "test-case-map.json#/rows/2017/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-0ba79940ec49",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2018",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture1]",
+        "behavior": "test-case-map.json#/rows/2018/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-0ab45e06128d",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2019",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture2]",
+        "behavior": "test-case-map.json#/rows/2019/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-63946329be21",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2020",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture3]",
+        "behavior": "test-case-map.json#/rows/2020/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-4045929feab5",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2021",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture4]",
+        "behavior": "test-case-map.json#/rows/2021/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-a90d2f4dcb55",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2022",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_knows_the_index_of_each_of_its_shapes[index_fixture5]",
+        "behavior": "test-case-map.json#/rows/2022/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-d15831230e29",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2023",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture0]",
+        "behavior": "test-case-map.json#/rows/2023/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-3c68fa2b6a93",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2024",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_raises_on_index_where_shape_not_found[index_raises_fixture1]",
+        "behavior": "test-case-map.json#/rows/2024/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-f7c3542cf5d2",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2025",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_chart_graphicFrame_to_help",
+        "behavior": "test-case-map.json#/rows/2025/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-6b5e20aca1bf",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2026",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture0]",
+        "behavior": "test-case-map.json#/rows/2026/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-9d3c4a08aa1a",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2027",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture1]",
+        "behavior": "test-case-map.json#/rows/2027/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-60320818b2ae",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2028",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture2]",
+        "behavior": "test-case-map.json#/rows/2028/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-c9cc4857837e",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2029",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_cxnSp_to_help[add_cxnSp_fixture3]",
+        "behavior": "test-case-map.json#/rows/2029/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-a299c18ce6df",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2030",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_pic_element_to_help",
+        "behavior": "test-case-map.json#/rows/2030/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-b8a99c5d7a4b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2031",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_an_sp_element_to_help",
+        "behavior": "test-case-map.json#/rows/2031/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-6abf850c0d1a",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2032",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_textbox_sp_element_to_help",
+        "behavior": "test-case-map.json#/rows/2032/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-unit-05b8ac8f620d",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2033",
+        "identity": "tests/shapes/test_shapetree.py::DescribeGroupShapes::it_recalculates_its_extents_to_help",
+        "behavior": "test-case-map.json#/rows/2033/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "The source rewrites off/ext/chOff/chExt from one child union and recursively recalculates its parent. Safe grouping authors an identity mapping; automatic live collection ancestor resizing remains unimplemented and cannot be replaced by resetting a scaled existing ancestor.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-afad873e94c1",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/581",
+        "identity": "features/shp-groupshape.feature:7 Get GroupShape.click_action raises TypeError",
+        "behavior": "test-case-map.json#/rows/3281/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-7adbb3e751d0",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/582",
+        "identity": "features/shp-groupshape.feature:12 GroupShape.shape_type",
+        "behavior": "test-case-map.json#/rows/3282/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-089ba80ec8d7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/583",
+        "identity": "features/shp-groupshape.feature:17 GroupShape.shapes",
+        "behavior": "test-case-map.json#/rows/3283/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-27adddbaa0f9",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/584",
+        "identity": "features/shp-groupshape.feature:22 GroupShape position and size, 0 shapes",
+        "behavior": "test-case-map.json#/rows/3284/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Source empty model group has zero off/ext/chOff/chExt. Safe grouping requires at least two shapes, and singular child mapping is rejected for projection/ungroup. Empty live-model group construction/readback remains a visible public gap, not equivalent behavior.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-68caa47fbb37",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/585",
+        "identity": "features/shp-groupshape.feature:30 GroupShape position and size, 1 shapes",
+        "behavior": "test-case-map.json#/rows/3285/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Source single-child collection recalculates its group to exactly that child bounds. The operation minimum is two; one-child model collection insertion/automatic resizing remains unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-63efef5f61b9",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/586",
+        "identity": "features/shp-groupshape.feature:39 GroupShape position and size, 2 shapes",
+        "behavior": "test-case-map.json#/rows/3286/original_behavior"
+      },
+      "status": "original-domain-behavior-covered-model-gap",
+      "originalTest": {
+        "file": "packages/pptx/src/shape-groups.test.ts",
+        "name": "calculates the stored sibling union $expected",
+        "variant": {
+          "expected": [300, 400, 300, 500]
+        }
+      },
+      "reason": "Literal original input boxes and expected union retained exactly. Assertions independently check off, ext, chOff and chExt in serialized XML. The operation grouping path covers union geometry; automatic live GroupShape collection insertion/recalculation remains a separate model gap.",
+      "wholePublicApiParity": false,
+      "verification": "Engine owner reports focused tests passed; final maintained suite receipt recorded by coordinator."
+    },
+    {
+      "id": "presentation-bdd-48d8e4d9beed",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/619",
+        "identity": "features/shp-shapes.feature:19 GroupShapes is a sequence",
+        "behavior": "test-case-map.json#/rows/3319/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-7e1aef0eb237",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/620",
+        "identity": "features/shp-shapes.feature:27 GroupShapes.add_chart()",
+        "behavior": "test-case-map.json#/rows/3320/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-d79b25a5d2ef",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/621",
+        "identity": "features/shp-shapes.feature:34 GroupShapes.add_connector()",
+        "behavior": "test-case-map.json#/rows/3321/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-0b2b402d5d77",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/622",
+        "identity": "features/shp-shapes.feature:41 GroupShapes.add_group_shape()",
+        "behavior": "test-case-map.json#/rows/3322/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-f1df54c2486b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/623",
+        "identity": "features/shp-shapes.feature:48 GroupShapes.add_picture()",
+        "behavior": "test-case-map.json#/rows/3323/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-8ef291e5db1b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/624",
+        "identity": "features/shp-shapes.feature:55 GroupShapes.add_shape()",
+        "behavior": "test-case-map.json#/rows/3324/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-6ed2c8095e74",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/625",
+        "identity": "features/shp-shapes.feature:62 GroupShapes.add_textbox()",
+        "behavior": "test-case-map.json#/rows/3325/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-85a868ae8bbf",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/626",
+        "identity": "features/shp-shapes.feature:69 GroupShapes.build_freeform()",
+        "behavior": "test-case-map.json#/rows/3326/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    },
+    {
+      "id": "presentation-bdd-9d8c99ff4242",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/667",
+        "identity": "features/shp-shapes.feature:211 SlideShapes.add_group_shape()",
+        "behavior": "test-case-map.json#/rows/3367/original_behavior"
+      },
+      "status": "neighboring-model-gap",
+      "originalTest": null,
+      "reason": "Live group model/collection or automatic insertion/extent API is not supplied by the bounded group/ungroup operation. The obligation remains public and unimplemented.",
+      "wholePublicApiParity": false
+    }
+  ],
+  "newFormatBehavior": {
+    "testFile": "packages/pptx/src/shape-groups.test.ts",
+    "status": "maintained-package-tests-passed",
+    "cases": [
+      "wraps contiguous siblings with union coordinates and preserves original IDs and order",
+      "composes offset scale quarter rotation and reflection before removing a group",
+      "retains nested child coordinate extents while composing the outer transform",
+      "rejects fractional precision loss at zero tolerance before final corner rounding",
+      "rejects singular child extents %s",
+      "rejects a rotated child under anisotropic scaling that requires shear",
+      "rejects discontiguous grouping and referenced removed identities",
+      "rejects unsupported vertex geometry and group effects without changing input",
+      "rejects sub-EMU loss hidden behind a large world offset",
+      "requires at least two distinct identities $ids",
+      "preserves general-angle text children structurally through an identity wrapper",
+      "rejects nonidentity general-angle flattening when an exact bound is unavailable",
+      "rejects foreign group children rather than dropping them",
+      "rejects group actions or extensions %s",
+      "rejects timing targeting transformed descendants while retaining child connector identities",
+      "calculates the stored sibling union $expected",
+      "rejects a union extent beyond the coordinate admission bound",
+      "composes a vertical flip in the Strict namespace",
+      "allocates the first unused identity after the maximum and retains exact sibling order",
+      "roundtrips public SDK locations and exposes lifted child records",
+      "rejects opaque timing and extension references before removing an identity"
+    ],
+    "note": "Original format/security additions, not a claim of upstream test equivalence."
+  },
+  "counts": {
+    "neighboring-model-gap": 55,
+    "original-domain-behavior-covered-model-gap": 3
+  },
+  "verification": {
+    "command": "npm run test:unit --workspace=pptx",
+    "files": 83,
+    "passed": 2417,
+    "failed": 0,
+    "focusedEngineCases": 27,
+    "focusedCommandCases": 5
+  }
+}

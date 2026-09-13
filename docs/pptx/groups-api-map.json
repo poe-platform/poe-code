@@ -1,0 +1,3037 @@
+{
+  "schemaVersion": 1,
+  "scope": "All group-owned, inherited group members and add_group_shape owners; no underscore-name exclusion. Shared inherited geometry implementation receipt remains transform-api-map.json.",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "languageSecurityMapping": {
+    "names": "Retain neutral snake_case properties/methods. Group/ungroup operation options remain camelCase and require explicit tolerance.",
+    "construction": "GroupShape and GroupShapes are live returned owner-bound interfaces, not arbitrary public raw-XML constructors; pending model support is not classified as private.",
+    "protocols": "GroupShapes requires length, Symbol.iterator and checked zero-based lookup; negative access uses at(index). No unsupported slice promise. Equality maps to owner/object identity rather than wrapper reference identity.",
+    "io": "In-memory graph access synchronous; bytes admission and package mutation async with explicit capabilities. No host paths, ambient clocks/fonts/network or native runtime.",
+    "values": "Length remains finite exact safe integer EMUs; strict booleans/numbers, null only for absence. Source type/value/index errors need neutral typed errors; unsupported operation uses unsupported-edit.",
+    "ownership": "Original child shape IDs and sibling order persist. New group ID must be unique in its part. Cross-owner handles reject; affected unremappable references reject atomically."
+  },
+  "drift": [
+    "The original automatic add_group_shape(shapes=[]) model permits empty groups and recalculates ancestors. The bounded shapes.group operation requires at least two sibling shapes and explicit tolerance. It is an additional operation, not complete model parity.",
+    "Historical register batch routes are proposed, not executable schema claims. This receipt names only actual bounded operation routes.",
+    "GroupShape inherits members declared on BaseShape; all are retained below. Underscore-prefixed implementation bases are represented by their inherited public owners, not removed."
+  ],
+  "rows": [
+    {
+      "sourceId": "pptx.shapes.group.GroupShape",
+      "source": "upstream-api-inventory.json#/objects/1704",
+      "discovery": "autoclass",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "GroupShape",
+        "form": "returned-interface",
+        "ts_signature": "interface GroupShape",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "GroupShape",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1705",
+      "discovery": "protocol",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [
+        {
+          "name": "other",
+          "ts_type": "ModelComparable",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J03", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.__init__",
+      "source": "upstream-api-inventory.json#/objects/1706",
+      "discovery": "constructor-signature-review",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = GroupShape",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "GroupShape",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.click_action",
+      "source": "upstream-api-inventory.json#/objects/1707",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.group.GroupShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "click_action",
+        "form": "lazyproperty",
+        "ts_signature": "get click_action(): ActionSetting",
+        "arguments": [],
+        "getter": "get click_action(): ActionSetting",
+        "setter": null,
+        "return_type": "ActionSetting",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "source": "TypeError",
+            "class": "TypeError",
+            "code": "invalid-type",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.element",
+      "source": "upstream-api-inventory.json#/objects/1708",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J09", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.has_chart",
+      "source": "upstream-api-inventory.json#/objects/1709",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "has_chart",
+        "form": "property",
+        "ts_signature": "get has_chart(): boolean",
+        "arguments": [],
+        "getter": "get has_chart(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.has_table",
+      "source": "upstream-api-inventory.json#/objects/1710",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "has_table",
+        "form": "property",
+        "ts_signature": "get has_table(): boolean",
+        "arguments": [],
+        "getter": "get has_table(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.has_text_frame",
+      "source": "upstream-api-inventory.json#/objects/1711",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.group.GroupShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "has_text_frame",
+        "form": "property",
+        "ts_signature": "get has_text_frame(): boolean",
+        "arguments": [],
+        "getter": "get has_text_frame(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.height",
+      "source": "upstream-api-inventory.json#/objects/1712",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "height",
+        "form": "property",
+        "ts_signature": "get height(): Length; set height(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get height(): Length",
+        "setter": "set height(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.is_placeholder",
+      "source": "upstream-api-inventory.json#/objects/1713",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "is_placeholder",
+        "form": "property",
+        "ts_signature": "get is_placeholder(): boolean",
+        "arguments": [],
+        "getter": "get is_placeholder(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.left",
+      "source": "upstream-api-inventory.json#/objects/1714",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "left",
+        "form": "property",
+        "ts_signature": "get left(): Length; set left(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get left(): Length",
+        "setter": "set left(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.name",
+      "source": "upstream-api-inventory.json#/objects/1715",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string; set name(value: string)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "string",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get name(): string",
+        "setter": "set name(value: string)",
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.part",
+      "source": "upstream-api-inventory.json#/objects/1716",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J09", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.placeholder_format",
+      "source": "upstream-api-inventory.json#/objects/1717",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "placeholder_format",
+        "form": "property",
+        "ts_signature": "get placeholder_format(): _PlaceholderFormat",
+        "arguments": [],
+        "getter": "get placeholder_format(): _PlaceholderFormat",
+        "setter": null,
+        "return_type": "_PlaceholderFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.rotation",
+      "source": "upstream-api-inventory.json#/objects/1718",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "rotation",
+        "form": "property",
+        "ts_signature": "get rotation(): number; set rotation(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get rotation(): number",
+        "setter": "set rotation(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "number",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.shadow",
+      "source": "upstream-api-inventory.json#/objects/1719",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.group.GroupShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "shadow",
+        "form": "lazyproperty",
+        "ts_signature": "get shadow(): ShadowFormat",
+        "arguments": [],
+        "getter": "get shadow(): ShadowFormat",
+        "setter": null,
+        "return_type": "ShadowFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1720",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "shape_id",
+        "form": "property",
+        "ts_signature": "get shape_id(): number",
+        "arguments": [],
+        "getter": "get shape_id(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.shape_type",
+      "source": "upstream-api-inventory.json#/objects/1721",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.group.GroupShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "shape_type",
+        "form": "property",
+        "ts_signature": "get shape_type(): MSO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": "get shape_type(): MSO_SHAPE_TYPE",
+        "setter": null,
+        "return_type": "MSO_SHAPE_TYPE",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.shapes",
+      "source": "upstream-api-inventory.json#/objects/1722",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.group.GroupShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "shapes",
+        "form": "lazyproperty",
+        "ts_signature": "get shapes(): GroupShapes",
+        "arguments": [],
+        "getter": "get shapes(): GroupShapes",
+        "setter": null,
+        "return_type": "GroupShapes",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.top",
+      "source": "upstream-api-inventory.json#/objects/1723",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "top",
+        "form": "property",
+        "ts_signature": "get top(): Length; set top(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get top(): Length",
+        "setter": "set top(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.width",
+      "source": "upstream-api-inventory.json#/objects/1724",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShape",
+        "member": "width",
+        "form": "property",
+        "ts_signature": "get width(): Length; set width(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get width(): Length",
+        "setter": "set width(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "collection": null,
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes",
+      "source": "upstream-api-inventory.json#/objects/2034",
+      "discovery": "autoclass",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "GroupShapes",
+        "form": "returned-interface",
+        "ts_signature": "interface GroupShapes",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "GroupShapes",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__eq__",
+      "source": "upstream-api-inventory.json#/objects/2035",
+      "discovery": "protocol",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [
+        {
+          "name": "other",
+          "ts_type": "ModelComparable",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J03", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__getitem__",
+      "source": "upstream-api-inventory.json#/objects/2036",
+      "discovery": "protocol",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "numeric lookup / at",
+        "form": "language-protocol",
+        "ts_signature": "readonly [index: number]: BaseShape; at(index: number): BaseShape",
+        "arguments": [
+          {
+            "name": "index",
+            "ts_type": "number",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "BaseShape",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "index",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "source": "IndexError",
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J03", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__init__",
+      "source": "upstream-api-inventory.json#/objects/2037",
+      "discovery": "constructor-signature-review",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = GroupShapes",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "GroupShapes",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__iter__",
+      "source": "upstream-api-inventory.json#/objects/2038",
+      "discovery": "protocol",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "Symbol.iterator",
+        "form": "language-protocol",
+        "ts_signature": "[Symbol.iterator](): IterableIterator<BaseShape>",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "IterableIterator<BaseShape>",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J03", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.__len__",
+      "source": "upstream-api-inventory.json#/objects/2039",
+      "discovery": "protocol",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "length",
+        "form": "language-protocol",
+        "ts_signature": "readonly length: number",
+        "arguments": [],
+        "getter": "get length(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J03", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.add_chart",
+      "source": "upstream-api-inventory.json#/objects/2040",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "add_chart",
+        "form": "function",
+        "ts_signature": "add_chart(chart_type: XL_CHART_TYPE, x: Length, y: Length, cx: Length, cy: Length, chart_data: CategoryChartData | XyChartData | BubbleChartData): GraphicFrame",
+        "arguments": [
+          {
+            "name": "chart_type",
+            "target_binding": "chart_type",
+            "ts_type": "XL_CHART_TYPE",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "x",
+            "target_binding": "x",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "y",
+            "target_binding": "y",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "cx",
+            "target_binding": "cx",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "cy",
+            "target_binding": "cy",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "chart_data",
+            "target_binding": "chart_data",
+            "ts_type": "CategoryChartData | XyChartData | BubbleChartData",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "GraphicFrame",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "chart_type",
+          "target_binding": "chart_type",
+          "ts_type": "XL_CHART_TYPE",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "x",
+          "target_binding": "x",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "y",
+          "target_binding": "y",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "cx",
+          "target_binding": "cx",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "cy",
+          "target_binding": "cy",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "chart_data",
+          "target_binding": "chart_data",
+          "ts_type": "CategoryChartData | XyChartData | BubbleChartData",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": ["Append the documented child/content to its owner in source order."]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.add_connector",
+      "source": "upstream-api-inventory.json#/objects/2041",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "add_connector",
+        "form": "function",
+        "ts_signature": "add_connector(connector_type: MSO_CONNECTOR_TYPE, begin_x: Length, begin_y: Length, end_x: Length, end_y: Length): Connector",
+        "arguments": [
+          {
+            "name": "connector_type",
+            "target_binding": "connector_type",
+            "ts_type": "MSO_CONNECTOR_TYPE",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "begin_x",
+            "target_binding": "begin_x",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "begin_y",
+            "target_binding": "begin_y",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "end_x",
+            "target_binding": "end_x",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "end_y",
+            "target_binding": "end_y",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "Connector",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "connector_type",
+          "target_binding": "connector_type",
+          "ts_type": "MSO_CONNECTOR_TYPE",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "begin_x",
+          "target_binding": "begin_x",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "begin_y",
+          "target_binding": "begin_y",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "end_x",
+          "target_binding": "end_x",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "end_y",
+          "target_binding": "end_y",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": ["Append the documented child/content to its owner in source order."]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.add_group_shape",
+      "source": "upstream-api-inventory.json#/objects/2042",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "add_group_shape",
+        "form": "function",
+        "ts_signature": "add_group_shape(shapes?: Iterable<BaseShape>): GroupShape",
+        "arguments": [
+          {
+            "name": "shapes",
+            "target_binding": "shapes",
+            "ts_type": "Iterable<BaseShape>",
+            "position": "positional",
+            "optional": true,
+            "source_default": "()",
+            "target_default": "[]",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "GroupShape",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "shapes",
+          "target_binding": "shapes",
+          "ts_type": "Iterable<BaseShape>",
+          "position": "positional",
+          "optional": true,
+          "source_default": "()",
+          "target_default": "[]",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Move supplied shapes into the new group and recalculate group extents without changing world geometry.",
+          "Append the documented child/content to its owner in source order."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.add_ole_object",
+      "source": "upstream-api-inventory.json#/objects/2043",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "add_ole_object",
+        "form": "function",
+        "ts_signature": "add_ole_object(object_file: BinaryInput, prog_id: string | PROG_ID, left: Length, top: Length, width?: Length | null, height?: Length | null, icon_file?: BinaryInput | null, icon_width?: Length | null, icon_height?: Length | null): Promise<GraphicFrame>",
+        "arguments": [
+          {
+            "name": "object_file",
+            "target_binding": "object_file",
+            "ts_type": "BinaryInput",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "prog_id",
+            "target_binding": "prog_id",
+            "ts_type": "string | PROG_ID",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "left",
+            "target_binding": "left",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "top",
+            "target_binding": "top",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "width",
+            "target_binding": "width",
+            "ts_type": "Length | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          },
+          {
+            "name": "height",
+            "target_binding": "height",
+            "ts_type": "Length | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          },
+          {
+            "name": "icon_file",
+            "target_binding": "icon_file",
+            "ts_type": "BinaryInput | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          },
+          {
+            "name": "icon_width",
+            "target_binding": "icon_width",
+            "ts_type": "Length | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          },
+          {
+            "name": "icon_height",
+            "target_binding": "icon_height",
+            "ts_type": "Length | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "Promise<GraphicFrame>",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "object_file",
+          "target_binding": "object_file",
+          "ts_type": "BinaryInput",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "prog_id",
+          "target_binding": "prog_id",
+          "ts_type": "string | PROG_ID",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "left",
+          "target_binding": "left",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "top",
+          "target_binding": "top",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "width",
+          "target_binding": "width",
+          "ts_type": "Length | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        },
+        {
+          "name": "height",
+          "target_binding": "height",
+          "ts_type": "Length | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        },
+        {
+          "name": "icon_file",
+          "target_binding": "icon_file",
+          "ts_type": "BinaryInput | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        },
+        {
+          "name": "icon_width",
+          "target_binding": "icon_width",
+          "ts_type": "Length | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        },
+        {
+          "name": "icon_height",
+          "target_binding": "icon_height",
+          "ts_type": "Length | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network.",
+          "Append the documented child/content to its owner in source order."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J06", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.add_picture",
+      "source": "upstream-api-inventory.json#/objects/2044",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "add_picture",
+        "form": "function",
+        "ts_signature": "add_picture(image_file: BinaryInput, left: Length, top: Length, width?: Length | null, height?: Length | null): Promise<Picture>",
+        "arguments": [
+          {
+            "name": "image_file",
+            "target_binding": "image_file",
+            "ts_type": "BinaryInput",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "left",
+            "target_binding": "left",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "top",
+            "target_binding": "top",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "width",
+            "target_binding": "width",
+            "ts_type": "Length | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          },
+          {
+            "name": "height",
+            "target_binding": "height",
+            "ts_type": "Length | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "Promise<Picture>",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "image_file",
+          "target_binding": "image_file",
+          "ts_type": "BinaryInput",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "left",
+          "target_binding": "left",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "top",
+          "target_binding": "top",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "width",
+          "target_binding": "width",
+          "ts_type": "Length | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        },
+        {
+          "name": "height",
+          "target_binding": "height",
+          "ts_type": "Length | null",
+          "position": "positional",
+          "optional": true,
+          "source_default": "None",
+          "target_default": "null",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "explicit absence/inheritance, never default coercion"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network.",
+          "Append the documented child/content to its owner in source order."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J06", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.add_shape",
+      "source": "upstream-api-inventory.json#/objects/2045",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "add_shape",
+        "form": "function",
+        "ts_signature": "add_shape(autoshape_type_id: MSO_AUTO_SHAPE_TYPE, left: Length, top: Length, width: Length, height: Length): Shape",
+        "arguments": [
+          {
+            "name": "autoshape_type_id",
+            "target_binding": "autoshape_type_id",
+            "ts_type": "MSO_AUTO_SHAPE_TYPE",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "left",
+            "target_binding": "left",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "top",
+            "target_binding": "top",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "width",
+            "target_binding": "width",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "height",
+            "target_binding": "height",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "Shape",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "autoshape_type_id",
+          "target_binding": "autoshape_type_id",
+          "ts_type": "MSO_AUTO_SHAPE_TYPE",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "left",
+          "target_binding": "left",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "top",
+          "target_binding": "top",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "width",
+          "target_binding": "width",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "height",
+          "target_binding": "height",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": ["Append the documented child/content to its owner in source order."]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.add_textbox",
+      "source": "upstream-api-inventory.json#/objects/2046",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "add_textbox",
+        "form": "function",
+        "ts_signature": "add_textbox(left: Length, top: Length, width: Length, height: Length): Shape",
+        "arguments": [
+          {
+            "name": "left",
+            "target_binding": "left",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "top",
+            "target_binding": "top",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "width",
+            "target_binding": "width",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "height",
+            "target_binding": "height",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "Shape",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "left",
+          "target_binding": "left",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "top",
+          "target_binding": "top",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "width",
+          "target_binding": "width",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "height",
+          "target_binding": "height",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": ["Append the documented child/content to its owner in source order."]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.build_freeform",
+      "source": "upstream-api-inventory.json#/objects/2047",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "build_freeform",
+        "form": "function",
+        "ts_signature": "build_freeform(start_x?: number, start_y?: number, scale?: readonly [number, number] | number): FreeformBuilder",
+        "arguments": [
+          {
+            "name": "start_x",
+            "target_binding": "start_x",
+            "ts_type": "number",
+            "position": "positional",
+            "optional": true,
+            "source_default": "0",
+            "target_default": "0",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "start_y",
+            "target_binding": "start_y",
+            "ts_type": "number",
+            "position": "positional",
+            "optional": true,
+            "source_default": "0",
+            "target_default": "0",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "scale",
+            "target_binding": "scale",
+            "ts_type": "readonly [number, number] | number",
+            "position": "positional",
+            "optional": true,
+            "source_default": "1.0",
+            "target_default": "1.0",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "FreeformBuilder",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "start_x",
+          "target_binding": "start_x",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": true,
+          "source_default": "0",
+          "target_default": "0",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "start_y",
+          "target_binding": "start_y",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": true,
+          "source_default": "0",
+          "target_default": "0",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "scale",
+          "target_binding": "scale",
+          "ts_type": "readonly [number, number] | number",
+          "position": "positional",
+          "optional": true,
+          "source_default": "1.0",
+          "target_default": "1.0",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.element",
+      "source": "upstream-api-inventory.json#/objects/2048",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J02", "J09", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.index",
+      "source": "upstream-api-inventory.json#/objects/2049",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "index",
+        "form": "function",
+        "ts_signature": "index(shape: BaseShape): number",
+        "arguments": [
+          {
+            "name": "shape",
+            "target_binding": "shape",
+            "ts_type": "BaseShape",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [
+        {
+          "name": "shape",
+          "target_binding": "shape",
+          "ts_type": "BaseShape",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.parent",
+      "source": "upstream-api-inventory.json#/objects/2050",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "parent",
+        "form": "property",
+        "ts_signature": "get parent(): OwnedModel",
+        "arguments": [],
+        "getter": "get parent(): OwnedModel",
+        "setter": null,
+        "return_type": "OwnedModel",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J02", "J09", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.part",
+      "source": "upstream-api-inventory.json#/objects/2051",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J02", "J09", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.turbo_add_enabled",
+      "source": "upstream-api-inventory.json#/objects/2052",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "turbo_add_enabled",
+        "form": "property",
+        "ts_signature": "get turbo_add_enabled(): boolean; set turbo_add_enabled(value: boolean)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "boolean",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get turbo_add_enabled(): boolean",
+        "setter": "set turbo_add_enabled(value: boolean)",
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "boolean",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.GroupShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.add_group_shape",
+      "source": "upstream-api-inventory.json#/objects/2133",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "planned-live-model",
+      "target": {
+        "owner": "SlideShapes",
+        "member": "add_group_shape",
+        "form": "function",
+        "ts_signature": "add_group_shape(shapes?: Iterable<BaseShape>): GroupShape",
+        "arguments": [
+          {
+            "name": "shapes",
+            "target_binding": "shapes",
+            "ts_type": "Iterable<BaseShape>",
+            "position": "positional",
+            "optional": true,
+            "source_default": "()",
+            "target_default": "[]",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "GroupShape",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "defaults": [
+        {
+          "name": "shapes",
+          "target_binding": "shapes",
+          "ts_type": "Iterable<BaseShape>",
+          "position": "positional",
+          "optional": true,
+          "source_default": "()",
+          "target_default": "[]",
+          "undefined_behavior": "use target_default",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Move supplied shapes into the new group and recalculate group extents without changing world geometry.",
+          "Append the documented child/content to its owner in source order."
+        ]
+      },
+      "collection": {
+        "source_id": "pptx.shapes.shapetree.SlideShapes",
+        "element_type": "BaseShape",
+        "indexing": "zero-based-position",
+        "negative_index": "from-end",
+        "slice_supported": false,
+        "iteration": "source sequence order",
+        "mutable_items": false
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "cli": "No live-model batch method is exposed by this bounded change. Geometry uses shapes get/set; grouping operations use shapes group/ungroup.",
+      "tests": [],
+      "gap": "Bounded XML/package operations do not provide this document-owned public model member."
+    }
+  ],
+  "neighboringEnum": {
+    "sourceId": "pptx.enum.shapes.MSO_SHAPE_TYPE.GROUP",
+    "target": "MSO_SHAPE_TYPE.GROUP",
+    "status": "planned-model-enum-parity",
+    "note": "Grouping XML does not alone establish this public enum symbol or GroupShape.shape_type getter. Full enum/member inventory remains authoritative."
+  },
+  "operationExtensions": [
+    {
+      "target": "groupShapes(input: BinaryInput, options: GroupShapesOptions, context: SelectionContext): Promise<{ affected: number; records: SelectionRecord[]; bytes: Uint8Array; part: string; affectedSlides: readonly number[] }>",
+      "options": "Omit<ShapeSelection, \"all\" | \"allowEmpty\"> plus shapes: readonly Location[] and tolerance: Length. At least two distinct contiguous siblings; no tolerance default.",
+      "cli": "pptx shapes group",
+      "testFiles": [
+        "packages/pptx/src/shape-groups.test.ts",
+        "packages/pptx/src/command-shape-groups.test.ts"
+      ],
+      "status": "implemented-maintained-checks-passed",
+      "signatureEvidence": "packages/pptx/dist/shape-groups.d.ts (selected workspace build, generated output not committed)"
+    },
+    {
+      "target": "ungroupShape(input: BinaryInput, options: UngroupShapeOptions, context: SelectionContext): Promise<{ affected: number; records: SelectionRecord[]; bytes: Uint8Array; part: string; affectedSlides: readonly number[] }>",
+      "options": "Omit<ShapeSelection, \"all\" | \"allowEmpty\"> plus tolerance: Length; selection resolves exactly one group.",
+      "cli": "pptx shapes ungroup",
+      "testFiles": [
+        "packages/pptx/src/shape-groups.test.ts",
+        "packages/pptx/src/command-shape-groups.test.ts"
+      ],
+      "status": "implemented-maintained-checks-passed",
+      "signatureEvidence": "packages/pptx/dist/shape-groups.d.ts (selected workspace build, generated output not committed)"
+    }
+  ],
+  "toleranceProof": "Nonidentity ungroup certifies all rectangle vertices and bounding corners after serialization using exact BigInt rational arithmetic for quarter-turn ancestor/child transform chains. General-angle nonidentity transforms reject because no exact bound is established. Identity wrapping/unwrapping preserves arbitrary angles and unchanged child XML structurally; zero tolerance remains exact. Fractional displacements at large world offsets cannot round into an accidental pass.",
+  "referencePolicy": "Ungroup rejects populated timing/extLst trees in the owning drawing, unknown group metadata/actions, references to the removed group, and unsupported affected timing attributes. Child IDs and supported connector targets remain unchanged. No general timing/extension retargeting support is claimed."
+}

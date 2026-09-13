@@ -1921,9 +1921,54 @@ const shapeRecordProperties = {
   token: { type: "string" },
   part: { type: "string" }
 };
+for (const action of ["group", "ungroup"]) {
+  const base = shapeSchemaDefinitions["shapes.set"]!;
+  const properties = Object.fromEntries(
+    Object.entries(base.options.properties).filter(
+      ([key]) => !Object.hasOwn(shapeValues, key) && !["all", "allowEmpty"].includes(key)
+    )
+  );
+  Object.assign(shapeSchemaDefinitions, {
+    ["shapes." + action]: {
+      ...base,
+      description:
+        "Preserve world geometry and z-order with explicit nonnegative tolerance. Grouping requires distinct contiguous siblings; ungrouping selects one group. Identity groups preserve child XML. Transformed ungrouping requires rectangles without text, styles or strokes, nested groups and quarter-turn rotation chains. Unsupported geometry and affected references fail.",
+      options: {
+        ...base.options,
+        required: action === "group" ? ["shapes", "tolerance"] : ["tolerance"],
+        properties: {
+          ...properties,
+          tolerance: {
+            type: "object",
+            additionalProperties: false,
+            required: ["value", "unit"],
+            properties: {
+              value: { type: "number", minimum: 0 },
+              unit: { enum: ["emu", "in", "cm", "mm", "pt"] }
+            }
+          },
+          ...(action === "group"
+            ? {
+                shapes: {
+                  type: "array",
+                  minItems: 2,
+                  uniqueItems: true,
+                  items: inspectSchema.result.$defs.location
+                }
+              }
+            : {})
+        }
+      }
+    }
+  });
+}
 export const shapeSchemas = Object.fromEntries(
   Object.entries(shapeSchemaDefinitions).map(([operation, schema]) => {
-    const mutation = operation.endsWith(".add") || operation.endsWith(".set");
+    const mutation =
+      operation.endsWith(".add") ||
+      operation.endsWith(".set") ||
+      operation === "shapes.group" ||
+      operation === "shapes.ungroup";
     const base = masterSchemas[mutation ? "shapes.set" : "masters.list"]!.result;
     const data = base.properties.data.oneOf[1]!;
     return [
@@ -1959,6 +2004,13 @@ export const shapeSchemas = Object.fromEntries(
               : []),
             ...(operation === "shapes.set"
               ? [{ anyOf: Object.keys(shapeValues).map((key) => ({ required: [key] })) }]
+              : []),
+            ...(operation === "shapes.ungroup"
+              ? [
+                  {
+                    anyOf: ["shape", "select", "slide", "part"].map((key) => ({ required: [key] }))
+                  }
+                ]
               : [])
           ]
         },
@@ -1973,7 +2025,23 @@ export const shapeSchemas = Object.fromEntries(
                 {
                   ...data,
                   properties: mutation
-                    ? { ...data.properties, dryRun: { type: "boolean" } }
+                    ? {
+                        ...data.properties,
+                        dryRun: { type: "boolean" },
+                        effects: {
+                          ...data.properties!.effects!,
+                          items: {
+                            ...data.properties!.effects!.items,
+                            properties: {
+                              ...data.properties!.effects!.items.properties,
+                              feature:
+                                operation === "shapes.group" || operation === "shapes.ungroup"
+                                  ? { const: "F24" }
+                                  : data.properties!.effects!.items.properties.feature
+                            }
+                          }
+                        }
+                      }
                     : {
                         records: {
                           type: "array",

@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "scope": "F50 modern comment inventory and identity preservation",
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "source_inventories": [
+    "upstream-test-inventory.json",
+    "upstream-api-inventory.json"
+  ],
+  "reviewed_totals": {
+    "unit": 2700,
+    "bdd": 973,
+    "api": 2407
+  },
+  "direct_modern_cases": {
+    "unit": 0,
+    "bdd": 0,
+    "api": 0
+  },
+  "selection_evidence": "Complete inventory record identity scan for comment/thread/mention/reaction/person/author, reconciled with the pinned audit finding that modern comments are not established by the reference tests. Existing comments-case-map.json retains expanded slide lifecycle dependency accounting. Keyword hits below are metadata or shape enums, not modern annotation behavior.",
+  "keyword_unit_rows": [
+    {
+      "node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[author-python-pptx]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "markers": [
+        "parametrize"
+      ],
+      "adaptation_status": "unmapped_not_implemented",
+      "disposition": "outside-modern-annotations",
+      "reason": "Core metadata creator or description string obligation; no thread or review identity semantics."
+    },
+    {
+      "node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[comments-]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "markers": [
+        "parametrize"
+      ],
+      "adaptation_status": "unmapped_not_implemented",
+      "disposition": "outside-modern-annotations",
+      "reason": "Core metadata creator or description string obligation; no thread or review identity semantics."
+    },
+    {
+      "node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[author-dc:creator-scanny]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "markers": [
+        "parametrize"
+      ],
+      "adaptation_status": "unmapped_not_implemented",
+      "disposition": "outside-modern-annotations",
+      "reason": "Core metadata creator or description string obligation; no thread or review identity semantics."
+    },
+    {
+      "node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[comments-dc:description-Bar foo to you]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "markers": [
+        "parametrize"
+      ],
+      "adaptation_status": "unmapped_not_implemented",
+      "disposition": "outside-modern-annotations",
+      "reason": "Core metadata creator or description string obligation; no thread or review identity semantics."
+    }
+  ],
+  "keyword_bdd_rows": [],
+  "keyword_api_rows": [
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.COMMENT",
+      "source_evidence": {
+        "file": "src/pptx/enum/shapes.py",
+        "line": 786,
+        "end_line": 786
+      },
+      "disposition": "outside-modern-annotations",
+      "reason": "Shape classification enum, not review annotations.",
+      "documentation_drift": null
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.INK_COMMENT",
+      "source_evidence": {
+        "file": "src/pptx/enum/shapes.py",
+        "line": 810,
+        "end_line": 810
+      },
+      "disposition": "outside-modern-annotations",
+      "reason": "Shape classification enum, not review annotations.",
+      "documentation_drift": null
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.author",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 40,
+        "end_line": 45
+      },
+      "disposition": "outside-modern-annotations",
+      "reason": "Core metadata property, not review identities.",
+      "documentation_drift": "documented class path is stale; public core_properties object resolves to CorePropertiesPart at pinned source"
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.comments",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 56,
+        "end_line": 61
+      },
+      "disposition": "outside-modern-annotations",
+      "reason": "Core metadata property, not review identities.",
+      "documentation_drift": "documented class path is stale; public core_properties object resolves to CorePropertiesPart at pinned source"
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.author",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 40,
+        "end_line": 45
+      },
+      "disposition": "outside-modern-annotations",
+      "reason": "Core metadata property, not review identities.",
+      "documentation_drift": null
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.comments",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 56,
+        "end_line": 61
+      },
+      "disposition": "outside-modern-annotations",
+      "reason": "Core metadata property, not review identities.",
+      "documentation_drift": null
+    }
+  ],
+  "adjacent_lifecycle_accounting": "comments-case-map.json#adjacent_lifecycle_rows",
+  "public_api_boundary": "No inventory records are deleted, hidden or promoted to implemented by this bounded receipt. All inherited/underscore-prefixed/untested API obligations remain in upstream-api-inventory.json.",
+  "original_acceptance": [
+    {
+      "file": "packages/pptx/src/modern-comments.test.ts",
+      "cases": [
+        {
+          "name": "reads thread identity, rich text, person identity and reply associations without guessing missing authors",
+          "line": 11
+        },
+        {
+          "name": "inventories reaction instances and opaque mention markup under the owning thread",
+          "line": 41
+        },
+        {
+          "name": "resolves modern thread and reply selectors with stale fingerprints rejected",
+          "line": 58
+        },
+        {
+          "name": "inventories author-only decks without creating phantom threads",
+          "line": 79
+        }
+      ]
+    },
+    {
+      "file": "packages/pptx/src/comments-safety.test.ts",
+      "cases": [
+        {
+          "name": "edits legacy text while retaining modern author and thread bytes and associations",
+          "line": 124
+        },
+        {
+          "name": "rejects slide import that would require modern identity remapping",
+          "line": 241
+        }
+      ]
+    },
+    {
+      "file": "packages/pptx/src/comments-lifecycle.test.ts",
+      "cases": [
+        {
+          "name": "imports distinct author identities despite equal names and colliding IDs",
+          "line": 114
+        },
+        {
+          "name": "creates author registration when importing into an unannotated deck",
+          "line": 144
+        },
+        {
+          "name": "removes only the author whose final comment was deleted",
+          "line": 156
+        },
+        {
+          "name": "rejects duplicate comment identities before importing a slide",
+          "line": 173
+        },
+        {
+          "name": "retains opaque destination author identity attributes without remapping them",
+          "line": 264
+        },
+        {
+          "name": "retains an author still referenced on another slide",
+          "line": 296
+        }
+      ]
+    },
+    {
+      "file": "packages/safe-bash/tests/commands/pptx/modern-comments.test.ts",
+      "cases": [
+        {
+          "name": "modern and legacy comment inventories agree across SDK and shell JSON",
+          "line": 81
+        },
+        {
+          "name": "comments list exposes modern author identities without inventing absent threads",
+          "line": 112
+        },
+        {
+          "name": "slide rename and legacy comment edit retain modern parts and associations byte for byte",
+          "line": 125
+        }
+      ]
+    }
+  ],
+  "accounting_note": "Literal test titles are indexed below. Parameterized/loop-generated expansions are established by executed suite totals in modern-comments-evidence.md; existing lifecycle cases are retained and not all newly authored by this change.",
+  "final_original_scope": {
+    "modern_inventory": 4,
+    "coexistence_security_identity": 9,
+    "safe_bash": 6,
+    "legacy_lifecycle": 12
+  }
+}

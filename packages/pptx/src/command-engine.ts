@@ -294,7 +294,7 @@ const help =
   "       pptx text fit INPUT --metrics JSON [--min-size N --max-size N] [selection] [output]\n" +
   "       pptx text frames list|get|set INPUT [--vertical-anchor top|middle|bottom] [--autofit none|shape|text]\n" +
   "       pptx text paragraphs list|get|set INPUT [--paragraph N] [--alignment left|center|right] [--json]\n" +
-  "       pptx comments list|get|add|set|remove INPUT [--slide N] [--id AUTHOR:INDEX] [output]\n" +
+  "       pptx comments list|get|add|set|remove INPUT [--slide N] [--id ID] [output]\n" +
   "       pptx notes list|get INPUT [--slide N | --select TOKEN] [--json]\n" +
   "       pptx notes add|set INPUT --text TEXT [--slide N | --select TOKEN | --all] [output]\n" +
   "       pptx notes remove INPUT [--slide N | --select TOKEN | --all] [output]\n" +

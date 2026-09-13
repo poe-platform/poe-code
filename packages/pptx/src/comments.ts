@@ -1,3 +1,11 @@
+import { requireLegacyCommentRemapping } from "./comment-import.js";
+import {
+  modernCommentRecords,
+  modernCommentAuthors,
+  type ModernAuthorIdentity,
+  modernCommentsRelationship,
+  type ModernCommentRecord
+} from "./modern-comments.js";
 import { parseContentTypes } from "./content-types.js";
 import type { PackageReader } from "./package-reader.js";
 import { OfficeError } from "./errors.js";
@@ -138,7 +146,10 @@ function resolveSelection(
   const location = decodeSelectionToken(selection.token);
   if (location.fingerprint !== s.index.fingerprint) throw new SelectionError("stale-selection");
   const edge = s.index.inventory.relationships.find(
-    (e) => e.targetPart === location.owner && e.type === `${s.r}/comments` && !e.external
+    (e) =>
+      e.targetPart === location.owner &&
+      [`${s.r}/comments`, modernCommentsRelationship].includes(e.type) &&
+      !e.external
   );
   if (!edge) return { selection };
   if (
@@ -217,14 +228,61 @@ function records(s: State, selection?: SelectionQuery): CommentRecord[] {
     : result;
 }
 
+export interface LegacyAuthorIdentity {
+  readonly id: string;
+  readonly name: string;
+  readonly initials: string;
+  readonly part: string;
+  readonly xml: string;
+}
+export async function readCommentAuthors(
+  input: BinaryInput,
+  context: SelectionContext
+): Promise<readonly (LegacyAuthorIdentity | ModernAuthorIdentity)[]> {
+  const state = await loadShared(input, context, false);
+  const part = authorsPart(state);
+  authors(state);
+  const doc = part ? state.doc(part) : undefined;
+  const legacy = (
+    doc?.root.children.filter(
+      (node) => node.name.namespace === state.p && node.name.localName === "cmAuthor"
+    ) ?? []
+  ).map((node) => ({
+    id: String(uint(attr(node, "id"))),
+    name: attr(node, "name") ?? "",
+    initials: attr(node, "initials") ?? "",
+    part: part!,
+    xml: doc!.markup(node, true)
+  }));
+  return [...legacy, ...modernCommentAuthors(state)];
+}
 export async function readComments(
   input: BinaryInput,
   options: { readonly selection?: SelectionQuery; readonly id?: string },
   context: SelectionContext
-): Promise<readonly CommentRecord[]> {
+): Promise<readonly (CommentRecord | ModernCommentRecord)[]> {
   plain(options, ["selection", "id"]);
   if (options.id !== undefined) text(options.id);
-  const found = records(await loadShared(input, context, false), options.selection);
+  const state = await loadShared(input, context, false);
+  const resolved = options.selection ? resolveSelection(state, options.selection) : undefined;
+  const slides = resolved
+    ? state.index.select({ ...resolved.selection, kind: resolved.selection.kind ?? "slide" })
+    : state.index.slides;
+  if (slides.some((s) => s.kind !== "slide")) throw new SelectionError("invalid-selection");
+  const modern = modernCommentRecords(state, slides);
+  const flatten = (rows: readonly ModernCommentRecord[]): ModernCommentRecord[] =>
+    rows.flatMap((row) => [row, ...flatten(row.replies)]);
+  const modernMatches =
+    resolved?.location || options.id !== undefined
+      ? flatten(modern).filter(
+          (row) =>
+            !resolved?.location ||
+            (row.part === resolved.location.owner && row.id === resolved.location.objectId)
+        )
+      : modern;
+  const found = [...records(state, options.selection), ...modernMatches].sort(
+    (a, b) => a.slide - b.slide
+  );
   return options.id === undefined ? found : found.filter((r) => r.id === options.id);
 }
 export function validateCommentsOptions(
@@ -418,6 +476,17 @@ export async function mutateComments(
     slides = [];
   }
   if (slides.some((n) => n.kind !== "slide")) throw new SelectionError("invalid-selection");
+  const modern = modernCommentRecords(s, slides);
+  const modernIds = modern.flatMap((row) => [row.id, ...row.replies.map((reply) => reply.id)]);
+  const targetId =
+    options.id ??
+    (options.selection.token ? decodeSelectionToken(options.selection.token).objectId : undefined);
+  if (modern.length && (action === "add" || targetId === undefined || modernIds.includes(targetId)))
+    throw new OfficeError(
+      "unsupported-edit",
+      "Modern comments are preserved and cannot be edited.",
+      "validate-intent"
+    );
   const matches =
     action === "add" || !slides.length
       ? []
@@ -502,6 +571,9 @@ export async function mutateComments(
         if (options.author !== undefined || options.authorId !== undefined) {
           const authorId = authorFor(s, options, context);
           if (authorId !== record.authorId) {
+            requireLegacyCommentRemapping(doc.root, s.p);
+            const authorPart = authorsPart(s);
+            if (authorPart) requireLegacyCommentRemapping(s.doc(authorPart).root, s.p);
             const index = nextIndex(s, authorId, context);
             doc = doc.merge(node, {
               attributes: [

@@ -460,4 +460,5 @@ export {
 
 export { readNotes, mutateNotes, validateNotesOptions, type NotesRecord, type MutateNotesOptions } from "./notes.js";
 
-export { readComments, mutateComments, type CommentRecord, type MutateCommentsOptions } from "./comments.js";
+export { readComments, readCommentAuthors, mutateComments, type CommentRecord, type LegacyAuthorIdentity, type MutateCommentsOptions } from "./comments.js";
+export { type ModernCommentRecord, type ModernAuthorIdentity } from "./modern-comments.js";

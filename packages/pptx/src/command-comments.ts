@@ -6,7 +6,7 @@ import type {
 import type { OfficeResult } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { commentSchemas } from "./comments-schema.js";
-import { mutateComments, readComments } from "./comments.js";
+import { mutateComments, readComments, readCommentAuthors } from "./comments.js";
 import { SelectionError, type SelectionQuery } from "./selectors.js";
 
 export interface CommentsArguments {
@@ -106,6 +106,7 @@ export async function executeCommentsCommand(
       { selection, ...(args.commentEdit?.id === undefined ? {} : { id: args.commentEdit.id }) },
       context
     );
+    const authors = await readCommentAuthors(original, context);
     if (args.operation === "comments.get" && records.length > 1)
       throw new SelectionError(records.length ? "ambiguous-selection" : "missing-selection");
     return {
@@ -113,7 +114,10 @@ export async function executeCommentsCommand(
         version: 1,
         operation: args.operation,
         ok: true,
-        data: args.operation === "comments.get" && !records.length ? null : { comments: records },
+        data:
+          args.operation === "comments.get" && !records.length
+            ? null
+            : { comments: records, authors },
         affected: 0,
         warnings: [],
         errors: [],

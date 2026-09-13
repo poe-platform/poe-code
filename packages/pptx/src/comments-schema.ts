@@ -1,9 +1,104 @@
 import { inspectSchema, textGetSchema } from "./command-schema.js";
 
+const modernAuthorSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "name", "initials", "userId", "providerId", "part", "xml"],
+  properties: {
+    id: { type: "string" },
+    name: { type: "string" },
+    initials: { type: ["string", "null"] },
+    userId: { type: "string" },
+    providerId: { type: "string" },
+    part: { type: "string" },
+    xml: { type: "string" }
+  }
+};
+const legacyCommentSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "id",
+    "selector",
+    "location",
+    "slide",
+    "part",
+    "authorId",
+    "index",
+    "author",
+    "initials",
+    "text",
+    "timestamp",
+    "left",
+    "top"
+  ],
+  properties: {
+    id: { type: "string" },
+    selector: { type: "string" },
+    location: inspectSchema.result.properties.locations.items,
+    slide: { type: "integer", minimum: 1 },
+    part: { type: "string" },
+    authorId: { type: "string" },
+    index: { type: "integer" },
+    author: { type: "string" },
+    initials: { type: "string" },
+    text: { type: "string" },
+    timestamp: { type: "string" },
+    left: { type: "number" },
+    top: { type: "number" }
+  }
+};
+const modernCommentSchema = {
+  ...legacyCommentSchema,
+  required: [
+    ...legacyCommentSchema.required,
+    "format",
+    "status",
+    "threadId",
+    "parentId",
+    "authorIdentity",
+    "replies",
+    "reactions",
+    "opaqueXml"
+  ],
+  properties: {
+    ...legacyCommentSchema.properties,
+    index: { type: "null" },
+    format: { const: "modern" },
+    status: { type: "string" },
+    threadId: { type: "string" },
+    parentId: { type: ["string", "null"] },
+    authorIdentity: { oneOf: [{ type: "null" }, modernAuthorSchema] },
+    replies: { type: "array", maxItems: 0 },
+    reactions: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["type", "instances"],
+        properties: {
+          type: { type: "string" },
+          instances: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["authorId", "timestamp"],
+              properties: { authorId: { type: "string" }, timestamp: { type: "string" } }
+            }
+          }
+        }
+      }
+    },
+    opaqueXml: { type: "string" }
+  }
+};
+
 export const commentsUsage =
   "Usage: pptx comments list|get|add|set|remove INPUT [selection]\n" +
-  "Selection: --slide N [--id AUTHOR:INDEX] or --select TOKEN, never combined.\n" +
+  "Selection: --slide N [--id ID] or --select TOKEN, never combined.\n" +
   "Add accepts a slide selector and assigns a new comment ID; --id is not accepted.\n" +
+  "Modern threads, replies, identities and reactions are read-only; unknown extensions remain opaque.\n" +
   "Legacy comments use explicit --author TEXT --timestamp UTC --text TEXT for add.\n" +
   "Set accepts --text, --author, --timestamp, --left LENGTH and --top LENGTH.\n" +
   "Optional --author-id ID and --initials TEXT distinguish authors sharing a display name.\n" +
@@ -122,45 +217,43 @@ export const commentSchemas = Object.fromEntries(
                 {
                   type: "object",
                   additionalProperties: false,
-                  required: [mutation ? "dryRun" : "comments"],
+                  required: mutation ? ["dryRun"] : ["comments", "authors"],
                   properties: mutation
                     ? { dryRun: { type: "boolean" } }
                     : {
+                        authors: {
+                          type: "array",
+                          items: {
+                            oneOf: [
+                              modernAuthorSchema,
+                              {
+                                type: "object",
+                                additionalProperties: false,
+                                required: ["id", "name", "initials", "part", "xml"],
+                                properties: {
+                                  id: { type: "string" },
+                                  name: { type: "string" },
+                                  initials: { type: "string" },
+                                  part: { type: "string" },
+                                  xml: { type: "string" }
+                                }
+                              }
+                            ]
+                          }
+                        },
                         comments: {
                           type: "array",
                           items: {
-                            type: "object",
-                            additionalProperties: false,
-                            required: [
-                              "id",
-                              "selector",
-                              "location",
-                              "slide",
-                              "part",
-                              "authorId",
-                              "index",
-                              "author",
-                              "initials",
-                              "text",
-                              "timestamp",
-                              "left",
-                              "top"
-                            ],
-                            properties: {
-                              id: { type: "string" },
-                              selector: { type: "string" },
-                              location: inspectSchema.result.properties.locations.items,
-                              slide: { type: "integer", minimum: 1 },
-                              part: { type: "string" },
-                              authorId: { type: "string" },
-                              index: { type: "integer" },
-                              author: { type: "string" },
-                              initials: { type: "string" },
-                              text: { type: "string" },
-                              timestamp: { type: "string" },
-                              left: { type: "number" },
-                              top: { type: "number" }
-                            }
+                            oneOf: [
+                              legacyCommentSchema,
+                              {
+                                ...modernCommentSchema,
+                                properties: {
+                                  ...modernCommentSchema.properties,
+                                  replies: { type: "array", items: modernCommentSchema }
+                                }
+                              }
+                            ]
                           }
                         }
                       }

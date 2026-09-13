@@ -1167,6 +1167,70 @@ const masterShapeValues = {
   width: creationLength,
   height: creationLength
 };
+const layoutValues = {
+  name: { type: "string" },
+  master: { type: "string", minLength: 1 },
+  text: { type: "string" },
+  type: { type: "string", minLength: 1 },
+  preserve: { type: "boolean" },
+  showMasterShapes: { type: "boolean" },
+  matchingName: { type: "string" }
+};
+const layoutRecordSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "part",
+    "id",
+    "master",
+    "name",
+    "type",
+    "preserve",
+    "showMasterShapes",
+    "matchingName",
+    "placeholders",
+    "affectedSlides"
+  ],
+  properties: {
+    part: { type: "string" },
+    id: { type: "string" },
+    master: { type: "string" },
+    name: { type: "string" },
+    type: { type: "string" },
+    preserve: { type: "boolean" },
+    showMasterShapes: { type: "boolean" },
+    matchingName: { type: "string" },
+    placeholders: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["shapeId", "type", "index", "name", "x", "y", "width", "height", "provenance"],
+        properties: {
+          shapeId: { type: "string" },
+          type: { type: "string" },
+          index: { type: "integer", minimum: 0, maximum: 4294967295 },
+          name: { type: "string" },
+          ...Object.fromEntries(
+            ["x", "y", "width", "height"].map((key) => [key, { type: ["integer", "null"] }])
+          ),
+          provenance: {
+            type: "object",
+            additionalProperties: false,
+            required: ["x", "y", "width", "height"],
+            properties: Object.fromEntries(
+              ["x", "y", "width", "height"].map((key) => [
+                key,
+                { enum: ["layout", "master", null] }
+              ])
+            )
+          }
+        }
+      }
+    },
+    affectedSlides: masterRecordSchema.properties.affectedSlides
+  }
+};
 const masterOperationFields: Record<string, Record<string, unknown>> = {
   "masters.list": {},
   "masters.get": {},
@@ -1180,7 +1244,36 @@ const masterOperationFields: Record<string, Record<string, unknown>> = {
     text: { type: "string" },
     shape: { type: "string", minLength: 1 }
   },
-  "layouts.set": { master: { type: "string", minLength: 1 } },
+  "layouts.list": {},
+  "layouts.get": {},
+  "layouts.remove": {},
+  "layouts.set": { ...layoutValues, shape: { type: "string", minLength: 1 } },
+  "layouts.add": {
+    ...layoutValues,
+    name: { type: "string", minLength: 1 },
+    placeholders: {
+      type: "array",
+      description: "CLI --placeholders-json; original layout placeholder declarations.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          type: { type: "string" },
+          index: { type: "integer", minimum: 0, maximum: 4294967295 },
+          name: { type: "string" },
+          text: { type: "string" },
+          x: { type: "integer" },
+          y: { type: "integer" },
+          width: { type: "integer", minimum: 0 },
+          height: { type: "integer", minimum: 0 }
+        }
+      }
+    }
+  },
+  "layouts.apply": {
+    layout: { type: "string", minLength: 1 },
+    placeholderPolicy: { enum: ["type-index", "reject-unmatched"] }
+  },
   "shapes.add": { ...masterShapeValues, kind: { const: "text-box" } },
   "shapes.set": { ...masterShapeValues, shape: { type: "string", minLength: 1 } },
   "backgrounds.set": {
@@ -1190,38 +1283,43 @@ const masterOperationFields: Record<string, Record<string, unknown>> = {
 };
 export const masterSchemas = Object.fromEntries(
   Object.entries(masterOperationFields).map(([operation, fields]) => {
-    const mutation = !["masters.list", "masters.get"].includes(operation);
+    const mutation = !operation.endsWith(".list") && !operation.endsWith(".get");
+    const layout = operation.startsWith("layouts.");
+    const applying = operation === "layouts.apply";
     const adding = operation.endsWith(".add");
     const required =
       operation === "masters.add"
         ? ["name"]
         : operation === "shapes.add"
           ? ["kind", "left", "top", "width", "height"]
-          : operation === "layouts.set"
-            ? ["master"]
-            : operation === "backgrounds.set"
-              ? ["kind"]
-              : [];
+          : operation === "layouts.add"
+            ? ["name", "master"]
+            : applying
+              ? ["layout", "placeholderPolicy"]
+              : operation === "backgrounds.set"
+                ? ["kind"]
+                : [];
     return [
       operation,
       {
-        description:
-          "Supported master content only. Mutations require explicit shared or resource scope; dependent slides are reported and local overrides retained. Shape creation supports text boxes; background editing supports solid RGB or reset to inheritance. Unsupported drawing, background and layout features are rejected.",
+        description: layout
+          ? "Layout properties and master associations; apply requires explicit placeholder policy, retains local content and rejects ambiguous placeholder mappings. Shared layout mutations require layouts/shared scope."
+          : "Supported master content only. Mutations require explicit shared or resource scope; dependent slides are reported and local overrides retained. Shape creation supports text boxes; background editing supports solid RGB or reset to inheritance.",
         input: inspectSchema.input,
         options: {
           $schema: "https://json-schema.org/draft/2020-12/schema",
           type: "object",
           additionalProperties: false,
-          required: [...required, ...(mutation ? ["scope"] : [])],
+          required: [...required, ...(mutation && !applying ? ["scope"] : [])],
           properties: {
             json: { type: "boolean" },
             limit: xmlSelection.limit,
             scope: {
-              enum: operation === "layouts.set" ? ["layouts", "shared"] : ["masters", "shared"]
+              enum: applying ? ["slides"] : layout ? ["layouts", "shared"] : ["masters", "shared"]
             },
             ...(!adding
               ? {
-                  part: { type: "string", minLength: 1 },
+                  ...(!applying ? { part: { type: "string", minLength: 1 } } : {}),
                   select: { type: "string", minLength: 1 },
                   slide: { type: "integer", minimum: 1 }
                 }
@@ -1244,6 +1342,21 @@ export const masterSchemas = Object.fromEntries(
               : {})
           },
           allOf: [
+            ...(layout && mutation && !adding
+              ? [
+                  {
+                    anyOf: [
+                      ...["select", "slide", ...(!applying ? ["part"] : [])].map((key) => ({
+                        required: [key]
+                      })),
+                      { required: ["all"], properties: { all: { const: true } } }
+                    ]
+                  }
+                ]
+              : []),
+            ...(applying
+              ? [{ if: { required: ["select"] }, then: { not: { required: ["scope"] } } }]
+              : []),
             ...(operation === "backgrounds.set"
               ? [
                   {
@@ -1262,9 +1375,13 @@ export const masterSchemas = Object.fromEntries(
                 }
               }
             },
-            ...(operation === "masters.set"
+            ...(["masters.set", "layouts.set"].includes(operation)
               ? [
-                  { anyOf: ["name", "text"].map((key) => ({ required: [key] })) },
+                  {
+                    anyOf: (layout ? Object.keys(layoutValues) : ["name", "text"]).map((key) => ({
+                      required: [key]
+                    }))
+                  },
                   {
                     if: { required: ["text"] },
                     then: { anyOf: [{ required: ["shape"] }, { required: ["select"] }] }
@@ -1332,7 +1449,7 @@ export const masterSchemas = Object.fromEntries(
                             required: ["location", "action", "feature"],
                             properties: {
                               location: { $ref: "#/$defs/location" },
-                              action: { enum: ["add", "set"] },
+                              action: { enum: ["add", "set", "remove", "apply"] },
                               feature: { enum: ["F11", "F12", "F14", "F22"] }
                             }
                           }
@@ -1353,7 +1470,10 @@ export const masterSchemas = Object.fromEntries(
                         fingerprint: { type: ["string", "null"] }
                       }
                     : {
-                        records: { type: "array", items: masterRecordSchema },
+                        records: {
+                          type: "array",
+                          items: layout ? layoutRecordSchema : masterRecordSchema
+                        },
                         fingerprint: { type: "string" }
                       }
                 }

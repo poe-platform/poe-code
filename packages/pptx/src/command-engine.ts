@@ -27,13 +27,15 @@ import {
   xmlGetSchema,
   xmlSetSchema
 } from "./command-schema.js";
+import { addMaster, mutateMaster, mutateMasterShape, readMasters } from "./masters.js";
 import {
-  addMaster,
-  mutateMaster,
-  mutateMasterShape,
-  associateLayout,
-  readMasters
-} from "./masters.js";
+  readLayouts,
+  addLayout,
+  mutateLayout,
+  removeLayout,
+  applyLayout,
+  type LayoutPlaceholder
+} from "./layouts.js";
 import { createPresentation, type CreatePresentationOptions } from "./creation.js";
 import {
   addSlide,
@@ -147,14 +149,21 @@ const help =
   "       pptx masters add INPUT --scope masters|shared --name TEXT [--text TEXT] [--theme URI]\n" +
   "       pptx masters set INPUT --scope masters|shared [--part URI | --slide N | --select TOKEN]\n" +
   "                        [--name TEXT] [--shape NAME --text TEXT] [--all] [--allow-empty]\n" +
-  "       pptx layouts set INPUT --scope layouts|shared --part URI --master NAME_OR_URI\n" +
+  "       pptx layouts list|get INPUT [--part URI | --slide N | --select TOKEN] [--json]\n" +
+  "       pptx layouts add INPUT --scope layouts|shared --name TEXT --master NAME_OR_URI [--placeholders-json JSON]\n" +
+  "       pptx layouts set INPUT --scope layouts|shared [--part URI | --slide N | --select TOKEN] [--name TEXT] [--master NAME_OR_URI]\n" +
+  "                        [--shape NAME --text TEXT] [--type TYPE] [--preserve true|false]\n" +
+  "                        [--show-master-shapes true|false] [--matching-name TEXT]\n" +
+  "       pptx layouts remove INPUT --scope layouts|shared [--part URI | --select TOKEN | --all]\n" +
+  "       pptx layouts apply INPUT [--slide N | --select TOKEN | --all] --layout NAME_OR_URI\n" +
+  "                          --placeholder-policy type-index|reject-unmatched\n" +
   "       pptx shapes add INPUT --scope masters|shared --part URI --kind text-box\n" +
   "                       --left LENGTH --top LENGTH --width LENGTH --height LENGTH [--name TEXT] [--text TEXT]\n" +
   "       pptx shapes set INPUT --scope masters|shared --part URI --shape NAME\n" +
   "                       [--name TEXT] [--text TEXT] [--left LENGTH] [--top LENGTH] [--width LENGTH] [--height LENGTH]\n" +
   "       pptx backgrounds set INPUT --scope masters|shared --part URI --kind solid --color RRGGBB | --kind inherit\n" +
   "       Shared mutations: [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-  "       pptx schema masters list|get|add|set | layouts set | shapes add|set | backgrounds set [--json]\n" +
+  "       pptx schema masters list|get|add|set | layouts list|get|add|set|remove|apply | shapes add|set | backgrounds set [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "       pptx settings list|get INPUT [--json]\n" +
   "       pptx settings set INPUT [--width LENGTH] [--height LENGTH]\n" +
@@ -198,7 +207,7 @@ const help =
 interface Arguments {
   operation:
     | `masters.${"list" | "get" | "add" | "set"}`
-    | "layouts.set"
+    | `layouts.${"list" | "get" | "add" | "set" | "remove" | "apply"}`
     | "shapes.add"
     | "shapes.set"
     | "backgrounds.set"
@@ -221,6 +230,15 @@ interface Arguments {
     | "capabilities"
     | "help"
     | "version";
+  layoutEdit?: {
+    layout?: string;
+    placeholderPolicy?: "type-index" | "reject-unmatched";
+    type?: string;
+    preserve?: boolean;
+    showMasterShapes?: boolean;
+    matchingName?: string;
+    placeholders?: readonly LayoutPlaceholder[];
+  };
   masterEdit?: {
     name?: string;
     text?: string;
@@ -271,6 +289,11 @@ function usage(message: string): never {
 }
 
 const scalarOptions = [
+  "--type",
+  "--preserve",
+  "--show-master-shapes",
+  "--matching-name",
+  "--placeholder-policy",
   "--text",
   "--theme",
   "--master",
@@ -368,7 +391,7 @@ function parse(
     } else if (
       index === 1 &&
       ["sections", "shows", "masters", "layouts", "shapes", "backgrounds"].includes(args[0]!) &&
-      ["list", "get", "add", "set", "remove"].includes(argument)
+      ["list", "get", "add", "set", "remove", "apply"].includes(argument)
     ) {
       output.operation = `${args[0]}.${argument}`;
     } else if (index === 1 && args[0] === "settings" && ["list", "get", "set"].includes(argument)) {
@@ -469,9 +492,46 @@ function parse(
     if (
       value === undefined ||
       (value.length === 0 &&
-        !["--author", "--name", "--title", "--body", "--text"].includes(argument))
+        !["--author", "--name", "--title", "--body", "--text", "--matching-name"].includes(
+          argument
+        ))
     )
       usage("Missing option value.");
+    if (
+      operation.startsWith("layouts.") &&
+      [
+        "--layout",
+        "--placeholder-policy",
+        "--type",
+        "--preserve",
+        "--show-master-shapes",
+        "--matching-name",
+        "--placeholders-json"
+      ].includes(argument)
+    ) {
+      const key =
+        argument === "--placeholder-policy"
+          ? "placeholderPolicy"
+          : argument === "--show-master-shapes"
+            ? "showMasterShapes"
+            : argument === "--matching-name"
+              ? "matchingName"
+              : argument === "--placeholders-json"
+                ? "placeholders"
+                : argument.slice(2);
+      if (["preserve", "showMasterShapes"].includes(key) && !["true", "false"].includes(value))
+        usage("Expected true or false.");
+      result.layoutEdit = {
+        ...result.layoutEdit,
+        [key]:
+          key === "placeholders"
+            ? commandJson(value)
+            : ["preserve", "showMasterShapes"].includes(key)
+              ? value === "true"
+              : value
+      };
+      continue;
+    }
     if (
       Object.hasOwn(masterSchemas, operation) &&
       [
@@ -921,27 +981,32 @@ function parse(
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
   if (Object.hasOwn(masterSchemas, operation)) {
     const schema = masterSchemas[operation]!;
-    const mutation = !["masters.list", "masters.get"].includes(operation);
-    const flags = Object.keys(schema.options.properties).map(
-      (key) =>
-        "--" +
-        [...key]
-          .map((char) => (char >= "A" && char <= "Z" ? "-" + char.toLowerCase() : char))
-          .join("")
+    const mutation = !operation.endsWith(".list") && !operation.endsWith(".get");
+    const layout = operation.startsWith("layouts.");
+    const applying = operation === "layouts.apply";
+    const flags = Object.keys(schema.options.properties).map((key) =>
+      key === "placeholders"
+        ? "--placeholders-json"
+        : "--" +
+          [...key]
+            .map((char) => (char >= "A" && char <= "Z" ? "-" + char.toLowerCase() : char))
+            .join("")
     );
     if ([...seen].some((flag) => !flags.includes(flag)))
       usage("Option does not apply to this shared-content operation.");
     if (positionals.length !== 1 || !positionals[0])
       usage("Shared-content operations require one input.");
     result.input = positionals[0];
-    if (mutation && result.scope === undefined)
+    if (mutation && !applying && result.scope === undefined)
       usage("Shared-content mutation requires explicit scope.");
     if (
       result.scope !== undefined &&
-      result.scope !== "shared" &&
-      result.scope !== (operation === "layouts.set" ? "layouts" : "masters")
+      (result.scope !== "shared" || applying) &&
+      result.scope !== (applying ? "slides" : layout ? "layouts" : "masters")
     )
       usage("Scope does not match this shared-content operation.");
+    if (applying && result.token && result.scope !== undefined)
+      usage("Opaque selectors cannot be combined with scope.");
     if (result.token && (result.part || result.slide !== undefined || result.shape || result.all))
       usage("Opaque and simple selectors cannot be combined.");
     if (result.part && result.slide !== undefined)
@@ -952,8 +1017,28 @@ function parse(
       usage("Master set requires name or text.");
     if (operation === "masters.set" && edit?.text !== undefined && !result.shape && !result.token)
       usage("Master text edits require a selected text shape.");
-    if (operation === "layouts.set" && !edit?.master)
-      usage("Layout association requires a master.");
+    if (operation === "layouts.add" && (!edit?.name || !edit.master))
+      usage("Layout creation requires name and master.");
+    if (operation === "layouts.set" && !edit && !result.layoutEdit)
+      usage("Layout set requires update fields.");
+    if (operation === "layouts.set" && edit?.text !== undefined && !result.shape && !result.token)
+      usage("Layout text requires a selected shape.");
+    if (
+      layout &&
+      mutation &&
+      operation !== "layouts.add" &&
+      !result.part &&
+      !result.token &&
+      result.slide === undefined &&
+      !result.all
+    )
+      usage("Layout mutation requires an explicit selector.");
+    if (
+      applying &&
+      (!result.layoutEdit?.layout ||
+        !["type-index", "reject-unmatched"].includes(result.layoutEdit.placeholderPolicy!))
+    )
+      usage("Layout application requires layout and placeholder policy.");
     if (
       operation === "shapes.add" &&
       (edit?.kind !== "text-box" ||
@@ -1519,10 +1604,15 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          layouts: {
+            level: "edit",
+            subset:
+              "Inspect registered IDs, master associations and placeholders; create, rename, set supported properties, remove unreferenced layouts, and apply with explicit type-index or reject-unmatched policy. Missing placeholder type/index default to obj/0. Ambiguous mappings reject; local content and formatting remain intact. Shared edits require layouts/shared scope and report dependent slides."
+          },
           masters: {
             level: "edit",
             subset:
-              "Inspect, create and rename masters, append text boxes, edit supported selected shape text/name/geometry and solid RGB backgrounds or reset to inheritance. Explicit masters/shared scope; report dependent slides while preserving local overrides. Layout associations require layouts/shared scope. Shared themes are retained, ambiguous theme selection requires an explicit URI. Other shape/background kinds and layout edits are rejected."
+              "Inspect, create and rename masters, append text boxes, edit supported selected shape text/name/geometry and solid RGB backgrounds or reset to inheritance. Explicit masters/shared scope; report dependent slides while preserving local overrides. Layout associations require layouts/shared scope. Shared themes are retained, ambiguous theme selection requires an explicit URI. Other shape/background kinds are rejected."
           },
           settings: {
             level: "edit",
@@ -1543,7 +1633,7 @@ async function execute(
           slides: {
             level: "edit",
             subset:
-              "Insert at a validated position using an explicit layout/master; populate unambiguous type/index placeholders. Move ordered slides while retaining IDs; set names and visibility. Remove slides with explicit known-reference removal policy; reject unresolved opaque references and retain shared resources. Duplicate slide-local shapes and notes with fresh identities; clone mutable dependent resources and reject unsupported references. Layout reassignment and background changes are unavailable."
+              "Insert at a validated position using an explicit layout/master; populate unambiguous type/index placeholders. Move ordered slides while retaining IDs; set names and visibility. Remove slides with explicit known-reference removal policy; reject unresolved opaque references and retain shared resources. Duplicate slide-local shapes and notes with fresh identities; clone mutable dependent resources and reject unsupported references. Layout reassignment uses layouts apply with explicit placeholder policy; background changes are unavailable."
           },
           sections: {
             level: "edit",
@@ -1584,15 +1674,20 @@ async function execute(
         Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
       );
       const index = await readSelectionIndex(bytes, context);
-      const editingLayout = args.operation === "layouts.set";
-      const scope = editingLayout ? "layouts" : "masters";
+      const editingLayout = args.operation.startsWith("layouts.");
+      const applyingLayout = args.operation === "layouts.apply";
+      const scope = applyingLayout ? "slides" : editingLayout ? "layouts" : "masters";
       let selectedShape = args.shape;
-      let targets = index.parts.filter((record) => record.scope === scope);
+      let targets = (applyingLayout ? index.slides : index.parts).filter(
+        (record) => record.scope === scope
+      );
       if (args.part) targets = targets.filter((record) => record.part === args.part);
       else if (args.slide !== undefined) {
         const slide = index.inventory.slides.find((record) => record.position === args.slide);
         targets = targets.filter(
-          (record) => record.part === (editingLayout ? slide?.layout : slide?.master)
+          (record) =>
+            record.part ===
+            (applyingLayout ? slide?.part : editingLayout ? slide?.layout : slide?.master)
         );
       } else if (args.token) {
         const selectedRecords = index.select({ token: args.token });
@@ -1600,7 +1695,7 @@ async function execute(
           throw new SelectionError("invalid-selection");
         if (selectedRecords.some((record) => record.kind === "object")) {
           if (
-            !["masters.set", "shapes.set"].includes(args.operation) ||
+            !["masters.set", "layouts.set", "shapes.set"].includes(args.operation) ||
             selectedRecords.length !== 1
           )
             throw new SelectionError("invalid-selection");
@@ -1611,17 +1706,20 @@ async function execute(
         );
       }
       const addingMaster = args.operation === "masters.add";
-      if (!addingMaster && !targets.length && !args.allowEmpty && args.operation !== "masters.list")
+      const addingLayout = args.operation === "layouts.add";
+      const adding = addingMaster || addingLayout;
+      const removingLayout = args.operation === "layouts.remove";
+      if (!adding && !targets.length && !args.allowEmpty && !args.operation.endsWith(".list"))
         throw new SelectionError("missing-selection");
-      if (!addingMaster && targets.length > 1 && !args.all && args.operation !== "masters.list")
+      if (!adding && targets.length > 1 && !args.all && !args.operation.endsWith(".list"))
         throw new SelectionError(
           "ambiguous-selection",
           targets.map((record) => record.location)
         );
-      if (args.operation === "masters.list" || args.operation === "masters.get") {
-        const records = (await readMasters(bytes, context)).filter((record) =>
-          targets.some((target) => target.part === record.part)
-        );
+      if (args.operation.endsWith(".list") || args.operation.endsWith(".get")) {
+        const records = (
+          await (editingLayout ? readLayouts(bytes, context) : readMasters(bytes, context))
+        ).filter((record) => targets.some((target) => target.part === record.part));
         result = success(operation, { records, fingerprint: index.fingerprint }, targets);
         human = records
           .map(
@@ -1633,10 +1731,10 @@ async function execute(
         let changed = bytes;
         const affectedSlides = new Set<number>();
         const parts: string[] = [];
-        const edit = args.masterEdit!;
+        const edit = args.masterEdit ?? {};
         const textShapeEdit =
           args.operation === "shapes.set" ||
-          (args.operation === "masters.set" && edit.text !== undefined);
+          (["masters.set", "layouts.set"].includes(args.operation) && edit.text !== undefined);
         if (textShapeEdit) {
           targets = index.objects.filter(
             (record) =>
@@ -1650,7 +1748,7 @@ async function execute(
               targets.map((record) => record.location)
             );
         }
-        for (const target of addingMaster ? [undefined] : targets) {
+        for (const target of adding ? [undefined] : targets) {
           const mutation = addingMaster
             ? await addMaster(
                 changed,
@@ -1662,65 +1760,102 @@ async function execute(
                 },
                 context
               )
-            : editingLayout
-              ? await associateLayout(
+            : addingLayout
+              ? await addLayout(
                   changed,
-                  { scope: "layouts", layout: target!.part, master: edit.master! },
+                  {
+                    scope: "layouts",
+                    name: edit.name!,
+                    master: edit.master!,
+                    ...edit,
+                    ...args.layoutEdit
+                  },
                   context
                 )
-              : args.operation === "shapes.set"
-                ? await mutateMasterShape(
+              : applyingLayout
+                ? await applyLayout(
                     changed,
                     {
-                      scope: "masters",
-                      master: target!.part,
-                      shapeId: target!.id,
-                      ...edit
+                      selection: {
+                        kind: "slide",
+                        position: { coordinateSystem: "one-based", value: target!.position }
+                      },
+                      layout: args.layoutEdit!.layout!,
+                      placeholderPolicy: args.layoutEdit!.placeholderPolicy!
                     },
                     context
                   )
-                : await mutateMaster(
-                    changed,
-                    {
-                      scope: "masters",
-                      master: target!.part,
-                      ...(args.operation === "masters.set"
-                        ? {
-                            ...(edit.name === undefined ? {} : { name: edit.name }),
-                            ...(edit.text === undefined
-                              ? {}
-                              : {
-                                  text: edit.text,
-                                  shapeId: target!.id
-                                })
-                          }
-                        : {}),
-                      ...(args.operation === "shapes.add"
-                        ? {
-                            shapes: [
-                              {
-                                ...(edit.name === undefined ? {} : { name: edit.name }),
-                                text: edit.text ?? "",
-                                x: edit.x!,
-                                y: edit.y!,
-                                width: edit.width!,
-                                height: edit.height!
-                              }
-                            ]
-                          }
-                        : {}),
-                      ...(args.operation === "backgrounds.set"
-                        ? { background: edit.kind === "inherit" ? null : { color: edit.color! } }
-                        : {})
-                    },
-                    context
-                  );
+                : removingLayout
+                  ? await removeLayout(changed, { scope: "layouts", layout: target!.part }, context)
+                  : editingLayout
+                    ? await mutateLayout(
+                        changed,
+                        {
+                          scope: "layouts",
+                          layout: target!.part,
+                          ...edit,
+                          ...args.layoutEdit,
+                          ...(textShapeEdit ? { shapeId: target!.id } : {})
+                        },
+                        context
+                      )
+                    : args.operation === "shapes.set"
+                      ? await mutateMasterShape(
+                          changed,
+                          {
+                            scope: "masters",
+                            master: target!.part,
+                            shapeId: target!.id,
+                            ...edit
+                          },
+                          context
+                        )
+                      : await mutateMaster(
+                          changed,
+                          {
+                            scope: "masters",
+                            master: target!.part,
+                            ...(args.operation === "masters.set"
+                              ? {
+                                  ...(edit.name === undefined ? {} : { name: edit.name }),
+                                  ...(edit.text === undefined
+                                    ? {}
+                                    : {
+                                        text: edit.text,
+                                        shapeId: target!.id
+                                      })
+                                }
+                              : {}),
+                            ...(args.operation === "shapes.add"
+                              ? {
+                                  shapes: [
+                                    {
+                                      ...(edit.name === undefined ? {} : { name: edit.name }),
+                                      text: edit.text ?? "",
+                                      x: edit.x!,
+                                      y: edit.y!,
+                                      width: edit.width!,
+                                      height: edit.height!
+                                    }
+                                  ]
+                                }
+                              : {}),
+                            ...(args.operation === "backgrounds.set"
+                              ? {
+                                  background:
+                                    edit.kind === "inherit" ? null : { color: edit.color! }
+                                }
+                              : {})
+                          },
+                          context
+                        );
           changed = mutation.bytes;
-          if (!parts.includes(mutation.part)) parts.push(mutation.part);
+          if (!parts.includes(applyingLayout ? target!.part : mutation.part))
+            parts.push(applyingLayout ? target!.part : mutation.part);
           for (const position of mutation.affectedSlides) affectedSlides.add(position);
         }
         const after = await readSelectionIndex(changed, context);
-        const changedRecords: SelectionRecord[] = [];
+        const changedRecords: SelectionRecord[] = removingLayout ? [...targets] : [];
         if (args.operation === "shapes.add")
           changedRecords.push(
             ...after.objects.filter(
@@ -1745,9 +1880,13 @@ async function execute(
         }
         if (
           (!textShapeEdit && args.operation !== "shapes.add") ||
-          (args.operation === "masters.set" && edit.name !== undefined)
+          (["masters.set", "layouts.set"].includes(args.operation) && edit.name !== undefined)
         )
-          changedRecords.push(...after.parts.filter((record) => parts.includes(record.part)));
+          changedRecords.push(
+            ...(applyingLayout ? after.slides : after.parts).filter((record) =>
+              parts.includes(record.part)
+            )
+          );
         const dryRun = args.dryRun ?? false;
         const destination = args.inPlace ? args.input! : args.output;
         result = {
@@ -1759,7 +1898,14 @@ async function execute(
               effects: (after.fingerprint === index.fingerprint ? [] : changedRecords).map(
                 (record) => ({
                   location: record.location,
-                  action: addingMaster || args.operation === "shapes.add" ? "add" : "set",
+                  action:
+                    adding || args.operation === "shapes.add"
+                      ? "add"
+                      : removingLayout
+                        ? "remove"
+                        : applyingLayout
+                          ? "apply"
+                          : "set",
                   feature: editingLayout
                     ? "F12"
                     : args.operation === "backgrounds.set"

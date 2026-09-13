@@ -6,9 +6,15 @@
   "authority": ["docs/specs/office-cli.md", "docs/specs/office-sdk.md", "docs/specs/pptx.md"],
   "inputEvidence": {
     "docs/specs/pptx.md": {
-      "sha256": "d907f73d3fcf8b608d8ddd404654b3f87ac1fc236c40f0ed5cd429f61cd82e8f",
-      "previousSha256": "33cba39addc63a343000bc5f2c2bbe7858fced4c9e857acb17e83b5bf8056b9d",
-      "revisionReason": "Format-specific grammar and wire schema completion; prior hash remains historical evidence."
+      "sha256": "6ca5367fc275aac938ef36d2d95e42b7f53b5741d474b8c5a9b4c5ab9f3b2848",
+      "previousSha256": "d907f73d3fcf8b608d8ddd404654b3f87ac1fc236c40f0ed5cd429f61cd82e8f",
+      "revisionReason": "Layout properties, placeholder defaults/inheritance, explicit application policy and direct command schema reconciliation.",
+      "history": [
+        {
+          "sha256": "d907f73d3fcf8b608d8ddd404654b3f87ac1fc236c40f0ed5cd429f61cd82e8f",
+          "reason": "Format-specific grammar and wire schema completion; prior hash remains historical evidence."
+        }
+      ]
     },
     "docs/specs/office-cli.md": {
       "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
@@ -7058,47 +7064,48 @@
       "path": ["layouts", "list"],
       "sdkOperationId": "layouts.list",
       "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
+      "status": "byte_command_implemented_live_model_pending",
+      "transport": "direct; typed-batch-dispatch-pending",
       "arguments": {
         "type": "object",
         "properties": {},
         "required": [],
         "additionalProperties": false
       },
-      "commonOptions": ["json", "limit", "select", "scope", "slide"],
+      "commonOptions": ["json", "limit", "scope", "part", "select", "slide"],
       "commonProfile": "inspect",
       "inputArity": 1,
       "help": ["pptx", "help", "layouts", "list"],
       "schema": ["pptx", "schema", "layouts", "list"],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
-      "description": "Owner-scoped layouts operation; changes only the declared supported subset.",
+      "description": "Layout properties and master associations; apply requires explicit placeholder policy, retains local content and rejects ambiguous placeholder mappings. Shared layout mutations require layouts/shared scope.",
       "tests": ["command.layouts.list"],
       "cli": ["pptx", "layouts", "list", "INPUT"],
       "flags": {},
-      "constraints": [],
+      "constraints": [
+        "Explicit layouts/shared mutation scope except apply, which targets selected slides.",
+        "Layout apply requires placeholderPolicy; both policies preserve local XML and reject ambiguous placeholder indexes.",
+        "Read geometry uses exact local then master coordinates with null absence and per-coordinate provenance.",
+        "Creation fields with x/y or width/height author the pair with zero for an omitted companion."
+      ],
       "batchOptions": {
         "type": "object",
         "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
-          },
           "scope": {
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
             "type": "string",
-            "enum": [
-              "slides",
-              "notes",
-              "layouts",
-              "masters",
-              "notes-master",
-              "handout-master",
-              "presentation",
-              "shared"
-            ]
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
           },
           "slide": {
-            "$ref": "#/$defs/Position"
+            "type": "integer",
+            "minimum": 1
           }
         },
         "required": [],
@@ -7118,71 +7125,191 @@
         "type": "object",
         "properties": {
           "json": {
-            "$ref": "#/commonOptions/json/schema"
+            "type": "boolean"
           },
           "limit": {
-            "$ref": "#/commonOptions/limit/schema"
-          },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
           },
           "scope": {
-            "$ref": "#/commonOptions/scope/schema"
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
           },
           "slide": {
-            "$ref": "#/commonOptions/slide/schema"
+            "type": "integer",
+            "minimum": 1
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "implementation": {
+        "engine": "packages/pptx/src/command-engine.ts",
+        "domain": "packages/pptx/src/layouts.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "tests": [
+          "packages/pptx/src/layouts.test.ts",
+          "packages/pptx/src/layout-regressions.test.ts",
+          "packages/pptx/src/command-layouts.test.ts",
+          "packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ],
+        "liveModel": "pending",
+        "schemaExport": "masterSchemas[\"layouts.list\"]",
+        "resultContract": "Executable schema is authoritative for currently supported direct output, including placeholder coordinate provenance. Broad live-model/batch register remains proposed."
+      },
+      "directOptionsSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [],
+        "properties": {
+          "json": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
+          },
+          "scope": {
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slide": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "allOf": [
+          {
+            "not": {
+              "required": ["part", "slide"]
+            }
+          },
+          {
+            "if": {
+              "required": ["select"]
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": ["part"]
+                  },
+                  {
+                    "required": ["slide"]
+                  },
+                  {
+                    "required": ["shape"]
+                  },
+                  {
+                    "required": ["all"]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
     },
     "layouts.get": {
       "path": ["layouts", "get"],
       "sdkOperationId": "layouts.get",
       "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
+      "status": "byte_command_implemented_live_model_pending",
+      "transport": "direct; typed-batch-dispatch-pending",
       "arguments": {
         "type": "object",
         "properties": {},
         "required": [],
         "additionalProperties": false
       },
-      "commonOptions": ["json", "limit", "select", "scope", "slide"],
+      "commonOptions": ["json", "limit", "scope", "part", "select", "slide"],
       "commonProfile": "inspect",
       "inputArity": 1,
       "help": ["pptx", "help", "layouts", "get"],
       "schema": ["pptx", "schema", "layouts", "get"],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
-      "description": "Owner-scoped layouts operation; changes only the declared supported subset.",
+      "description": "Layout properties and master associations; apply requires explicit placeholder policy, retains local content and rejects ambiguous placeholder mappings. Shared layout mutations require layouts/shared scope.",
       "tests": ["command.layouts.get"],
       "cli": ["pptx", "layouts", "get", "INPUT"],
       "flags": {},
-      "constraints": [],
+      "constraints": [
+        "Explicit layouts/shared mutation scope except apply, which targets selected slides.",
+        "Layout apply requires placeholderPolicy; both policies preserve local XML and reject ambiguous placeholder indexes.",
+        "Read geometry uses exact local then master coordinates with null absence and per-coordinate provenance.",
+        "Creation fields with x/y or width/height author the pair with zero for an omitted companion."
+      ],
       "batchOptions": {
         "type": "object",
         "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
-          },
           "scope": {
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
             "type": "string",
-            "enum": [
-              "slides",
-              "notes",
-              "layouts",
-              "masters",
-              "notes-master",
-              "handout-master",
-              "presentation",
-              "shared"
-            ]
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
           },
           "slide": {
-            "$ref": "#/$defs/Position"
+            "type": "integer",
+            "minimum": 1
           }
         },
         "required": [],
@@ -7202,46 +7329,180 @@
         "type": "object",
         "properties": {
           "json": {
-            "$ref": "#/commonOptions/json/schema"
+            "type": "boolean"
           },
           "limit": {
-            "$ref": "#/commonOptions/limit/schema"
-          },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
           },
           "scope": {
-            "$ref": "#/commonOptions/scope/schema"
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
           },
           "slide": {
-            "$ref": "#/commonOptions/slide/schema"
+            "type": "integer",
+            "minimum": 1
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "implementation": {
+        "engine": "packages/pptx/src/command-engine.ts",
+        "domain": "packages/pptx/src/layouts.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "tests": [
+          "packages/pptx/src/layouts.test.ts",
+          "packages/pptx/src/layout-regressions.test.ts",
+          "packages/pptx/src/command-layouts.test.ts",
+          "packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ],
+        "liveModel": "pending",
+        "schemaExport": "masterSchemas[\"layouts.get\"]",
+        "resultContract": "Executable schema is authoritative for currently supported direct output, including placeholder coordinate provenance. Broad live-model/batch register remains proposed."
+      },
+      "directOptionsSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [],
+        "properties": {
+          "json": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
+          },
+          "scope": {
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slide": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "allOf": [
+          {
+            "not": {
+              "required": ["part", "slide"]
+            }
+          },
+          {
+            "if": {
+              "required": ["select"]
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": ["part"]
+                  },
+                  {
+                    "required": ["slide"]
+                  },
+                  {
+                    "required": ["shape"]
+                  },
+                  {
+                    "required": ["all"]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
     },
     "layouts.set": {
       "path": ["layouts", "set"],
       "sdkOperationId": "layouts.set",
       "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
+      "status": "byte_command_implemented_live_model_pending",
+      "transport": "direct; typed-batch-dispatch-pending",
       "arguments": {
         "type": "object",
         "properties": {
           "name": {
-            "type": "string",
-            "maxLength": 1048576
+            "type": "string"
           },
           "master": {
             "type": "string",
-            "maxLength": 1048576
+            "minLength": 1
           },
           "text": {
+            "type": "string"
+          },
+          "shape": {
             "type": "string",
-            "maxLength": 1048576
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "preserve": {
+            "type": "boolean"
+          },
+          "showMasterShapes": {
+            "type": "boolean"
+          },
+          "matchingName": {
+            "type": "string"
           }
         },
         "required": [],
@@ -7251,16 +7512,16 @@
       "commonOptions": [
         "json",
         "limit",
-        "select",
         "scope",
+        "part",
+        "select",
         "slide",
         "output",
         "inPlace",
         "force",
         "dryRun",
         "all",
-        "allowEmpty",
-        "part"
+        "allowEmpty"
       ],
       "commonProfile": "edit",
       "inputArity": 1,
@@ -7268,51 +7529,51 @@
       "schema": ["pptx", "schema", "layouts", "set"],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
-      "description": "Owner-scoped layouts operation; changes only the declared supported subset.",
+      "description": "Layout properties and master associations; apply requires explicit placeholder policy, retains local content and rejects ambiguous placeholder mappings. Shared layout mutations require layouts/shared scope.",
       "tests": ["command.layouts.set"],
       "cli": ["pptx", "layouts", "set", "INPUT"],
       "flags": {
         "name": "--name",
         "master": "--master",
-        "text": "--text"
+        "text": "--text",
+        "shape": "--shape",
+        "type": "--type",
+        "preserve": "--preserve",
+        "showMasterShapes": "--show-master-shapes",
+        "matchingName": "--matching-name"
       },
       "constraints": [
-        "Require at least one declared update field; unknown/inapplicable fields fail; no silent no-op."
+        "Explicit layouts/shared mutation scope except apply, which targets selected slides.",
+        "Layout apply requires placeholderPolicy; both policies preserve local XML and reject ambiguous placeholder indexes.",
+        "Read geometry uses exact local then master coordinates with null absence and per-coordinate provenance.",
+        "Creation fields with x/y or width/height author the pair with zero for an omitted companion."
       ],
       "batchOptions": {
         "type": "object",
         "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
-          },
           "scope": {
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
             "type": "string",
-            "enum": [
-              "slides",
-              "notes",
-              "layouts",
-              "masters",
-              "notes-master",
-              "handout-master",
-              "presentation",
-              "shared"
-            ]
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
           },
           "slide": {
-            "$ref": "#/$defs/Position"
+            "type": "integer",
+            "minimum": 1
           },
           "all": {
             "type": "boolean"
           },
           "allowEmpty": {
             "type": "boolean"
-          },
-          "part": {
-            "type": "string",
-            "minLength": 1
           }
         },
-        "required": [],
+        "required": ["scope"],
         "additionalProperties": false
       },
       "formatContract": "docs/specs/pptx.md#61-format-operation-grammar",
@@ -7329,43 +7590,67 @@
         "type": "object",
         "properties": {
           "json": {
-            "$ref": "#/commonOptions/json/schema"
+            "type": "boolean"
           },
           "limit": {
-            "$ref": "#/commonOptions/limit/schema"
-          },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
           },
           "scope": {
-            "$ref": "#/commonOptions/scope/schema"
-          },
-          "slide": {
-            "$ref": "#/commonOptions/slide/schema"
-          },
-          "output": {
-            "$ref": "#/commonOptions/output/schema"
-          },
-          "inPlace": {
-            "$ref": "#/commonOptions/inPlace/schema"
-          },
-          "force": {
-            "$ref": "#/commonOptions/force/schema"
-          },
-          "dryRun": {
-            "$ref": "#/commonOptions/dryRun/schema"
-          },
-          "all": {
-            "$ref": "#/commonOptions/all/schema"
-          },
-          "allowEmpty": {
-            "$ref": "#/commonOptions/allowEmpty/schema"
+            "enum": ["layouts", "shared"]
           },
           "part": {
-            "$ref": "#/commonOptions/part/schema"
+            "type": "string",
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slide": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "inPlace": {
+            "type": "boolean"
+          },
+          "force": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "all": {
+            "type": "boolean"
+          },
+          "allowEmpty": {
+            "type": "boolean"
           }
         },
-        "required": [],
+        "required": ["scope"],
         "additionalProperties": false
       },
       "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
@@ -7377,82 +7662,107 @@
           "../../packages/pptx/src/command-masters.test.ts",
           "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
         ]
-      }
-    },
-    "layouts.add": {
-      "path": ["layouts", "add"],
-      "sdkOperationId": "layouts.add",
-      "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
-      "arguments": {
+      },
+      "implementation": {
+        "engine": "packages/pptx/src/command-engine.ts",
+        "domain": "packages/pptx/src/layouts.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "tests": [
+          "packages/pptx/src/layouts.test.ts",
+          "packages/pptx/src/layout-regressions.test.ts",
+          "packages/pptx/src/command-layouts.test.ts",
+          "packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ],
+        "liveModel": "pending",
+        "schemaExport": "masterSchemas[\"layouts.set\"]",
+        "resultContract": "Executable schema is authoritative for currently supported direct output, including placeholder coordinate provenance. Broad live-model/batch register remains proposed."
+      },
+      "directOptionsSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
+        "additionalProperties": false,
+        "required": ["scope"],
         "properties": {
-          "name": {
+          "json": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
+          },
+          "scope": {
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
             "type": "string",
-            "maxLength": 1048576
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slide": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string"
           },
           "master": {
             "type": "string",
-            "maxLength": 1048576
+            "minLength": 1
           },
           "text": {
-            "type": "string",
-            "maxLength": 1048576
-          }
-        },
-        "required": ["name", "master"],
-        "additionalProperties": false
-      },
-      "commonOptions": [
-        "json",
-        "limit",
-        "select",
-        "scope",
-        "slide",
-        "output",
-        "inPlace",
-        "force",
-        "dryRun",
-        "all",
-        "allowEmpty"
-      ],
-      "commonProfile": "edit",
-      "inputArity": 1,
-      "help": ["pptx", "help", "layouts", "add"],
-      "schema": ["pptx", "schema", "layouts", "add"],
-      "result": "OfficeResultV1",
-      "exitProfile": "ordinary",
-      "description": "Owner-scoped layouts operation; changes only the declared supported subset.",
-      "tests": ["command.layouts.add"],
-      "cli": ["pptx", "layouts", "add", "INPUT"],
-      "flags": {
-        "name": "--name",
-        "master": "--master",
-        "text": "--text"
-      },
-      "constraints": [],
-      "batchOptions": {
-        "type": "object",
-        "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
+            "type": "string"
           },
-          "scope": {
+          "type": {
             "type": "string",
-            "enum": [
-              "slides",
-              "notes",
-              "layouts",
-              "masters",
-              "notes-master",
-              "handout-master",
-              "presentation",
-              "shared"
-            ]
+            "minLength": 1
           },
-          "slide": {
-            "$ref": "#/$defs/Position"
+          "preserve": {
+            "type": "boolean"
+          },
+          "showMasterShapes": {
+            "type": "boolean"
+          },
+          "matchingName": {
+            "type": "string"
+          },
+          "shape": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "inPlace": {
+            "type": "boolean"
+          },
+          "force": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
           },
           "all": {
             "type": "boolean"
@@ -7461,7 +7771,280 @@
             "type": "boolean"
           }
         },
-        "required": [],
+        "allOf": [
+          {
+            "anyOf": [
+              {
+                "required": ["select"]
+              },
+              {
+                "required": ["slide"]
+              },
+              {
+                "required": ["part"]
+              },
+              {
+                "required": ["all"],
+                "properties": {
+                  "all": {
+                    "const": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "not": {
+              "required": ["part", "slide"]
+            }
+          },
+          {
+            "if": {
+              "required": ["select"]
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": ["part"]
+                  },
+                  {
+                    "required": ["slide"]
+                  },
+                  {
+                    "required": ["shape"]
+                  },
+                  {
+                    "required": ["all"]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "anyOf": [
+              {
+                "required": ["name"]
+              },
+              {
+                "required": ["master"]
+              },
+              {
+                "required": ["text"]
+              },
+              {
+                "required": ["type"]
+              },
+              {
+                "required": ["preserve"]
+              },
+              {
+                "required": ["showMasterShapes"]
+              },
+              {
+                "required": ["matchingName"]
+              }
+            ]
+          },
+          {
+            "if": {
+              "required": ["text"]
+            },
+            "then": {
+              "anyOf": [
+                {
+                  "required": ["shape"]
+                },
+                {
+                  "required": ["select"]
+                }
+              ]
+            }
+          },
+          {
+            "anyOf": [
+              {
+                "required": ["output"]
+              },
+              {
+                "required": ["inPlace"],
+                "properties": {
+                  "inPlace": {
+                    "const": true
+                  }
+                }
+              },
+              {
+                "required": ["dryRun"],
+                "properties": {
+                  "dryRun": {
+                    "const": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "if": {
+              "required": ["inPlace"],
+              "properties": {
+                "inPlace": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": ["output"]
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["force"],
+              "properties": {
+                "force": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "required": ["output"]
+            }
+          },
+          {
+            "if": {
+              "required": ["json", "output"],
+              "properties": {
+                "json": {
+                  "const": true
+                },
+                "output": {
+                  "const": "-"
+                }
+              }
+            },
+            "then": {
+              "required": ["dryRun"],
+              "properties": {
+                "dryRun": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "layouts.add": {
+      "path": ["layouts", "add"],
+      "sdkOperationId": "layouts.add",
+      "version": 1,
+      "status": "byte_command_implemented_live_model_pending",
+      "transport": "direct; typed-batch-dispatch-pending",
+      "arguments": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "master": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "preserve": {
+            "type": "boolean"
+          },
+          "showMasterShapes": {
+            "type": "boolean"
+          },
+          "matchingName": {
+            "type": "string"
+          },
+          "placeholders": {
+            "type": "array",
+            "description": "CLI --placeholders-json; original layout placeholder declarations.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                },
+                "name": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "x": {
+                  "type": "integer"
+                },
+                "y": {
+                  "type": "integer"
+                },
+                "width": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        },
+        "required": ["name", "master"],
+        "additionalProperties": false
+      },
+      "commonOptions": ["json", "limit", "scope", "output", "inPlace", "force", "dryRun"],
+      "commonProfile": "edit",
+      "inputArity": 1,
+      "help": ["pptx", "help", "layouts", "add"],
+      "schema": ["pptx", "schema", "layouts", "add"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "description": "Layout properties and master associations; apply requires explicit placeholder policy, retains local content and rejects ambiguous placeholder mappings. Shared layout mutations require layouts/shared scope.",
+      "tests": ["command.layouts.add"],
+      "cli": ["pptx", "layouts", "add", "INPUT"],
+      "flags": {
+        "name": "--name",
+        "master": "--master",
+        "text": "--text",
+        "type": "--type",
+        "preserve": "--preserve",
+        "showMasterShapes": "--show-master-shapes",
+        "matchingName": "--matching-name",
+        "placeholders": "--placeholders-json"
+      },
+      "constraints": [
+        "Explicit layouts/shared mutation scope except apply, which targets selected slides.",
+        "Layout apply requires placeholderPolicy; both policies preserve local XML and reject ambiguous placeholder indexes.",
+        "Read geometry uses exact local then master coordinates with null absence and per-coordinate provenance.",
+        "Creation fields with x/y or width/height author the pair with zero for an omitted companion."
+      ],
+      "batchOptions": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "enum": ["layouts", "shared"]
+          }
+        },
+        "required": ["scope"],
         "additionalProperties": false
       },
       "formatContract": "docs/specs/pptx.md#61-format-operation-grammar",
@@ -7478,50 +8061,287 @@
         "type": "object",
         "properties": {
           "json": {
-            "$ref": "#/commonOptions/json/schema"
+            "type": "boolean"
           },
           "limit": {
-            "$ref": "#/commonOptions/limit/schema"
-          },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
           },
           "scope": {
-            "$ref": "#/commonOptions/scope/schema"
-          },
-          "slide": {
-            "$ref": "#/commonOptions/slide/schema"
+            "enum": ["layouts", "shared"]
           },
           "output": {
-            "$ref": "#/commonOptions/output/schema"
+            "type": "string",
+            "minLength": 1
           },
           "inPlace": {
-            "$ref": "#/commonOptions/inPlace/schema"
+            "type": "boolean"
           },
           "force": {
-            "$ref": "#/commonOptions/force/schema"
+            "type": "boolean"
           },
           "dryRun": {
-            "$ref": "#/commonOptions/dryRun/schema"
-          },
-          "all": {
-            "$ref": "#/commonOptions/all/schema"
-          },
-          "allowEmpty": {
-            "$ref": "#/commonOptions/allowEmpty/schema"
+            "type": "boolean"
           }
         },
-        "required": [],
+        "required": ["scope"],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "implementation": {
+        "engine": "packages/pptx/src/command-engine.ts",
+        "domain": "packages/pptx/src/layouts.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "tests": [
+          "packages/pptx/src/layouts.test.ts",
+          "packages/pptx/src/layout-regressions.test.ts",
+          "packages/pptx/src/command-layouts.test.ts",
+          "packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ],
+        "liveModel": "pending",
+        "schemaExport": "masterSchemas[\"layouts.add\"]",
+        "resultContract": "Executable schema is authoritative for currently supported direct output, including placeholder coordinate provenance. Broad live-model/batch register remains proposed."
+      },
+      "directOptionsSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "master", "scope"],
+        "properties": {
+          "json": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
+          },
+          "scope": {
+            "enum": ["layouts", "shared"]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "master": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "preserve": {
+            "type": "boolean"
+          },
+          "showMasterShapes": {
+            "type": "boolean"
+          },
+          "matchingName": {
+            "type": "string"
+          },
+          "placeholders": {
+            "type": "array",
+            "description": "CLI --placeholders-json; original layout placeholder declarations.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                },
+                "name": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "x": {
+                  "type": "integer"
+                },
+                "y": {
+                  "type": "integer"
+                },
+                "width": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "inPlace": {
+            "type": "boolean"
+          },
+          "force": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "allOf": [
+          {
+            "not": {
+              "required": ["part", "slide"]
+            }
+          },
+          {
+            "if": {
+              "required": ["select"]
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": ["part"]
+                  },
+                  {
+                    "required": ["slide"]
+                  },
+                  {
+                    "required": ["shape"]
+                  },
+                  {
+                    "required": ["all"]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "anyOf": [
+              {
+                "required": ["output"]
+              },
+              {
+                "required": ["inPlace"],
+                "properties": {
+                  "inPlace": {
+                    "const": true
+                  }
+                }
+              },
+              {
+                "required": ["dryRun"],
+                "properties": {
+                  "dryRun": {
+                    "const": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "if": {
+              "required": ["inPlace"],
+              "properties": {
+                "inPlace": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": ["output"]
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["force"],
+              "properties": {
+                "force": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "required": ["output"]
+            }
+          },
+          {
+            "if": {
+              "required": ["json", "output"],
+              "properties": {
+                "json": {
+                  "const": true
+                },
+                "output": {
+                  "const": "-"
+                }
+              }
+            },
+            "then": {
+              "required": ["dryRun"],
+              "properties": {
+                "dryRun": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ]
+      }
     },
     "layouts.remove": {
       "path": ["layouts", "remove"],
       "sdkOperationId": "layouts.remove",
       "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
+      "status": "byte_command_implemented_live_model_pending",
+      "transport": "direct; typed-batch-dispatch-pending",
       "arguments": {
         "type": "object",
         "properties": {},
@@ -7531,8 +8351,9 @@
       "commonOptions": [
         "json",
         "limit",
-        "select",
         "scope",
+        "part",
+        "select",
         "slide",
         "output",
         "inPlace",
@@ -7547,32 +8368,33 @@
       "schema": ["pptx", "schema", "layouts", "remove"],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
-      "description": "Owner-scoped layouts operation; changes only the declared supported subset.",
+      "description": "Layout properties and master associations; apply requires explicit placeholder policy, retains local content and rejects ambiguous placeholder mappings. Shared layout mutations require layouts/shared scope.",
       "tests": ["command.layouts.remove"],
       "cli": ["pptx", "layouts", "remove", "INPUT"],
       "flags": {},
-      "constraints": [],
+      "constraints": [
+        "Explicit layouts/shared mutation scope except apply, which targets selected slides.",
+        "Layout apply requires placeholderPolicy; both policies preserve local XML and reject ambiguous placeholder indexes.",
+        "Read geometry uses exact local then master coordinates with null absence and per-coordinate provenance.",
+        "Creation fields with x/y or width/height author the pair with zero for an omitted companion."
+      ],
       "batchOptions": {
         "type": "object",
         "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
-          },
           "scope": {
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
             "type": "string",
-            "enum": [
-              "slides",
-              "notes",
-              "layouts",
-              "masters",
-              "notes-master",
-              "handout-master",
-              "presentation",
-              "shared"
-            ]
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
           },
           "slide": {
-            "$ref": "#/$defs/Position"
+            "type": "integer",
+            "minimum": 1
           },
           "all": {
             "type": "boolean"
@@ -7581,7 +8403,7 @@
             "type": "boolean"
           }
         },
-        "required": [],
+        "required": ["scope"],
         "additionalProperties": false
       },
       "formatContract": "docs/specs/pptx.md#61-format-operation-grammar",
@@ -7598,43 +8420,275 @@
         "type": "object",
         "properties": {
           "json": {
-            "$ref": "#/commonOptions/json/schema"
+            "type": "boolean"
           },
           "limit": {
-            "$ref": "#/commonOptions/limit/schema"
-          },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
           },
           "scope": {
-            "$ref": "#/commonOptions/scope/schema"
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
           },
           "slide": {
-            "$ref": "#/commonOptions/slide/schema"
+            "type": "integer",
+            "minimum": 1
           },
           "output": {
-            "$ref": "#/commonOptions/output/schema"
+            "type": "string",
+            "minLength": 1
           },
           "inPlace": {
-            "$ref": "#/commonOptions/inPlace/schema"
+            "type": "boolean"
           },
           "force": {
-            "$ref": "#/commonOptions/force/schema"
+            "type": "boolean"
           },
           "dryRun": {
-            "$ref": "#/commonOptions/dryRun/schema"
+            "type": "boolean"
           },
           "all": {
-            "$ref": "#/commonOptions/all/schema"
+            "type": "boolean"
           },
           "allowEmpty": {
-            "$ref": "#/commonOptions/allowEmpty/schema"
+            "type": "boolean"
           }
         },
-        "required": [],
+        "required": ["scope"],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "implementation": {
+        "engine": "packages/pptx/src/command-engine.ts",
+        "domain": "packages/pptx/src/layouts.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "tests": [
+          "packages/pptx/src/layouts.test.ts",
+          "packages/pptx/src/layout-regressions.test.ts",
+          "packages/pptx/src/command-layouts.test.ts",
+          "packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ],
+        "liveModel": "pending",
+        "schemaExport": "masterSchemas[\"layouts.remove\"]",
+        "resultContract": "Executable schema is authoritative for currently supported direct output, including placeholder coordinate provenance. Broad live-model/batch register remains proposed."
+      },
+      "directOptionsSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scope"],
+        "properties": {
+          "json": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
+          },
+          "scope": {
+            "enum": ["layouts", "shared"]
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slide": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "inPlace": {
+            "type": "boolean"
+          },
+          "force": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "all": {
+            "type": "boolean"
+          },
+          "allowEmpty": {
+            "type": "boolean"
+          }
+        },
+        "allOf": [
+          {
+            "anyOf": [
+              {
+                "required": ["select"]
+              },
+              {
+                "required": ["slide"]
+              },
+              {
+                "required": ["part"]
+              },
+              {
+                "required": ["all"],
+                "properties": {
+                  "all": {
+                    "const": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "not": {
+              "required": ["part", "slide"]
+            }
+          },
+          {
+            "if": {
+              "required": ["select"]
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": ["part"]
+                  },
+                  {
+                    "required": ["slide"]
+                  },
+                  {
+                    "required": ["shape"]
+                  },
+                  {
+                    "required": ["all"]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "anyOf": [
+              {
+                "required": ["output"]
+              },
+              {
+                "required": ["inPlace"],
+                "properties": {
+                  "inPlace": {
+                    "const": true
+                  }
+                }
+              },
+              {
+                "required": ["dryRun"],
+                "properties": {
+                  "dryRun": {
+                    "const": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "if": {
+              "required": ["inPlace"],
+              "properties": {
+                "inPlace": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": ["output"]
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["force"],
+              "properties": {
+                "force": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "required": ["output"]
+            }
+          },
+          {
+            "if": {
+              "required": ["json", "output"],
+              "properties": {
+                "json": {
+                  "const": true
+                },
+                "output": {
+                  "const": "-"
+                }
+              }
+            },
+            "then": {
+              "required": ["dryRun"],
+              "properties": {
+                "dryRun": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ]
+      }
     },
     "themes.list": {
       "path": ["themes", "list"],
@@ -20135,17 +21189,16 @@
       "path": ["layouts", "apply"],
       "sdkOperationId": "layouts.apply",
       "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
+      "status": "byte_command_implemented_live_model_pending",
+      "transport": "direct; typed-batch-dispatch-pending",
       "arguments": {
         "type": "object",
         "properties": {
           "layout": {
             "type": "string",
-            "maxLength": 1048576
+            "minLength": 1
           },
           "placeholderPolicy": {
-            "type": "string",
             "enum": ["type-index", "reject-unmatched"]
           }
         },
@@ -20155,8 +21208,8 @@
       "commonOptions": [
         "json",
         "limit",
-        "select",
         "scope",
+        "select",
         "slide",
         "output",
         "inPlace",
@@ -20171,35 +21224,32 @@
       "schema": ["pptx", "schema", "layouts", "apply"],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
-      "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
+      "description": "Layout properties and master associations; apply requires explicit placeholder policy, retains local content and rejects ambiguous placeholder mappings. Shared layout mutations require layouts/shared scope.",
       "tests": ["command.layouts.apply"],
       "cli": ["pptx", "layouts", "apply", "INPUT"],
       "flags": {
         "layout": "--layout",
         "placeholderPolicy": "--placeholder-policy"
       },
-      "constraints": [],
+      "constraints": [
+        "Explicit layouts/shared mutation scope except apply, which targets selected slides.",
+        "Layout apply requires placeholderPolicy; both policies preserve local XML and reject ambiguous placeholder indexes.",
+        "Read geometry uses exact local then master coordinates with null absence and per-coordinate provenance.",
+        "Creation fields with x/y or width/height author the pair with zero for an omitted companion."
+      ],
       "batchOptions": {
         "type": "object",
         "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
-          },
           "scope": {
+            "enum": ["slides"]
+          },
+          "select": {
             "type": "string",
-            "enum": [
-              "slides",
-              "notes",
-              "layouts",
-              "masters",
-              "notes-master",
-              "handout-master",
-              "presentation",
-              "shared"
-            ]
+            "minLength": 1
           },
           "slide": {
-            "$ref": "#/$defs/Position"
+            "type": "integer",
+            "minimum": 1
           },
           "all": {
             "type": "boolean"
@@ -20217,7 +21267,7 @@
       "defaults": {},
       "publication": "package",
       "cardinality": "operation-specific in format contract",
-      "defaultScope": "layouts",
+      "defaultScope": "slides",
       "resultSchema": {
         "$ref": "#/$defs/MutationData"
       },
@@ -20225,43 +21275,281 @@
         "type": "object",
         "properties": {
           "json": {
-            "$ref": "#/commonOptions/json/schema"
+            "type": "boolean"
           },
           "limit": {
-            "$ref": "#/commonOptions/limit/schema"
-          },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
           },
           "scope": {
-            "$ref": "#/commonOptions/scope/schema"
+            "enum": ["slides"]
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
           },
           "slide": {
-            "$ref": "#/commonOptions/slide/schema"
+            "type": "integer",
+            "minimum": 1
           },
           "output": {
-            "$ref": "#/commonOptions/output/schema"
+            "type": "string",
+            "minLength": 1
           },
           "inPlace": {
-            "$ref": "#/commonOptions/inPlace/schema"
+            "type": "boolean"
           },
           "force": {
-            "$ref": "#/commonOptions/force/schema"
+            "type": "boolean"
           },
           "dryRun": {
-            "$ref": "#/commonOptions/dryRun/schema"
+            "type": "boolean"
           },
           "all": {
-            "$ref": "#/commonOptions/all/schema"
+            "type": "boolean"
           },
           "allowEmpty": {
-            "$ref": "#/commonOptions/allowEmpty/schema"
+            "type": "boolean"
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "implementation": {
+        "engine": "packages/pptx/src/command-engine.ts",
+        "domain": "packages/pptx/src/layouts.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "tests": [
+          "packages/pptx/src/layouts.test.ts",
+          "packages/pptx/src/layout-regressions.test.ts",
+          "packages/pptx/src/command-layouts.test.ts",
+          "packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ],
+        "liveModel": "pending",
+        "schemaExport": "masterSchemas[\"layouts.apply\"]",
+        "resultContract": "Executable schema is authoritative for currently supported direct output, including placeholder coordinate provenance. Broad live-model/batch register remains proposed."
+      },
+      "directOptionsSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["layout", "placeholderPolicy"],
+        "properties": {
+          "json": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "maxBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxDepth": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxOutputBytes": {
+                "type": "integer",
+                "minimum": 512
+              }
+            },
+            "description": "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
+          },
+          "scope": {
+            "enum": ["slides"]
+          },
+          "select": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slide": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "layout": {
+            "type": "string",
+            "minLength": 1
+          },
+          "placeholderPolicy": {
+            "enum": ["type-index", "reject-unmatched"]
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "inPlace": {
+            "type": "boolean"
+          },
+          "force": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "all": {
+            "type": "boolean"
+          },
+          "allowEmpty": {
+            "type": "boolean"
+          }
+        },
+        "allOf": [
+          {
+            "anyOf": [
+              {
+                "required": ["select"]
+              },
+              {
+                "required": ["slide"]
+              },
+              {
+                "required": ["all"],
+                "properties": {
+                  "all": {
+                    "const": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "if": {
+              "required": ["select"]
+            },
+            "then": {
+              "not": {
+                "required": ["scope"]
+              }
+            }
+          },
+          {
+            "not": {
+              "required": ["part", "slide"]
+            }
+          },
+          {
+            "if": {
+              "required": ["select"]
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": ["part"]
+                  },
+                  {
+                    "required": ["slide"]
+                  },
+                  {
+                    "required": ["shape"]
+                  },
+                  {
+                    "required": ["all"]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "anyOf": [
+              {
+                "required": ["output"]
+              },
+              {
+                "required": ["inPlace"],
+                "properties": {
+                  "inPlace": {
+                    "const": true
+                  }
+                }
+              },
+              {
+                "required": ["dryRun"],
+                "properties": {
+                  "dryRun": {
+                    "const": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "if": {
+              "required": ["inPlace"],
+              "properties": {
+                "inPlace": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": ["output"]
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["force"],
+              "properties": {
+                "force": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "required": ["output"]
+            }
+          },
+          {
+            "if": {
+              "required": ["json", "output"],
+              "properties": {
+                "json": {
+                  "const": true
+                },
+                "output": {
+                  "const": "-"
+                }
+              }
+            },
+            "then": {
+              "required": ["dryRun"],
+              "properties": {
+                "dryRun": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ]
+      }
     },
     "shapes.paths.add": {
       "path": ["shapes", "paths", "add"],

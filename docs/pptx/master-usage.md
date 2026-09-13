@@ -65,8 +65,9 @@ future formatting-preserving `text replace` operation. Omitted edit fields retai
 their values. Shared theme bytes remain unchanged.
 
 `schema` and `capabilities --json` describe the available subset. Gradient/picture
-background authoring, other shape types, generic layout editing and the complete
-live object model remain outside this increment. Existing unsupported background
+background authoring, other shape types and the complete live object model remain
+outside this increment. [Layout editing](layout-usage.md) now supports explicit
+placeholder policies and the documented layout-property subset. Existing unsupported background
 effects survive solid-fill edits. Unsupported selected shapes fail before
 publication. There is no implicit filesystem access, network or native renderer.
 

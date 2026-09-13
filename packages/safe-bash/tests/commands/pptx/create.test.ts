@@ -17,6 +17,7 @@ import {
   readPresentationSettings,
   readSelectionIndex
 } from "pptx";
+import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -115,6 +116,107 @@ const assemblyContext = { ...context,
   xmlLimits: { ...context.xmlLimits, maxBytes: 1048576, maxNodes: 20000 },
   relationshipLimits: { ...context.relationshipLimits, maxBytes: 1048576, maxParts: 4096, maxRelationships: 4096 }
 };
+
+function layoutFixture(localKey: string, targetKey: string, duplicate = false) {
+  const xmlContext = { ...context, validationLimits: { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64 } };
+  const namespace = 'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
+  const shape = (id: number, key: string, local: boolean) => `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="Caption ${id}"/><p:cNvSpPr/><p:nvPr><p:ph${key}/></p:nvPr></p:nvSpPr><p:spPr>${local ? '<a:xfrm><a:off x="101" y="202"/><a:ext cx="303" cy="404"/></a:xfrm>' : '<a:xfrm><a:off x="901" y="902"/><a:ext cx="903" cy="904"/></a:xfrm>'}</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr b="1" sz="1800"/><a:t>${local ? 'Harbor &amp; meadow' : 'Layout prompt'}</a:t></a:r></a:p></p:txBody></p:sp>`;
+  const group = '<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>';
+  const localXml = `<p:sld ${namespace}><p:cSld><p:spTree>${group}${shape(2, localKey, true)}<p:sp><p:nvSpPr><p:cNvPr id="9" name="Independent caption"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>Keep this local note</a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:sld>`;
+  const targetXml = `<p:sldLayout ${namespace} type="obj"><p:cSld name="Coastal layout"><p:spTree>${group}${shape(2, targetKey, false)}${duplicate ? shape(3, targetKey, false) : ''}</p:spTree></p:cSld></p:sldLayout>`;
+  const r = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const relations = (entries: readonly (readonly [string, string, string])[]) => `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${entries.map(([id, type, target]) => `<Relationship Id="${id}" Type="${r}/${type}" Target="${target}"/>`).join('')}</Relationships>`;
+  const bytes = storedArchive(Object.entries({
+    '[Content_Types].xml': '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/slideLayouts/slideLayout2.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/></Types>',
+    '_rels/.rels': relations([['root', 'officeDocument', 'ppt/presentation.xml']]),
+    'ppt/presentation.xml': `<p:presentation ${namespace} xmlns:r="${r}"><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="master"/></p:sldMasterIdLst><p:sldIdLst><p:sldId id="256" r:id="slide"/></p:sldIdLst><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`,
+    'ppt/_rels/presentation.xml.rels': relations([['master', 'slideMaster', 'slideMasters/slideMaster1.xml'], ['slide', 'slide', 'slides/slide1.xml']]),
+    'ppt/slides/slide1.xml': localXml,
+    'ppt/slides/_rels/slide1.xml.rels': relations([['layout', 'slideLayout', '../slideLayouts/slideLayout1.xml']]),
+    'ppt/slideLayouts/slideLayout1.xml': `<p:sldLayout ${namespace} type="blank"><p:cSld name="Initial layout"><p:spTree>${group}</p:spTree></p:cSld></p:sldLayout>`,
+    'ppt/slideLayouts/_rels/slideLayout1.xml.rels': relations([['master', 'slideMaster', '../slideMasters/slideMaster1.xml']]),
+    'ppt/slideLayouts/slideLayout2.xml': targetXml,
+    'ppt/slideLayouts/_rels/slideLayout2.xml.rels': relations([['master', 'slideMaster', '../slideMasters/slideMaster1.xml']]),
+    'ppt/slideMasters/slideMaster1.xml': `<p:sldMaster ${namespace} xmlns:r="${r}"><p:cSld><p:spTree>${group}</p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="layout"/><p:sldLayoutId id="2147483650" r:id="coastal"/></p:sldLayoutIdLst></p:sldMaster>`,
+    'ppt/slideMasters/_rels/slideMaster1.xml.rels': relations([['layout', 'slideLayout', '../slideLayouts/slideLayout1.xml'], ['coastal', 'slideLayout', '../slideLayouts/slideLayout2.xml']])
+  }).map(([name, xml]) => ({ name, bytes: new TextEncoder().encode(xml) })));
+  return { bytes, localXml, targetXml, xmlContext };
+}
+
+for (const [description, localKey, targetKey] of [['type and index', '', ' type="obj" idx="0"'], ['index', ' type="body"', ' type="body" idx="0"'], ['type', ' idx="7"', ' type="obj" idx="7"']] as const) {
+  test(`pptx layouts apply resolves omitted placeholder ${description}`, async () => {
+    const { bytes, localXml, targetXml, xmlContext } = layoutFixture(localKey, targetKey);
+    const { shell, volume } = fixture(xmlContext);
+    volume.writeFileSync('/work/source deck.pptx', bytes);
+    const result = await shell.exec("pptx layouts apply 'source deck.pptx' --slide 1 --layout 'Coastal layout' --placeholder-policy reject-unmatched --output changed.pptx --json");
+    assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+    assert.equal(result.stderr, '');
+    assert.equal(JSON.parse(result.stdout).operation, 'layouts.apply');
+    assert.equal(JSON.parse(result.stdout).affected, 1);
+    const changed = new Uint8Array(volume.readFileSync('/work/changed.pptx') as Buffer);
+    assert.equal((await getXmlPart(changed, '/ppt/slides/slide1.xml', xmlContext)).xml, localXml);
+    assert.equal((await getXmlPart(changed, '/ppt/slideLayouts/slideLayout2.xml', xmlContext)).xml, targetXml);
+    assert.ok((await getXmlPart(changed, '/ppt/slides/_rels/slide1.xml.rels', xmlContext)).xml.includes('Target="../slideLayouts/slideLayout2.xml"'));
+    assert.deepEqual(new Uint8Array(volume.readFileSync('/work/source deck.pptx') as Buffer), bytes);
+  });
+}
+
+test('pptx layouts apply keeps unmatched content and validates before publication', async () => {
+  const { bytes, xmlContext } = layoutFixture(' type="body" idx="5"', ' type="body" idx="6"');
+  const { shell, volume } = fixture(xmlContext);
+  volume.writeFileSync('/work/deck.pptx', bytes);
+  volume.writeFileSync('/work/keep.pptx', 'Existing destination');
+  const rejected = await shell.exec("pptx layouts apply deck.pptx --slide 1 --layout 'Coastal layout' --placeholder-policy reject-unmatched --output keep.pptx --force --json");
+  assert.equal(rejected.exitCode, 1, rejected.stdout + rejected.stderr);
+  assert.equal(JSON.parse(rejected.stdout).affected, 0);
+  assert.equal(volume.readFileSync('/work/keep.pptx', 'utf8'), 'Existing destination');
+  const omitted = await shell.exec("pptx layouts apply deck.pptx --slide 1 --layout 'Coastal layout' --in-place --json");
+  assert.equal(omitted.exitCode, 2, omitted.stdout + omitted.stderr);
+  assert.equal(JSON.parse(omitted.stdout).affected, 0);
+  const dry = await shell.exec("pptx layouts apply deck.pptx --slide 1 --layout 'Coastal layout' --placeholder-policy type-index --dry-run --json");
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.deepEqual(new Uint8Array(volume.readFileSync('/work/deck.pptx') as Buffer), bytes);
+  const kept = await shell.exec("pptx layouts apply deck.pptx --slide 1 --layout 'Coastal layout' --placeholder-policy type-index --in-place --json");
+  assert.equal(kept.exitCode, 0, kept.stdout + kept.stderr);
+  const xml = (await getXmlPart(new Uint8Array(volume.readFileSync('/work/deck.pptx') as Buffer), '/ppt/slides/slide1.xml', xmlContext)).xml;
+  assert.ok(xml.includes('Harbor &amp; meadow'));
+  assert.ok(xml.includes('Keep this local note'));
+  assert.ok(xml.includes('<a:rPr b="1" sz="1800"/>'));
+  assert.ok(xml.includes('<a:off x="101" y="202"/>'));
+});
+
+test('pptx layouts apply rejects duplicate normalized keys without creating output', async () => {
+  const { bytes, xmlContext } = layoutFixture('', '', true);
+  const { shell, volume } = fixture(xmlContext);
+  volume.writeFileSync('/work/deck.pptx', bytes);
+  const result = await shell.exec("pptx layouts apply deck.pptx --slide 1 --layout 'Coastal layout' --placeholder-policy type-index --output out.pptx --json");
+  assert.equal(result.exitCode, 1, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).affected, 0);
+  assert.equal(volume.existsSync('/work/out.pptx'), false);
+  assert.deepEqual(new Uint8Array(volume.readFileSync('/work/deck.pptx') as Buffer), bytes);
+});
+
+test('pptx slides add inherits placeholder geometry and formatting without copying prompts', async () => {
+  const { bytes, targetXml, xmlContext } = layoutFixture('', '');
+  const { shell, volume } = fixture(xmlContext);
+  volume.writeFileSync('/work/deck.pptx', bytes);
+  const result = await shell.exec(`pptx slides add deck.pptx --layout 'Coastal layout' --placeholders-json '[{"type":"obj","index":0,"text":"Morning survey"}]' --output out.pptx --json`);
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).affected, 1);
+  const output = new Uint8Array(volume.readFileSync('/work/out.pptx') as Buffer);
+  const index = await readSelectionIndex(output, context);
+  assert.equal(index.slides.length, 2);
+  const xml = (await getXmlPart(output, index.slides[1]!.part, xmlContext)).xml;
+  assert.ok(xml.includes('Morning survey'));
+  assert.ok(xml.includes('<p:ph/>'));
+  assert.ok(xml.includes('<p:spPr/>'));
+  assert.equal(xml.includes('Layout prompt'), false);
+  assert.equal(xml.includes('<a:xfrm>'), false);
+  assert.equal(xml.includes('sz="1800"'), false);
+  assert.equal((await getXmlPart(output, '/ppt/slideLayouts/slideLayout2.xml', xmlContext)).xml, targetXml);
+  assert.deepEqual(new Uint8Array(volume.readFileSync('/work/deck.pptx') as Buffer), bytes);
+});
+
 test("pptx shared master rename reports dependent slides and retains slide content", async () => {
   const xmlContext = { ...context, validationLimits: { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64 } };
   const { shell, volume } = fixture(xmlContext);

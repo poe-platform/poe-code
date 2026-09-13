@@ -387,6 +387,28 @@ names are exact scoped lookups. `layouts apply` requires `placeholderPolicy`:
 `type-index` matches each placeholder key and keeps unmatched local content;
 `reject-unmatched` rejects any unmatched placeholder. Neither chooses among
 ambiguous mappings. Master/layout text edits require a selected text shape.
+Layout application MUST preserve local objects, text, formatting and explicit
+geometry. It changes the layout relationship without copying inherited formatting
+into local XML. An unmatched ordinary local object is retained under either
+policy; `reject-unmatched` rejects unmatched local placeholders. Missing
+placeholder type means `obj`, and missing index means zero. Duplicate placeholder
+indices or multiple candidate owners MUST fail rather than choose a candidate.
+Inspection MUST distinguish explicit geometry from inherited layout/master
+geometry and absent values; an explicit zero MUST win over inheritance.
+Layout-to-master placeholder matching uses master type categories, including
+table/object/subtitle placeholders inheriting body and centered titles inheriting title.
+These inheritance rules are distinct from the exact type/index application policy.
+
+Supported layout properties are `name`, `type`, `preserve`, `showMasterShapes`
+and `matchingName`. Property booleans require explicit values; omitted edit
+properties preserve existing values. Creation MAY supply original placeholders
+through `placeholders`, a closed array of records with optional `name`, `type`,
+`index`, `text`, `x`, `y`, `width` and `height`. Coordinates are integer EMUs;
+omitted coordinate pairs remain inherited. Supplying only one member of x/y or
+width/height authors zero for the companion member. `text` on layout creation authors a local
+text box; `text` on an existing layout requires `shape` or an opaque shape
+selection. Layout IDs MUST remain unique across the presentation, retain identity
+when changing masters, and follow their owning master's registered list order.
 Master mutations MUST require explicit `masters` or `shared` scope; layout
 associations MUST require explicit `layouts` or `shared` scope. Master creation
 uses an existing theme, selected by `theme` URI when more than one is available,
@@ -1049,11 +1071,11 @@ schemas, not extra undocumented direct flags.
 
 | Path / SDK ID                       | Inputs | Arguments (exact flags and types)                                         | Applicable options                                                                                                                | Scope; cardinality; publication                                     |
 | ----------------------------------- | ------ | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `layouts list` / `layouts.list`     | 1      | none                                                                      | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | layouts; collection; omitted filter means all in scope; none        |
-| `layouts get` / `layouts.get`       | 1      | none                                                                      | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | layouts; one; ambiguity fails; none                                 |
-| `layouts set` / `layouts.set`       | 1      | `--name?: string`; `--master?: string`; `--text?: string`                 | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; one unless explicit all; zero requires allowEmpty; package |
-| `layouts add` / `layouts.add`       | 1      | `--name: string`; `--master: string`; `--text?: string`                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; operation-specific in format contract; package             |
-| `layouts remove` / `layouts.remove` | 1      | none                                                                      | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; one unless explicit all; zero requires allowEmpty; package |
+| `layouts list` / `layouts.list`     | 1      | none | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide` | layouts; collection; omitted filter means all in scope; none |
+| `layouts get` / `layouts.get`       | 1      | none | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide` | layouts; one; ambiguity fails; none |
+| `layouts set` / `layouts.set`       | 1      | `--name?: string`; `--master?: string`; `--text?: string`; `--shape?: string`; `--type?: string`; `--preserve?: boolean`; `--show-master-shapes?: boolean`; `--matching-name?: string` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; one unless explicit all; zero requires allowEmpty; package |
+| `layouts add` / `layouts.add`       | 1      | `--name: string`; `--master: string`; `--text?: string`; `--type?: string`; `--preserve?: boolean`; `--show-master-shapes?: boolean`; `--matching-name?: string`; `--placeholders-json?: LayoutPlaceholder[]` | `--json`, `--limit`, `--scope`, `--output`, `--in-place`, `--force`, `--dry-run` | layouts; one new layout; package |
+| `layouts remove` / `layouts.remove` | 1      | none | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; one unless explicit all; zero requires allowEmpty; package |
 | `layouts apply` / `layouts.apply`   | 1      | `--layout: string`; `--placeholder-policy: type-index / reject-unmatched` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; operation-specific in format contract; package             |
 
 ### A. themes

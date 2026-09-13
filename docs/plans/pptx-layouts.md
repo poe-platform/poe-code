@@ -79,7 +79,8 @@ Maintained verification:
 - Safe-bash maintained reporter on the three PPTX command files: 81 cases passed,
   including six new original memfs shell cases. No adapter source change needed.
 - Specification checker: passed with zero warnings.
-- Repository guarded ESLint: running; receipt will be recorded before delivery.
+- `npm run lint:eslint`: passed with zero errors/warnings, 11,893 configured
+  files linted and all 25 authenticated boundary receipts.
 
 `docs/pptx/layout-case-accounting.json` retains a complete-module relevance
 superset of 378 unit variants, 175 expanded BDD scenarios and 176 API records.
@@ -97,5 +98,6 @@ certify the entire format contract.
 
 ## Local delivery
 
-Two atomic local commits are planned: layout domain/independent tests/accounting,
-then command routes/schema/adapter acceptance/documentation. Neither is pushed.
+`e107601d0` contains the layout domain, independent tests and case accounting.
+The next atomic commit contains command routes/schema, adapter acceptance and
+reconciled usage/contracts. Neither is pushed.

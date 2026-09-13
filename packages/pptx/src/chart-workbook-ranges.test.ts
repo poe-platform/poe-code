@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
+import { createPptxCommandEngine } from "./command-engine.js";
 import { createPresentation } from "./creation.js";
 import { addChart, setCharts, type ChartData, type CreatableChartType } from "./chart-editing.js";
 import { storedArchive } from "../tests/fixtures/archive.js";
@@ -180,3 +181,136 @@ it("allocates unique series identities when growing imported series", async () =
   visit(xml.root);
   expect(ids).toEqual(["1", "2"]);
 });
+
+it.each([
+  "BAR_CLUSTERED",
+  "BUBBLE",
+  "BUBBLE_THREE_D_EFFECT",
+  "XY_SCATTER",
+  "XY_SCATTER_LINES",
+  "XY_SCATTER_LINES_NO_MARKERS",
+  "XY_SCATTER_SMOOTH",
+  "XY_SCATTER_SMOOTH_NO_MARKERS"
+] as const)("synchronizes growing, same-size, and shrinking datasets for %s", async (type) => {
+  const scatter = type !== "BAR_CLUSTERED";
+  const bubble = type.startsWith("BUBBLE");
+  const data = (count: number): ChartData => ({
+    ...(!scatter ? { categories: ["Sound", null] } : {}),
+    series: Array.from({ length: count }, (_, index) => ({
+      name: `Measure ${index}`,
+      values: [index, null],
+      ...(scatter ? { xValues: [7, -1] } : {}),
+      ...(bubble ? { bubbleSizes: [0, 2] } : {})
+    }))
+  });
+  let bytes = await seed(type, data(2));
+  for (const count of [3, 3, 1]) {
+    bytes = await setCharts(bytes, { slide: 1 }, { data: data(count) }, context);
+    const result = outputs(bytes);
+    const tree = parseXmlPart(encode(result.chart), context.xmlLimits).root;
+    const plotArea = tree.children
+      .find((node) => node.name.localName === "chart")!
+      .children.find((node) => node.name.localName === "plotArea")!;
+    expect(
+      plotArea.children
+        .flatMap((node) => node.children)
+        .filter((node) => node.name.localName === "ser")
+    ).toHaveLength(count);
+    expect(result.chart).toContain(`<c:v>Measure ${count - 1}</c:v>`);
+    expect(result.sheet).toContain(`>Measure ${count - 1}</t>`);
+    expect(result.chart).not.toContain(`<c:v>Measure ${count}</c:v>`);
+    expect(result.sheet).not.toContain(`>Measure ${count}</t>`);
+    expect(result.chart).toContain('<c:ptCount val="2"/>');
+    expect(result.chart).toContain('<c:pt idx="0"><c:v>0</c:v></c:pt>');
+    expect(result.sheet).not.toContain("<v>null</v>");
+  }
+});
+it.each([
+  ["1899-12-31T00:00:00Z", false, 0],
+  ["1900-02-28T00:00:00Z", false, 59],
+  ["1900-03-01T00:00:00Z", false, 61],
+  ["1904-01-01T00:00:00Z", true, 0],
+  ["2016-12-22T00:00:00Z", false, 42726],
+  ["1999-12-31T00:00:00Z", true, 35063],
+  ["1990-09-01T00:00:00Z", true, 31655]
+] as const)(
+  "keeps date %s in epoch %s consistent through worksheet and cache replacement",
+  async (date, date1904, serial) => {
+    const data = { categories: [date], date1904, series: [{ name: "Day", values: [0] }] };
+    const source = await seed("COLUMN_CLUSTERED", data);
+    for (const bytes of [source, await setCharts(source, { slide: 1 }, { data }, context)]) {
+      const result = outputs(bytes);
+      expect(result.chart).toContain(`<c:pt idx="0"><c:v>${serial}</c:v></c:pt>`);
+      expect(result.sheet).toContain(`<c r="A2" s="1"><v>${serial}</v></c>`);
+      expect(result.chart).toContain("<c:formatCode>yyyy-mm-dd</c:formatCode>");
+    }
+  }
+);
+
+it.each(["synchronize-simple", "reject-complex"])(
+  "publishes consistent data through CLI policy %s and preserves dry-run destinations",
+  async (policy) => {
+    const source = await seed();
+    const fs = Volume.fromJSON({ "/deck.pptx": Buffer.from(source), "/result.pptx": "retained" });
+    const engine = createPptxCommandEngine({
+      context,
+      maxArgumentBytes: 32768,
+      maxOutputBytes: 524288
+    });
+    const data = { categories: ["Replacement"], series: [{ name: "Readings", values: [8] }] };
+    const args = [
+      "charts",
+      "replace",
+      "/deck.pptx",
+      "--slide",
+      "1",
+      "--data",
+      JSON.stringify(data),
+      "--workbook-policy",
+      policy,
+      "--output",
+      "/result.pptx",
+      "--force",
+      "--json"
+    ];
+    const publishOutput = vi.fn(
+      async (output: { outputPath: string; bytes: Uint8Array; dryRun: boolean }) => {
+        if (!output.dryRun) fs.writeFileSync(output.outputPath, output.bytes);
+      }
+    );
+    const run = (extra: string[]) =>
+      engine.execute({
+        args: [...args, ...extra].map(encode),
+        signal: new AbortController().signal,
+        readInput: async (path) => new Uint8Array(fs.readFileSync(path) as Buffer),
+        publishOutput
+      });
+    expect((await run(["--dry-run"])).exitCode).toBe(0);
+    expect(publishOutput).toHaveBeenLastCalledWith(expect.objectContaining({ dryRun: true }));
+    publishOutput.mockClear();
+    expect(fs.readFileSync("/result.pptx", "utf8")).toBe("retained");
+    const result = await run([]);
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(decode(result.stdout))).toMatchObject({
+      version: 1,
+      operation: "charts.replace",
+      ok: true,
+      affected: 1,
+      errors: []
+    });
+    const output = outputs(new Uint8Array(fs.readFileSync("/result.pptx") as Buffer));
+    expect(output.chart).toContain("Sheet1!$B$2:$B$2");
+    expect(output.sheet).toContain('<c r="B2"><v>8</v></c>');
+    expect(publishOutput).toHaveBeenCalledTimes(1);
+    fs.writeFileSync(
+      "/deck.pptx",
+      patch(source, (xml) => xml.replace("Sheet1!$B$2:$B$3", "SUM(Sheet1!$B$2:$B$3)"))
+    );
+    const snapshot = fs.readFileSync("/result.pptx");
+    const failed = await run([]);
+    expect(failed.exitCode).toBe(1);
+    expect(JSON.parse(decode(failed.stdout))).toMatchObject({ ok: false, affected: 0, data: null });
+    expect(publishOutput).toHaveBeenCalledTimes(1);
+    expect(fs.readFileSync("/result.pptx")).toEqual(snapshot);
+  }
+);

@@ -9,6 +9,7 @@ import { readCharts, inspectChart } from "./charts.js";
 import { parseXmlPart, type XmlPart, type XmlElement } from "./xml.js";
 import {
   chartWorkbookRange,
+  workbookColumn,
   createChartWorkbook,
   validateChartWorkbook,
   validateWorkbookOwnership,
@@ -273,11 +274,6 @@ export function validateChartUpdate(update: ChartUpdate): void {
       invalid("Chart geometry requires bounded integer EMUs and positive extents.");
   }
 }
-function column(n: number): string {
-  let s = "";
-  for (n++; n; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
-  return s;
-}
 function variant(type: CreatableChartType) {
   return {
     scatter: type.startsWith("XY_") || type.startsWith("BUBBLE"),
@@ -317,8 +313,8 @@ function seriesXml(
     numeric: boolean,
     col: number
   ) =>
-    `<c:${holder}><c:${numeric ? "num" : "str"}Ref><c:f>${escape(`${sheet}!$${column(col)}$2:$${column(col)}$${values.length + 1}`)}</c:f><c:${numeric ? "num" : "str"}Cache>${numeric ? `<c:formatCode>${escape(holder === "cat" ? (data.categoryNumberFormat ?? (dates ? "yyyy-mm-dd" : "General")) : holder === "xVal" || holder === "bubbleSize" ? (data.numberFormat ?? "General") : (series.numberFormat ?? data.numberFormat ?? "General"))}</c:formatCode>` : ""}<c:ptCount val="${values.length}"/>${values.map((n, i) => (n === null ? "" : `<c:pt idx="${i}"><c:v>${escape(String(n))}</c:v></c:pt>`)).join("")}</c:${numeric ? "num" : "str"}Cache></c:${numeric ? "num" : "str"}Ref></c:${holder}>`;
-  return `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:strRef><c:f>${escape(`${sheet}!$${column(yColumn)}$1`)}</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>${escape(series.name)}</c:v></c:pt></c:strCache></c:strRef></c:tx>${type.startsWith("LINE") || (v.scatter && !v.bubble) || (v.radar && type !== "RADAR_FILLED") ? `<c:marker><c:symbol val="${(v.scatter ? v.marker : type.includes("MARKERS")) ? "circle" : "none"}"/></c:marker>` : ""}${type === "PIE_EXPLODED" || type === "DOUGHNUT_EXPLODED" ? '<c:explosion val="25"/>' : ""}${
+    `<c:${holder}><c:${numeric ? "num" : "str"}Ref><c:f>${escape(`${sheet}!$${workbookColumn(col)}$2:$${workbookColumn(col)}$${values.length + 1}`)}</c:f><c:${numeric ? "num" : "str"}Cache>${numeric ? `<c:formatCode>${escape(holder === "cat" ? (data.categoryNumberFormat ?? (dates ? "yyyy-mm-dd" : "General")) : holder === "xVal" || holder === "bubbleSize" ? (data.numberFormat ?? "General") : (series.numberFormat ?? data.numberFormat ?? "General"))}</c:formatCode>` : ""}<c:ptCount val="${values.length}"/>${values.map((n, i) => (n === null ? "" : `<c:pt idx="${i}"><c:v>${escape(String(n))}</c:v></c:pt>`)).join("")}</c:${numeric ? "num" : "str"}Cache></c:${numeric ? "num" : "str"}Ref></c:${holder}>`;
+  return `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:strRef><c:f>${escape(`${sheet}!$${workbookColumn(yColumn)}$1`)}</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>${escape(series.name)}</c:v></c:pt></c:strCache></c:strRef></c:tx>${type.startsWith("LINE") || (v.scatter && !v.bubble) || (v.radar && type !== "RADAR_FILLED") ? `<c:marker><c:symbol val="${(v.scatter ? v.marker : type.includes("MARKERS")) ? "circle" : "none"}"/></c:marker>` : ""}${type === "PIE_EXPLODED" || type === "DOUGHNUT_EXPLODED" ? '<c:explosion val="25"/>' : ""}${
     v.scatter
       ? reference("xVal", series.xValues!, true, xColumn) +
         reference("yVal", series.values, true, yColumn) +
@@ -327,7 +323,7 @@ function seriesXml(
             `<c:bubble3D val="${type === "BUBBLE_THREE_D_EFFECT" ? 1 : 0}"/>`
           : "")
       : (data.categoryLevels
-          ? `<c:cat><c:multiLvlStrRef><c:f>${escape(`${sheet}!$A$2:$${column(data.categoryLevels.length - 1)}$${data.categoryLevels[0]!.length + 1}`)}</c:f><c:multiLvlStrCache><c:ptCount val="${data.categoryLevels[0]!.length}"/>${[
+          ? `<c:cat><c:multiLvlStrRef><c:f>${escape(`${sheet}!$A$2:$${workbookColumn(data.categoryLevels.length - 1)}$${data.categoryLevels[0]!.length + 1}`)}</c:f><c:multiLvlStrCache><c:ptCount val="${data.categoryLevels[0]!.length}"/>${[
               ...data.categoryLevels
             ]
               .reverse()

@@ -22,6 +22,8 @@ interface WorkbookData {
 interface WorkbookInfo {
   readonly workbookPart: string;
   readonly stylesPart?: string;
+  readonly stringsPart?: string;
+  readonly stringsId?: string;
   readonly sheetName: string;
   readonly sheetPart: string;
   readonly date1904: boolean;
@@ -60,9 +62,19 @@ function escaped(text: string): string {
     .split('"')
     .join("&quot;")
     .split("\r")
-    .join("&#13;");
+    .join("&#13;")
+    .split("\n")
+    .join("&#10;")
+    .split("\t")
+    .join("&#9;");
 }
-function column(index: number): string {
+export function workbookColumn(index: number): string {
+  if (!Number.isInteger(index) || index < 0 || index >= 16384)
+    throw new OfficeError(
+      "invalid-value",
+      "Worksheet column is outside the supported grid.",
+      "usage"
+    );
   let result = "";
   for (let value = index + 1; value > 0; value = Math.floor((value - 1) / 26))
     result = String.fromCharCode(65 + ((value - 1) % 26)) + result;
@@ -172,7 +184,18 @@ function inspectWorkbook(pkg: PackageReader, context: SelectionContext): Workboo
   for (const part of graph.parts) {
     const type = types.get(part);
     if (
-      type === "application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml" ||
+      [
+        "table",
+        "calcChain",
+        "externalLink",
+        "connections",
+        "queryTable",
+        "pivotTable",
+        "pivotCacheDefinition",
+        "pivotCacheRecords"
+      ].some(
+        (kind) => type === `application/vnd.openxmlformats-officedocument.spreadsheetml.${kind}+xml`
+      ) ||
       (type === "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" &&
         part !== sheetPart)
     )
@@ -233,9 +256,24 @@ function inspectWorkbook(pkg: PackageReader, context: SelectionContext): Workboo
   if (date1904 !== undefined && !["0", "1", "false", "true"].includes(date1904)) unsupported();
   const styles = links.filter((edge) => edge.type === `${relationships}/styles`);
   if (styles.length > 1) unsupported();
+  const strings = links.filter((edge) => edge.type === `${relationships}/sharedStrings`);
+  if (strings.length > 1) unsupported();
+  const stringsPart = strings[0]?.targetPart;
+  if (stringsPart) {
+    if (graph.incoming(stringsPart).length !== 1 || graph.outgoing(stringsPart).length)
+      unsupported();
+    const table = parseXmlPart(pkg.get(stringsPart), context.xmlLimits);
+    if (
+      table.root.name.namespace !== ns ||
+      table.root.name.localName !== "sst" ||
+      table.root.children.some((node) => node.name.namespace !== ns || node.name.localName !== "si")
+    )
+      unsupported();
+  }
   return {
     workbookPart,
     ...(styles[0]?.targetPart ? { stylesPart: styles[0].targetPart } : {}),
+    ...(stringsPart ? { stringsPart, stringsId: strings[0]!.id } : {}),
     sheetName,
     sheetPart,
     cells,
@@ -364,7 +402,7 @@ export async function createChartWorkbook(
     columns.forEach((values, col) => {
       const value = values[row];
       if (value === null || value === undefined) return;
-      const ref = `${column(col)}${row + 1}`;
+      const ref = `${workbookColumn(col)}${row + 1}`;
       const style = row > 0 && styles.indices[col] ? ` s="${styles.indices[col]}"` : "";
       cells +=
         typeof value === "number"
@@ -389,6 +427,29 @@ export async function createChartWorkbook(
     worksheet = xml.bytes();
     const entries = new Map(source.names.map((name) => [name, source.get(name)]));
     entries.set(info.sheetPart, worksheet);
+    if (info.stringsPart) {
+      entries.delete(info.stringsPart);
+      const split = info.workbookPart.lastIndexOf("/");
+      const relsPart = `${info.workbookPart.slice(0, split)}/_rels/${info.workbookPart.slice(split + 1)}.rels`;
+      const rels = parseXmlPart(source.get(relsPart), context.xmlLimits);
+      entries.set(
+        relsPart,
+        rels
+          .spliceChildren(
+            rels.root,
+            rels.root.children.findIndex((node) => attribute(node, "Id") === info.stringsId),
+            1,
+            []
+          )
+          .bytes()
+      );
+      let types = parseXmlPart(source.get("/[Content_Types].xml"), context.xmlLimits);
+      const index = types.root.children.findIndex(
+        (node) => attribute(node, "PartName") === info.stringsPart
+      );
+      if (index >= 0) types = types.spliceChildren(types.root, index, 1, []);
+      entries.set("/[Content_Types].xml", types.bytes());
+    }
     if (styles.bytes) {
       const stylesPart =
         info.stylesPart ??
@@ -397,14 +458,14 @@ export async function createChartWorkbook(
         if (entries.has(stylesPart)) unsupported();
         const split = info.workbookPart.lastIndexOf("/");
         const relsPart = `${info.workbookPart.slice(0, split)}/_rels/${info.workbookPart.slice(split + 1)}.rels`;
-        let rels = parseXmlPart(source.get(relsPart), context.xmlLimits);
+        let rels = parseXmlPart(entries.get(relsPart)!, context.xmlLimits);
         let id = "chartStyles";
         while (rels.root.children.some((node) => attribute(node, "Id") === id)) id += "_";
         rels = rels.spliceChildren(rels.root, rels.root.children.length, 0, [
           `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${id}" Type="${relationships}/styles" Target="chart-styles.xml"/>`
         ]);
         entries.set(relsPart, rels.bytes());
-        let types = parseXmlPart(source.get("/[Content_Types].xml"), context.xmlLimits);
+        let types = parseXmlPart(entries.get("/[Content_Types].xml")!, context.xmlLimits);
         types = types.spliceChildren(types.root, types.root.children.length, 0, [
           `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${escaped(stylesPart)}" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>`
         ]);

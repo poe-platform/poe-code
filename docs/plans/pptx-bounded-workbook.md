@@ -35,3 +35,19 @@ and passed afterward (352 ms test execution). Maintained `npm run test
 passed. Added support for quoted/relative direct ranges and stacked XY/bubble
 sheets, reject unrelated cells/dependent chart formulas/epoch mismatches, and
 allocate fresh series identities. No CLI grammar/help changes.
+
+Second increment: five new string/format/dependency regressions failed before
+implementation and passed afterward. The writer now retires the owned shared
+string table and its metadata when writing inline strings, preserves XML attribute
+whitespace in number formats, and rejects detached calculation/external/pivot
+parts. One checked column formatter now serves workbook cells and chart ranges.
+Original tests cover every audited column boundary, category range dimensions,
+all eight rewriter dispatch variants, grow/same/shrink, seven date boundaries and
+both CLI workbook policies with dry-run/failure publication checks.
+
+Maintained final runtime gate: 128 files / 3,627 tests passed; package lint and
+both type checks passed; selected `pptx` workspace closure built successfully
+(office-package, toolcraft-schema, pptx). Tests use only original memory data.
+CLI callback QA honors the declared dryRun publication request; initial test
+adapter mistakes and prefix-sensitive XML assertions were corrected, not counted
+as product regressions. Research ledger and final screenshot receipt remain.

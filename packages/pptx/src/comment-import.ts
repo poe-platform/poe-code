@@ -2,14 +2,14 @@ import { OfficeError } from "./errors.js";
 import { attr } from "./masters.js";
 import type { PackageReader } from "./package-reader.js";
 import type { RelationshipGraph } from "./relationships.js";
-import { parseXmlPart, type XmlPart, type XmlLimits } from "./xml.js";
+import { parseXmlPart, type XmlPart, type XmlLimits, type XmlElement } from "./xml.js";
 
 const authorType =
   "application/vnd.openxmlformats-officedocument.presentationml.commentAuthors+xml";
 function unsupported(): never {
   throw new OfficeError(
     "unsupported-edit",
-    "Import cannot establish legacy comment author identity.",
+    "Cannot establish legacy comment author identity.",
     "validate-intent"
   );
 }
@@ -24,6 +24,51 @@ function integer(value: string | undefined) {
     unsupported();
   return Number(value);
 }
+const supportedAttributes: Record<string, readonly string[]> = {
+  cmAuthorLst: [],
+  cmAuthor: ["id", "name", "initials", "lastIdx", "clrIdx"],
+  cmLst: [],
+  cm: ["authorId", "dt", "idx"],
+  pos: ["x", "y"],
+  text: []
+};
+const supportedChildren: Record<string, readonly string[]> = {
+  cmAuthorLst: ["cmAuthor"],
+  cmAuthor: [],
+  cmLst: ["cm"],
+  cm: ["pos", "text"],
+  pos: [],
+  text: []
+};
+export function requireLegacyCommentRemapping(root: XmlElement, namespace: string) {
+  const pending = [root];
+  while (pending.length) {
+    const node = pending.pop()!;
+    const attributes = supportedAttributes[node.name.localName];
+    const children = supportedChildren[node.name.localName];
+    if (
+      node.name.namespace !== namespace ||
+      !attributes ||
+      !children ||
+      node.attributes.some(
+        ({ name }) =>
+          name.namespace !== "http://www.w3.org/2000/xmlns/" &&
+          !(name.namespace === "" && attributes.includes(name.localName)) &&
+          !(
+            node.name.localName === "text" &&
+            name.namespace === "http://www.w3.org/XML/1998/namespace" &&
+            name.localName === "space"
+          )
+      ) ||
+      node.children.some(
+        (child) => child.name.namespace !== namespace || !children.includes(child.name.localName)
+      )
+    )
+      unsupported();
+    pending.push(...node.children);
+  }
+}
+
 export function prepareCommentImport(options: {
   source: PackageReader;
   destination: PackageReader;
@@ -75,6 +120,7 @@ export function prepareCommentImport(options: {
     });
     return result;
   };
+  requireLegacyCommentRemapping(sourceAuthors.root, dialect.p);
   const sourceIds = collect(sourceAuthors);
   const destinationIds = collect(authors);
   const usedSourceIds = new Set<number>();
@@ -83,6 +129,7 @@ export function prepareCommentImport(options: {
   for (const part of options.parts) {
     if (options.sourceGraph.outgoing(part).length) unsupported();
     const xml = parse(source.get(part));
+    requireLegacyCommentRemapping(xml.root, dialect.p);
     if (xml.root.name.namespace !== dialect.p || xml.root.name.localName !== "cmLst") unsupported();
     const identities = new Set<string>();
     for (const node of xml.root.children) {

@@ -1,6 +1,7 @@
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { createPptxCommandEngine } from "./command-engine.js";
 import { createPresentation } from "./creation.js";
 import { importSlides } from "./slide-import.js";
 import { removeSlides } from "./slide-removal.js";
@@ -188,6 +189,109 @@ describe("comment ownership across slide lifecycle", () => {
     await expect(
       importSlides(destination, bytes, { sourceSlides: [1] }, context)
     ).rejects.toMatchObject({ code: "unsupported-edit" });
+  });
+  it.each([
+    ["comment extension", "ppt/comments/comment1.xml", "cm", "child"],
+    ["comment attribute", "ppt/comments/comment1.xml", "cm", "attribute"],
+    ["position attribute", "ppt/comments/comment1.xml", "pos", "attribute"],
+    ["text extension", "ppt/comments/comment1.xml", "text", "child"],
+    ["author attribute", "ppt/commentAuthors.xml", "cmAuthor", "attribute"],
+    ["author-list attribute", "ppt/commentAuthors.xml", "cmAuthorLst", "attribute"]
+  ])("rejects identity remapping with an opaque %s", async (_label, name, local, kind) => {
+    const source = parts(await annotated());
+    const document = parseXmlPart(source.get(name!)!, context.xmlLimits);
+    const pending = [document.root];
+    while (pending[0]?.name.localName !== local) {
+      const node = pending.shift()!;
+      pending.push(...node.children);
+    }
+    const node = pending[0]!;
+    const changed =
+      kind === "child"
+        ? document.spliceChildren(node, node.children.length, 0, [
+            '<x:identity xmlns:x="urn:review:identity" authorId="0" parentId="0:7"/>'
+          ])
+        : document.merge(node, {
+            attributes: [{ namespace: "urn:review:identity", localName: "personId", value: "0" }]
+          });
+    source.set(name!, changed.bytes());
+    const input = await writePackageArchive(
+      [...source].map(([name, bytes]) => ({ name, bytes })),
+      context,
+      { compression: "auto" }
+    );
+    const before = input.slice();
+    await expect(
+      importSlides(await annotated(), input, { sourceSlides: [1] }, context)
+    ).rejects.toMatchObject({ code: "unsupported-edit", phase: "validate-intent" });
+    expect(input).toEqual(before);
+    const volume = Volume.fromJSON({});
+    const destination = await annotated();
+    volume.writeFileSync("/source.pptx", input);
+    volume.writeFileSync("/destination.pptx", destination);
+    const publishOutput = vi.fn();
+    const response = await createPptxCommandEngine({
+      context,
+      maxArgumentBytes: 65536,
+      maxOutputBytes: 1000000
+    }).execute({
+      args: [
+        "slides",
+        "import",
+        "/destination.pptx",
+        "--source",
+        "/source.pptx",
+        "--source-slides",
+        "[1]",
+        "--output",
+        "/result.pptx",
+        "--json"
+      ].map(encode),
+      signal: new AbortController().signal,
+      readInput: async (path) => new Uint8Array(volume.readFileSync(path) as Buffer),
+      publishOutput
+    });
+    expect(response.exitCode).toBe(1);
+    expect(JSON.parse(new TextDecoder().decode(response.stdout))).toMatchObject({
+      operation: "slides.import",
+      affected: 0,
+      errors: [{ code: "unsupported-edit" }]
+    });
+    expect(publishOutput).not.toHaveBeenCalled();
+    expect(volume.readFileSync("/source.pptx")).toEqual(Buffer.from(before));
+    expect(volume.readFileSync("/destination.pptx")).toEqual(Buffer.from(destination));
+  });
+  it("retains opaque destination author identity attributes without remapping them", async () => {
+    const destination = parts(await annotated());
+    const name = "ppt/commentAuthors.xml";
+    const xml = parseXmlPart(destination.get(name)!, context.xmlLimits);
+    destination.set(
+      name,
+      xml
+        .merge(xml.root.children[0]!, {
+          attributes: [
+            { namespace: "urn:review:identity", localName: "personId", value: "keep-person" }
+          ]
+        })
+        .bytes()
+    );
+    const before = parseXmlPart(destination.get(name)!, context.xmlLimits);
+    const input = await writePackageArchive(
+      [...destination].map(([name, bytes]) => ({ name, bytes })),
+      context,
+      { compression: "auto" }
+    );
+    const output = parts(
+      await importSlides(input, await annotated(), { sourceSlides: [1] }, context)
+    );
+    const result = parseXmlPart(output.get(name)!, context.xmlLimits);
+    expect(result.markup(result.root.children[0]!, true)).toEqual(
+      before.markup(before.root.children[0]!, true)
+    );
+    expect(attributes(output.get(name)!, "cmAuthor").map((author) => author.id)).toEqual([
+      "0",
+      "1"
+    ]);
   });
   it("retains an author still referenced on another slide", async () => {
     const input = await annotated();

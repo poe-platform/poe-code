@@ -11,6 +11,7 @@ import {
   Emu,
   addSlide,
   createPptxCommandEngine,
+  type PptxCommandEngineOptions,
   createPresentation,
   getXmlPart,
   duplicateSlides,
@@ -100,7 +101,7 @@ before(() => {
     delay === 0 ? setImmediate(callback) : timer(callback, delay)) as typeof setTimeout);
 });
 after(() => mock.restoreAll());
-function fixture(engineContext = context) {
+function fixture(engineContext: PptxCommandEngineOptions["context"] = context) {
   const volume = Volume.fromJSON({ "/work": null });
   const fs: FileSystem = new MemoryFileSystem();
   const identityScope = {};

@@ -96,3 +96,7 @@ or the opaque-effect acceptance assertions.
 
 Delivery is local-only on main. No push, release, README change, full pipeline,
 corpus publication or ignored fixture staging is authorized or performed.
+
+The command fixture context repair is delivered independently from production
+formatting changes. The public context annotation admits the documented optional
+validation limits while retaining compile-time checking of unknown options.

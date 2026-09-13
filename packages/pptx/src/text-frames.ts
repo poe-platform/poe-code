@@ -4,7 +4,7 @@ import { fitFrameXml, type ModelTextFitOptions } from "./text-fitting.js";
 import { SaxesParser } from "saxes";
 import { Length, Pt } from "./length.js";
 import type { BinaryInput, Location } from "./contracts.js";
-import { InvalidHandleError, OfficeError } from "./errors.js";
+import { InvalidHandleError, OfficeError, TypeError } from "./errors.js";
 import { Paragraph } from "./text-paragraphs.js";
 import { loadShared } from "./masters.js";
 import { SelectionError, type SelectionContext } from "./selectors.js";
@@ -473,6 +473,33 @@ export class TextFrame {
     font_file?: FontMetricsHandle | null,
     options: ModelTextFitOptions = {}
   ): void {
+    if (
+      typeof font_family !== "string" ||
+      typeof max_size !== "number" ||
+      typeof bold !== "boolean" ||
+      typeof italic !== "boolean"
+    )
+      throw new TypeError("Text fitting requires a font family, numeric size and boolean styles.");
+    if (
+      !options ||
+      typeof options !== "object" ||
+      ![Object.prototype, null].includes(Object.getPrototypeOf(options)) ||
+      Reflect.ownKeys(options).some(
+        (key) =>
+          typeof key !== "string" ||
+          ![
+            "minSize",
+            "marginLeft",
+            "marginRight",
+            "marginTop",
+            "marginBottom",
+            "wrap",
+            "lineSpacing"
+          ].includes(key) ||
+          !Object.hasOwn(Object.getOwnPropertyDescriptor(options, key)!, "value")
+      )
+    )
+      throw new OfficeError("invalid-value", "Text fit options require stored data.", "usage");
     const extents = this.#binding?.extents ? this.#binding.extents() : this.#extents;
     const result = fitFrameXml(
       this.#xml,

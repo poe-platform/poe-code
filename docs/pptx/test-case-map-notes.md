@@ -35,13 +35,13 @@ includes every recorded assertion, not only the first or the function heading.
 
 The ledger distinguishes:
 
-- 110 reviewed original designs, all awaiting implementation and passing evidence.
-- 897 proposed BDD descriptions with expanded conditions/actions/outcomes and
+- 167 reviewed original designs, all awaiting implementation and passing evidence.
+- 894 proposed BDD descriptions with expanded conditions/actions/outcomes and
   original content substitutions; source step definitions and fixture semantics
   still require reconciliation before semantic approval.
 - One deferred public graphic-frame shadow behavior, with a specified rejection
   case. Rejection coverage does not establish shadow editing support.
-- 2,665 unit cases with exact source contracts and assigned TypeScript tasks whose
+- 2,611 unit cases with exact source contracts and assigned TypeScript tasks whose
   original semantic designs remain required.
 
 Thus all source cases are accounted for, but the requirement to adapt every
@@ -108,3 +108,15 @@ Reference identities and copied source expressions remain research/provenance
 under the standalone notice. Original target names and authored assets remain
 neutral. No README, product code, public CLI output, fixture binary or runtime
 configuration changes are part of this update.
+
+## Color design review
+
+All 54 color-unit rows and three color BDD scenarios now have reviewed original
+TypeScript designs. Exact color kinds, absent-property errors, theme sentinels,
+luminance transforms and invalid channels remain distinct. BDD step definitions
+and the original fixture precondition were inspected; original owner graphs and
+assets replace it. Constructor argument typing follows J08; the RGB property setter retains its
+declared ValueError for a non-RGBColor value. Invalid numeric values retain
+ValueError. The hex parser research correction and supplemental
+exact-width design are recorded in [the review](../plans/pptx-color-case-reconciliation.md).
+The corpus verification is independent preparation, not execution of these cases.

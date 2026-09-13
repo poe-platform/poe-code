@@ -144,10 +144,13 @@ respectively. Each parameter row remains separate and records the deliberate
 mapping. Tests compare a Length object's `.emu` value; a source numeric-subclass
 comparison is not a requirement to make a JS object equal a primitive number.
 
-RGB channels must be integers in [0,255]; `from_string` accepts exactly six hex
-digits. The source slices the first six characters without enforcing total length;
-rejecting trailing characters is an explicit target validation difference, not
-a source validation claim. The value is immutable. Formatting preserves `true`, `false`, `null` as
+RGB channels must be integers in [0,255]; `from_string` accepts exactly six ASCII
+hex digits. The source parses positions 0–1 and 2–3, then the entire suffix
+from position 4, without checking total length. Thus `12345` yields channels
+(18,52,5), `1234000` yields (18,52,0), and `1234560` fails because its blue
+value exceeds 255. These follow from the pinned parser syntax and channel checks,
+not a new reference execution. The target rejects all three under its exact-six
+rule; it does not silently truncate an extra suffix. The value is immutable. Formatting preserves `true`, `false`, `null` as
 three distinct states; zero and empty string are not interchangeable with null.
 Existing negative or greater-than-one crop metadata is retained and readable;
 new edits still satisfy the format's visible-extent and finite-limit checks.

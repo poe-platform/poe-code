@@ -34,20 +34,20 @@
     "source_rows": 3673,
     "unit_without_prior_candidate": 875,
     "bdd_without_prior_candidate": 307,
-    "reviewed_original_designs": 110,
-    "semantic_review_required": 2665,
+    "reviewed_original_designs": 167,
+    "semantic_review_required": 2611,
     "implemented": 0,
     "executed": 0,
     "shared_counterpart_obligations": 391,
     "api_records": 2407,
     "api_target_rows": 2424,
     "api_rows_without_prior_candidates": 1072,
-    "proposed_original_designs": 897,
+    "proposed_original_designs": 894,
     "deferred_public_behaviors": 1,
     "unit_behavior_evidence": 2700,
     "parameter_bindings_resolved": 2057,
     "unparameterized_cases": 643,
-    "supplemental_original_designs": 1
+    "supplemental_original_designs": 2
   },
   "baseline_reuse": {
     "action": "Reused matching artifacts; neither reference suite nor reference runtime rerun.",
@@ -71117,8 +71117,21 @@
         "case_id": "presentation-unit-4e87ff74bec1",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Report the explicit color representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": null
+          },
+          "act": "Read color.type without creating or converting a color.",
+          "expected": {
+            "type": null,
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71134,10 +71147,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71188,8 +71201,27 @@
         "case_id": "presentation-unit-e6ed28db89e7",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Report the explicit color representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "hslClr": {
+                "hue": 7200000,
+                "sat": 40000,
+                "lum": 60000
+              }
+            }
+          },
+          "act": "Read color.type without creating or converting a color.",
+          "expected": {
+            "type": "HSL",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71205,10 +71237,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71259,8 +71291,25 @@
         "case_id": "presentation-unit-4b76ab99eb9e",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Report the explicit color representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "prstClr": {
+                "val": "navy"
+              }
+            }
+          },
+          "act": "Read color.type without creating or converting a color.",
+          "expected": {
+            "type": "PRESET",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71276,10 +71325,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71330,8 +71379,25 @@
         "case_id": "presentation-unit-183a3e7d9a52",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Report the explicit color representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent1"
+              }
+            }
+          },
+          "act": "Read color.type without creating or converting a color.",
+          "expected": {
+            "type": "SCHEME",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71347,10 +71413,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71401,8 +71467,27 @@
         "case_id": "presentation-unit-bf313ca4ca9d",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Report the explicit color representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "scrgbClr": {
+                "r": 20000,
+                "g": 40000,
+                "b": 60000
+              }
+            }
+          },
+          "act": "Read color.type without creating or converting a color.",
+          "expected": {
+            "type": "SCRGB",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71418,10 +71503,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71472,8 +71557,25 @@
         "case_id": "presentation-unit-b98c7f56cb3d",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Report the explicit color representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            }
+          },
+          "act": "Read color.type without creating or converting a color.",
+          "expected": {
+            "type": "RGB",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71489,10 +71591,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71543,8 +71645,26 @@
         "case_id": "presentation-unit-a4a751ff034f",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Report the explicit color representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "sysClr": {
+                "val": "windowText",
+                "lastClr": "203040"
+              }
+            }
+          },
+          "act": "Read color.type without creating or converting a color.",
+          "expected": {
+            "type": "SYSTEM",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71560,10 +71680,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71614,8 +71734,26 @@
         "case_id": "presentation-unit-d94159b9fbb6",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Read three stored sRGB channels",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            }
+          },
+          "act": "Read color.rgb and compare its channel snapshot and equals(new RGBColor(18, 52, 86)).",
+          "expected": {
+            "channels": [18, 52, 86],
+            "equal": true,
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71631,10 +71769,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71678,8 +71816,22 @@
         "case_id": "presentation-unit-5d2e92a9ab0d",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Reject an RGB read from a different representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": null
+          },
+          "act": "Read color.rgb.",
+          "expected": {
+            "error": "PropertyAccessError",
+            "code": "property-unavailable",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71695,10 +71847,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71749,8 +71901,28 @@
         "case_id": "presentation-unit-bee197fc7079",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Reject an RGB read from a different representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "hslClr": {
+                "hue": 7200000,
+                "sat": 40000,
+                "lum": 60000
+              }
+            }
+          },
+          "act": "Read color.rgb.",
+          "expected": {
+            "error": "PropertyAccessError",
+            "code": "property-unavailable",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71766,10 +71938,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71820,8 +71992,26 @@
         "case_id": "presentation-unit-885efeefa286",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Reject an RGB read from a different representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "prstClr": {
+                "val": "navy"
+              }
+            }
+          },
+          "act": "Read color.rgb.",
+          "expected": {
+            "error": "PropertyAccessError",
+            "code": "property-unavailable",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71837,10 +72027,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71891,8 +72081,26 @@
         "case_id": "presentation-unit-a8c0dab71815",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Reject an RGB read from a different representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent1"
+              }
+            }
+          },
+          "act": "Read color.rgb.",
+          "expected": {
+            "error": "PropertyAccessError",
+            "code": "property-unavailable",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71908,10 +72116,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -71962,8 +72170,28 @@
         "case_id": "presentation-unit-0b54802b5533",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Reject an RGB read from a different representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "scrgbClr": {
+                "r": 20000,
+                "g": 40000,
+                "b": 60000
+              }
+            }
+          },
+          "act": "Read color.rgb.",
+          "expected": {
+            "error": "PropertyAccessError",
+            "code": "property-unavailable",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -71979,10 +72207,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72033,8 +72261,27 @@
         "case_id": "presentation-unit-97d4fe9630cf",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Reject an RGB read from a different representation",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "sysClr": {
+                "val": "windowText",
+                "lastClr": "203040"
+              }
+            }
+          },
+          "act": "Read color.rgb.",
+          "expected": {
+            "error": "PropertyAccessError",
+            "code": "property-unavailable",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72050,10 +72297,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72104,8 +72351,27 @@
         "case_id": "presentation-unit-2eadccf02bec",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Distinguish theme references from other colors",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "hslClr": {
+                "hue": 7200000,
+                "sat": 40000,
+                "lum": 60000
+              }
+            }
+          },
+          "act": "Read color.theme_color.",
+          "expected": {
+            "theme_color": "NOT_THEME_COLOR",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72121,10 +72387,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72175,8 +72441,25 @@
         "case_id": "presentation-unit-1ee22100fde8",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Distinguish theme references from other colors",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "prstClr": {
+                "val": "navy"
+              }
+            }
+          },
+          "act": "Read color.theme_color.",
+          "expected": {
+            "theme_color": "NOT_THEME_COLOR",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72192,10 +72475,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72246,8 +72529,25 @@
         "case_id": "presentation-unit-aa56f70b9ad9",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Distinguish theme references from other colors",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent1"
+              }
+            }
+          },
+          "act": "Read color.theme_color.",
+          "expected": {
+            "theme_color": "ACCENT_1",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72263,10 +72563,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72317,8 +72617,27 @@
         "case_id": "presentation-unit-66e6c25dd3ea",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Distinguish theme references from other colors",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "scrgbClr": {
+                "r": 20000,
+                "g": 40000,
+                "b": 60000
+              }
+            }
+          },
+          "act": "Read color.theme_color.",
+          "expected": {
+            "theme_color": "NOT_THEME_COLOR",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72334,10 +72653,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72388,8 +72707,25 @@
         "case_id": "presentation-unit-4b42c576b4bd",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Distinguish theme references from other colors",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            }
+          },
+          "act": "Read color.theme_color.",
+          "expected": {
+            "theme_color": "NOT_THEME_COLOR",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72405,10 +72741,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72459,8 +72795,26 @@
         "case_id": "presentation-unit-15d6aa0f92c8",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Distinguish theme references from other colors",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "sysClr": {
+                "val": "windowText",
+                "lastClr": "203040"
+              }
+            }
+          },
+          "act": "Read color.theme_color.",
+          "expected": {
+            "theme_color": "NOT_THEME_COLOR",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72476,10 +72830,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72530,8 +72884,22 @@
         "case_id": "presentation-unit-e8c2771b5a1b",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Reject theme lookup when color is absent",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": null
+          },
+          "act": "Read color.theme_color.",
+          "expected": {
+            "error": "PropertyAccessError",
+            "code": "property-unavailable",
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72547,10 +72915,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72594,8 +72962,29 @@
         "case_id": "presentation-unit-8cef70590ba8",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Read a stored tint or shade adjustment",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "hslClr": {
+                "hue": 7200000,
+                "sat": 40000,
+                "lum": 60000
+              }
+            },
+            "lumMod": 55000,
+            "lumOff": 45000
+          },
+          "act": "Read color.brightness; missing XML transforms remain absent.",
+          "expected": {
+            "brightness": 0.45,
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72611,10 +73000,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72665,8 +73054,27 @@
         "case_id": "presentation-unit-740eef46b0bd",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Read a stored tint or shade adjustment",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "prstClr": {
+                "val": "navy"
+              }
+            },
+            "lumMod": null,
+            "lumOff": null
+          },
+          "act": "Read color.brightness; missing XML transforms remain absent.",
+          "expected": {
+            "brightness": 0,
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72682,10 +73090,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72736,8 +73144,27 @@
         "case_id": "presentation-unit-0732e9b6a73b",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Read a stored tint or shade adjustment",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent1"
+              }
+            },
+            "lumMod": 15000,
+            "lumOff": null
+          },
+          "act": "Read color.brightness; missing XML transforms remain absent.",
+          "expected": {
+            "brightness": -0.85,
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72753,10 +73180,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72807,8 +73234,29 @@
         "case_id": "presentation-unit-cef0fd0f0837",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Read a stored tint or shade adjustment",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "scrgbClr": {
+                "r": 20000,
+                "g": 40000,
+                "b": 60000
+              }
+            },
+            "lumMod": 15000,
+            "lumOff": 85000
+          },
+          "act": "Read color.brightness; missing XML transforms remain absent.",
+          "expected": {
+            "brightness": 0.85,
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72824,10 +73272,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72878,8 +73326,27 @@
         "case_id": "presentation-unit-b1eea0eab2f9",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Read a stored tint or shade adjustment",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "lumMod": null,
+            "lumOff": null
+          },
+          "act": "Read color.brightness; missing XML transforms remain absent.",
+          "expected": {
+            "brightness": 0,
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72895,10 +73362,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -72949,8 +73416,28 @@
         "case_id": "presentation-unit-a2e29ebd5f81",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Read a stored tint or shade adjustment",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "sysClr": {
+                "val": "windowText",
+                "lastClr": "203040"
+              }
+            },
+            "lumMod": 23000,
+            "lumOff": null
+          },
+          "act": "Read color.brightness; missing XML transforms remain absent.",
+          "expected": {
+            "brightness": -0.77,
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -72966,10 +73453,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73020,8 +73507,28 @@
         "case_id": "presentation-unit-e649cccf2083",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with an explicit RGB value",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": null
+          },
+          "act": "Assign color.rgb = new RGBColor(18, 52, 86); inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "RGB",
+            "channels": [18, 52, 86],
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73037,10 +73544,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73091,8 +73598,34 @@
         "case_id": "presentation-unit-462efb342d8a",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with an explicit RGB value",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "hslClr": {
+                "hue": 7200000,
+                "sat": 40000,
+                "lum": 60000
+              }
+            }
+          },
+          "act": "Assign color.rgb = new RGBColor(18, 52, 86); inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "RGB",
+            "channels": [18, 52, 86],
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73108,10 +73641,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73162,8 +73695,32 @@
         "case_id": "presentation-unit-4c36d7ea2de4",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with an explicit RGB value",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "prstClr": {
+                "val": "navy"
+              }
+            }
+          },
+          "act": "Assign color.rgb = new RGBColor(18, 52, 86); inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "RGB",
+            "channels": [18, 52, 86],
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73179,10 +73736,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73233,8 +73790,32 @@
         "case_id": "presentation-unit-997d7e207d5b",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with an explicit RGB value",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent1"
+              }
+            }
+          },
+          "act": "Assign color.rgb = new RGBColor(18, 52, 86); inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "RGB",
+            "channels": [18, 52, 86],
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73250,10 +73831,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73304,8 +73885,34 @@
         "case_id": "presentation-unit-d7b00039b9bc",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with an explicit RGB value",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "scrgbClr": {
+                "r": 20000,
+                "g": 40000,
+                "b": 60000
+              }
+            }
+          },
+          "act": "Assign color.rgb = new RGBColor(18, 52, 86); inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "RGB",
+            "channels": [18, 52, 86],
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73321,10 +73928,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73375,8 +73982,32 @@
         "case_id": "presentation-unit-53eb2fcde650",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with an explicit RGB value",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            }
+          },
+          "act": "Assign color.rgb = new RGBColor(18, 52, 86); inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "RGB",
+            "channels": [18, 52, 86],
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73392,10 +74023,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73446,8 +74077,33 @@
         "case_id": "presentation-unit-9ce10496444d",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with an explicit RGB value",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "sysClr": {
+                "val": "windowText",
+                "lastClr": "203040"
+              }
+            }
+          },
+          "act": "Assign color.rgb = new RGBColor(18, 52, 86); inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "RGB",
+            "channels": [18, 52, 86],
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73463,10 +74119,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73517,8 +74173,27 @@
         "case_id": "presentation-unit-0ab2635f4d42",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Reject a channel array in a typed color setter",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            }
+          },
+          "act": "Attempt color.rgb = [18, 52, 86] through an intentionally invalid runtime call; also assert compile-time rejection.",
+          "expected": {
+            "error": "ValueError",
+            "code": "invalid-value",
+            "unchangedPartBytes": true,
+            "difference": "The declared per-member error contract retains ValueError for assigning a value that is not RGBColor; no string/array coercion."
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73534,10 +74209,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "The full source wrong-value assertion is retained as the per-member ValueError/invalid-value contract in the public API register. The target rejects a channel array rather than a source tuple; original graph state is unchanged."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73581,8 +74256,28 @@
         "case_id": "presentation-unit-f225da420726",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with a theme reference",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": null
+          },
+          "act": "Assign color.theme_color = MSO_THEME_COLOR.ACCENT_6; inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "SCHEME",
+            "theme_color": "ACCENT_6",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent6"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73598,10 +74293,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73652,8 +74347,34 @@
         "case_id": "presentation-unit-b461f69110e1",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with a theme reference",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "hslClr": {
+                "hue": 7200000,
+                "sat": 40000,
+                "lum": 60000
+              }
+            }
+          },
+          "act": "Assign color.theme_color = MSO_THEME_COLOR.ACCENT_6; inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "SCHEME",
+            "theme_color": "ACCENT_6",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent6"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73669,10 +74390,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73723,8 +74444,32 @@
         "case_id": "presentation-unit-04e8adbefb66",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with a theme reference",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "prstClr": {
+                "val": "navy"
+              }
+            }
+          },
+          "act": "Assign color.theme_color = MSO_THEME_COLOR.ACCENT_6; inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "SCHEME",
+            "theme_color": "ACCENT_6",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent6"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73740,10 +74485,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73794,8 +74539,32 @@
         "case_id": "presentation-unit-09201ac3712e",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with a theme reference",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent1"
+              }
+            }
+          },
+          "act": "Assign color.theme_color = MSO_THEME_COLOR.ACCENT_6; inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "SCHEME",
+            "theme_color": "ACCENT_6",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent6"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73811,10 +74580,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73865,8 +74634,34 @@
         "case_id": "presentation-unit-a8e43fe8f3af",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with a theme reference",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "scrgbClr": {
+                "r": 20000,
+                "g": 40000,
+                "b": 60000
+              }
+            }
+          },
+          "act": "Assign color.theme_color = MSO_THEME_COLOR.ACCENT_6; inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "SCHEME",
+            "theme_color": "ACCENT_6",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent6"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73882,10 +74677,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -73936,8 +74731,32 @@
         "case_id": "presentation-unit-db933e8534e4",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with a theme reference",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            }
+          },
+          "act": "Assign color.theme_color = MSO_THEME_COLOR.ACCENT_6; inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "SCHEME",
+            "theme_color": "ACCENT_6",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent6"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -73953,10 +74772,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74007,8 +74826,33 @@
         "case_id": "presentation-unit-03a3b1ca92e3",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace a color choice with a theme reference",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "sysClr": {
+                "val": "windowText",
+                "lastClr": "203040"
+              }
+            }
+          },
+          "act": "Assign color.theme_color = MSO_THEME_COLOR.ACCENT_6; inspect the bounded color subtree and save/reopen through in-memory bytes.",
+          "expected": {
+            "type": "SCHEME",
+            "theme_color": "ACCENT_6",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent6"
+              }
+            },
+            "otherColorChoices": 0,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74024,10 +74868,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74078,8 +74922,32 @@
         "case_id": "presentation-unit-8083d478c0cf",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace luminance transforms without stale tint state",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "lumMod": null,
+            "lumOff": null
+          },
+          "act": "Assign color.brightness = 0; inspect ordered bounded XML transforms and save/reopen.",
+          "expected": {
+            "brightness": 0,
+            "lumMod": null,
+            "lumOff": null,
+            "nullMeans": "XML child absent, not a zero-valued transform",
+            "transformOrder": [],
+            "colorChoiceUnchanged": true,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74095,10 +74963,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74149,8 +75017,34 @@
         "case_id": "presentation-unit-078dbb0b42a0",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace luminance transforms without stale tint state",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "hslClr": {
+                "hue": 7200000,
+                "sat": 40000,
+                "lum": 60000
+              }
+            },
+            "lumMod": null,
+            "lumOff": null
+          },
+          "act": "Assign color.brightness = -0.4; inspect ordered bounded XML transforms and save/reopen.",
+          "expected": {
+            "brightness": -0.4,
+            "lumMod": 60000,
+            "lumOff": null,
+            "nullMeans": "XML child absent, not a zero-valued transform",
+            "transformOrder": ["lumMod"],
+            "colorChoiceUnchanged": true,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74166,10 +75060,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74220,8 +75114,32 @@
         "case_id": "presentation-unit-efafb0a45dcc",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace luminance transforms without stale tint state",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "prstClr": {
+                "val": "navy"
+              }
+            },
+            "lumMod": 85000,
+            "lumOff": 15000
+          },
+          "act": "Assign color.brightness = 0.25; inspect ordered bounded XML transforms and save/reopen.",
+          "expected": {
+            "brightness": 0.25,
+            "lumMod": 75000,
+            "lumOff": 25000,
+            "nullMeans": "XML child absent, not a zero-valued transform",
+            "transformOrder": ["lumMod", "lumOff"],
+            "colorChoiceUnchanged": true,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74237,10 +75155,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74291,8 +75209,32 @@
         "case_id": "presentation-unit-889449b0f6f7",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace luminance transforms without stale tint state",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "schemeClr": {
+                "val": "accent1"
+              }
+            },
+            "lumMod": 85000,
+            "lumOff": 15000
+          },
+          "act": "Assign color.brightness = -0.15; inspect ordered bounded XML transforms and save/reopen.",
+          "expected": {
+            "brightness": -0.15,
+            "lumMod": 85000,
+            "lumOff": null,
+            "nullMeans": "XML child absent, not a zero-valued transform",
+            "transformOrder": ["lumMod"],
+            "colorChoiceUnchanged": true,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74308,10 +75250,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74362,8 +75304,34 @@
         "case_id": "presentation-unit-d28bc1b5d4b4",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace luminance transforms without stale tint state",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "scrgbClr": {
+                "r": 20000,
+                "g": 40000,
+                "b": 60000
+              }
+            },
+            "lumMod": 75000,
+            "lumOff": null
+          },
+          "act": "Assign color.brightness = 0.4; inspect ordered bounded XML transforms and save/reopen.",
+          "expected": {
+            "brightness": 0.4,
+            "lumMod": 60000,
+            "lumOff": 40000,
+            "nullMeans": "XML child absent, not a zero-valued transform",
+            "transformOrder": ["lumMod", "lumOff"],
+            "colorChoiceUnchanged": true,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74379,10 +75347,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74433,8 +75401,32 @@
         "case_id": "presentation-unit-2ac2bed2fda6",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace luminance transforms without stale tint state",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            },
+            "lumMod": 70000,
+            "lumOff": null
+          },
+          "act": "Assign color.brightness = -0.4; inspect ordered bounded XML transforms and save/reopen.",
+          "expected": {
+            "brightness": -0.4,
+            "lumMod": 60000,
+            "lumOff": null,
+            "nullMeans": "XML child absent, not a zero-valued transform",
+            "transformOrder": ["lumMod"],
+            "colorChoiceUnchanged": true,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74450,10 +75442,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74504,8 +75496,33 @@
         "case_id": "presentation-unit-a6c7702362e1",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Replace luminance transforms without stale tint state",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "sysClr": {
+                "val": "windowText",
+                "lastClr": "203040"
+              }
+            },
+            "lumMod": 60000,
+            "lumOff": null
+          },
+          "act": "Assign color.brightness = 0; inspect ordered bounded XML transforms and save/reopen.",
+          "expected": {
+            "brightness": 0,
+            "lumMod": null,
+            "lumOff": null,
+            "nullMeans": "XML child absent, not a zero-valued transform",
+            "transformOrder": [],
+            "colorChoiceUnchanged": true,
+            "roundTripSame": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74521,10 +75538,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the uniquely matched parameter table row are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74575,8 +75592,26 @@
         "case_id": "presentation-unit-ee77c3516ef3",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Reject brightness beyond both endpoints",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "123456"
+              }
+            }
+          },
+          "act": "Independently assign 1.1 and -1.1 to color.brightness.",
+          "expected": {
+            "eachError": "ValueError",
+            "code": "invalid-value",
+            "unchangedPartBytesAfterEach": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74592,10 +75627,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74643,8 +75678,23 @@
         "case_id": "presentation-unit-b576e9020c90",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Require a color before applying brightness",
+          "arrange": {
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": null
+          },
+          "act": "Assign color.brightness = 0.5.",
+          "expected": {
+            "error": "ValueError",
+            "code": "invalid-value",
+            "colorRemainsAbsent": true,
+            "unchangedPartBytes": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74660,10 +75710,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74707,8 +75757,31 @@
         "case_id": "presentation-unit-851ef5a7f943",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Validate RGB channel types and bounds",
+          "arrange": {
+            "valid": [18, 52, 86],
+            "invalidTypes": ["12", "34", "56"],
+            "belowBound": [-1, 34, 56],
+            "aboveBound": [12, 256, 56]
+          },
+          "act": "Construct new RGBColor for each input independently; do not coerce strings.",
+          "expected": {
+            "validChannels": [18, 52, 86],
+            "invalidTypes": {
+              "error": "TypeError",
+              "code": "invalid-type"
+            },
+            "belowAndAbove": {
+              "error": "ValueError",
+              "code": "invalid-value"
+            },
+            "difference": "Source combines wrong types and ranges under ValueError; J08 separates invalid JS types from invalid numeric values."
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74724,10 +75797,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact failure assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74777,8 +75850,20 @@
         "case_id": "presentation-unit-cf1d01d44aca",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Decode six hexadecimal digits into channels",
+          "arrange": {
+            "input": "123456"
+          },
+          "act": "Call RGBColor.from_string(input); compare through equals(new RGBColor(18, 52, 86)) and channel iteration.",
+          "expected": {
+            "channels": [18, 52, 86],
+            "equal": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74794,10 +75879,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -74839,8 +75924,22 @@
         "case_id": "presentation-unit-99641a1ca557",
         "language": "TypeScript",
         "task_id": "upstream-drawing-parity",
-        "status": "semantic_review_required",
-        "original_case": null,
+        "status": "specified_not_implemented",
+        "original_case": {
+          "title": "Format RGB channels as six hex digits",
+          "arrange": {
+            "channels": [18, 52, 86],
+            "additionalChannels": [10, 0, 255]
+          },
+          "act": "Construct RGBColor and call toString().",
+          "expected": {
+            "text": "123456",
+            "additionalText": "0A00FF",
+            "length": 6
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
+        },
         "implemented_test_files": [],
         "executed": false,
         "adaptation_task": {
@@ -74856,10 +75955,10 @@
         }
       },
       "equivalence": {
-        "status": "task_mapped_semantics_pending",
-        "rationale": "The exact value, structure or identity assertions and the nonparameterized setup are retained in the behavior evidence. A new authored owner graph must reproduce these particular results under the declared language mappings. This assigns original TypeScript work without claiming reviewed semantic equivalence."
+        "status": "reviewed_design",
+        "rationale": "Reviewed complete pinned color test and fixture-table branch. Exact enum/numeric/absence distinctions retained; original valid owner graph replaces private proxy/XML-builder topology. J08 distinguishes invalid JS types from invalid numeric values; bounded views replace private XML access. No target execution claimed."
       },
-      "gap": "Exact source contract and original TypeScript adaptation task are assigned. A concrete original assertion design and passing target evidence remain required.",
+      "gap": "Original design reviewed; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
@@ -232115,32 +233214,45 @@
         "case_id": "presentation-bdd-debf44198635",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "specified_not_implemented",
         "original_case": {
-          "title": "Observe presentation workflow debf44198635",
+          "title": "Retain an owned palette edit across publication",
           "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a ColorFormat object as color."]
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "315A8C"
+              }
+            }
           },
-          "act": ["Assign RGBColor(12, 34, 56) to color.rgb."],
-          "expected": ["Verify color.rgb is RGBColor(12, 34, 56)."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "act": "Assign color.rgb = new RGBColor(12, 34, 56). Reread the same owner, then save to an in-memory sink and reopen.",
+          "expected": {
+            "channels": [12, 34, 56],
+            "type": "RGB",
+            "roundTripSame": true,
+            "unrelatedPartsUnchanged": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
         },
         "implemented_test_files": [],
         "executed": false
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_design",
+        "rationale": "All three concrete step implementations read/write fill.fore_color on a shape initially holding unadjusted sRGB. Read-only fixture inspection confirms that precondition. Original shape/assets replace the downloaded source fixture; exact assignment values and expected getters remain, with added round-trip checks."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "Original BDD design reconciled; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "201c085355472d1cfb33f5babdd5f3eb223fb457b3662dbb47cdcc9c2471121c",
         "behavior": "upstream-test-inventory.json#/bdd_cases/435",
-        "target_execution": null
+        "target_execution": null,
+        "reviewed_step_definition": {
+          "file": "features/steps/color.py",
+          "sha256": "3a4fddc2ec287fb2201e1f6f5b930a9462cbd676471ec20fcf2803d4c68690e4"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -232194,32 +233306,45 @@
         "case_id": "presentation-bdd-a808c060d9ff",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "specified_not_implemented",
         "original_case": {
-          "title": "Observe presentation workflow a808c060d9ff",
+          "title": "Retain an owned palette edit across publication",
           "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a ColorFormat object as color."]
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "315A8C"
+              }
+            }
           },
-          "act": ["Assign MSO_THEME_COLOR.ACCENT_6 to color.theme_color."],
-          "expected": ["Verify color.theme_color is MSO_THEME_COLOR.ACCENT_6."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "act": "Assign color.theme_color = MSO_THEME_COLOR.ACCENT_6. Reread the same owner, then save to an in-memory sink and reopen.",
+          "expected": {
+            "theme_color": "ACCENT_6",
+            "type": "SCHEME",
+            "roundTripSame": true,
+            "unrelatedPartsUnchanged": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
         },
         "implemented_test_files": [],
         "executed": false
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_design",
+        "rationale": "All three concrete step implementations read/write fill.fore_color on a shape initially holding unadjusted sRGB. Read-only fixture inspection confirms that precondition. Original shape/assets replace the downloaded source fixture; exact assignment values and expected getters remain, with added round-trip checks."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "Original BDD design reconciled; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "201c085355472d1cfb33f5babdd5f3eb223fb457b3662dbb47cdcc9c2471121c",
         "behavior": "upstream-test-inventory.json#/bdd_cases/436",
-        "target_execution": null
+        "target_execution": null,
+        "reviewed_step_definition": {
+          "file": "features/steps/color.py",
+          "sha256": "3a4fddc2ec287fb2201e1f6f5b930a9462cbd676471ec20fcf2803d4c68690e4"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -232273,32 +233398,46 @@
         "case_id": "presentation-bdd-1c1a184bd318",
         "language": "TypeScript",
         "task_id": "bdd-adaptation",
-        "status": "proposed_design_not_implemented",
+        "status": "specified_not_implemented",
         "original_case": {
-          "title": "Observe presentation workflow 1c1a184bd318",
+          "title": "Retain an owned palette edit across publication",
           "arrange": {
-            "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
-            "conditions": ["Prepare a ColorFormat object as color."]
+            "fixture": "Original in-memory Harbor palette presentation with one authored rectangle; obtain fill.fore_color through its live owner. Supply original valid package XML for color kinds without public creation setters.",
+            "colorChoice": {
+              "srgbClr": {
+                "val": "315A8C"
+              }
+            }
           },
-          "act": ["Assign 0.42 to color.brightness."],
-          "expected": ["Verify color.brightness is 0.42."],
-          "language_mapping": "Apply J01–J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
-          "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+          "act": "Assign color.brightness = 0.42. Reread the same owner, then save to an in-memory sink and reopen.",
+          "expected": {
+            "brightness": 0.42,
+            "lumMod": 58000,
+            "lumOff": 42000,
+            "roundTripSame": true,
+            "unrelatedPartsUnchanged": true
+          },
+          "language_mapping": "J02/J05/J08/J09: direct owned properties, immutable RGB values, typed errors and bounded XML inspection; async byte loading/saving only.",
+          "negative_assertion": "No downloads, ambient host I/O, network, native presentation runtime, implicit time/fonts or unrelated mutation."
         },
         "implemented_test_files": [],
         "executed": false
       },
       "equivalence": {
-        "status": "proposed_design",
-        "rationale": "The expanded example retains its ordered preconditions, actions and all 1 outcome clauses. Original content replaces incidental labels and assets; semantic enums, numbers, absence and control-character boundaries remain. JS model/command differences apply explicitly. This design has no execution evidence and still needs implementation review."
+        "status": "reviewed_design",
+        "rationale": "All three concrete step implementations read/write fill.fore_color on a shape initially holding unadjusted sRGB. Read-only fixture inspection confirms that precondition. Original shape/assets replace the downloaded source fixture; exact assignment values and expected getters remain, with added round-trip checks."
       },
-      "gap": "Proposed original TypeScript workflow design; fixture authoring, step-definition reconciliation and passing original tests still required.",
+      "gap": "Original BDD design reconciled; TypeScript implementation and passing evidence remain required.",
       "evidence": {
         "kind": "static_source_and_pinned_baseline",
         "source_revision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
         "source_sha256": "201c085355472d1cfb33f5babdd5f3eb223fb457b3662dbb47cdcc9c2471121c",
         "behavior": "upstream-test-inventory.json#/bdd_cases/437",
-        "target_execution": null
+        "target_execution": null,
+        "reviewed_step_definition": {
+          "file": "features/steps/color.py",
+          "sha256": "3a4fddc2ec287fb2201e1f6f5b930a9462cbd676471ec20fcf2803d4c68690e4"
+        }
       },
       "original_behavior": {
         "expanded_scenario": [
@@ -309103,6 +310242,20 @@
       "expected": "Each initial getter reflects its own flag. Toggling show_value does not change show_series_name; both distinct flags survive round-trip.",
       "status": "specified_not_implemented",
       "evidence": "case-drift-01"
+    },
+    {
+      "id": "hex-width-is-exact",
+      "title": "Reject shorthand and extra-width RGB strings",
+      "arrange": {
+        "valid": "123456",
+        "invalid": ["12345", "1234000", "1234560", "12ZZ56"]
+      },
+      "act": "Call RGBColor.from_string independently for each string.",
+      "expected": "The six-digit input yields channels 18,52,86. Each invalid input raises ValueError/invalid-value; no truncation, shorthand or coercion.",
+      "status": "specified_not_implemented",
+      "evidence": "color-case-drift-01",
+      "implemented_test_files": [],
+      "executed": false
     }
   ],
   "documentation_findings": [
@@ -309115,12 +310268,22 @@
         "src/pptx/chart/datalabel.py:125-140"
       ],
       "resolution": "Retain both original rows and actual behavior; add original crossed-flag regression. No source pass is relabeled as independent value-getter evidence."
+    },
+    {
+      "id": "color-case-drift-01",
+      "finding": "J05 incorrectly described the pinned parser as slicing the first six characters. It parses the whole suffix from index four.",
+      "evidence": ["src/pptx/dml/color.py:294-301"],
+      "resolution": "Retain the target exact-six-ASCII-hex rule; characterize source 12345 as (18,52,5), 1234000 as (18,52,0), and 1234560 as out of channel range, without executing the source package."
     }
   ],
   "current_evidence_sha256": {
     "docs/pptx/test-behavior-evidence.json": "9a30c612931cb72af2341f240470833462ccacc80d029cd88f7c02bc3b48e0bf",
-    "docs/pptx/api-language-mappings.md": "0de836ba2f12f8902c40fedea20978be88defd987c0d5a51a9064f2dcb9154b4",
-    "docs/pptx/upstream-api-audit.md": "8e755f16aff69fe329f78d640de6a0254af14b27396f1abce5c56740e7d3c5ec"
+    "docs/pptx/api-language-mappings.md": "e5a68d5bfcea65bff45cc876cde12081e8fd86b689e69acc47cb5dcffde5bf2d",
+    "docs/pptx/upstream-api-audit.md": "8e755f16aff69fe329f78d640de6a0254af14b27396f1abce5c56740e7d3c5ec",
+    "docs/pptx/corpus-manifest.json": "0b6ad231278c7cd60bbcf1dbecf433e52d8650595425f7f9cde18ff44b4f13cd"
   },
-  "current_evidence_baseline": "dfb4530bb0fcd3f8dc2d187ac16d8e283beaef5a"
+  "current_evidence_baseline": "dfb4530bb0fcd3f8dc2d187ac16d8e283beaef5a",
+  "current_evidence_notes": {
+    "docs/pptx/corpus-manifest.json": "Historical input hash retained from the preexisting untracked acquisition manifest; current hash includes the later corpus verification link and maintained formatting. Historical acquisition dates, file/media hashes and counters remain unchanged."
+  }
 }

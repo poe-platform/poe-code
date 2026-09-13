@@ -1,0 +1,1 @@
+class S extends Symbol{constructor(){return {value:7}}}await 0;let error;try{new Symbol()}catch(e){error=e.name}return [new S().value,error,S.toString(),S.constructor("return typeof process+','+typeof require")()];

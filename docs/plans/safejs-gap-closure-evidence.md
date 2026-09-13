@@ -2409,3 +2409,12 @@ now explicitly assert the specification; retention budgets and assertions remain
 Final lint/build and original upstream contexts pass. Seven runtime SDK replay/source/
 host-escape controls and inspected CLI output pass. Residual arithmetic is132 nonpasses;
 remaining categories and publication remain unresolved.
+
+### qualify-language-semantics — Symbol construction, 2026-09-13
+
+[Atomic repair and evidence](qualify-language-semantics/symbol-construction/audit.md)
+permit valid Symbol subclasses/newTarget use while construction itself throws. Five red
+cases/one control become197 focused passes. Existing descriptor regressions ensure the
+prototype remains immutable. Final lint/build and all original upstream contexts pass.
+Seven runtime SDK replay/source/host-escape checks and inspected CLI output pass. Residual
+arithmetic is128 nonpasses; remaining language categories and publication remain open.

@@ -1,0 +1,97 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/interp/globals/symbol-construction.test.ts (6 tests | 5 failed) 188ms
+   × preserves Symbol construction semantics: 'class S extends Symbol{};return Objec…' 48ms
+   × preserves Symbol construction semantics: 'class S extends Symbol{constructor(){…' 25ms
+   × preserves Symbol construction semantics: 'class S extends Symbol{};try{new S()}…' 22ms
+   × preserves Symbol construction semantics: 'return Object.getPrototypeOf(Reflect.…' 26ms
+   ✓ preserves Symbol construction semantics: 'let coerced=false;try{new Symbol({toS…' 22ms
+   × replays a Symbol subclass without exposing host constructors 44ms
+FAIL packages/safe-js/src/interp/globals/symbol-construction.test.ts > preserves Symbol construction semantics: 'class S extends Symbol{};return Objec…'
+TypeError: Class extends value is not a constructor or null.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { span: { start: { line: 1, column: 1, offset: +0 }, end: { line: 1, column: 25, offset: 24 } } }
+FAIL packages/safe-js/src/interp/globals/symbol-construction.test.ts > preserves Symbol construction semantics: 'class S extends Symbol{constructor(){…'
+TypeError: Class extends value is not a constructor or null.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { span: { start: { line: 1, column: 1, offset: +0 }, end: { line: 1, column: 53, offset: 52 } } }
+FAIL packages/safe-js/src/interp/globals/symbol-construction.test.ts > preserves Symbol construction semantics: 'class S extends Symbol{};try{new S()}…'
+TypeError: Class extends value is not a constructor or null.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { span: { start: { line: 1, column: 1, offset: +0 }, end: { line: 1, column: 25, offset: 24 } } }
+FAIL packages/safe-js/src/interp/globals/symbol-construction.test.ts > preserves Symbol construction semantics: 'return Object.getPrototypeOf(Reflect.…'
+TypeError: Reflect.construct requires constructor targets.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { span: { start: { line: 1, column: 30, offset: 29 }, end: { line: 1, column: 71, offset: 70 } } }
+FAIL packages/safe-js/src/interp/globals/symbol-construction.test.ts > replays a Symbol subclass without exposing host constructors
+AssertionError: expected { …(4) } to match object { ok: true, returnValue: [ 7, …(2) ] }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "returnValue": [
+-     7,
+-     "class S extends Symbol{constructor(){return {value:7}}}",
+-     "undefined,undefined",
+-   ],
++   "name": "TypeError",
+  }
+
+ ❯ packages/safe-js/src/interp/globals/symbol-construction.test.ts:23:75
+     21|   for(let i=0;i<3;i++){
+     22|     const settled=pending.catch(error=>error);
+     23|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     24|   }
+     25|   expect(await pending).toMatchObject(expected);
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/globals/symbol-construction.test.ts > preserves Symbol construction semantics: 'class S extends Symbol{};return Objec…'
+ FAIL  packages/safe-js/src/interp/globals/symbol-construction.test.ts > preserves Symbol construction semantics: 'class S extends Symbol{constructor(){…'
+ FAIL  packages/safe-js/src/interp/globals/symbol-construction.test.ts > preserves Symbol construction semantics: 'class S extends Symbol{};try{new S()}…'
+TypeError: Class extends value is not a constructor or null.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  packages/safe-js/src/interp/globals/symbol-construction.test.ts > preserves Symbol construction semantics: 'return Object.getPrototypeOf(Reflect.…'
+TypeError: Reflect.construct requires constructor targets.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  packages/safe-js/src/interp/globals/symbol-construction.test.ts > replays a Symbol subclass without exposing host constructors
+AssertionError: expected { …(4) } to match object { ok: true, returnValue: [ 7, …(2) ] }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "returnValue": [
+-     7,
+-     "class S extends Symbol{constructor(){return {value:7}}}",
+-     "undefined,undefined",
+-   ],
++   "name": "TypeError",
+  }
+
+ ❯ packages/safe-js/src/interp/globals/symbol-construction.test.ts:23:75
+     21|   for(let i=0;i<3;i++){
+     22|     const settled=pending.catch(error=>error);
+     23|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     24|   }
+     25|   expect(await pending).toMatchObject(expected);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 1 passed (6)
+   Start at  11:24:47
+   Duration  2.63s (transform 1.82s, setup 50ms, import 2.28s, tests 188ms, environment 0ms)
+

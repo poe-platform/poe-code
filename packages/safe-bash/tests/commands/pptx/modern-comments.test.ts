@@ -28,7 +28,7 @@ async function fixture(security?: "signature" | "protection" | "authors-only") {
   const m = "http://schemas.microsoft.com/office/powerpoint/2018/8/main";
   const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
   const modern = "http://schemas.microsoft.com/office/2018/10/relationships";
-  const parts = new Map(inspectZip(await createPresentation({ slides: [{ name: "Harbor" }] }, context)).map(member => [member.name, member.payload]));
+  const parts = new Map<string, Uint8Array>(inspectZip(await createPresentation({ slides: [{ name: "Harbor" }] }, context)).map(member => [member.name, member.payload]));
   const encode = (value: string) => new TextEncoder().encode(value);
   const append = (name: string, markup: string) => {
     const doc = parseXmlPart(parts.get(name)!, context.xmlLimits);

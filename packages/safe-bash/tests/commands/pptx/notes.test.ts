@@ -139,7 +139,7 @@ async function authoredNotes(opaque = true) {
   const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
   const rel = "http://schemas.openxmlformats.org/package/2006/relationships";
   const encoder = new TextEncoder();
-  const parts = new Map(
+  const parts = new Map<string, Uint8Array>(
     inspectZip(await createPresentation({ slides: [{ name: "Harbor" }] }, context)).map((entry) => [
       entry.name,
       entry.payload
@@ -209,7 +209,7 @@ async function authoredHandout(opaque = true) {
   const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
   const rel = "http://schemas.openxmlformats.org/package/2006/relationships";
   const encoder = new TextEncoder();
-  const parts = new Map(
+  const parts = new Map<string, Uint8Array>(
     inspectZip(
       await createPresentation(
         {
@@ -321,8 +321,10 @@ test("handout inventory and print settings agree through the public SDK and virt
       [settings.notesWidth, settings.notesHeight, settings.notesOrientation],
       [6000000, 9000000, "portrait"]
     );
+    assert.ok(settings.printProperties);
     assert.equal(settings.printProperties.part, "/ppt/print-settings.xml");
     assert.ok(settings.printProperties.xml.includes('prnWhat="handouts4"'));
+    assert.ok(settings.viewProperties);
     assert.equal(settings.viewProperties.part, "/ppt/window-settings.xml");
     assert.ok(settings.viewProperties.xml.includes('lastView="handoutView"'));
     assert.ok(settings.viewProperties.xml.includes('value="opaque"'));

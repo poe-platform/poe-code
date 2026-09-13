@@ -795,7 +795,7 @@ export function getTypedArrayMember(
           }
           if (candidate !== undefined && candidate !== null && candidate !== defaultConstructor) {
             const values: SandboxValue[] = key !== "subarray" ? [length]
-              : [storage.buffer, offset, tracking ? undefined : length];
+              : tracking ? [storage.buffer, offset] : [storage.buffer, offset, length];
             result = await invokeBuiltinClosure(candidate as SandboxClosure, values, budget, bridge, undefined, true);
             if (!isNumericTypedArray(result)) throw new TypeError("TypedArray species must return typed storage.");
             const target = typedArrayStorage(result, key !== "subarray");

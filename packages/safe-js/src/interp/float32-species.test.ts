@@ -37,7 +37,6 @@ it.each(["slice", "subarray"])("uses the default %s constructor for absent speci
 });
 
 it.each([
-  "const buffer=new ArrayBuffer(8,{maxByteLength:16});const value=new Float32Array(buffer);const trace=[];value.constructor={[Symbol.species]:function(...args){trace.push([args.length,args[0]===buffer,args[1]]);return new Float32Array(...args)}};const result=value.subarray(1);buffer.resize(16);return [trace,result.length]",
   "const value=new Float32Array([1,2,3]);value.constructor={[Symbol.species]:function(length){value[1]=7;return new Float32Array(length)}};return Array.from(value.slice(1))",
   "const buffer=new ArrayBuffer(8,{maxByteLength:16});const value=new Float32Array(buffer,4,1);value.constructor={get [Symbol.species](){buffer.resize(0);return Float32Array}};try{value.slice();return 'accepted'}catch(error){return error.name}",
   "const value=new Float32Array([1,2,3]);value.constructor={[Symbol.species]:function(){const buffer=new ArrayBuffer(8,{maxByteLength:16});const result=new Float32Array(buffer,4,1);buffer.resize(0);return result}};try{value.subarray();return 'accepted'}catch(error){return error.name}",
@@ -69,4 +68,11 @@ it.each(["slice", "subarray"])("retains %s storage during species calls and rele
     expect(retained[0]).toBeGreaterThan(12000);
     expect(retained[1]).toBeLessThan(1000);
   }
+});
+
+// ECMA-262 edition 16, 23.2.3.30 step 15 requires two arguments.
+// Node 22 passes an explicit third undefined argument, so it is not the oracle.
+it("passes two species arguments while preserving subarray length tracking", async () => {
+  const source = "const buffer=new ArrayBuffer(8,{maxByteLength:16});const value=new Float32Array(buffer);const trace=[];value.constructor={[Symbol.species]:function(...args){trace.push([args.length,args[0]===buffer,args[1]]);return new Float32Array(...args)}};const result=value.subarray(1);buffer.resize(16);return [trace,result.length]";
+  expect(await run(source)).toMatchObject({ ok: true, returnValue: [[[2, true, 4]], 3] });
 });

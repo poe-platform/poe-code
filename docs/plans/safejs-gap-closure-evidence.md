@@ -1767,3 +1767,145 @@ Only this entry and the linked report belong to the evidence commit; pre-existin
 ledger content, source changes and staged work are preserved. Local SHA is
 reported after commit; remote-main delivery and publication are **not verified**.
 No push or release occurred. No completion or issue-closure claim is made.
+
+
+### qualify-lexical-and-source-text — CLI origin display and current-source requalification, 2026-09-13
+
+**Acceptance remains open.** This atomic repair makes the CLI display an unlocated error's supplied filename and error kind without inventing coordinates or printing host stack frames. It preserves ordinary startup failure messages and runtime exit code 1. Only the three-line `readErrorMessage` change, its new four-case regression file and this evidence section belong to this commit. Earlier local parser/module/diagnostic work and the three staged Safe Bash files are excluded and preserved. In particular, this display repair does not independently supply missing filenames: the bounded parser reproduction below also exercises pre-existing, uncommitted origin-preservation work.
+
+Target unchanged: **ECMA-262 edition 16 (June 2025)** / **ECMA-402 edition 12**, Test262 **419d3e0a2273ba01a3bfcbec423f2801425b8e93**, plus the ledger's separately tracked newer APIs. Corpus membership is not a new edition declaration; newer identifier fixtures retain their pinned corpus identity. The web reader rejected the edition HTML for exceeding its content-size limit; the previously retained edition-16 document and target pin were used, without substituting a floating draft.
+
+Base HEAD **7856b19dac7f030e7b96e70885c8b77927d403a8**, branch **main**; Node **22.23.2**, ICU **78.2**, Unicode **17.0**, V8 **12.4.254.21-node.56**, Darwin arm64. The full corpus and source-origin probes use the current mixed working tree, not an isolated claim about this commit. The isolated commit source contains HEAD plus only this repair.
+
+Maintained corpus source-content SHA-256 **3561b2c069390da644f6295227850d84a15f40985cf6d5acfe881c77d50cb20c**, manifest **64eb9e3d136fa25226447e642d56a250c305f578714f1e02b13ad603bc485559**; raw JSONL SHA-256 **7d365ac99c3443193a1c86846a8ebb5e6997384029a0f9e6cb609b33c9be0af5**. Completion **2026-09-13T06:59:25.489Z**, command exit **1**, `complete: true`: **1,231 files / 2,381 variants; 2,337 passed, 44 failed, zero unsupported**, zero metadata/execution errors. Every nonpass is `worker-wall-timeout`, with unchanged **3,000 ms per variant / 10,000 ms startup** and no budget overrides. No corpus failure is counted as a pass.
+
+| Category | Variants | Passed | Timeout failures |
+| --- | ---: | ---: | ---: |
+| language/asi | 204 | 204 | 0 |
+| language/comments | 46 | 42 | 4 |
+| language/comments/hashbang | 35 | 35 | 0 |
+| language/expressions/template-literal | 114 | 114 | 0 |
+| language/future-reserved-words | 85 | 85 | 0 |
+| language/identifiers | 535 | 503 | 32 |
+| language/keywords | 50 | 50 | 0 |
+| language/line-terminators | 82 | 82 | 0 |
+| language/literals/bigint | 26 | 26 | 0 |
+| language/literals/bigint/numeric-separators | 92 | 92 | 0 |
+| language/literals/boolean | 8 | 8 | 0 |
+| language/literals/null | 6 | 6 | 0 |
+| language/literals/numeric | 175 | 175 | 0 |
+| language/literals/numeric/numeric-separators | 126 | 126 | 0 |
+| language/literals/regexp | 368 | 360 | 8 |
+| language/literals/regexp/named-groups | 112 | 112 | 0 |
+| language/literals/string | 128 | 128 | 0 |
+| language/reserved-words | 53 | 53 | 0 |
+| language/source-text | 2 | 2 | 0 |
+| language/white-space | 134 | 134 | 0 |
+
+The table explicitly separates hashbang and numeric separators. Identifiers/string/source-text cover Unicode names, escapes and surrogate handling; line-terminators/ASI/comments cover the line-sensitive grammar; templates cover tagged raw/cooked values; regexp and reserved/contextual word cohorts retain their pinned modes and negative expectations. Exhaustive fixture failures remain performance/resource qualification failures, not proof of incorrect token acceptance. Their unchanged sources must still complete within the existing deadline; minimized controls do not replace them.
+
+The 22 failing files each fail in both sloppy and strict modes:
+
+- `language/comments/S7.4_A5.js`
+- `language/comments/S7.4_A6.js`
+- `language/identifiers/start-unicode-10.0.0-escaped.js`
+- `language/identifiers/start-unicode-10.0.0.js`
+- `language/identifiers/start-unicode-13.0.0-escaped.js`
+- `language/identifiers/start-unicode-13.0.0.js`
+- `language/identifiers/start-unicode-15.0.0-escaped.js`
+- `language/identifiers/start-unicode-15.0.0.js`
+- `language/identifiers/start-unicode-16.0.0-escaped.js`
+- `language/identifiers/start-unicode-16.0.0.js`
+- `language/identifiers/start-unicode-17.0.0-escaped.js`
+- `language/identifiers/start-unicode-17.0.0.js`
+- `language/identifiers/start-unicode-5.2.0-escaped.js`
+- `language/identifiers/start-unicode-5.2.0.js`
+- `language/identifiers/start-unicode-8.0.0-escaped.js`
+- `language/identifiers/start-unicode-8.0.0.js`
+- `language/identifiers/start-unicode-9.0.0-escaped.js`
+- `language/identifiers/start-unicode-9.0.0.js`
+- `language/literals/regexp/S7.8.5_A1.1_T2.js`
+- `language/literals/regexp/S7.8.5_A1.4_T2.js`
+- `language/literals/regexp/S7.8.5_A2.1_T2.js`
+- `language/literals/regexp/S7.8.5_A2.4_T2.js`
+
+Grammar separation was refreshed on 37 bounded sources. `parseEvalScript(source,{})` implements the standard Script entry; all 37 acceptance outcomes agree with native `vm.Script`. `parseSourceModule(source,"guest.mjs")` implements source modules; all 37 outcomes agree with Acorn configured for `ecmaVersion:2025, sourceType:"module"` (shared parser dependency, not an independent module oracle). Public Agent Script uses `parseExecutableModule`; lint was exercised separately. All four columns retain the prior recorded acceptance outcomes. Wrapper restrictions remain embedding dispositions, not standard early errors. Here A/R mean accepted/rejected during parsing, not execution or absence of lint findings; JSON strings represent exact input text.
+
+| Case | JSON source | Script | Module | Agent Script | Lint parse |
+| --- | --- | --- | --- | --- | --- |
+| unicode-identifier | `` "let \u03c0=1; \u03c0" `` | A | A | A | A |
+| astral-identifier | `` "let \ud801\udc00=1; \ud801\udc00" `` | A | A | A | A |
+| identifier-escape | `` "let \\u{10400}=1; \ud801\udc00" `` | A | A | A | A |
+| surrogate-identifier | `` "let \\uD800=1" `` | R | R | R | R |
+| surrogate-string | `` "let x=\"\\uD800\"" `` | A | A | A | A |
+| escaped-keyword | `` "let \\u0069f=1" `` | R | R | R | R |
+| identifier-joiner | `` "let a\u200cb=1" `` | A | A | A | A |
+| start-joiner | `` "let \u200ca=1" `` | R | R | R | R |
+| hashbang | `` "#!/usr/bin/guest\nlet x=1" `` | A | A | A | A |
+| hashbang-leading-space | `` " #!x\nlet x=1" `` | R | R | R | R |
+| html-comment | `` "<!-- x\nlet x=1" `` | A | R | R | R |
+| block-comment | `` "let x=1/*\u2028*/let y=2" `` | A | A | A | A |
+| asi-return | `` "function f(){return\u2028 1}" `` | A | A | A | A |
+| asi-throw | `` "function f(){throw\u2028 1}" `` | R | R | R | R |
+| numeric-separator | `` "let x=0xAB_CD+0b10_01+0o7_7+1_000+1.2_3e1_0+1_0n" `` | A | A | A | A |
+| numeric-separator-double | `` "let x=1__0" `` | R | R | R | R |
+| numeric-separator-radix | `` "let x=0x_FF" `` | R | R | R | R |
+| numeric-adjacent | `` "let x=1foo" `` | R | R | R | R |
+| legacy-octal | `` "let x=077" `` | A | R | R | R |
+| strict-legacy-octal | `` "\"use strict\";let x=077" `` | R | R | R | R |
+| legacy-escape | `` "let x=\"\\1\"" `` | A | R | R | R |
+| strict-legacy-escape | `` "\"use strict\";let x=\"\\1\"" `` | R | R | R | R |
+| tagged-invalid-escape | `` "const tag=x=>x;tag`\\xZ`" `` | A | A | A | A |
+| untagged-invalid-escape | `` "`\\xZ`" `` | R | R | R | R |
+| regex-after-condition | `` "if(true) /x/.test(\"x\")" `` | A | A | A | A |
+| division-after-object | `` "const x=({a:4}).a / 2" `` | A | A | A | A |
+| contextual-identifiers | `` "let async=1,of=2,from=3; async+of+from" `` | A | A | A | A |
+| strict-reserved | `` "\"use strict\";let implements=1" `` | R | R | A | A |
+| sloppy-reserved | `` "var implements=1" `` | A | R | A | A |
+| return-embedding | `` "return 1" `` | R | R | A | A |
+| await-embedding | `` "await 0" `` | R | A | A | A |
+| module-export | `` "export const x=1" `` | R | A | A | A |
+| terminator-"\n" | `` "let x=1\nlet y=2" `` | A | A | A | A |
+| terminator-"\r" | `` "let x=1\rlet y=2" `` | A | A | A | A |
+| terminator-"\r\n" | `` "let x=1\r\nlet y=2" `` | A | A | A | A |
+| terminator-"\u2028" | `` "let x=1\u2028let y=2" `` | A | A | A | A |
+| terminator-"\u2029" | `` "let x=1\u2029let y=2" `` | A | A | A | A |
+
+Fresh original-source checks use `run(source,{filename:"guest/main.ajs"})`:
+
+| Probe | Current disposition |
+| --- | --- |
+| `return eval("\nmissing")` | ReferenceError span starts at inner line 2, column 1, offset 1, but filename is absent. Open. |
+| `return eval("const x=)")` | SyntaxError message identifies inner column 9; attached span identifies outer eval call (column 8). Filename absent. Open. |
+| `return Function("\nreturn missing")()` | Filename absent; span includes generated function wrapper (line 4). Open. |
+| `return eval("1+2")`, `return Function("return 3")()` | Both return 3. |
+| Import `export const x=);` through an explicit resolver returning id `guest/dep.mjs` | SyntaxError preserves guest id, line 1, column 16, offset 15 and a header-only stack. Pass for this control. |
+| Import `export const x=1;` + U+2028 + `missing()` | ReferenceError preserves line 2, column 1, offset 18; filename absent. Open. |
+| Import `export const x=3;` | Root namespace returns x = 3. Resolver authority is explicit; no ambient import capability added. |
+| Eval-created closure throwing `new Error("marker")` after `await 0`, then dump and completed replay | Original/restored message and stack agree, but both lack filenames. Replay equality does not satisfy source-origin acceptance. |
+
+The existing dynamic-source record stores body/context without origin identity; the current module runtime also lacks filename attachment. Fixing display alone cannot resolve these producers or their snapshot representation. Current source-module files are pre-existing uncommitted work and are not silently included in this delivery. Required runtime-wide and installed-artifact coverage remains open; this follow-up ran Node22, not every supported runtime.
+
+Reproduction and checks from repository root (replace the corpus checkout path only with the same pinned revision):
+
+```sh
+npx tsx packages/safe-js/test/conformance/command.ts --corpus /private/tmp/safejs-baseline-test262-419d3e0 --report /tmp/lexical-fresh.jsonl --include language/identifiers --include language/source-text --include language/literals --include language/asi --include language/comments --include language/line-terminators --include language/white-space --include language/keywords --include language/future-reserved-words --include language/reserved-words --include language/expressions/template-literal
+npx vitest run packages/safe-js/src/cli.unlocated-diagnostics.test.ts
+npx vitest run packages/safe-js/src/cli.unlocated-diagnostics.test.ts packages/safe-js/src/cli.lexical-diagnostics.test.ts packages/safe-js/src/parse packages/safe-js/src/lint packages/safe-js/src/error
+npx eslint packages/safe-js/src/cli-runtime.ts packages/safe-js/src/cli.unlocated-diagnostics.test.ts
+npx tsc --noEmit -p packages/safe-js/tsconfig.json
+```
+
+TDD: **one failure / three passing controls** before the repair; the failing assertion expected `RangeError: nested.ajs` followed by the original message, but received only the message. The regression injects the observed unlocated-error contract at the CLI startup boundary, avoiding environment-dependent native stack capacities. Direct Node+tsx with `runCli(["nested.ajs"],{cwd:"/guest",readFile:async()=>"(".repeat(1024)+"1"+")".repeat(1024),stat:async()=>({isFile:()=>true})})` independently reproduced the old output and verified the repaired output/exit 1. The source is bounded at 2,049 UTF-16 units. Shallow `(1 + 2)` execution and ordinary Error/string startup failures are neighboring controls. No capacity guard, runtime support, assertion, timeout, budget or host authority changed.
+
+Current mixed-tree integration: **2,411 passed / one declared opt-in parser-fuzz skip**, 137 passing files / one skipped, exit 0. Scoped ESLint and package no-emit TypeScript pass. Manual CLI screenshot command `npx tsx scripts/screenshot.ts --output /tmp/lexical-nesting.png npx tsx packages/safe-js/src/cli.ts docs/plans/qualify-lexical-and-source-text/host-stack-audit/nesting.ajs` was run and its image inspected: error kind, supplied relative path and original message are legible; there are no invented coordinates or host frames.
+
+**Exact files being committed were manually checked:** an isolated `git archive HEAD` copy received only the three-line source repair and the new test. First test attempt: four failures caused by absent generated `src/intl-data/dist/numberformat-engine.js`; this setup failure is retained. After maintained `npm run pretest --workspace=@poe-code/safe-js` (all four filesystem contract cells passed), `vitest run packages/safe-js/src/cli.test.ts packages/safe-js/src/cli.unlocated-diagnostics.test.ts` passed **50/50** and `tsc --noEmit -p packages/safe-js/tsconfig.json` passed. Installed dependencies were reused; this is not a clean-install certification. A redundant ESLint invocation inside the archive was interrupted with exit 143 after prolonged filesystem scanning and is not a pass. The exact committed CLI bytes instead passed the unchanged maintained root ESLint configuration via `npx eslint --stdin --stdin-filename packages/safe-js/src/cli-runtime.ts < /tmp/safejs-lexical-current/isolated/packages/safe-js/src/cli-runtime.ts`; the identical regression bytes passed the scoped root lint command above. No lint rule or configuration was bypassed or changed.
+
+Exact commit-file SHA-256 `packages/safe-js/src/cli-runtime.ts`: `87fb8d1a9e1d36d6e4fdd7ad136e1799116e4bfea638dc3e486fea5524412acc`.
+
+Exact commit-file SHA-256 `packages/safe-js/src/cli.unlocated-diagnostics.test.ts`: `cb6480e24d6f5ce14362aec9c1bd94670a3126c6b1a48ea49fc71f7274a79215`.
+
+Local raw receipts are retained under `docs/plans/qualify-lexical-and-source-text/cli-origin-audit/` (uncommitted logs/JSON/screenshot, not release artifacts). The commands, complete category counts, failing filenames and grammar inputs above are the committed reproducible record. The prior index patch SHA-256 is `839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8`; preservation is checked again after the commit.
+
+Delivery: the local repair is the containing Conventional Commit (retrieve its SHA with `git log -1 --format=%H -- packages/safe-js/src/cli.unlocated-diagnostics.test.ts`). **Verified remote-main delivery: none. Release/publication receipts: none; no push or release was requested/performed.** No historical publication is claimed for this candidate. Original-source acceptance, the 44 unchanged exhaustive-fixture timeouts and remaining runtime/artifact gates stay unresolved; this is not task completion.

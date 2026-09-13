@@ -870,6 +870,9 @@ function hasErrorCode(error: unknown, code: string): boolean {
 
 function readErrorMessage(error: unknown): string {
   if (error instanceof Error) {
+    if ("filename" in error && typeof error.filename === "string") {
+      return `${error.name}: ${error.filename}\n\n${error.message}`;
+    }
     return error.message;
   }
 

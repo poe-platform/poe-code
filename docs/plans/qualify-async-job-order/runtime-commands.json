@@ -1,0 +1,59 @@
+[
+  {
+    "runtime": "v18.18.0",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v18.18.0/bin/node",
+      "--input-type=module"
+    ],
+    "exit": 1
+  },
+  {
+    "runtime": "v18.20.8",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v18.20.8/bin/node",
+      "--input-type=module"
+    ],
+    "exit": 1
+  },
+  {
+    "runtime": "v20.20.0",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v20.20.0/bin/node",
+      "--input-type=module"
+    ],
+    "exit": 0
+  },
+  {
+    "runtime": "v22.23.2",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+      "--input-type=module"
+    ],
+    "exit": 0
+  },
+  {
+    "runtime": "v24.14.0",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v24.14.0/bin/node",
+      "--input-type=module"
+    ],
+    "exit": 0
+  },
+  {
+    "runtime": "v26.8.2",
+    "command": [
+      "/tmp/safejs-async-runtimes/node-v26.8.2-darwin-arm64/bin/node",
+      "--input-type=module"
+    ],
+    "exit": 0
+  },
+  {
+    "runtime": "bun",
+    "command": [
+      "/Users/kjopek/.bun/bin/bun",
+      "run",
+      "-"
+    ],
+    "exit": 1
+  }
+]

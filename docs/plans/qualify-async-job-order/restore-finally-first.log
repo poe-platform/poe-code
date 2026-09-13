@@ -1,0 +1,24 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/test/promise-finally-handler-metadata.test.ts (2 tests) 121ms
+ ❯ packages/safe-js/test/async-delegated-return-restore.test.ts (3 tests | 1 failed) 374ms
+   × restores a pending absent-delegate-return Await without repeating its getter 237ms
+   ✓ rejects malformed delegated return state: wrong-completion 75ms
+   ✓ rejects malformed delegated return state: iterator-await-state 60ms
+FAIL packages/safe-js/test/async-delegated-return-restore.test.ts > restores a pending absent-delegate-return Await without repeating its getter
+SnapshotValidationError: Invalid snapshot at $.heap["923"]: TypeError: Invalid async generator await source position.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalidValue', path: '$.heap["923"]' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/test/async-delegated-return-restore.test.ts > restores a pending absent-delegate-return Await without repeating its getter
+SnapshotValidationError: Invalid snapshot at $.heap["923"]: TypeError: Invalid async generator await source position.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 4 passed (5)
+   Start at  04:43:20
+   Duration  2.88s (transform 3.72s, setup 94ms, import 4.70s, tests 494ms, environment 0ms)

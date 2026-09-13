@@ -1,0 +1,5 @@
+
+> poe-code@0.0.0-dev screenshot
+> tsx scripts/screenshot.ts node packages/safe-js/dist/cli.js docs/plans/qualify-async-job-order/ordering.safejs
+
+screenshots/node-packages-safe-js-dist-cli.js-docs-plans-qualify-async-job-order-ordering.safejs.png

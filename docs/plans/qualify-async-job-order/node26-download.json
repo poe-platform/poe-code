@@ -1,0 +1,6 @@
+{
+  "url": "https://nodejs.org/dist/v26.8.2/node-v26.8.2-darwin-arm64.tar.gz",
+  "sha256": "974b6d5fb2fc7c33ff2354db0902b4e91c2de01ec8acc6de48e543c97e18c9e1",
+  "checksums": "https://nodejs.org/dist/v26.8.2/SHASUMS256.txt",
+  "matches": true
+}

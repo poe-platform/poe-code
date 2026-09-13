@@ -1,0 +1,17 @@
+{
+  "head": "bc6107ba5a308e94335f2d419d51d122ed17e6c3",
+  "sha256": {
+    "packages/safe-js/src/interp/async-generator-driver.ts": "1b12fb231f1c9347b842bc0e51e0cc4598d4915aa957c68c0f27bf9126359c9d",
+    "packages/safe-js/src/interp/generator-expression-state.ts": "233dedad31651017fe76f92546c67ed22c145276dd716305949b63707f45b7c5",
+    "packages/safe-js/src/interp/interpreter.ts": "4ebcca72fb9023484304c21962c43201f74b712176f60f592f6bb6a55c268ca6",
+    "packages/safe-js/src/interp/promise.ts": "82ac42a1b1e8dfb0331bffac1580da63d52f07d4477ac948346bda91ad44c2d5",
+    "packages/safe-js/src/snapshot/guest-ast-validation.ts": "92c29143d617944b0aaa53d83eb91f8068b89759094f70d86e44e746c958938e",
+    "packages/safe-js/src/snapshot/guest-heap-validation.ts": "915efa894ccc5a71bc1f9b5fb1555790a08614de74dcadbde81c4075517e8aba",
+    "packages/safe-js/test/async-rejection-policy-qualification.test.ts": "3f7d60331dd054d0a17388f82cd30d3c41ef760724509ae283e1f105ddca1473",
+    "packages/safe-js/test/async-job-order-qualification.test.ts": "a729e7d6cc5ac58f7a5c186319a7ec55f1538fcaa448847de751595300a7a7cd",
+    "packages/safe-js/test/async-lifecycle-qualification.test.ts": "b95209a6443daf79bbe00dcffbc520c0503fd9db9257975653bccee853d7cccc",
+    "packages/safe-js/test/async-generator-return-order.test.ts": "6cffdb4fe3304b6c23a11116d9f33f567e0c6a4e96f6ca741842c0691a1deee2",
+    "packages/safe-js/test/async-delegated-return-restore.test.ts": "5b0dcd174c30016c39fdfb04bb6a3b91cdede5294db114620852434a7271eba4",
+    "packages/safe-js/test/promise-finally-handler-metadata.test.ts": "b0f6bf4c0ad8c266e88e138886313bd5db6d34b84511b19adbe0516eee5e93da"
+  }
+}

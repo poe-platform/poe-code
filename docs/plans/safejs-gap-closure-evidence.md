@@ -2572,3 +2572,9 @@ proposal pin, runtime support and deadlines are unchanged. This disposition does
 claim whole-task acceptance or package publication.
 
 Evidence: [resource-switch-disposition](qualify-language-semantics/resource-switch-disposition/audit.md).
+
+## qualify-exotic-object-invariants — constructor reentrancy, 2026-09-13
+
+**Acceptance remains open.** [Qualification, commands and disposition](qualify-exotic-object-invariants/constructor-reentrancy-20260913/qualification.md) and [source/runtime receipt](qualify-exotic-object-invariants/constructor-reentrancy-20260913/receipt.json) record seven additional exact-trace constructor controls. Candidate HEAD `33fde231ac697685bce3a353d0bbae4f002c859b`: 65 focused passes; separately fetched remote-main base `f7026625e77f32471f7219feee8e2d1d5dc52b58`: 155 focused passes, zero failures/skips, targeted lint passes. Node 22.23.2 / ICU 78.2. Edition and extension pins are unchanged.
+
+[Fresh pinned numeric subarray reproduction](qualify-exotic-object-invariants/constructor-reentrancy-20260913/upstream.jsonl) still fails both modes at the unchanged 3,000 ms deadline on candidate runtime hash `88a0352b98cd5d377ebca117613126187348eef5ff90b9b21022b7d238e185df`. No speculative production repair or budget weakening was introduced. Full category/runtime/artifact acceptance remains unresolved. Delivery receipts for this bounded test addition are recorded separately after observation; this is not a claim that the task is complete.

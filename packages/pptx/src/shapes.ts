@@ -1,7 +1,14 @@
 import { readXmlCoordinate, readXmlInteger } from "./xml-scalars.js";
 import { createXmlElementView } from "./xml-view.js";
 import { AdjustmentCollection, validateAdjustmentValues } from "./shape-adjustments.js";
-import { InvalidHandleError, IndexError, OfficeError, ValueError } from "./errors.js";
+import {
+  InvalidHandleError,
+  IndexError,
+  OfficeError,
+  PropertyAccessError,
+  ValueError
+} from "./errors.js";
+import type { PartView } from "./package-view.js";
 import { Length } from "./length.js";
 import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
 import { attr, child } from "./masters.js";
@@ -606,13 +613,18 @@ export function applyShapeUpdate(
     };
     if (!locate(document.root)) invalid("Shape does not belong to its document.");
     const target = path.reduce((current, i) => current.children[i]!, updated.root);
-    const adjustments = new AdjustmentCollection(() => updated.subtree(target), (xml) => {
-      if (!path.length) updated = xml;
-      else {
-        const parent = path.slice(0, -1).reduce((current, i) => current.children[i]!, updated.root);
-        updated = updated.spliceChildren(parent, path.at(-1)!, 1, [xml.markup(xml.root, true)]);
+    const adjustments = new AdjustmentCollection(
+      () => updated.subtree(target),
+      (xml) => {
+        if (!path.length) updated = xml;
+        else {
+          const parent = path
+            .slice(0, -1)
+            .reduce((current, i) => current.children[i]!, updated.root);
+          updated = updated.spliceChildren(parent, path.at(-1)!, 1, [xml.markup(xml.root, true)]);
+        }
       }
-    });
+    );
     adjustments.replace(options.adjustments);
   }
   return updated;
@@ -640,7 +652,13 @@ export function createShapeXml(
 }
 export class Shape {
   #snapshot: XmlPart;
-  readonly #owner: { read(): XmlPart; write(xml: XmlPart): void } | undefined;
+  readonly #owner:
+    | {
+        read(): XmlPart;
+        write(xml: XmlPart): void;
+        readonly part?: PartView;
+      }
+    | undefined;
   get #xml(): XmlPart {
     return this.#owner?.read() ?? this.#snapshot;
   }
@@ -650,7 +668,14 @@ export class Shape {
   }
   #textFrame: TextFrame | undefined;
   #adjustments: AdjustmentCollection | undefined;
-  constructor(xml: XmlPart, owner?: { read(): XmlPart; write(xml: XmlPart): void }) {
+  constructor(
+    xml: XmlPart,
+    owner?: {
+      read(): XmlPart;
+      write(xml: XmlPart): void;
+      readonly part?: PartView;
+    }
+  ) {
     if (
       !["sp", "grpSp"].includes(xml.root.name.localName) &&
       (new.target === Shape || !["pic", "graphicFrame"].includes(xml.root.name.localName))
@@ -665,6 +690,11 @@ export class Shape {
   }
   get element() {
     return this.#xml.root;
+  }
+  get part(): PartView {
+    void this.element;
+    if (!this.#owner?.part) throw new PropertyAccessError("Shape has no package part.");
+    return this.#owner.part;
   }
   get shape_id() {
     return readShape(this.element).shapeId;

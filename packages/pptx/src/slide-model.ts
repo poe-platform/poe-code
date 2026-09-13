@@ -124,6 +124,7 @@ function binding(owner: SlideShapeOwner, id: number, kind: string, _groupId?: nu
   };
   let source: XmlPart | undefined, cached: XmlPart | undefined;
   return {
+    ...(owner.part === undefined ? {} : { part: owner.part }),
     read() {
       const xml = owner.read();
       if (xml === source && cached) return cached;
@@ -152,11 +153,6 @@ class InheritedShape extends Shape {
     super(bound.read(), bound);
     this.#owner = owner;
     this.#binding = bound;
-  }
-  get part(): PartView {
-    void this.element;
-    if (!this.#owner.part) throw new PropertyAccessError("Shape has no package part.");
-    return this.#owner.part;
   }
   #dimension(key: "left" | "top" | "width" | "height"): Length | null {
     const own = readShape(this.element)[key];

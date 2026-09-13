@@ -1,6 +1,5 @@
 import { templateSchema, templateUsage } from "./template-schema.js";
-import { executeTemplateCommand, validateTemplateCommand } from "./command-template.js";
-import { validateTemplateBindings, type TemplateBinding } from "./template-bindings.js";
+import { executeTemplateCommand, validateTemplateCommand, validateTemplateData, type TemplateArguments } from "./command-template.js";
 import { commentSchemas, commentsUsage } from "./comments-schema.js";
 import { validateCommentsCommand, executeCommentsCommand, type CommentsArguments } from "./command-comments.js";
 import { noteSchemas, notesUsage } from "./notes-schema.js";
@@ -286,6 +285,7 @@ const help =
   "                       [--reference-policy remove] [--allow-empty]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides duplicate INPUT --position N [--slide N | --select TOKEN | --all]\n" +
+  "                       [--media-policy shared-media|isolated-instance]\n" +
   "                       [--allow-empty] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides import INPUT --source PATH --source-slides JSON [--position N]\n" +
   "                       [--theme-policy source|destination] [--dimension-policy reject|destination]\n" +
@@ -452,7 +452,7 @@ interface Arguments {
   animationBatch?: readonly AnimationBatchItem[];
   opsFile?: string;
   dataFile?: string;
-  bindings?: readonly TemplateBinding[];
+  bindings?: NonNullable<TemplateArguments["bindings"]>;
   linkEdit?: NonNullable<LinkArguments["linkEdit"]>;
   operation:
     | "template.apply"
@@ -577,6 +577,7 @@ interface Arguments {
   allowPartialOutput?: boolean;
   allowEmpty?: boolean;
   referencePolicy?: "remove";
+  copyMediaPolicy?: "shared-media" | "isolated-instance";
   selection?: SelectionQuery | readonly SelectionQuery[];
   template?: string;
   runEdit?: MutateTextRunsOptions;
@@ -811,6 +812,7 @@ const scalarOptions = [
   "--theme-policy",
   "--dimension-policy",
   "--reference-policy",
+  "--media-policy",
   "--selection-json",
   "--slide",
   "--shape",
@@ -1527,7 +1529,7 @@ function parse(
       else {
         if (value.length > 1048576) usage("Binding JSON exceeds the text limit.");
         const bindings = commandJson(value);
-        validateTemplateBindings(bindings);
+        validateTemplateData(bindings);
         result.bindings = bindings;
       }
       continue;
@@ -2184,6 +2186,12 @@ function parse(
       if (operation !== "slides.remove" || value !== "remove")
         usage("Slide removal reference policy must be remove.");
       result.referencePolicy = value;
+      continue;
+    }
+    if (argument === "--media-policy") {
+      if (operation !== "slides.duplicate" || !["shared-media", "isolated-instance"].includes(value))
+        usage("Slide duplication media policy must be shared-media or isolated-instance.");
+      result.copyMediaPolicy = value as "shared-media" | "isolated-instance";
       continue;
     }
     if (
@@ -3512,6 +3520,7 @@ function parse(
       "--force",
       "--dry-run",
       ...(operation === "slides.remove" ? ["--reference-policy"] : ["--position"]),
+      ...(operation === "slides.duplicate" ? ["--media-policy"] : []),
       ...(operation === "slides.set" ? ["--name", "--hidden"] : [])
     ];
     if ([...seen].some((option) => !allowed.includes(option)))
@@ -4127,7 +4136,7 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
-          templates: { level: "edit", operations: ["template.apply"], subset: "Explicit slide-scoped literal text, fixed-grid tables and embedded image bindings; all required names and cardinality are validated before mutation. Repeated slides are unavailable." },
+          templates: { level: "edit", operations: ["template.apply"], subset: "Explicit slide-scoped literal text, fixed-grid tables and embedded image bindings. Repeat designated slides in record order with shared-media or isolated-instance policy; notes, charts and timings follow graph-aware duplication. Aggregate limits and atomic publication apply." },
           diagrams: {
             level: "preserve",
             operations: ["inspect", "slides.import"],
@@ -6141,6 +6150,7 @@ async function execute(
                   {
                     selection: mutationSelection,
                     position: args.mutation!.position!,
+                    ...(args.copyMediaPolicy ? { mediaPolicy: args.copyMediaPolicy } : {}),
                     allowEmpty: args.allowEmpty ?? false
                   },
                   context

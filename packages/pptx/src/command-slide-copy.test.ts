@@ -50,6 +50,38 @@ describe("slide duplication command", () => {
     original = createPresentation({ slides: [{ name: "Coast" }, { name: "Forest" }] }, context);
   });
   afterAll(() => vi.restoreAllMocks());
+  it.each(["shared-media", "isolated-instance"])(
+    "accepts explicit media policy %s",
+    async (policy) => {
+      const request = await invocation([
+        "slides",
+        "duplicate",
+        "/input.pptx",
+        "--slide",
+        "1",
+        "--position",
+        "2",
+        "--media-policy",
+        policy,
+        "--dry-run",
+        "--json"
+      ]);
+      const response = await engine.execute(request);
+      expect(response.exitCode, decode(response.stdout)).toBe(0);
+      const schemaResult = await engine.execute(
+        await invocation(["schema", "slides", "duplicate", "--json"])
+      );
+      const schema = JSON.parse(decode(schemaResult.stdout)).data.operations["slides.duplicate"];
+      expect(
+        compileJsonSchema(schema.options).validate({
+          slide: 1,
+          position: 2,
+          mediaPolicy: policy,
+          dryRun: true
+        }).ok
+      ).toBe(true);
+    }
+  );
   it("publishes a new slide and reports its fresh identity", async () => {
     const request = await invocation([
       "slides",

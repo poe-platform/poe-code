@@ -321,6 +321,10 @@ and unrelated runs, hyperlinks and package content.
 Every recognized slot on each explicitly selected slide MUST have a corresponding
 binding of its kind/name/slide. Duplicate declarations, absent targets, missing
 bindings and more than one occurrence with `one` MUST fail before graph mutation.
+The low-level SDK `applyTemplateBindings` MAY receive a fourth `selectedSlides`
+array of distinct positive original positions (at most 1,000) to validate slots
+even when bindings for a selected slide are absent. The default empty array
+preserves binding-derived scope; repeat uses this explicit validation scope.
 `all` admits repetition only on the selected slide. The same name on
 other slides is independent. Text inside a table owned by a table binding is
 payload content rather than an additional text binding scope. Empty bindings MUST
@@ -336,12 +340,57 @@ identify their owning objects. Binding validation MUST complete for the entire
 operation before graph mutation. CLI source alternatives are exactly one of `--data-file` and
 `--data-json`; both MUST invoke the same typed SDK behavior.
 
-This bounded profile MUST reject repeated-slide records, notes/layout/master
-scopes and table resizing. F57's proposed repeated-slide obligation remains
-outstanding; this profile does not establish complete F57 or live-model coverage.
+Binding arrays MUST reject repeated-slide records, notes/layout/master
+scopes and table resizing. Repeated slides use the distinct closed object below;
+neither profile establishes complete live-model coverage.
 Validation evidence MUST include literal braces, Unicode, non-cascading values,
 repeated names, missing/unknown bindings, structured payloads, preserved formatting
 and failure without publication through both SDK and CLI.
+
+### 6.2.2. Repeated template slides
+
+`template.apply` MUST also accept a closed object with `kind: "repeat"`,
+`slides`, `records` and `mediaPolicy`. `slides` MUST contain distinct positive
+one-based positions in the original presentation, in the requested clone order.
+`records` MUST contain binding arrays from §6.2.1; each binding's `slide` MUST
+refer to one of those original positions. The SDK entry point is
+`applyTemplateRepeat(input, repeat, context)` with the same semantics as the
+command's `--data-json` and `--data-file` alternatives.
+
+The operation MUST replace the selected prototypes at the earliest selected
+position, preserving the relative order and identities of unselected slides.
+For each record, it MUST duplicate all selected slides in declared order and
+bind only that instance. Empty records MUST remove the prototypes without
+creating an instance. One record MUST still create an independent graph copy.
+Part names, slide IDs and relationship remapping MUST be deterministic for the
+same input and request. Copied notes, chart parts and embedded chart workbooks
+MUST be instance-local; timings and supported internal references MUST remain
+coherent through the graph-aware copying rules. Unsupported graph structures
+MUST fail closed under the slide-copy contract.
+
+`mediaPolicy` MUST be explicitly `shared-media` or `isolated-instance`.
+`shared-media` retains references to unchanged image/audio/video resources;
+`isolated-instance` clones those resources per copied slide dependency graph.
+Layouts, masters and themes remain shared under both policies. Explicit image
+bindings continue to replace only their selected occurrence under either policy.
+The `duplicateSlides` SDK also accepts `mediaPolicy`, with `shared-media` as its
+backward-compatible default. `slides duplicate --media-policy` MUST expose the
+same choice; repeated template objects MUST still require an explicit policy.
+
+The operation MUST admit no more than 1,000 selected slides, 1,000 records and
+1,000 bindings in aggregate. Expanded slide count MUST also respect the explicit
+part limit. Aggregate text/table UTF-8 and image byte payloads MUST respect the
+byte budget; intermediate and final packages MUST respect archive, XML and graph
+limits. Values MUST be stored data, with no getters, executable expressions,
+implicit I/O or network. Request data MUST be captured before asynchronous work.
+Any invalid later record MUST fail the entire operation without returning or
+publishing an intermediate package. `affected` counts removed prototypes,
+inserted slides and bound occurrences. Locations identify final instance slides
+and bound objects; empty records identify removed prototype locations.
+
+Validation MUST cover zero/one/many records, selected-slide order, deterministic
+identities, both media policies, notes/charts/images/timings, aggregate limits,
+and later-record failure through SDK and CLI with unchanged input/destination.
 
 ### 6.3. Values, absence and defaults
 
@@ -358,9 +407,9 @@ the exact nullable model assignment remains available through typed batch.
 Empty text/name/value strings are intentional, except lookup names, property
 names, file paths, handles and identifiers MUST be nonempty. Required collections
 must be nonempty unless defined here: empty table cell text is valid; `Bindings:[]`
-and an empty batch are validated no-change operations. The proposed repeated-slide
-extension uses empty repeat records to remove selected prototype slides; the bounded
-template-binding profile rejects repeat records. Empty `series`, path vertices, selected
+and an empty batch are validated no-change operations. The repeated-slide
+object uses empty repeat records to remove selected prototype slides; binding
+arrays reject repeat records. Empty `series`, path vertices, selected
 slide sets, source lists and sanitization policies are rejected. Field presence
 is checked independently of truthiness. JSON booleans never accept 0/1 or strings.
 
@@ -1278,7 +1327,7 @@ schemas, not extra undocumented direct flags.
 | `slides set` / `slides.set`             | 1      | `--layout?: string`; `--name?: string`; `--position?: Position`; `--hidden?: boolean`; `--follow-master-background?: boolean` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `slides add` / `slides.add`             | 1      | `--layout: string`; `--name?: string`; `--position?: Position`; `--hidden?: boolean`; `--follow-master-background?: boolean`; `--title?: string`; `--body?: string`; `--placeholders-json?: PlaceholderText[]`  | `--json`, `--limit`, `--output`, `--in-place`, `--force`, `--dry-run` | slides; operation-specific in format contract; package             |
 | `slides remove` / `slides.remove`       | 1      | none                                                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `slides duplicate` / `slides.duplicate` | 1      | `--position: Position`                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `slides duplicate` / `slides.duplicate` | 1      | `--position: Position`; `--media-policy?: shared-media / isolated-instance` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `slides move` / `slides.move`           | 1      | `--position: Position`                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `slides merge` / `slides.merge`         | 1      | `--sources: Input[]`; `--source-slides?: Position[]`; `--theme-policy: source / destination`                                  | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `slides split` / `slides.split`         | 1      | `--slides: Position[]`                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output-dir`, `--force`, `--allow-partial-output`                        | slides; operation-specific in format contract; output-directory    |

@@ -162,13 +162,22 @@ function markers(value: string) {
 export async function applyTemplateBindings(
   input: BinaryInput,
   bindings: readonly TemplateBinding[],
-  context: SelectionContext
+  context: SelectionContext,
+  selectedSlides: readonly number[] = []
 ): Promise<{
   readonly bytes: Uint8Array;
   readonly affected: number;
   readonly locations: readonly Location[];
 }> {
   validateTemplateBindings(bindings);
+  array(selectedSlides);
+  if (
+    selectedSlides.length > 1000 ||
+    new Set(selectedSlides).size !== selectedSlides.length ||
+    selectedSlides.some((slide) => !Number.isSafeInteger(slide) || slide < 1)
+  )
+    invalid();
+  const selected = [...selectedSlides];
   let cumulative = 0;
   for (const binding of bindings) {
     context.signal?.throwIfAborted();
@@ -219,7 +228,7 @@ export async function applyTemplateBindings(
       admitImage(new Uint8Array(binding.image.bytes), binding.image.contentType);
   }
   const s = await loadShared(input, context);
-  if (!snapshots.length) return { bytes: s.source, affected: 0, locations: [] };
+  if (!snapshots.length && !selected.length) return { bytes: s.source, affected: 0, locations: [] };
   const byKey = new Map(
     snapshots.map((binding) => [
       JSON.stringify([binding.slide, binding.kind, binding.name]),
@@ -235,10 +244,10 @@ export async function applyTemplateBindings(
     binding: Extract<TemplateBinding, { kind: "image" }>;
   }[] = [];
   const targetParts = new Map<string, number>();
-  for (const binding of snapshots) {
-    const slide = s.index.inventory.slides.find((slide) => slide.position === binding.slide);
+  for (const position of new Set([...selected, ...snapshots.map((binding) => binding.slide)])) {
+    const slide = s.index.inventory.slides.find((slide) => slide.position === position);
     if (!slide) throw new OfficeError("missing-binding", "Binding slide does not exist.", "select");
-    targetParts.set(slide.part, binding.slide);
+    targetParts.set(slide.part, position);
   }
   const resolve = (slide: number, kind: string, name: string, location: Location) => {
     const binding = byKey.get(JSON.stringify([slide, kind, name]));

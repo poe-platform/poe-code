@@ -68,5 +68,6 @@ XML and package output must also fit their configured limits.
 Cross-run text replacements retain the first affected run's formatting and leave
 unaffected runs and hyperlinks intact. Table binding retains the fixed grid and
 cell formatting. Image binding changes the selected occurrence, preserving
-unselected uses of shared bytes. Notes, masters, layouts, repeated-slide expansion
-and table resizing are outside this bounded operation.
+unselected uses of shared bytes. Notes, masters, layouts and table resizing are
+outside this bounded operation. For repeated-slide expansion, use the separate
+[repeat object form](template-repeat-usage.md) of `template apply`.

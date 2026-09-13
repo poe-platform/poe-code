@@ -3726,10 +3726,13 @@
       ],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
-      "description": "Bounded literal typed text/table/image bindings with explicit slide scope/cardinality; validate all slots before mutation.",
+      "description": "Literal typed text/table/image bindings and deterministic designated-slide repetition with explicit media policy, aggregate limits and atomic publication.",
       "tests": [
         "packages/pptx/src/template-bindings.test.ts",
-        "packages/pptx/src/command-template.test.ts"
+        "packages/pptx/src/command-template.test.ts",
+        "packages/pptx/src/template-repeat.test.ts",
+        "packages/pptx/src/slide-copy-media-policy.test.ts",
+        "packages/safe-bash/tests/commands/pptx/template-repeat.test.ts"
       ],
       "cli": [
         "pptx",
@@ -3742,11 +3745,12 @@
         "dataJson": "--data-json"
       },
       "constraints": [
-        "Exactly one dataFile/dataJson; parse the raw array as Bindings.",
+        "Exactly one dataFile/dataJson; parse either the Bindings array or the closed repeat object.",
         "Each record requires name, kind, scope slides, positive one-based slide, cardinality one/all and its sole kind-specific payload.",
         "Validate every selected slide slot and binding before mutation; reject duplicates, absent targets, missing bindings and ambiguous one cardinality.",
         "Text uses literal {{name}}; table/image use the exact shape name {{name}}. Inserted text is not rescanned.",
-        "Fixed unmerged table grid only; embedded admitted image bytes only; repeated slides remain a proposed unsupported F57 obligation."
+        "Fixed unmerged table grid only; embedded admitted image bytes only; repeat objects require kind, slides, records and mediaPolicy (shared-media or isolated-instance).",
+        "Repeat selects original one-based prototypes; emits record order then declared slide order at the first selected position. Zero records removes prototypes. Aggregate bounds and graph-copy restrictions apply."
       ],
       "batchOptions": {
         "type": "object",
@@ -3754,7 +3758,7 @@
         "required": [],
         "additionalProperties": false
       },
-      "formatContract": "docs/specs/pptx.md#621-bounded-typed-template-bindings",
+      "formatContract": "docs/specs/pptx.md#622-repeated-template-slides",
       "stdin": "At most one document, auxiliary Input or inline nested VFS descriptor may name -. Reserve stdin before reads; a second claimant is a usage error.",
       "absence": "Optional set fields preserve existing values; omitted optional read filters select the declared collection. Null only where the schema admits null; empty strings remain explicit values.",
       "defaults": {},
@@ -20968,19 +20972,31 @@
       "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
     },
     "slides.duplicate": {
-      "path": ["slides", "duplicate"],
+      "path": [
+        "slides",
+        "duplicate"
+      ],
       "sdkOperationId": "slides.duplicate",
       "version": 1,
-      "status": "proposed_not_implemented",
+      "status": "partial-direct-implementation",
       "transport": "direct-and-batch",
       "arguments": {
         "type": "object",
         "properties": {
           "position": {
             "$ref": "#/$defs/Position"
+          },
+          "mediaPolicy": {
+            "enum": [
+              "shared-media",
+              "isolated-instance"
+            ],
+            "default": "shared-media"
           }
         },
-        "required": ["position"],
+        "required": [
+          "position"
+        ],
         "additionalProperties": false
       },
       "commonOptions": [
@@ -20998,17 +21014,40 @@
       ],
       "commonProfile": "edit",
       "inputArity": 1,
-      "help": ["pptx", "help", "slides", "duplicate"],
-      "schema": ["pptx", "schema", "slides", "duplicate"],
+      "help": [
+        "pptx",
+        "help",
+        "slides",
+        "duplicate"
+      ],
+      "schema": [
+        "pptx",
+        "schema",
+        "slides",
+        "duplicate"
+      ],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
       "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
-      "tests": ["command.slides.duplicate"],
-      "cli": ["pptx", "slides", "duplicate", "INPUT"],
+      "tests": [
+        "packages/pptx/src/slide-copy.test.ts",
+        "packages/pptx/src/slide-copy-media-policy.test.ts",
+        "packages/pptx/src/command-slide-copy.test.ts"
+      ],
+      "cli": [
+        "pptx",
+        "slides",
+        "duplicate",
+        "INPUT"
+      ],
       "flags": {
-        "position": "--position"
+        "position": "--position",
+        "mediaPolicy": "--media-policy"
       },
-      "constraints": [],
+      "constraints": [
+        "Direct slide copying retains shared layout/master/theme resources; notes/charts/workbooks are cloned. Media policy defaults to shared-media and admits isolated-instance.",
+        "Selected-slide links are remapped within each copied group. Unsupported dependencies fail closed. This receipt does not implement the general model batch contract."
+      ],
       "batchOptions": {
         "type": "object",
         "properties": {

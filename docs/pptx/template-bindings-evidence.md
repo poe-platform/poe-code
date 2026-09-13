@@ -1,5 +1,9 @@
 # Typed template bindings evidence
 
+This receipt records the original array-only checkpoint. Designated repeated
+slides now have a separate [implementation receipt](template-repeat-evidence.md)
+and [usage guide](template-repeat-usage.md); the historical scope below is retained.
+
 Scope: original, bounded text/table/image binding composition. F57 repeated slides
 and whole-model API conformance remain outstanding. This receipt does not change
 the historical inventories or count adjacent functionality as binding parity.

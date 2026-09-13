@@ -21,6 +21,7 @@ export interface DuplicateSlidesOptions {
   readonly selection: SelectionQuery | readonly SelectionQuery[];
   readonly position: number;
   readonly allowEmpty?: boolean;
+  readonly mediaPolicy?: "shared-media" | "isolated-instance";
 }
 const dialects = [
   {
@@ -87,7 +88,14 @@ export async function duplicateSlides(
     !options ||
     typeof options !== "object" ||
     ![Object.prototype, null].includes(Object.getPrototypeOf(options)) ||
-    Object.keys(options).some((key) => !["selection", "position", "allowEmpty"].includes(key)) ||
+    Reflect.ownKeys(options).some(
+      (key) =>
+        typeof key !== "string" ||
+        !["selection", "position", "allowEmpty", "mediaPolicy"].includes(key) ||
+        !("value" in Object.getOwnPropertyDescriptor(options, key)!)
+    ) ||
+    (options.mediaPolicy !== undefined &&
+      !["shared-media", "isolated-instance"].includes(options.mediaPolicy)) ||
     !Number.isSafeInteger(options.position) ||
     options.position < 1 ||
     (options.allowEmpty !== undefined && typeof options.allowEmpty !== "boolean")
@@ -118,6 +126,7 @@ export async function duplicateSlides(
         q.position === undefined)
     )
       throw new SelectionError("invalid-selection");
+  const mediaPolicy = options.mediaPolicy;
   const source = await readBinary(input, context);
   const reader = await readPackage(source, context);
   const limits = {
@@ -227,9 +236,10 @@ export async function duplicateSlides(
   let copiedBytes = 0,
     copiedParts = 0,
     copiedRelationships = 0;
+  const slideCopies = new Map(selected.map((slide) => [slide, allocate(slide)]));
   for (const slide of selected) {
     context.signal?.throwIfAborted();
-    const copies = new Map<string, string>([[slide, allocate(slide)]]);
+    const copies = new Map<string, string>([[slide, slideCopies.get(slide)!]]);
     const pending = [slide];
     for (let cursor = 0; cursor < pending.length; cursor++) {
       const owner = pending[cursor]!;
@@ -262,6 +272,7 @@ export async function duplicateSlides(
         if (kind === "hyperlink") unsupported();
         const clone =
           ["notesSlide", "chart"].includes(kind) ||
+          (mediaPolicy === "isolated-instance" && ["image", "audio", "video"].includes(kind)) ||
           (kind === "package" &&
             types.get(owner) ===
               "application/vnd.openxmlformats-officedocument.drawingml.chart+xml");
@@ -327,7 +338,9 @@ export async function duplicateSlides(
           const target = edge.external
             ? edge.target
             : relativePartReference(
-                copies.get(edge.targetPart!) ?? edge.targetPart!,
+                copies.get(edge.targetPart!) ??
+                  slideCopies.get(edge.targetPart!) ??
+                  edge.targetPart!,
                 copy.slice(0, copy.lastIndexOf("/"))
               );
           rels = rels.merge(node, {

@@ -167,7 +167,16 @@ describe("typed template commands", () => {
     const capabilities = await f.run(["capabilities", "--json"]);
     expect(capabilities.exitCode).toBe(0);
     expect(decode(capabilities.stdout)).toContain("template.apply");
-    expect(decode(capabilities.stdout)).toContain("Repeated slides are unavailable");
+    expect(decode(capabilities.stdout)).toContain("isolated-instance");
     expect(f.readInput).not.toHaveBeenCalled();
+  });
+  it("discovers explicit repeat policies and record limits", async () => {
+    const f = await fixture();
+    const result = await f.run(["schema", "template", "apply", "--json"]);
+    expect(result.exitCode).toBe(0);
+    const schema = JSON.parse(decode(result.stdout));
+    expect(JSON.stringify(schema)).toContain('"shared-media"');
+    expect(JSON.stringify(schema)).toContain('"records"');
+    expect(JSON.stringify(schema)).toContain('"maxItems":1000');
   });
 });

@@ -922,6 +922,15 @@ function slideMutationSchema(
         ...(operation === "slides.set"
           ? { name: { type: "string" }, hidden: { type: "boolean" } }
           : {}),
+        ...(operation === "slides.duplicate"
+          ? {
+              mediaPolicy: {
+                enum: ["shared-media", "isolated-instance"],
+                default: "shared-media",
+                description: "CLI --media-policy; unchanged media sharing or per-copy isolation."
+              }
+            }
+          : {}),
         json: { type: "boolean", default: false },
         limit: xmlSelection.limit,
         output: { type: "string", minLength: 1 },

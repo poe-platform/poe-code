@@ -17,6 +17,7 @@ export type {
   WriteOptions
 } from "./contracts.js";
 export { OfficeError, type ByteErrorCode, type OfficeErrorCode } from "./errors.js";
+export { applyTemplateRepeat, validateTemplateRepeat, type TemplateRepeat } from "./template-repeat.js";
 export {
   applyTemplateBindings,
   validateTemplateBindings,

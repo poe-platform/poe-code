@@ -12,11 +12,23 @@ import {
   validateTemplateBindings,
   type TemplateBinding
 } from "./template-bindings.js";
+import {
+  applyTemplateRepeat,
+  validateTemplateRepeat,
+  type TemplateRepeat
+} from "./template-repeat.js";
+
+export function validateTemplateData(
+  value: unknown
+): asserts value is readonly TemplateBinding[] | TemplateRepeat {
+  if (Array.isArray(value)) validateTemplateBindings(value);
+  else validateTemplateRepeat(value);
+}
 
 export interface TemplateArguments {
   input?: string;
   dataFile?: string;
-  bindings?: readonly TemplateBinding[];
+  bindings?: readonly TemplateBinding[] | TemplateRepeat;
   output?: string;
   json: boolean;
   inPlace?: boolean;
@@ -91,12 +103,14 @@ export async function executeTemplateCommand(
     }
     bindings = commandJson(json);
   }
-  validateTemplateBindings(bindings);
+  validateTemplateData(bindings);
   const bytes = await request.readInput(
     args.input!,
     Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
   );
-  const mutation = await applyTemplateBindings(bytes, bindings, context);
+  const mutation = Array.isArray(bindings)
+    ? await applyTemplateBindings(bytes, bindings, context)
+    : await applyTemplateRepeat(bytes, bindings as TemplateRepeat, context);
   const dryRun = args.dryRun ?? false;
   const destination = args.inPlace ? args.input! : args.output;
   if (destination && destination !== "-" && !request.publishOutput)
@@ -106,15 +120,22 @@ export async function executeTemplateCommand(
   const fingerprint = Array.from(sha256(mutation.bytes), (byte) =>
     byte.toString(16).padStart(2, "0")
   ).join("");
+  const repeat = Array.isArray(bindings) ? undefined : (bindings as TemplateRepeat);
   return {
     result: {
       version: 1,
       operation: "template.apply",
       ok: true,
       data: {
-        effects: mutation.locations.map((location) => ({
+        effects: mutation.locations.map((location, index) => ({
           location,
-          action: "replace",
+          action: repeat
+            ? repeat.records.length === 0
+              ? "remove"
+              : index < repeat.slides.length * repeat.records.length
+                ? "add"
+                : "replace"
+            : "replace",
           feature: "F57"
         })),
         outputs: dryRun

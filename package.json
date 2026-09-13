@@ -551,6 +551,7 @@
     "packages/office-package/LICENSE",
     "packages/pptx/dist",
     "packages/pptx/LICENSE",
+    "packages/pptx/THIRD_PARTY_NOTICES.txt",
     "packages/opencode-poe-auth/dist",
     "packages/package-lint/dist",
     "packages/pipeline/dist",

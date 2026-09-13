@@ -32,6 +32,7 @@ export interface XmlPart {
   readonly root: XmlElement;
   bytes(): Uint8Array;
   markup(element: XmlElement, standalone?: boolean): string;
+  subtree(element: XmlElement): XmlPart;
   resolveNamespace(element: XmlElement, prefix: string): string | undefined;
   reorderChildren(element: XmlElement, children: readonly XmlElement[]): XmlPart;
   spliceChildren(
@@ -316,6 +317,9 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
     nodeCount: nodes,
     root,
     bytes: () => Uint8Array.from(original),
+    subtree(element: XmlElement): XmlPart {
+      return parseXmlPart(new TextEncoder().encode(this.markup(element, true)), limits);
+    },
     markup(element: XmlElement, standalone = false): string {
       const span = spans.get(element);
       if (!span) fail("invalid-value");

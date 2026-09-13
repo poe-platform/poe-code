@@ -1,0 +1,1017 @@
+{
+  "schema_version": 1,
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Paragraph alignment, margins, indentation, list levels, spacing, bullets, numbering, direction and tabs. Historical inventories remain unchanged.",
+  "counts": {
+    "unit_rows": 40,
+    "bdd_rows": 22,
+    "api_rows": 30
+  },
+  "verification": "Final audit suite: 69 paragraph cases and 26 alignment cases passed (95 total, 37 ms summed test time). Exact expanded row targets below; Paragraph direct properties retain Length semantics.",
+  "language_security_mappings": {
+    "J01": "Neutral paragraph model spellings remain authoritative; operation keys are camelCase.",
+    "J02": "Local snapshot absence is null; inherited style resolution remains separate. No ambient host access.",
+    "J04": "Stable numeric enum symbols and alias; from_xml/to_xml/validate retained. Numeric primitives cannot expose instance metadata, so metadata(value) returns a frozen {name,value,xml_value} record. MIXED metadata has xml_value:null and conversion/assignment rejects it. Enum object and helper properties are frozen and typed readonly.",
+    "J05": "Model Length helpers store safe integer EMUs; before/after are Length|null and line_spacing is Length|number|null. Operation values use points/tagged spacing. Explicit zero retains local value; omitted retains; null clears.",
+    "J08": "Numeric line multiples do not expose .pt in JS; null dereference is native TypeError. No wrapper reproduces Python primitive attribute errors.",
+    "J10": "Formatting preserves mixed runs, breaks and fields. No wrapping is calculated."
+  },
+  "unit_cases": [
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_horizontal_alignment[alignment_get_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 801,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "keeps absent alignment inherited and removes an explicit override",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent pPr",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_horizontal_alignment[alignment_get_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 801,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads and writes center alignment with an independent XML value",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "algn=ctr",
+      "independent_expected": "center"
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_horizontal_alignment[alignment_get_fixture2]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 801,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads and writes right alignment with an independent XML value",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "algn=r",
+      "independent_expected": "right"
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_horizontal_alignment[alignment_set_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 805,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "creates left alignment on an unformatted paragraph",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "algn=l",
+      "independent_expected": "l"
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_horizontal_alignment[alignment_set_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 805,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads and writes justify alignment with an independent XML value",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "algn=l",
+      "independent_expected": "just"
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_horizontal_alignment[alignment_set_fixture2]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 805,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "keeps absent alignment inherited and removes an explicit override",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "algn=just",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_indentation_level[level_get_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 820,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "distinguishes absent indentation from explicit zero",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent pPr",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_indentation_level[level_get_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 820,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads level two without a preceding mutation",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "lvl=2",
+      "independent_expected": 2
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_indentation_level[level_set_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 824,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "applies first indentation from its prior state",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent level",
+      "independent_expected": "1"
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_indentation_level[level_set_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 824,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "applies next indentation from its prior state",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "lvl=1",
+      "independent_expected": "2"
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_indentation_level[level_set_fixture2]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 824,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "applies reset indentation from its prior state",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "lvl=2",
+      "independent_expected": "0"
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 829,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads missing properties without measuring glyphs",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent pPr",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 829,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads empty properties without measuring glyphs",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "empty pPr",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture2]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 829,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads absolute eighteen without measuring glyphs",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=1800",
+      "independent_expected": {
+        "unit": "pt",
+        "value": 18
+      }
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture3]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 829,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads fractional multiple without measuring glyphs",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPct=142000",
+      "independent_expected": {
+        "unit": "multiple",
+        "value": 1.42
+      }
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture4]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 829,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads percentage lexical form without measuring glyphs",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPct=124.64%",
+      "independent_expected": {
+        "unit": "multiple",
+        "value": 1.2464
+      }
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_line_spacing[spacing_set_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 833,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes create multiple using literal schema units",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent",
+      "independent_expected": ["spcPct", "142000"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_line_spacing[spacing_set_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 833,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes create absolute using literal schema units",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent",
+      "independent_expected": ["spcPts", "4200"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_line_spacing[spacing_set_fixture2]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 833,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes replace multiple using literal schema units",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPct=110000",
+      "independent_expected": ["spcPct", "87500"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_line_spacing[spacing_set_fixture3]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 833,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes replace absolute using literal schema units",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=600",
+      "independent_expected": ["spcPts", "4200"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_line_spacing[spacing_set_fixture4]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 833,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes absolute to multiple using literal schema units",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=1900",
+      "independent_expected": ["spcPct", "92500"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_line_spacing[spacing_set_fixture5]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 833,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes multiple to absolute using literal schema units",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPct=150000",
+      "independent_expected": ["spcPts", "2400"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_line_spacing[spacing_set_fixture6]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 833,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "clears spcPts line spacing while retaining inline content",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=600",
+      "independent_expected": []
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_line_spacing[spacing_set_fixture7]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 833,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "clears spcPct line spacing while retaining inline content",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPct=600",
+      "independent_expected": []
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_after[after_get_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 846,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceAfter missing",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_after[after_get_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 846,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceAfter empty",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "empty pPr",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_after[after_get_fixture2]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 846,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceAfter percentage",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPct=150000",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_after[after_get_fixture3]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 846,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceAfter six points",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=600",
+      "independent_expected": 6
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_space_after[after_set_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 850,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceAfter create fractional",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent",
+      "independent_expected": ["spcPts", "833"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_space_after[after_set_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 850,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceAfter replace points",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=600",
+      "independent_expected": ["spcPts", "4200"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_space_after[after_set_fixture2]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 850,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceAfter replace percentage",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPct=150000",
+      "independent_expected": ["spcPts", "2400"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_space_after[after_set_fixture3]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 850,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "clears spaceAfter instead of writing zero",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=600",
+      "independent_expected": []
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_before[before_get_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 855,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceBefore missing",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_before[before_get_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 855,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceBefore empty",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "empty pPr",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_before[before_get_fixture2]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 855,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceBefore percentage",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPct=150000",
+      "independent_expected": null
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_before[before_get_fixture3]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 855,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceBefore six points",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=600",
+      "independent_expected": 6
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_space_before[before_set_fixture0]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 859,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceBefore create fractional",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "absent",
+      "independent_expected": ["spcPts", "833"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_space_before[before_set_fixture1]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 859,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceBefore replace points",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=600",
+      "independent_expected": ["spcPts", "4200"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_space_before[before_set_fixture2]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 859,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceBefore replace percentage",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPct=150000",
+      "independent_expected": ["spcPts", "2400"]
+    },
+    {
+      "source_id": "tests/text/test_text.py::Describe_Paragraph::it_can_change_its_space_before[before_set_fixture3]",
+      "source_file": "tests/text/test_text.py",
+      "source_line": 859,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "clears spaceBefore instead of writing zero",
+      "equivalence": "Each expanded source input remains a distinct row; original XML has independent literal expected values. Local level zero is explicitly serialized instead of dropping the attribute; both have default level zero semantics.",
+      "original_input": "spcPts=600",
+      "independent_expected": []
+    }
+  ],
+  "bdd_cases": [
+    {
+      "source_id": "features/shp-placeholder.feature:12:Round-trip paragraph level setting",
+      "source_file": "features/shp-placeholder.feature",
+      "source_line": 12,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes explicit indentation level 1",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "remaining_evidence": "Package placeholder roundtrip is covered separately by SDK package integration; this row currently has value-level evidence.",
+      "independent_expected": "1"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:7:_Paragraph.alignment setter",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 7,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads and writes center alignment with an independent XML value",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": "ctr"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:13:_Paragraph.level setter",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 13,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes explicit indentation level 1",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": "1"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:26:_Paragraph.line_spacing getter -- @1.1 paragraph.line_spacing states",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 26,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads missing properties without measuring glyphs",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": null,
+      "additional_model_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:27:_Paragraph.line_spacing getter -- @1.2 paragraph.line_spacing states",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 27,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads one and a half without measuring glyphs",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": {
+        "unit": "multiple",
+        "value": 1.5
+      },
+      "additional_model_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:28:_Paragraph.line_spacing getter -- @1.3 paragraph.line_spacing states",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 28,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads absolute twenty without measuring glyphs",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": {
+        "unit": "pt",
+        "value": 20
+      },
+      "additional_model_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:39:_Paragraph.line_spacing setter -- @1.1 paragraph.line_spacing assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 39,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes create one and a half using literal schema units",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": ["spcPct", "150000"],
+      "additional_model_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:40:_Paragraph.line_spacing setter -- @1.2 paragraph.line_spacing assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 40,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes double multiple using literal schema units",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": ["spcPct", "200000"],
+      "additional_model_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:41:_Paragraph.line_spacing setter -- @1.3 paragraph.line_spacing assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 41,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "clears spcPct line spacing while retaining inline content",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": [],
+      "additional_model_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:42:_Paragraph.line_spacing setter -- @1.4 paragraph.line_spacing assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 42,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes create twenty points using literal schema units",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": ["spcPts", "2000"],
+      "additional_model_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:43:_Paragraph.line_spacing setter -- @1.5 paragraph.line_spacing assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 43,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes twenty to twenty four using literal schema units",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": ["spcPts", "2400"],
+      "additional_model_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:44:_Paragraph.line_spacing setter -- @1.6 paragraph.line_spacing assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 44,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "clears spcPts line spacing while retaining inline content",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": [],
+      "additional_model_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:54:_Paragraph.space_before/after getter -- @1.1 paragraph.space_before/after states",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 54,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceBefore missing",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": null,
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:55:_Paragraph.space_before/after getter -- @1.2 paragraph.space_before/after states",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 55,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceBefore six points",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": 6,
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:56:_Paragraph.space_before/after getter -- @1.3 paragraph.space_before/after states",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 56,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceAfter missing",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": null,
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:57:_Paragraph.space_before/after getter -- @1.4 paragraph.space_before/after states",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 57,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "reads spaceAfter six points",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": 6,
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:67:_Paragraph.space_before/after setter -- @1.1 paragraph.space_before/after assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 67,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceBefore create six",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": ["spcPts", "600"],
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:68:_Paragraph.space_before/after setter -- @1.2 paragraph.space_before/after assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 68,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceBefore six to three",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": ["spcPts", "300"],
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:69:_Paragraph.space_before/after setter -- @1.3 paragraph.space_before/after assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 69,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "clears spaceBefore instead of writing zero",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": [],
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:70:_Paragraph.space_before/after setter -- @1.4 paragraph.space_before/after assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 70,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceAfter create six",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": ["spcPts", "600"],
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:71:_Paragraph.space_before/after setter -- @1.5 paragraph.space_before/after assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 71,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "writes spaceAfter six to three",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": ["spcPts", "300"],
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "features/txt-paragraph.feature:72:_Paragraph.space_before/after setter -- @1.6 paragraph.space_before/after assignment results",
+      "source_file": "features/txt-paragraph.feature",
+      "source_line": 72,
+      "status": "original-value-case-passed",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "clears spaceAfter instead of writing zero",
+      "equivalence": "Original cases retain each spacing state and transition. Absolute values are points in the operation representation; model Length access and primitive .pt behavior require separate model assertions.",
+      "independent_expected": [],
+      "additional_model_test": "retains Length semantics for model space_before / retains Length semantics for model space_after"
+    }
+  ],
+  "api_cases": [
+    {
+      "source_id": "pptx.enum.text.PP_ALIGN",
+      "source_kind": "enum-alias",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "PP_ALIGN",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT",
+      "source_kind": "EnumType",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "PP_PARAGRAPH_ALIGNMENT",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.CENTER",
+      "source_kind": "enum-member",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "CENTER",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.DISTRIBUTE",
+      "source_kind": "enum-member",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "DISTRIBUTE",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.JUSTIFY",
+      "source_kind": "enum-member",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "JUSTIFY",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.JUSTIFY_LOW",
+      "source_kind": "enum-member",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "JUSTIFY_LOW",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.LEFT",
+      "source_kind": "enum-member",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "LEFT",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.MIXED",
+      "source_kind": "enum-member",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "MIXED",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "keeps mixed as a readable return-only sentinel"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.RIGHT",
+      "source_kind": "enum-member",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "RIGHT",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.THAI_DISTRIBUTE",
+      "source_kind": "enum-member",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "THAI_DISTRIBUTE",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.from_xml",
+      "source_kind": "classmethod",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "from_xml",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.name",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "name",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.to_xml",
+      "source_kind": "classmethod",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "to_xml",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.validate",
+      "source_kind": "classmethod",
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "validate",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.value",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02", "J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "value",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.enum.text.PP_PARAGRAPH_ALIGNMENT.xml_value",
+      "source_kind": "property",
+      "mapping_rules": ["J04"],
+      "status": "implemented-language-mapped",
+      "target_member": "xml_value",
+      "disposition": "Numeric enum symbols preserved; from_xml/to_xml/validate operate on enum values. Metadata maps numeric primitive .name/.value/.xml_value to frozen metadata(value). Source writable xml_value becomes immutable under J04.",
+      "target_file": "packages/pptx/src/paragraph-alignment.test.ts",
+      "target_test": "converts %s with immutable metadata"
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph",
+      "source_kind": "type",
+      "mapping_rules": ["J01"],
+      "status": "public-graph-gap-outside-formatting-slice",
+      "target_member": "_Paragraph",
+      "disposition": "Public returned paragraph interface remains required; no exclusion based on leading underscore. Graph ownership, constructor/returned-handle integration and unrelated content methods are not completed by a formatting facade."
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.__init__",
+      "source_kind": "constructor",
+      "mapping_rules": ["J01"],
+      "status": "public-graph-gap-outside-formatting-slice",
+      "target_member": "constructor",
+      "disposition": "Public returned paragraph interface remains required; no exclusion based on leading underscore. Graph ownership, constructor/returned-handle integration and unrelated content methods are not completed by a formatting facade."
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.add_line_break",
+      "source_kind": "function",
+      "mapping_rules": ["J01"],
+      "status": "public-graph-gap-outside-formatting-slice",
+      "target_member": "add_line_break",
+      "disposition": "Public returned paragraph interface remains required; no exclusion based on leading underscore. Graph ownership, constructor/returned-handle integration and unrelated content methods are not completed by a formatting facade."
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.add_run",
+      "source_kind": "function",
+      "mapping_rules": ["J01"],
+      "status": "public-graph-gap-outside-formatting-slice",
+      "target_member": "add_run",
+      "disposition": "Public returned paragraph interface remains required; no exclusion based on leading underscore. Graph ownership, constructor/returned-handle integration and unrelated content methods are not completed by a formatting facade."
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.alignment",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02"],
+      "status": "implemented-bounded-model",
+      "target_member": "alignment",
+      "disposition": "Direct neutral property assignment on a bounded explicit Paragraph XML owner. Full presentation graph returned-object wiring remains outside this slice.",
+      "target_file": "packages/pptx/src/text-paragraphs.test.ts",
+      "target_test": "offers neutral formatting properties over an explicit owned paragraph"
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.clear",
+      "source_kind": "function",
+      "mapping_rules": ["J01", "J10"],
+      "status": "public-graph-gap-outside-formatting-slice",
+      "target_member": "clear",
+      "disposition": "Public returned paragraph interface remains required; no exclusion based on leading underscore. Graph ownership, constructor/returned-handle integration and unrelated content methods are not completed by a formatting facade."
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.font",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public-graph-gap-outside-formatting-slice",
+      "target_member": "font",
+      "disposition": "Public returned paragraph interface remains required; no exclusion based on leading underscore. Graph ownership, constructor/returned-handle integration and unrelated content methods are not completed by a formatting facade."
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.level",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02"],
+      "status": "implemented-bounded-model",
+      "target_member": "level",
+      "disposition": "Direct neutral property assignment on a bounded explicit Paragraph XML owner. Full presentation graph returned-object wiring remains outside this slice.",
+      "target_file": "packages/pptx/src/text-paragraphs.test.ts",
+      "target_test": "offers neutral formatting properties over an explicit owned paragraph"
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.line_spacing",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02"],
+      "status": "implemented-bounded-model",
+      "target_member": "line_spacing",
+      "disposition": "Direct neutral property assignment on a bounded explicit Paragraph XML owner. Full presentation graph returned-object wiring remains outside this slice.",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "narrows nullable line multiples and absolute lengths on the model"
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.part",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "status": "public-graph-gap-outside-formatting-slice",
+      "target_member": "part",
+      "disposition": "Public returned paragraph interface remains required; no exclusion based on leading underscore. Graph ownership, constructor/returned-handle integration and unrelated content methods are not completed by a formatting facade."
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.runs",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public-graph-gap-outside-formatting-slice",
+      "target_member": "runs",
+      "disposition": "Public returned paragraph interface remains required; no exclusion based on leading underscore. Graph ownership, constructor/returned-handle integration and unrelated content methods are not completed by a formatting facade."
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.space_after",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02"],
+      "status": "implemented-bounded-model",
+      "target_member": "space_after",
+      "disposition": "Direct neutral property assignment on a bounded explicit Paragraph XML owner. Full presentation graph returned-object wiring remains outside this slice.",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "retains Length semantics for model space_after"
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.space_before",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02"],
+      "status": "implemented-bounded-model",
+      "target_member": "space_before",
+      "disposition": "Direct neutral property assignment on a bounded explicit Paragraph XML owner. Full presentation graph returned-object wiring remains outside this slice.",
+      "target_file": "packages/pptx/src/paragraph-formatting-cases.test.ts",
+      "target_test": "retains Length semantics for model space_before"
+    },
+    {
+      "source_id": "pptx.text.text._Paragraph.text",
+      "source_kind": "property",
+      "mapping_rules": ["J01", "J02", "J10"],
+      "status": "public-graph-gap-outside-formatting-slice",
+      "target_member": "text",
+      "disposition": "Public returned paragraph interface remains required; no exclusion based on leading underscore. Graph ownership, constructor/returned-handle integration and unrelated content methods are not completed by a formatting facade."
+    }
+  ],
+  "additional_original_requirements": [
+    "all nine levels",
+    "zero versus omission",
+    "null clearing",
+    "mixed runs and fields preserved",
+    "RTL numbering including restart",
+    "bullet mutual exclusion",
+    "tab alignment and position ordering",
+    "schema child ordering",
+    "inherited defaults and local overrides",
+    "rejection before mutation",
+    "paired SDK and CLI parity"
+  ],
+  "legal": "Original cases and original XML assets; no copied implementation or fixture bytes. Existing standalone test-case-map-notice.txt retains the required MIT research notice.",
+  "legal_notice": "docs/pptx/test-case-map-notice.txt"
+}

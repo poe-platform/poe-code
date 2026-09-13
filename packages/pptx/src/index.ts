@@ -166,3 +166,21 @@ export {
   type RunColor,
   type RunColorRecord
 } from "./text-run-color.js";
+
+export {
+  Paragraph,
+  PP_PARAGRAPH_ALIGNMENT,
+  PP_ALIGN,
+  paragraphAlignments,
+  paragraphNumberingSchemes,
+  readTextParagraphs,
+  mutateTextParagraphs,
+  validateTextParagraphOptions,
+  type TextParagraphFormatting,
+  type MutateTextParagraphsOptions,
+  type ParagraphSpacing,
+  type ParagraphBullet,
+  type ParagraphTab
+} from "./text-paragraphs.js";
+
+export { Length, Emu, Inches, Cm, Mm, Pt, Centipoints } from "./length.js";

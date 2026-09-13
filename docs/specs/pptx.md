@@ -348,6 +348,35 @@ clockwise degrees in [-360000,360000], normalized modulo 360 only on assignment.
 Opacity and gradient-stop positions are fractions [0,1]. Stops are ordered,
 at least two, with endpoints 0 and 1; equal positions are allowed in given order.
 
+#### Paragraph formatting values
+
+Paragraph formatting edits MUST preserve unselected runs, fields, breaks,
+paragraph defaults, list styles and inherited layout/master definitions. Omitted
+fields retain local overrides. Nullable formatting fields accept `null` to remove
+the local declaration; zero is an explicit value. Inspection of local properties
+MUST distinguish absence from an explicit value and MUST NOT flatten inheritance.
+Changing paragraph properties MUST retain DrawingML schema child order, including
+spacing before bullet properties, tabs before default run properties, and
+extensions last. These operations MUST NOT calculate line wrapping.
+
+Paragraph `marginLeft`, `marginRight`, `indent` and `defaultTabSize` use explicit
+Length values in command JSON and length suffixes in direct flags. Their stored
+values are integer EMUs; indentation may be negative. `spaceBefore` and
+`spaceAfter` use lengths stored in hundredths of a point. `lineSpacing` accepts
+an absolute length or an explicit line multiple, stored respectively as
+hundredths of a point or hundred-thousandths of a line. Zero spacing is valid.
+The byte-oriented SDK documents its point-valued numeric fields separately from
+the common command Length representation.
+
+Paragraph levels are integers 0 through 8. `direction` is `ltr`, `rtl` or `null`;
+numbering MUST NOT reverse text or calculate displayed numbers. `bullet` sets an
+explicit character, `numbering` sets a declared numbering style, and numbering
+`none` writes an explicit no-bullet declaration. Clearing the bullet declaration
+restores inheritance. Simultaneous bullet and numbering assignments MUST fail.
+Tab arrays contain explicit Length positions, optionally with left, center,
+right or decimal alignment. An empty tab array writes an explicit empty tab list;
+`null` removes that list. Invalid values MUST fail before publication.
+
 ### 6.4. Slide, drawing and content families
 
 Slide `position` is the final one-based position after removal for a move, or
@@ -930,7 +959,7 @@ schemas, not extra undocumented direct flags.
 | `text runs set` / `text.runs.set`               | 1      | `--text?: string`; `--font?: string`; `--size?: Length`; `--language?: string`; `--bold?: boolean / null`; `--italic?: boolean / null`; `--underline?: "none" / MSO_TEXT_UNDERLINE_TYPE`; `--strike?: none / single / double`; `--baseline?: number≥-100≤100`; `--capitalization?: none / small / all`; `--spacing?: Length`; `--color?: Color`; `--highlight?: Color` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `text paragraphs list` / `text.paragraphs.list` | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
 | `text paragraphs get` / `text.paragraphs.get`   | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; one; ambiguity fails; none                                 |
-| `text paragraphs set` / `text.paragraphs.set`   | 1      | `--text?: string`; `--alignment?: left / center / right / justify / distributed`; `--space-before?: Length`; `--space-after?: Length`; `--indent?: Length`; `--level?: integer≥0≤8`; `--bullet?: string`; `--numbering?: decimal / lower-alpha / upper-alpha / lower-roman / upper-roman / none`; `--tabs?: Length[]`; `--direction?: ltr / rtl`                       | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `text paragraphs set` / `text.paragraphs.set`   | 1      | `--text?: string` (planned whole-text assignment); `--alignment?: left / center / right / justify / distributed / justifyLow / thaiDistributed / null`; `--margin-left?`, `--margin-right?`, `--default-tab-size?`, `--space-before?`, `--space-after?`, `--indent?: Length / null`; `--line-spacing?: Length / line multiple / null`; `--level?: integer≥0≤8 / null`; `--bullet?: character / structured bullet / null`; `--numbering?: decimal / lower-alpha / upper-alpha / lower-roman / upper-roman / none / null`; `--tabs?: Length[] / aligned tabs / null`; `--direction?: ltr / rtl / null`; `--rtl?: boolean / null` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `text frames list` / `text.frames.list`         | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
 | `text frames get` / `text.frames.get`           | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; one; ambiguity fails; none                                 |
 | `text frames set` / `text.frames.set`           | 1      | `--text?: string`; `--margin-left?: Length`; `--margin-right?: Length`; `--margin-top?: Length`; `--margin-bottom?: Length`; `--vertical-anchor?: top / middle / bottom`; `--columns?: integer≥1≤16`; `--wrap?: boolean / null`; `--autofit?: none / shape / text`; `--rotation?: Degrees`                                                                             | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |

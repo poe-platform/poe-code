@@ -1,4 +1,10 @@
 import {
+  readTextParagraphs,
+  mutateTextParagraphs,
+  validateTextParagraphOptions,
+  type MutateTextParagraphsOptions
+} from "./text-paragraphs.js";
+import {
   readTextRuns,
   mutateTextRuns,
   validateTextRunOptions,
@@ -34,6 +40,9 @@ import {
   inspectSchema,
   textGetSchema,
   textReplaceSchema,
+  textParagraphsSetSchema,
+  textParagraphsGetSchema,
+  textParagraphsListSchema,
   textRunsSetSchema,
   textRunsGetSchema,
   textRunsListSchema,
@@ -124,6 +133,18 @@ const scopes: readonly Scope[] = [
   "presentation",
   "shared"
 ];
+const paragraphHelp =
+  "Usage: pptx text paragraphs list|get|set INPUT [selection] [formatting] [output]\n" +
+  "Selection: --slide N --shape NAME --paragraph N (one-based), --select TOKEN, --all (set only)\n" +
+  "Formatting: --alignment left|center|right|justify|justifyLow|distributed|thaiDistributed\n" +
+  "  --margin-left LENGTH --margin-right LENGTH --indent LENGTH --default-tab-size LENGTH\n" +
+  "  --space-before LENGTH --space-after LENGTH --line-spacing MULTIPLE_OR_LENGTH\n" +
+  "  --level 0..8 --direction ltr|rtl|null --rtl true|false|null\n" +
+  "  --bullet CHARACTER_OR_JSON --numbering decimal|lower-alpha|upper-alpha|lower-roman|upper-roman|none|null\n" +
+  "  --tabs JSON (Length records, or position in points with alignment)\n" +
+  "Lengths require emu/in/cm/mm/pt; numeric JSON positions and SDK lengths use points.\n" +
+  "Omitted properties remain unchanged; null clears overrides. No line wrapping is calculated.\n" +
+  "Output: --output PATH | --in-place; --force --dry-run --json --allow-empty\n";
 const runHelp =
   "Usage: pptx text runs list|get INPUT [selection] [--json]\n" +
   "       pptx text runs set INPUT [selection] [formatting] [output]\n\n" +
@@ -170,6 +191,7 @@ const help =
   "       pptx slides set INPUT [--name TEXT] [--hidden true|false] [--position N]\n" +
   "                       [--slide N | --select TOKEN | --all] [--allow-empty]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx text paragraphs list|get|set INPUT [--paragraph N] [--alignment left|center|right] [--json]\n" +
   "       pptx text get INPUT [--slide N] [--shape NAME] [--scope SCOPE] [--json]\n" +
   "       pptx text runs set INPUT --slide N --shape NAME --font NAME --size 18pt --output PATH\n" +
   "       pptx text replace INPUT --find TEXT --with TEXT --first|--all|--occurrence N\n" +
@@ -280,6 +302,9 @@ interface Arguments {
     | "slides.split"
     | "text.get"
     | "text.replace"
+    | "text.paragraphs.set"
+    | "text.paragraphs.get"
+    | "text.paragraphs.list"
     | "text.runs.set"
     | "text.runs.get"
     | "text.runs.list"
@@ -329,6 +354,7 @@ interface Arguments {
   selection?: SelectionQuery | readonly SelectionQuery[];
   template?: string;
   runEdit?: MutateTextRunsOptions;
+  paragraphEdit?: MutateTextParagraphsOptions;
   style?: { bold?: boolean; italic?: boolean };
   first?: boolean;
   occurrence?: number;
@@ -356,6 +382,21 @@ function usage(message: string): never {
   throw new OfficeError("invalid-value", message, "usage");
 }
 
+function paragraphTabLength(length: Record<string, unknown>): number {
+  if (
+    Object.keys(length).some((key) => !["value", "unit"].includes(key)) ||
+    typeof length.value !== "number" ||
+    !Number.isFinite(length.value) ||
+    length.value < 0 ||
+    typeof length.unit !== "string"
+  )
+    usage("Tabs require finite explicit lengths.");
+  const emu = length.value * commandLength("1" + length.unit, 0);
+  if (!Number.isFinite(emu) || emu > Number.MAX_SAFE_INTEGER)
+    usage("Tab length is outside the supported range.");
+  return Math.round(emu) / 12700;
+}
+
 const runFlags = [
   "--text",
   "--font",
@@ -374,7 +415,26 @@ const runFlags = [
   "--run"
 ];
 
+const paragraphFlags = [
+  "--direction",
+  "--numbering",
+  "--paragraph",
+  "--alignment",
+  "--margin-left",
+  "--margin-right",
+  "--indent",
+  "--default-tab-size",
+  "--space-before",
+  "--space-after",
+  "--line-spacing",
+  "--level",
+  "--rtl",
+  "--bullet",
+  "--tabs"
+];
+
 const scalarOptions = [
+  ...paragraphFlags,
   ...runFlags,
   "--style-json",
   "--find",
@@ -507,8 +567,12 @@ function parse(
     }
   }
   if (invalidUtf8) usage("Arguments must be UTF-8.");
-  if (args[0] === "text" && args[1] === "runs" && ["get", "set", "list"].includes(args[2]!)) {
-    const path = `text.runs.${args[2]}`;
+  if (
+    args[0] === "text" &&
+    ["runs", "paragraphs"].includes(args[1]!) &&
+    ["get", "set", "list"].includes(args[2]!)
+  ) {
+    const path = `text.${args[1]}.${args[2]}`;
     args.splice(0, 3, path);
     output.operation = path;
   }
@@ -551,6 +615,9 @@ function parse(
       "inspect",
       "text.get",
       "text.replace",
+      "text.paragraphs.set",
+      "text.paragraphs.get",
+      "text.paragraphs.list",
       "text.runs.set",
       "text.runs.get",
       "text.runs.list",
@@ -577,7 +644,10 @@ function parse(
       positionals.push(argument);
       continue;
     }
-    if (operation.startsWith("text.runs.") && ["--help", "-h"].includes(argument))
+    if (
+      (operation.startsWith("text.runs.") || operation.startsWith("text.paragraphs.")) &&
+      ["--help", "-h"].includes(argument)
+    )
       return { operation: "help", json: output.json, schemaPath: operation };
     if (seen.has(argument) && argument !== "--limit") usage("Repeated option.");
     seen.add(argument);
@@ -626,6 +696,112 @@ function parse(
         ].includes(argument))
     )
       usage("Missing option value.");
+    if (operation.startsWith("text.paragraphs.") && paragraphFlags.includes(argument)) {
+      let key = argument
+        .slice(2)
+        .split("-")
+        .map((part, index) => (index ? part[0]!.toUpperCase() + part.slice(1) : part))
+        .join("");
+      let parsed: unknown = value;
+      if (key === "direction") {
+        if (seen.has("--rtl")) usage("Direction and RTL cannot be combined.");
+        if (!["ltr", "rtl", "null"].includes(value)) usage("Direction requires ltr, rtl or null.");
+        key = "rtl";
+        parsed = value === "null" ? null : value === "rtl";
+      } else if (key === "numbering") {
+        if (seen.has("--bullet")) usage("Bullet and numbering cannot be combined.");
+        const schemes: Record<string, string> = {
+          decimal: "arabicPeriod",
+          "lower-alpha": "alphaLcPeriod",
+          "upper-alpha": "alphaUcPeriod",
+          "lower-roman": "romanLcPeriod",
+          "upper-roman": "romanUcPeriod"
+        };
+        if (!Object.hasOwn(schemes, value) && !["none", "null"].includes(value))
+          usage("Unsupported numbering style.");
+        key = "bullet";
+        parsed =
+          value === "null"
+            ? null
+            : value === "none"
+              ? { kind: "none" }
+              : { kind: "numbered", scheme: schemes[value] };
+      } else if (value === "null" && key !== "paragraph") parsed = null;
+      else if (
+        [
+          "marginLeft",
+          "marginRight",
+          "indent",
+          "defaultTabSize",
+          "spaceBefore",
+          "spaceAfter"
+        ].includes(key)
+      )
+        parsed = commandLength(value, key === "indent" ? -Number.MAX_SAFE_INTEGER : 0) / 12700;
+      else if (key === "rtl") {
+        if (!["true", "false"].includes(value)) usage("RTL requires true, false or null.");
+        parsed = value === "true";
+      } else if (["paragraph", "level"].includes(key)) {
+        if (
+          ![...value].every((c) => c >= "0" && c <= "9") ||
+          !Number.isSafeInteger(Number(value)) ||
+          (key === "paragraph" && Number(value) < 1)
+        )
+          usage("Invalid paragraph position or level.");
+        parsed = Number(value) - (key === "paragraph" ? 1 : 0);
+      } else if (key === "lineSpacing") {
+        const pieces = value.split(".");
+        const decimal =
+          pieces.length <= 2 &&
+          pieces.every(
+            (piece) =>
+              piece.length > 0 &&
+              [...piece].every((character) => character >= "0" && character <= "9")
+          );
+        parsed = decimal
+          ? { unit: "multiple", value: Number(value) }
+          : { unit: "pt", value: commandLength(value, 0) / 12700 };
+      } else if (key === "bullet")
+        parsed = value.startsWith("{")
+          ? commandJson(value)
+          : { kind: "character", character: value };
+      else if (key === "tabs") {
+        const tabs = commandJson(value);
+        if (!Array.isArray(tabs)) usage("Tabs require an array or null.");
+        parsed = tabs.map((tab: unknown) => {
+          if (tab && typeof tab === "object" && "unit" in tab) {
+            const record = tab as Record<string, unknown>;
+            return {
+              position: paragraphTabLength(record),
+              alignment: "left"
+            };
+          }
+          if (
+            tab &&
+            typeof tab === "object" &&
+            "position" in tab &&
+            tab.position &&
+            typeof tab.position === "object"
+          ) {
+            const aligned = tab as Record<string, unknown>;
+            const length = tab.position as Record<string, unknown>;
+            if (Object.keys(aligned).some((key) => !["position", "alignment"].includes(key)))
+              usage("Tabs require finite explicit lengths.");
+            return {
+              position: paragraphTabLength(length),
+              alignment: aligned.alignment
+            };
+          }
+          return tab;
+        });
+      }
+      if (argument === "--rtl" && seen.has("--direction"))
+        usage("Direction and RTL cannot be combined.");
+      if (argument === "--bullet" && seen.has("--numbering"))
+        usage("Bullet and numbering cannot be combined.");
+      result.paragraphEdit = { ...result.paragraphEdit, [key]: parsed };
+      continue;
+    }
     if (operation.startsWith("text.runs.") && runFlags.includes(argument)) {
       const key = argument.slice(2);
       let parsed: unknown = value;
@@ -1206,10 +1382,13 @@ function parse(
   if (
     operation === "text.get" ||
     operation === "text.replace" ||
-    operation.startsWith("text.runs.")
+    operation.startsWith("text.runs.") ||
+    operation.startsWith("text.paragraphs.")
   ) {
+    const paragraphs = operation.startsWith("text.paragraphs.");
     const runs = operation.startsWith("text.runs.");
-    const mutation = operation === "text.runs.set" || operation === "text.replace";
+    const formatting = runs || paragraphs;
+    const mutation = operation.endsWith(".set") || operation === "text.replace";
     const allowed = [
       "--json",
       "--limit",
@@ -1218,6 +1397,7 @@ function parse(
       "--slide",
       "--shape",
       ...(runs ? (mutation ? runFlags : ["--paragraph", "--run"]) : []),
+      ...(paragraphs ? (mutation ? paragraphFlags : ["--paragraph"]) : []),
       ...(mutation
         ? [
             "--style-json",
@@ -1235,7 +1415,7 @@ function parse(
         : [])
     ];
     if (
-      runs &&
+      formatting &&
       [...seen].some((flag) =>
         ["--style-json", "--find", "--with", "--first", "--occurrence"].includes(flag)
       )
@@ -1260,21 +1440,27 @@ function parse(
       usage("Shape selection requires an owning slide.");
     result.input = positionals[0];
     if (mutation) {
+      if (paragraphs)
+        validateTextParagraphOptions({
+          ...result.paragraphEdit,
+          ...(result.all ? { all: true } : {})
+        });
       if (runs) validateTextRunOptions({ ...result.runEdit, ...(result.all ? { all: true } : {}) });
       if (
-        runs &&
+        formatting &&
         !result.all &&
         result.token === undefined &&
         result.slide === undefined &&
         result.shape === undefined &&
+        result.paragraphEdit?.paragraph === undefined &&
         result.runEdit?.paragraph === undefined &&
         result.runEdit?.run === undefined
       )
         throw new SelectionError("missing-selection");
-      if (!runs && (result.find === undefined || result.with === undefined))
+      if (!formatting && (result.find === undefined || result.with === undefined))
         usage("Text replace requires find and with.");
       if (
-        !runs &&
+        !formatting &&
         [result.first === true, result.all === true, result.occurrence !== undefined].filter(
           Boolean
         ).length !== 1
@@ -1688,6 +1874,9 @@ function parse(
         "slides.split",
         "text.get",
         "text.replace",
+        "text.paragraphs.set",
+        "text.paragraphs.get",
+        "text.paragraphs.list",
         "text.runs.set",
         "text.runs.get",
         "text.runs.list",
@@ -1936,7 +2125,11 @@ async function execute(
     output.operation = args.operation;
     const operation = args.operation;
     if (args.operation === "help") {
-      const usage = args.schemaPath?.startsWith("text.runs.") ? runHelp : help;
+      const usage = args.schemaPath?.startsWith("text.paragraphs.")
+        ? paragraphHelp
+        : args.schemaPath?.startsWith("text.runs.")
+          ? runHelp
+          : help;
       result = success(operation, { usage });
       human = usage;
     } else if (args.operation === "version") {
@@ -1954,6 +2147,9 @@ async function execute(
             inspect: inspectSchema,
             "text.get": textGetSchema,
             "text.replace": textReplaceSchema,
+            "text.paragraphs.set": textParagraphsSetSchema,
+            "text.paragraphs.get": textParagraphsGetSchema,
+            "text.paragraphs.list": textParagraphsListSchema,
             "text.runs.set": textRunsSetSchema,
             "text.runs.get": textRunsGetSchema,
             "text.runs.list": textRunsListSchema,
@@ -1973,6 +2169,13 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          textParagraphs: {
+            level: "edit",
+            operation: "text.paragraphs.set",
+            selectors: ["slide", "shape", "paragraph", "select"],
+            subset:
+              "Local alignment, margins, spacing, indentation, list levels, bullets, numbering, RTL and tabs; null restores inheritance. No line wrapping."
+          },
           textRuns: {
             supported: true,
             operation: "text.runs.set",
@@ -2061,7 +2264,11 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (args.operation === "text.replace" || args.operation === "text.runs.set") {
+    else if (
+      args.operation === "text.replace" ||
+      args.operation === "text.runs.set" ||
+      args.operation === "text.paragraphs.set"
+    ) {
       const context = { ...options.context, signal: request.signal };
       const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
       const bytes = await request.readInput(
@@ -2084,37 +2291,45 @@ async function execute(
         ...(args.shape === undefined ? {} : { shape: args.shape })
       };
       const changed =
-        args.operation === "text.runs.set"
-          ? await mutateTextRuns(
+        args.operation === "text.paragraphs.set"
+          ? await mutateTextParagraphs(
               bytes,
-              { ...args.runEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+              { ...args.paragraphEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
               context
             )
-          : await replacePresentationText(
-              bytes,
-              {
-                ...selectedText,
-                ...(args.style === undefined ? {} : { style: args.style }),
-                find: args.find!,
-                with: args.with!,
-                ...(args.first ? { first: true } : {}),
-                ...(args.all ? { all: true } : {}),
-                ...(args.occurrence === undefined ? {} : { occurrence: args.occurrence })
-              },
-              context
-            );
+          : args.operation === "text.runs.set"
+            ? await mutateTextRuns(
+                bytes,
+                { ...args.runEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+                context
+              )
+            : await replacePresentationText(
+                bytes,
+                {
+                  ...selectedText,
+                  ...(args.style === undefined ? {} : { style: args.style }),
+                  find: args.find!,
+                  with: args.with!,
+                  ...(args.first ? { first: true } : {}),
+                  ...(args.all ? { all: true } : {}),
+                  ...(args.occurrence === undefined ? {} : { occurrence: args.occurrence })
+                },
+                context
+              );
       const dryRun = args.dryRun ?? false;
       result = {
         ...success(
           operation,
-          args.operation === "text.runs.set"
-            ? { runs: changed.affected, dryRun }
-            : { replacements: changed.affected, dryRun }
+          args.operation === "text.paragraphs.set"
+            ? { paragraphs: changed.affected, dryRun }
+            : args.operation === "text.runs.set"
+              ? { runs: changed.affected, dryRun }
+              : { replacements: changed.affected, dryRun }
         ),
         affected: changed.affected,
         locations: changed.locations
       };
-      human = `${dryRun ? "Validated" : args.operation === "text.runs.set" ? "Updated" : "Replaced"} ${changed.affected} ${args.operation === "text.runs.set" ? "text run(s)" : "text match(es)"}\n`;
+      human = `${dryRun ? "Validated" : args.operation.endsWith(".set") ? "Updated" : "Replaced"} ${changed.affected} ${args.operation === "text.paragraphs.set" ? "paragraph(s)" : args.operation === "text.runs.set" ? "text run(s)" : "text match(es)"}\n`;
       const destination = args.inPlace ? args.input! : args.output;
       if (destination === "-" && !dryRun) binary = changed.bytes;
       else if (destination && destination !== "-") {
@@ -2135,7 +2350,9 @@ async function execute(
     } else if (
       args.operation === "text.get" ||
       args.operation === "text.runs.get" ||
-      args.operation === "text.runs.list"
+      args.operation === "text.runs.list" ||
+      args.operation === "text.paragraphs.get" ||
+      args.operation === "text.paragraphs.list"
     ) {
       const context = { ...options.context, signal: request.signal };
       const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
@@ -2157,20 +2374,40 @@ async function execute(
               }),
         ...(args.shape === undefined ? {} : { shape: args.shape })
       };
-      const data =
-        args.operation !== "text.get"
+      const data = args.operation.startsWith("text.paragraphs.")
+        ? {
+            paragraphs: await readTextParagraphs(
+              bytes,
+              { ...textOptions, ...args.paragraphEdit },
+              context
+            )
+          }
+        : args.operation !== "text.get"
           ? { runs: await readTextRuns(bytes, { ...textOptions, ...args.runEdit }, context) }
           : await readPresentationText(bytes, textOptions, context);
       if (args.operation === "text.runs.get" && "runs" in data && data.runs.length !== 1)
         throw new SelectionError(data.runs.length ? "ambiguous-selection" : "missing-selection");
+      if (
+        args.operation === "text.paragraphs.get" &&
+        "paragraphs" in data &&
+        data.paragraphs.length !== 1
+      )
+        throw new SelectionError(
+          data.paragraphs.length ? "ambiguous-selection" : "missing-selection"
+        );
       result = {
         ...success(operation, data),
         locations:
           "segments" in data
             ? data.segments.map((segment) => segment.location)
-            : data.runs.map((run) => run.location)
+            : "paragraphs" in data
+              ? data.paragraphs.map((paragraph) => paragraph.location)
+              : data.runs.map((run) => run.location)
       };
-      human = "text" in data ? data.text : JSON.stringify(data.runs);
+      human =
+        "text" in data
+          ? data.text
+          : JSON.stringify("paragraphs" in data ? data.paragraphs : data.runs);
     } else if (Object.hasOwn(masterSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(

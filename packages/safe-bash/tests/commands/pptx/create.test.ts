@@ -127,6 +127,31 @@ async function fontDeck() {
   );
 }
 
+test("pptx paragraph formatting flows through a virtual script and byte pipeline", async () => {
+  const {shell, volume} = fixture({...context, validationLimits: {...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64}});
+  volume.writeFileSync("/work/deck.pptx", await fontDeck());
+  volume.writeFileSync("/work/paragraphs.sh", "pptx text paragraphs set deck.pptx --slide 1 --shape 'Coastal caption' --paragraph 1 --alignment right --margin-left 0pt --indent -4pt --space-after 0pt --line-spacing 18pt --direction rtl --numbering lower-roman --tabs '[{\"position\":{\"value\":1,\"unit\":\"in\"},\"alignment\":\"decimal\"}]' --output - | pptx xml get - --part /ppt/slides/slide1.xml --scope slides");
+  const out = await shell.exec("sh paragraphs.sh");
+  assert.equal(out.exitCode, 0, out.stderr + out.stdout);
+  assert.ok(out.stdout.includes('algn="r"'));
+  assert.ok(out.stdout.includes('marL="0"'));
+  assert.ok(out.stdout.includes('indent="-50800"'));
+  assert.ok(out.stdout.includes('rtl="1"'));
+  assert.ok(out.stdout.includes('type="romanLcPeriod"'));
+  assert.ok(out.stdout.includes('pos="914400"'));
+  assert.ok(out.stdout.includes('val="1800"'));
+  assert.ok(out.stdout.includes('v:tracking="keep"'));
+  assert.ok(out.stdout.includes('sz="900"'));
+  assert.ok(out.stdout.includes('Cliff &amp; cove'));
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), await fontDeck());
+  const listed = await shell.exec("pptx text paragraphs list deck.pptx --json");
+  assert.equal(listed.exitCode, 0, listed.stderr);
+  assert.equal(JSON.parse(listed.stdout).data.paragraphs.length, 1);
+  const invalid = await shell.exec("pptx text paragraphs set deck.pptx --all --direction sideways --dry-run --json");
+  assert.equal(invalid.exitCode, 2);
+  assert.equal(JSON.parse(invalid.stdout).operation, "text.paragraphs.set");
+});
+
 test("pptx run font edits use scoped shell arguments and preserve unselected XML", async () => {
   const xmlContext = {
     ...context,

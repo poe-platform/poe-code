@@ -6,13 +6,17 @@
   "authority": ["docs/specs/office-cli.md", "docs/specs/office-sdk.md", "docs/specs/pptx.md"],
   "inputEvidence": {
     "docs/specs/pptx.md": {
-      "sha256": "6ca5367fc275aac938ef36d2d95e42b7f53b5741d474b8c5a9b4c5ab9f3b2848",
-      "previousSha256": "d907f73d3fcf8b608d8ddd404654b3f87ac1fc236c40f0ed5cd429f61cd82e8f",
-      "revisionReason": "Layout properties, placeholder defaults/inheritance, explicit application policy and direct command schema reconciliation.",
+      "sha256": "c4cac2ff3754153bcc3fb6910f23654d0ef88ce40e1589f1b0bfd657895c0083",
+      "previousSha256": "6ca5367fc275aac938ef36d2d95e42b7f53b5741d474b8c5a9b4c5ab9f3b2848",
+      "revisionReason": "Paragraph formatting units, null clearing, margins, line spacing, direction, numbering and tab grammar; whole-object text assignment remains planned.",
       "history": [
         {
           "sha256": "d907f73d3fcf8b608d8ddd404654b3f87ac1fc236c40f0ed5cd429f61cd82e8f",
           "reason": "Format-specific grammar and wire schema completion; prior hash remains historical evidence."
+        },
+        {
+          "sha256": "6ca5367fc275aac938ef36d2d95e42b7f53b5741d474b8c5a9b4c5ab9f3b2848",
+          "reason": "Layout properties, placeholder defaults/inheritance, explicit application policy and direct command schema reconciliation."
         }
       ]
     },
@@ -11141,40 +11145,247 @@
             "maxLength": 1048576
           },
           "alignment": {
-            "type": "string",
-            "enum": ["left", "center", "right", "justify", "distributed"]
+            "anyOf": [
+              {
+                "enum": [
+                  "left",
+                  "center",
+                  "right",
+                  "justify",
+                  "distributed",
+                  "justifyLow",
+                  "thaiDistributed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "spaceBefore": {
-            "$ref": "#/$defs/Length"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "spaceAfter": {
-            "$ref": "#/$defs/Length"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "indent": {
-            "$ref": "#/$defs/Length"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "level": {
-            "type": "integer",
+            "type": ["integer", "null"],
             "minimum": 0,
             "maximum": 8
           },
           "bullet": {
-            "type": "string",
-            "maxLength": 1048576
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  }
+                },
+                "required": ["kind"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "character"
+                  },
+                  "character": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1
+                  }
+                },
+                "required": ["kind", "character"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "numbered"
+                  },
+                  "scheme": {
+                    "enum": [
+                      "alphaLcParenBoth",
+                      "alphaUcParenBoth",
+                      "alphaLcParenR",
+                      "alphaUcParenR",
+                      "alphaLcPeriod",
+                      "alphaUcPeriod",
+                      "arabicParenBoth",
+                      "arabicParenR",
+                      "arabicPeriod",
+                      "arabicPlain",
+                      "romanLcParenBoth",
+                      "romanUcParenBoth",
+                      "romanLcParenR",
+                      "romanUcParenR",
+                      "romanLcPeriod",
+                      "romanUcPeriod",
+                      "circleNumDbPlain",
+                      "circleNumWdBlackPlain",
+                      "circleNumWdWhitePlain",
+                      "arabicDbPeriod",
+                      "arabicDbPlain",
+                      "ea1ChsPeriod",
+                      "ea1ChsPlain",
+                      "ea1ChtPeriod",
+                      "ea1ChtPlain",
+                      "ea1JpnChsDbPeriod",
+                      "ea1JpnKorPlain",
+                      "ea1JpnKorPeriod",
+                      "arabic1Minus",
+                      "arabic2Minus",
+                      "hebrew2Minus",
+                      "thaiAlphaPeriod",
+                      "thaiAlphaParenR",
+                      "thaiAlphaParenBoth",
+                      "thaiNumPeriod",
+                      "thaiNumParenR",
+                      "thaiNumParenBoth",
+                      "hindiAlphaPeriod",
+                      "hindiNumPeriod",
+                      "hindiNumParenR",
+                      "hindiAlpha1Period"
+                    ]
+                  },
+                  "startAt": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 32767
+                  }
+                },
+                "required": ["kind", "scheme"],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "numbering": {
-            "enum": ["decimal", "lower-alpha", "upper-alpha", "lower-roman", "upper-roman", "none"]
+            "enum": [
+              "decimal",
+              "lower-alpha",
+              "upper-alpha",
+              "lower-roman",
+              "upper-roman",
+              "none",
+              null
+            ]
           },
           "tabs": {
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/Length"
-            },
-            "maxItems": 250000
+            "anyOf": [
+              {
+                "type": "array",
+                "maxItems": 10000,
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Length"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "position": {
+                          "$ref": "#/$defs/Length"
+                        },
+                        "alignment": {
+                          "enum": ["left", "center", "right", "decimal"]
+                        }
+                      },
+                      "required": ["position", "alignment"],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "direction": {
-            "type": "string",
-            "enum": ["ltr", "rtl"]
+            "enum": ["ltr", "rtl", null]
+          },
+          "marginLeft": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "marginRight": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "defaultTabSize": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lineSpacing": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Length"
+              },
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 132
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rtl": {
+            "type": ["boolean", "null"]
           }
         },
         "required": [],
@@ -11218,10 +11429,16 @@
         "bullet": "--bullet",
         "numbering": "--numbering",
         "tabs": "--tabs",
-        "direction": "--direction"
+        "direction": "--direction",
+        "marginLeft": "--margin-left",
+        "marginRight": "--margin-right",
+        "defaultTabSize": "--default-tab-size",
+        "lineSpacing": "--line-spacing",
+        "rtl": "--rtl"
       },
       "constraints": [
-        "Require at least one declared update field; unknown/inapplicable fields fail; no silent no-op."
+        "Require at least one declared update field; unknown/inapplicable fields fail; no silent no-op.",
+        "Nullable formatting removes a local declaration; omitted retains and zero is explicit. Bullet/numbering and direction/rtl conflict. Numbering does not lay out text."
       ],
       "batchOptions": {
         "type": "object",
@@ -11337,7 +11554,19 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "currentImplementation": {
+        "scope": "Paragraph formatting; text assignment and table/cell-specific selectors remain planned.",
+        "engine": "packages/pptx/src/command-engine.ts",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "sdk": "packages/pptx/src/text-paragraphs.ts",
+        "tests": [
+          "packages/pptx/src/command-text-paragraphs.test.ts",
+          "packages/pptx/src/text-paragraphs.test.ts"
+        ],
+        "units": "Direct flags project common Length values to normalized point-valued SDK options. Executable discovery describes these normalized options; the grammar register describes flag inputs. Structured point-valued SDK tab and bullet records also accepted as explicit extensions.",
+        "discovery": "text.paragraphs.list/get/set; actual schema and capabilities enumerate implemented operations."
+      }
     },
     "text.frames.list": {
       "path": ["text", "frames", "list"],
@@ -228306,11 +228535,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "location",
-              "text",
-              "paragraphs"
-            ],
+            "required": ["location", "text", "paragraphs"],
             "properties": {
               "location": {
                 "$ref": "#/$defs/Location"
@@ -228322,11 +228547,7 @@
               "cell": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": [
-                  "coordinateSystem",
-                  "row",
-                  "column"
-                ],
+                "required": ["coordinateSystem", "row", "column"],
                 "properties": {
                   "coordinateSystem": {
                     "const": "zero-based"
@@ -228346,12 +228567,7 @@
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "index",
-                    "coordinateSystem",
-                    "text",
-                    "inlines"
-                  ],
+                  "required": ["index", "coordinateSystem", "text", "inlines"],
                   "properties": {
                     "index": {
                       "type": "integer",
@@ -228370,10 +228586,7 @@
                           {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": [
-                              "kind",
-                              "text"
-                            ],
+                            "required": ["kind", "text"],
                             "properties": {
                               "kind": {
                                 "const": "run"
@@ -228386,10 +228599,7 @@
                           {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": [
-                              "kind",
-                              "text"
-                            ],
+                            "required": ["kind", "text"],
                             "properties": {
                               "kind": {
                                 "const": "break"
@@ -228402,12 +228612,7 @@
                           {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": [
-                              "kind",
-                              "cachedText",
-                              "fieldId",
-                              "fieldType"
-                            ],
+                            "required": ["kind", "cachedText", "fieldId", "fieldType"],
                             "properties": {
                               "kind": {
                                 "const": "field"
@@ -228416,16 +228621,10 @@
                                 "type": "string"
                               },
                               "fieldId": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
+                                "type": ["string", "null"]
                               },
                               "fieldType": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
+                                "type": ["string", "null"]
                               }
                             }
                           }
@@ -228444,11 +228643,7 @@
           "const": "structural"
         }
       },
-      "required": [
-        "text",
-        "order",
-        "segments"
-      ],
+      "required": ["text", "order", "segments"],
       "additionalProperties": false
     },
     "ValidationData": {

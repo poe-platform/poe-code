@@ -1,3 +1,4 @@
+import { paragraphNumberingSchemes } from "./text-paragraphs.js";
 import { MSO_TEXT_UNDERLINE_TYPE } from "./text-runs.js";
 import { selectionQuerySchema } from "./selector-schema.js";
 import { inventorySchema, inventoryPartSchema } from "./inventory-schema.js";
@@ -2063,5 +2064,208 @@ export const textRunsListSchema = {
   result: {
     ...textRunsGetSchema.result,
     properties: { ...textRunsGetSchema.result.properties, operation: { const: "text.runs.list" } }
+  }
+};
+
+const paragraphFormattingProperties = {
+  alignment: {
+    enum: [
+      null,
+      "left",
+      "center",
+      "right",
+      "justify",
+      "justifyLow",
+      "distributed",
+      "thaiDistributed",
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  ...Object.fromEntries(
+    ["marginLeft", "marginRight", "defaultTabSize", "spaceBefore", "spaceAfter"].map((key) => [
+      key,
+      {
+        type: ["number", "null"],
+        minimum: 0,
+        description: "Points; CLI accepts explicit length suffixes."
+      }
+    ])
+  ),
+  indent: {
+    type: ["number", "null"],
+    description: "Points; negative values create hanging indentation."
+  },
+  level: { type: ["integer", "null"], minimum: 0, maximum: 8 },
+  rtl: { type: ["boolean", "null"] },
+  lineSpacing: {
+    anyOf: [
+      { type: "null" },
+      {
+        type: "object",
+        additionalProperties: false,
+        required: ["unit", "value"],
+        properties: { unit: { enum: ["multiple", "pt"] }, value: { type: "number", minimum: 0 } }
+      }
+    ]
+  },
+  bullet: {
+    anyOf: [
+      { type: "null" },
+      {
+        type: "object",
+        additionalProperties: false,
+        required: ["kind"],
+        properties: { kind: { const: "none" } }
+      },
+      {
+        type: "object",
+        additionalProperties: false,
+        required: ["kind", "character"],
+        properties: { kind: { const: "character" }, character: { type: "string", minLength: 1 } }
+      },
+      {
+        type: "object",
+        additionalProperties: false,
+        required: ["kind", "scheme"],
+        properties: {
+          kind: { const: "numbered" },
+          scheme: { enum: paragraphNumberingSchemes },
+          startAt: { type: "integer", minimum: 1, maximum: 32767 }
+        }
+      }
+    ]
+  },
+  tabs: {
+    anyOf: [
+      { type: "null" },
+      {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["position", "alignment"],
+          properties: {
+            position: { type: "number", minimum: 0 },
+            alignment: { enum: ["left", "center", "right", "decimal"] }
+          }
+        }
+      }
+    ]
+  }
+};
+export const textParagraphsGetSchema = {
+  description:
+    "Read local paragraph overrides without creating XML; null means inheritance. SDK points and zero-based paragraph positions; CLI one-based paragraph positions.",
+  input: inspectSchema.input,
+  options: {
+    ...textGetSchema.options,
+    properties: { ...textGetSchema.options.properties, paragraph: { type: "integer", minimum: 1 } },
+    allOf: [
+      ...textGetSchema.options.allOf,
+      { if: { required: ["select"] }, then: { not: { required: ["paragraph"] } } }
+    ]
+  },
+  result: {
+    ...inspectSchema.result,
+    properties: {
+      ...inspectSchema.result.properties,
+      operation: { const: "text.paragraphs.get" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["paragraphs"],
+            properties: {
+              paragraphs: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["location", "paragraph", "coordinateSystem", "formatting"],
+                  properties: {
+                    location:
+                      textGetSchema.result.properties.data.oneOf[1]!.properties!.segments.items
+                        .properties.location,
+                    paragraph: { type: "integer", minimum: 0 },
+                    coordinateSystem: { const: "zero-based" },
+                    formatting: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: Object.keys(paragraphFormattingProperties),
+                      properties: paragraphFormattingProperties
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+};
+export const textParagraphsListSchema = {
+  ...textParagraphsGetSchema,
+  result: {
+    ...textParagraphsGetSchema.result,
+    properties: {
+      ...textParagraphsGetSchema.result.properties,
+      operation: { const: "text.paragraphs.list" }
+    }
+  }
+};
+export const textParagraphsSetSchema = {
+  description:
+    "Set selected local paragraph overrides; omitted is unchanged, null restores inheritance, and zero is explicit. No line wrapping is calculated. Options below are normalized SDK values in points. CLI lengths use explicit suffixes. --direction ltr|rtl|null maps to rtl; --numbering decimal|lower-alpha|upper-alpha|lower-roman|upper-roman|none|null maps to bullet. --bullet accepts a character or structured JSON. --tabs accepts Length records, aligned Length positions, or aligned point positions. --line-spacing accepts a multiple or explicit length.",
+  input: inspectSchema.input,
+  options: {
+    ...textParagraphsGetSchema.options,
+    properties: {
+      ...textParagraphsGetSchema.options.properties,
+      ...paragraphFormattingProperties,
+      all: { type: "boolean" },
+      allowEmpty: { type: "boolean" },
+      output: { type: "string", minLength: 1 },
+      inPlace: { type: "boolean" },
+      force: { type: "boolean" },
+      dryRun: { type: "boolean" }
+    },
+    allOf: [
+      ...textParagraphsGetSchema.options.allOf,
+      ...xmlSetSchema.options.allOf.slice(xmlSelectionRules.length),
+      {
+        anyOf: [
+          ...["select", "slide", "shape", "paragraph"].map((key) => ({ required: [key] })),
+          { required: ["all"], properties: { all: { const: true } } }
+        ]
+      },
+      { anyOf: Object.keys(paragraphFormattingProperties).map((key) => ({ required: [key] })) }
+    ]
+  },
+  result: {
+    ...textReplaceSchema.result,
+    properties: {
+      ...textReplaceSchema.result.properties,
+      operation: { const: "text.paragraphs.set" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["paragraphs", "dryRun"],
+            properties: { paragraphs: { type: "integer", minimum: 0 }, dryRun: { type: "boolean" } }
+          }
+        ]
+      }
+    }
   }
 };

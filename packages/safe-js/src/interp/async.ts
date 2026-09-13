@@ -622,7 +622,7 @@ async function createClosureScope(
     ? scope.child({}, { functionBoundary: true })
     : scope;
   hoistVarDeclarations(node.body, bodyScope);
-  prepareLegacyBlockFunctions(node, bodyScope);
+  prepareLegacyBlockFunctions(node, bodyScope, needsArguments);
   if (bodyScope !== scope) {
     for (const declaration of hoistedVarDeclarations([node.body])) {
       for (const declarator of declaration.declarations) {

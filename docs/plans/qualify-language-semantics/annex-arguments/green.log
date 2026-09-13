@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/src/interp/globals/dynamic-block-functions.test.ts (26 tests) 965ms
+ ✓ packages/safe-js/src/interp/global-script-execution.test.ts (40 tests) 1348ms
+ ✓ packages/safe-js/src/interp/legacy-arguments.test.ts (9 tests) 387ms
+ ✓ packages/safe-js/src/interp/arguments.test.ts (14 tests) 523ms
+ ✓ packages/safe-js/src/interp/globals/dynamic-duplicate-block-functions.test.ts (16 tests) 324ms
+
+ Test Files  5 passed (5)
+      Tests  105 passed (105)
+   Start at  12:07:42
+   Duration  7.02s (transform 4.98s, setup 164ms, import 8.95s, tests 3.55s, environment 0ms)
+

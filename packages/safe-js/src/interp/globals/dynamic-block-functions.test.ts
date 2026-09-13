@@ -19,7 +19,6 @@ it.each([
   "{async function f(){return 7}}return typeof f",
   "try{throw 1}catch(f){{function f(){return 7}}}return typeof f",
   "try{throw {f:1}}catch({f}){{function f(){return 7}}}return typeof f",
-  "{function arguments(){return 7}}return typeof arguments",
   "switch(1){case 1:function f(){return 7}}return f()",
   "let f=1;switch(1){case 1:function f(){return 7}}return f",
   "function walk(n){if(n===0)return 0;{function f(){return n}}const child=walk(n-1);return child+f()}return walk(3)",
@@ -35,10 +34,15 @@ it.each(["f", "f=3", "{f}={f:3}"])("does not replace formal parameter %s", async
   expect(await run(source)).toMatchObject({ok: true, returnValue: runInNewContext(`(function(){${source}})()`)});
 });
 
+it("keeps an implicit arguments object after a block function", async () => {
+  // ECMA-262 B.3.2.1 excludes the implicit arguments binding from legacy hoisting.
+  expect(await run('return Function("{function arguments(){return 7}}return typeof arguments")()')).toMatchObject({ok: true, returnValue: "object"});
+});
+
 it.each(["", "a=1"])("preserves initial arguments before a legacy declaration with %s", async parameter => {
   const body = "const before=typeof arguments;{function arguments(){return 7}}return [before,typeof arguments]";
   const source = `return Function(${JSON.stringify(parameter)},${JSON.stringify(body)})()`;
-  expect(await run(source)).toMatchObject({ok: true, returnValue: runInNewContext(`(function(){${source}})()`)});
+  expect(await run(source)).toMatchObject({ok: true, returnValue: ["object", "object"]});
 });
 
 it("accounts for data captured by a function escaping its block", async () => {

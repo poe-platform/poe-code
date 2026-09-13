@@ -40,6 +40,52 @@ test("pptx lists opaque active content without interpreting payload bytes", asyn
   assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), fixture.bytes);
 });
 
+test("pptx identifies parameterized active media types through an unknown relationship", async (t) => {
+  const contentType = "APPLICATION/VND.MS-OFFICE.VBAPROJECT;version=1";
+  const encode = (value: string) => new TextEncoder().encode(value);
+  const bytes = storedArchive([
+    { name: "[Content_Types].xml", bytes: encode(`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/embeddings/note.dat" ContentType="${contentType}"/></Types>`) },
+    { name: "_rels/.rels", bytes: encode('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="deck" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>') },
+    { name: "ppt/presentation.xml", bytes: encode('<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>') },
+    { name: "ppt/_rels/presentation.xml.rels", bytes: encode('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="note" Type="urn:opaque-note" Target="embeddings/note.dat"/></Relationships>') },
+    { name: "ppt/embeddings/note.dat", bytes: new Uint8Array([5, 9, 17]) }
+  ]);
+  const volume = Volume.fromJSON({ "/work/deck.pptx": Buffer.from(bytes) });
+  const fs = new MemoryFileSystem();
+  const reads: string[] = [];
+  fs.readStream = async function* (path, options) {
+    options?.signal?.throwIfAborted();
+    reads.push(path);
+    yield new Uint8Array(volume.readFileSync(path) as Buffer);
+  };
+  const fetch = t.mock.method(globalThis, "fetch", () => { throw new Error("Network access denied"); });
+  const shell = new Shell({ fs, cwd: "/work" }).use(pptxCommands({ engine: createPptxCommandEngine({ context: opaqueContext, maxOutputBytes: 131072, maxArgumentBytes: 8192 }) }));
+  const result = await shell.exec("pptx objects list deck.pptx --json");
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  assert.equal(result.stderr, "");
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.operation, "objects.list");
+  assert.equal(output.affected, 0);
+  assert.deepEqual(output.errors, []);
+  assert.equal(output.data.activationPerformed, false);
+  assert.equal(output.data.recursiveParsingPerformed, false);
+  assert.equal(output.data.objects.length, 1);
+  const object = output.data.objects[0];
+  assert.equal(object.part, "/ppt/embeddings/note.dat");
+  assert.equal(object.kind, "active-payload");
+  assert.equal(object.contentType, contentType);
+  assert.equal(object.bytes, 3);
+  assert.equal(object.activeContent, true);
+  assert.deepEqual(object.activeReasons, ["potentially-active-active-payload"]);
+  assert.deepEqual(object.owners, ["/ppt/presentation.xml"]);
+  assert.deepEqual(object.dependencies, []);
+  assert.deepEqual(object.missing, []);
+  assert.deepEqual(object.externalRelationships, []);
+  assert.deepEqual(reads, ["/work/deck.pptx"]);
+  assert.equal(fetch.mock.callCount(), 0);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), bytes);
+});
+
 test("pptx validates closure extraction without output and exposes font inventory", async () => {
   const { shell } = setup();
   const result = await shell.exec("pptx objects extract deck.pptx --part /ppt/embeddings/capsule.bin --dry-run --json");

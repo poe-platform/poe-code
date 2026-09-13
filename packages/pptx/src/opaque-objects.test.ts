@@ -87,6 +87,45 @@ it.each([
     expect(extracted.bytes).toEqual(payload);
   }
 );
+it.each([
+  ["APPLICATION/VND.MS-OFFICE.VBAPROJECT;version=1", "active-payload", true],
+  ["application/vnd.ms-office.activeX+xml ; charset=utf-8", "control", true],
+  ["application/vnd.ms-office.webextension+xml;charset=utf-8", "web-extension", true],
+  ["application/vnd.openxmlformats-officedocument.oleObject;version=1", "ole", true],
+  ["application/x-fontdata;version=1", "font", false],
+  ["model/gltf+json;charset=utf-8", "model3d", false]
+] as const)(
+  "classifies parameterized %s without activating its bytes",
+  async (type, kind, active) => {
+    const input = fixture(type, "urn:unclassified");
+    const original = new Uint8Array(input);
+    const result = await readObjects(input, context);
+    expect(result.objects).toHaveLength(1);
+    expect(result.objects[0]).toMatchObject({
+      part: "/object.bin",
+      contentType: type,
+      kind,
+      activeContent: active,
+      activeReasons: active ? [`potentially-active-${kind}`] : [],
+      bytes: 13,
+      sha256: "932fbea772eedc8fde47c91abaf57ff0eaa72848454991a6250f08e877b69592"
+    });
+    expect(result.activationPerformed).toBe(false);
+    expect(result.recursiveParsingPerformed).toBe(false);
+    expect((await extractObject(input, { part: "/object.bin" }, context)).bytes).toEqual(payload);
+    expect(input).toEqual(original);
+  }
+);
+it("does not classify a media type from a parameter value", async () => {
+  const result = await readObjects(
+    fixture(
+      "application/octet-stream;hint=&quot;application/vnd.ms-office.vbaProject&quot;",
+      "urn:unclassified"
+    ),
+    context
+  );
+  expect(result.objects).toEqual([]);
+});
 it("extracts cyclic dependency closure and original relationship bytes with safe unique names", async () => {
   const rels = encoder.encode(
     `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="sidecar" Type="urn:opaque-sidecar" Target="aux.bin"/><Relationship Id="outside" Type="urn:link" Target="https://example.invalid/never-fetch" TargetMode="External"/></Relationships>`

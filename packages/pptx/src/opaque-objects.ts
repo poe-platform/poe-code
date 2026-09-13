@@ -103,13 +103,14 @@ function inspectObjects(
   for (const part of [...graph.parts].sort()) {
     context.signal?.throwIfAborted();
     const contentType = types.get(part);
+    const mediaType = contentType.split(";", 1)[0]!.trim().toLowerCase();
     const bytes = reader.get(part);
     const activeReasons = activeSignatures(bytes);
     const incoming = graph.incoming(part);
     const kind =
-      contentKinds[contentType.toLowerCase()] ??
+      contentKinds[mediaType] ??
       incoming.map((edge) => relationshipKinds[edge.type]).find((value) => value !== undefined) ??
-      (contentType.toLowerCase().startsWith("font/")
+      (mediaType.startsWith("font/")
         ? "font"
         : activeReasons.length
           ? "active-payload"

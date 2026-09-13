@@ -16,6 +16,7 @@ export type OfficeErrorCode =
   | "unsupported-edit"
   | "unsafe-path"
   | "missing-binding"
+  | "dangling-reference"
   | "invalid-selection"
   | "missing-selection"
   | "ambiguous-selection"

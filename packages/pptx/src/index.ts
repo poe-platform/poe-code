@@ -57,3 +57,5 @@ export {
   type AddSlideOptions,
   type PlaceholderText
 } from "./slides.js";
+
+export { removeSlides, type RemoveSlidesOptions } from "./slide-removal.js";

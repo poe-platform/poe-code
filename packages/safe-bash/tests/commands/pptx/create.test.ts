@@ -7,6 +7,7 @@ import {
   createPptxCommandEngine,
   createPresentation,
   mutateSlides,
+  removeSlides,
   readSelectionIndex
 } from "pptx";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
@@ -95,6 +96,61 @@ function fixture() {
   );
   return { shell, fs, volume };
 }
+
+test("pptx slide removal uses explicit VFS publication and matches SDK identity", async () => {
+  const { shell, volume } = fixture();
+  const source = await createPresentation(
+    { slides: [{ name: "First" }, { name: "Retained" }, { name: "Last" }] },
+    context
+  );
+  volume.writeFileSync("/work/source deck.pptx", source);
+  const selection = [
+    { kind: "slide", id: "258" },
+    { kind: "slide", id: "256" }
+  ] as const;
+  const removed = await shell.exec(
+    `pptx slides remove 'source deck.pptx' --selection-json '${JSON.stringify(selection)}' --output 'remaining deck.pptx' --json`
+  );
+  assert.equal(removed.exitCode, 0, removed.stdout + removed.stderr);
+  const output = new Uint8Array(volume.readFileSync("/work/remaining deck.pptx") as Buffer);
+  assert.deepEqual(output, await removeSlides(source, { selection }, context));
+  assert.deepEqual(
+    JSON.parse(removed.stdout).locations.map((location: { objectId: string }) => location.objectId),
+    ["258", "256"]
+  );
+  assert.deepEqual(
+    (await readSelectionIndex(output, context)).slides.map((slide) => [slide.id, slide.name]),
+    [["257", "Retained"]]
+  );
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source deck.pptx") as Buffer), source);
+  const dry = await shell.exec(
+    "pptx slides remove 'remaining deck.pptx' --all --in-place --dry-run --json"
+  );
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.deepEqual(
+    new Uint8Array(volume.readFileSync("/work/remaining deck.pptx") as Buffer),
+    output
+  );
+  const piped = await shell.exec(
+    "pptx slides remove 'remaining deck.pptx' --all --output - | pptx inspect - --json"
+  );
+  assert.equal(piped.exitCode, 0, piped.stdout + piped.stderr);
+  assert.equal(JSON.parse(piped.stdout).data.inventory.counts.slides, 0);
+  assert.equal(JSON.parse(piped.stdout).data.inventory.counts.themes, 1);
+  const inPlace = await shell.exec(
+    "pptx slides remove 'remaining deck.pptx' --all --in-place --json"
+  );
+  assert.equal(inPlace.exitCode, 0, inPlace.stdout + inPlace.stderr);
+  assert.equal(
+    (
+      await readSelectionIndex(
+        new Uint8Array(volume.readFileSync("/work/remaining deck.pptx") as Buffer),
+        context
+      )
+    ).slides.length,
+    0
+  );
+});
 
 test("pptx creation publishes into explicit memfs and matches the SDK package", async () => {
   const { shell, volume } = fixture();

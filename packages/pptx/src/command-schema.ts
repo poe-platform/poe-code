@@ -486,10 +486,12 @@ const slideSelectionSchema = {
   ]
 };
 
-function slideMutationSchema(operation: "slides.move" | "slides.set") {
+function slideMutationSchema(operation: "slides.move" | "slides.set" | "slides.remove") {
   return {
     description:
-      "Move selected slides to a final one-based position after removal; preserve slide identity. Set supports labels and visibility; layout and background changes are unavailable.",
+      operation === "slides.remove"
+        ? "Remove selected slides and proven unreferenced owned parts; retain shared resources. Affected known references require explicit referencePolicy remove; unresolved opaque targets are rejected."
+        : "Move selected slides to a final one-based position after removal; preserve slide identity. Set supports labels and visibility; layout and background changes are unavailable.",
     input: inspectSchema.input,
     options: {
       $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -508,10 +510,20 @@ function slideMutationSchema(operation: "slides.move" | "slides.set") {
         scope: { const: "slides" },
         all: { type: "boolean", default: false },
         allowEmpty: { type: "boolean", default: false },
-        position: {
-          ...slidesAddSchema.options.properties.position,
-          description: "One-based final position after removing the selected slides."
-        },
+        ...(operation === "slides.remove"
+          ? {
+              referencePolicy: {
+                const: "remove",
+                description:
+                  "CLI --reference-policy remove; explicitly remove affected known references."
+              }
+            }
+          : {
+              position: {
+                ...slidesAddSchema.options.properties.position,
+                description: "One-based final position after removing the selected slides."
+              }
+            }),
         ...(operation === "slides.set"
           ? { name: { type: "string" }, hidden: { type: "boolean" } }
           : {}),
@@ -540,11 +552,16 @@ function slideMutationSchema(operation: "slides.move" | "slides.set") {
             }
           }
         },
-        {
-          anyOf: (operation === "slides.move" ? ["position"] : ["position", "name", "hidden"]).map(
-            (field) => ({ required: [field] })
-          )
-        },
+        ...(operation === "slides.remove"
+          ? []
+          : [
+              {
+                anyOf: (operation === "slides.move"
+                  ? ["position"]
+                  : ["position", "name", "hidden"]
+                ).map((field) => ({ required: [field] }))
+              }
+            ]),
         {
           if: { required: ["select"] },
           then: {
@@ -573,7 +590,7 @@ function slideMutationSchema(operation: "slides.move" | "slides.set") {
                     properties: {
                       ...createSchema.result.properties.data.oneOf[1]!.properties!.effects.items
                         .properties,
-                      action: { const: "update" },
+                      action: { const: operation === "slides.remove" ? "remove" : "update" },
                       feature: { const: "F07" }
                     }
                   }
@@ -588,3 +605,4 @@ function slideMutationSchema(operation: "slides.move" | "slides.set") {
 }
 export const slidesMoveSchema = slideMutationSchema("slides.move");
 export const slidesSetSchema = slideMutationSchema("slides.set");
+export const slidesRemoveSchema = slideMutationSchema("slides.remove");

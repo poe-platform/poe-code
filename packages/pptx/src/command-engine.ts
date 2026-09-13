@@ -14,6 +14,7 @@ import {
   inspectSchema,
   slidesAddSchema,
   slidesMoveSchema,
+  slidesRemoveSchema,
   slidesSetSchema,
   xmlGetSchema,
   xmlSetSchema
@@ -26,6 +27,7 @@ import {
   type AddSlideOptions
 } from "./slides.js";
 import { commandJson, commandLength, commandTimestamp } from "./command-engine-values.js";
+import { removeSlides } from "./slide-removal.js";
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
 import type { ValidationLimits } from "./validation.js";
 
@@ -82,6 +84,9 @@ const help =
   "                       [--title TEXT] [--body TEXT] [--placeholders-json JSON]\n" +
   "                       [--hidden true|false] [--follow-master-background true|false]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx slides remove INPUT [--slide N | --select TOKEN | --all]\n" +
+  "                       [--reference-policy remove] [--allow-empty]\n" +
+  "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides move INPUT --position N [--slide N | --select TOKEN | --all]\n" +
   "                       [--allow-empty] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx slides set INPUT [--name TEXT] [--hidden true|false] [--position N]\n" +
@@ -90,7 +95,7 @@ const help =
   "       pptx xml get INPUT --part URI [--scope SCOPE] [--pretty] [--json]\n" +
   "       pptx xml set INPUT --part URI --file XML [--scope SCOPE]\n" +
   "                    [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-  "       pptx schema [create | inspect | slides add | slides move | slides set | xml get | xml set] [--json]\n" +
+  "       pptx schema [create | inspect | slides add | slides move | slides set | slides remove | xml get | xml set] [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "Slide positions are one-based. Shape names are exact; numeric strings are names.\n" +
   "Duplicate names require --all. Default scope: slides.\n" +
@@ -108,7 +113,8 @@ const help =
   "Create defaults: empty deck, 12192000 x 6858000 EMUs, blank layout and master.\n" +
   "Lengths require emu, in, cm, mm or pt. Dates/authors are never synthesized.\n" +
   "Create supports Transitional only; supplied templates are unavailable.\n" +
-  "Slides move/set also accept --selection-json QUERY_OR_ARRAY instead of simple selectors.\n" +
+  "Slides move/set/remove also accept --selection-json QUERY_OR_ARRAY instead of simple selectors.\n" +
+  "Slide removal requires --reference-policy remove for affected known references; opaque targets are rejected.\n" +
   "Slides add requires an exact layout name or part URI; position defaults to append.\n" +
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
@@ -118,6 +124,7 @@ interface Arguments {
     | "slides.add"
     | "slides.move"
     | "slides.set"
+    | "slides.remove"
     | "inspect"
     | "xml.get"
     | "xml.set"
@@ -129,6 +136,7 @@ interface Arguments {
   addition?: Partial<AddSlideOptions>;
   mutation?: Omit<MutateSlidesOptions, "selection">;
   allowEmpty?: boolean;
+  referencePolicy?: "remove";
   selection?: SelectionQuery | readonly SelectionQuery[];
   template?: string;
   pretty?: boolean;
@@ -154,6 +162,7 @@ function usage(message: string): never {
 }
 
 const scalarOptions = [
+  "--reference-policy",
   "--selection-json",
   "--slide",
   "--shape",
@@ -220,7 +229,11 @@ function parse(
         output.operation = command;
     } else if (index === 1 && args[0] === "xml" && ["get", "set"].includes(argument)) {
       output.operation = `xml.${argument}`;
-    } else if (index === 1 && args[0] === "slides" && ["add", "move", "set"].includes(argument)) {
+    } else if (
+      index === 1 &&
+      args[0] === "slides" &&
+      ["add", "move", "set", "remove"].includes(argument)
+    ) {
       output.operation = `slides.${argument}`;
     } else if (hintValue) hintValue = false;
     else if (hintOptions) {
@@ -246,6 +259,7 @@ function parse(
       "slides.add",
       "slides.move",
       "slides.set",
+      "slides.remove",
       "inspect",
       "xml.get",
       "xml.set",
@@ -298,6 +312,12 @@ function parse(
       (value.length === 0 && !["--author", "--name", "--title", "--body"].includes(argument))
     )
       usage("Missing option value.");
+    if (argument === "--reference-policy") {
+      if (operation !== "slides.remove" || value !== "remove")
+        usage("Slide removal reference policy must be remove.");
+      result.referencePolicy = value;
+      continue;
+    }
     if (
       [
         "--layout",
@@ -445,7 +465,11 @@ function parse(
       continue;
     }
     if (argument === "--selection-json") {
-      if (operation !== "slides.move" && operation !== "slides.set")
+      if (
+        operation !== "slides.move" &&
+        operation !== "slides.set" &&
+        operation !== "slides.remove"
+      )
         usage("Selection JSON requires a supported slide mutation.");
       const selection = commandJson(value);
       if (!selection || typeof selection !== "object")
@@ -552,7 +576,8 @@ function parse(
     }
   }
   const xml = operation === "xml.get" || operation === "xml.set";
-  const slideMutation = operation === "slides.move" || operation === "slides.set";
+  const slideMutation =
+    operation === "slides.move" || operation === "slides.set" || operation === "slides.remove";
   if (result.allowEmpty && !slideMutation)
     usage("Allow-empty requires a supported slide mutation.");
   if (operation === "create") {
@@ -612,13 +637,13 @@ function parse(
       "--scope",
       "--all",
       "--allow-empty",
-      "--position",
       "--json",
       "--limit",
       "--output",
       "--in-place",
       "--force",
       "--dry-run",
+      ...(operation === "slides.remove" ? ["--reference-policy"] : ["--position"]),
       ...(operation === "slides.set" ? ["--name", "--hidden"] : [])
     ];
     if ([...seen].some((option) => !allowed.includes(option)))
@@ -630,7 +655,10 @@ function parse(
       usage("Structured and simple selectors cannot be combined.");
     if (!seen.has("--selection-json") && result.slide === undefined && !result.token && !result.all)
       usage("Slide mutation requires a selector or --all.");
-    if (!result.mutation || (operation === "slides.move" && result.mutation.position === undefined))
+    if (
+      operation !== "slides.remove" &&
+      (!result.mutation || (operation === "slides.move" && result.mutation.position === undefined))
+    )
       usage("Slide mutation requires update fields; move requires --position.");
     if (result.scope !== undefined && result.scope !== "slides")
       usage("Slide mutations require slides scope.");
@@ -645,6 +673,7 @@ function parse(
         "slides.add",
         "slides.move",
         "slides.set",
+        "slides.remove",
         "xml.get",
         "xml.set"
       ].includes(positionals.join("."))
@@ -833,6 +862,7 @@ async function execute(
             "slides.add": slidesAddSchema,
             "slides.move": slidesMoveSchema,
             "slides.set": slidesSetSchema,
+            "slides.remove": slidesRemoveSchema,
             "xml.get": xmlGetSchema,
             "xml.set": xmlSetSchema
           }).filter(([path]) => !args.schemaPath || path === args.schemaPath)
@@ -855,7 +885,7 @@ async function execute(
           slides: {
             level: "edit",
             subset:
-              "Insert at a validated position using an explicit layout/master; populate unambiguous type/index placeholders. Move ordered slides while retaining IDs; set names and visibility. Layout reassignment, background changes, duplication and deletion are unavailable."
+              "Insert at a validated position using an explicit layout/master; populate unambiguous type/index placeholders. Move ordered slides while retaining IDs; set names and visibility. Remove slides with explicit known-reference removal policy; reject unresolved opaque references and retain shared resources. Layout reassignment, background changes and duplication are unavailable."
           },
           editing: { level: "reject", reason: "Other semantic model editing is not exposed." },
           xml: {
@@ -954,7 +984,10 @@ async function execute(
               ...(args.all ? { all: true } : {})
             });
       const records =
-        metadata || args.operation === "slides.move" || args.operation === "slides.set"
+        metadata ||
+        args.operation === "slides.move" ||
+        args.operation === "slides.set" ||
+        args.operation === "slides.remove"
           ? []
           : selected(index, args);
       if (args.operation === "slides.add") {
@@ -995,13 +1028,32 @@ async function execute(
             dryRun
           };
         }
-      } else if (args.operation === "slides.move" || args.operation === "slides.set") {
+      } else if (
+        args.operation === "slides.move" ||
+        args.operation === "slides.set" ||
+        args.operation === "slides.remove"
+      ) {
         const context = { ...options.context, signal: request.signal };
-        const changed = await mutateSlides(
-          bytes,
-          { ...args.mutation, selection: mutationSelection, allowEmpty: args.allowEmpty ?? false },
-          context
-        );
+        const changed =
+          args.operation === "slides.remove"
+            ? await removeSlides(
+                bytes,
+                {
+                  selection: mutationSelection,
+                  allowEmpty: args.allowEmpty ?? false,
+                  ...(args.referencePolicy ? { referencePolicy: args.referencePolicy } : {})
+                },
+                context
+              )
+            : await mutateSlides(
+                bytes,
+                {
+                  ...args.mutation,
+                  selection: mutationSelection,
+                  allowEmpty: args.allowEmpty ?? false
+                },
+                context
+              );
         const after = await readSelectionIndex(changed, context);
         const beforeTargets = (
           Array.isArray(mutationSelection) ? mutationSelection : [mutationSelection]
@@ -1018,9 +1070,10 @@ async function execute(
             throw error;
           }
         });
-        const targets = beforeTargets.map(
-          (record) => after.slides.find((slide) => slide.id === record.id)!
-        );
+        const targets =
+          args.operation === "slides.remove"
+            ? beforeTargets
+            : beforeTargets.map((record) => after.slides.find((slide) => slide.id === record.id)!);
         const dryRun = args.dryRun ?? false;
         const destination = args.inPlace ? args.input! : args.output;
         result = {
@@ -1029,7 +1082,7 @@ async function execute(
             {
               effects: (after.fingerprint === index.fingerprint ? [] : targets).map((slide) => ({
                 location: slide.location,
-                action: "update",
+                action: args.operation === "slides.remove" ? "remove" : "update",
                 feature: "F07"
               })),
               outputs: dryRun
@@ -1041,7 +1094,7 @@ async function execute(
           ),
           affected: targets.length
         };
-        human = `${dryRun ? "Validated" : "Updated"} ${targets.length} slide(s)\n`;
+        human = `${dryRun ? "Validated" : args.operation === "slides.remove" ? "Removed" : "Updated"} ${targets.length} slide(s)\n`;
         if (destination === "-" && !dryRun) binary = changed;
         else if (destination && destination !== "-") {
           if (!request.publishOutput)

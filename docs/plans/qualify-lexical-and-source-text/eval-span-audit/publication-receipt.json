@@ -197,5 +197,5 @@
     "githubTransient": "Final workflow attempt 1 passed all validation but token creation returned HTTP 500 four times. First rerun request also returned HTTP 500; subsequent failed-job-only rerun succeeded. Same commit/build; no code or permissions changed.",
     "retryRecords": "release-retry-errors.jsonl"
   },
-  "artifactSmokeSource": "published-smoke.mjs"
+  "artifactSmokePlan": "published-smoke.md"
 }

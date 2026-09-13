@@ -31,6 +31,7 @@ export interface XmlPart {
   readonly nodeCount: number;
   readonly root: XmlElement;
   bytes(): Uint8Array;
+  text(element: XmlElement): string | null;
   markup(element: XmlElement, standalone?: boolean): string;
   subtree(element: XmlElement): XmlPart;
   resolveNamespace(element: XmlElement, prefix: string): string | undefined;
@@ -192,6 +193,7 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
   const spans = new Map<XmlElement, ElementSpan>();
   const stack: ElementSpan[] = [];
   const annotated = new Set<XmlElement>();
+  const leadingText = new Map<XmlElement, string>();
   let root: XmlElement | undefined;
   let start = 0;
   let nodes = 0;
@@ -209,7 +211,13 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
     )
       fail("invalid-xml");
   });
-  for (const event of ["text", "cdata"] as const) parser.on(event, countNode);
+  for (const event of ["text", "cdata"] as const)
+    parser.on(event, (value) => {
+      countNode();
+      const parent = stack.at(-1)?.element;
+      if (parent && parent.children.length === 0)
+        leadingText.set(parent, (leadingText.get(parent) ?? "") + value);
+    });
   for (const event of ["comment", "processinginstruction"] as const)
     parser.on(event, () => {
       countNode();
@@ -318,6 +326,10 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
     nodeCount: nodes,
     root,
     bytes: () => Uint8Array.from(original),
+    text(element: XmlElement): string | null {
+      if (!spans.has(element)) fail("invalid-value");
+      return leadingText.get(element) || null;
+    },
     subtree(element: XmlElement): XmlPart {
       return parseXmlPart(new TextEncoder().encode(this.markup(element, true)), limits);
     },

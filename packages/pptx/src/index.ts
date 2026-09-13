@@ -1,3 +1,4 @@
+export { Image, detectImageContentType } from "./image-value.js";
 export { Chart } from "./chart-model.js";
 export { SlidePlaceholder, SlidePlaceholders, SlideShapes, Slide, Slides, Picture, GraphicFrame } from "./slide-model.js";
 export { GroupShape } from "./group-model.js";

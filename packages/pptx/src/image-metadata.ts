@@ -67,7 +67,15 @@ export function imageMetadata(bytes: Uint8Array, mediaType: string): ImageMetada
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const matches = (offset: number, values: readonly number[]): boolean =>
     values.every((value, index) => bytes[offset + index] === value);
-  if (
+  if (mediaType === "image/x-wmf" && bytes.length >= 22 && view.getUint32(0, true) === 0x9ac6cdd7) {
+    const units = view.getUint16(14, true);
+    const width = view.getInt16(10, true) - view.getInt16(6, true);
+    const height = view.getInt16(12, true) - view.getInt16(8, true);
+    if (units && width > 0 && height > 0) {
+      result.pixelWidth = Math.max(1, Math.floor((width * 72) / units));
+      result.pixelHeight = Math.max(1, Math.floor((height * 72) / units));
+    }
+  } else if (
     mediaType === "image/png" &&
     bytes.length >= 33 &&
     matches(0, [137, 80, 78, 71, 13, 10, 26, 10]) &&

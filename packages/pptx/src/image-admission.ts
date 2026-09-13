@@ -170,6 +170,95 @@ function jpeg(bytes: Uint8Array, view: DataView): void {
   invalid("JPEG is missing its ending.");
 }
 
+function bmp(bytes: Uint8Array, view: DataView): void {
+  if (bytes.length < 26 || bytes[0] !== 66 || bytes[1] !== 77) invalid("Invalid BMP header.");
+  if (view.getUint32(2, true) !== bytes.length) invalid("Invalid BMP byte length.");
+  const header = view.getUint32(14, true),
+    pixelOffset = view.getUint32(10, true);
+  if (![12, 40, 52, 56, 108, 124].includes(header) || header > bytes.length - 14)
+    invalid("Unsupported or truncated BMP information header.");
+  if (pixelOffset < 14 + header || pixelOffset >= bytes.length)
+    invalid("Invalid BMP pixel offset.");
+  const planes = view.getUint16(header === 12 ? 22 : 26, true);
+  const depth = view.getUint16(header === 12 ? 24 : 28, true);
+  if (planes !== 1 || ![1, 4, 8, 16, 24, 32].includes(depth))
+    invalid("Invalid BMP planes or bit depth.");
+  const metadata = imageMetadata(bytes, "image/bmp");
+  if (!metadata.pixelWidth || !metadata.pixelHeight) invalid("Invalid BMP dimensions.");
+  dimensions(metadata.pixelWidth, metadata.pixelHeight);
+  const compression = header === 12 ? 0 : view.getUint32(30, true);
+  if (compression === 0) {
+    const stride = Math.ceil((metadata.pixelWidth * depth) / 32) * 4;
+    if (stride * metadata.pixelHeight > bytes.length - pixelOffset)
+      invalid("Truncated BMP pixels.");
+  }
+}
+function tiff(bytes: Uint8Array, view: DataView): void {
+  const little = bytes[0] === 73 && bytes[1] === 73;
+  if (
+    bytes.length < 8 ||
+    (!little && !(bytes[0] === 77 && bytes[1] === 77)) ||
+    view.getUint16(2, little) !== 42
+  )
+    invalid("Invalid TIFF header.");
+  let offset = view.getUint32(4, little);
+  const visited = new Set<number>();
+  while (offset !== 0) {
+    if (visited.has(offset) || offset < 8 || offset > bytes.length - 6)
+      invalid("Invalid TIFF directory offset.");
+    visited.add(offset);
+    const count = view.getUint16(offset, little);
+    if (count > Math.floor((bytes.length - offset - 6) / 12)) invalid("Truncated TIFF directory.");
+    for (let index = 0; index < count; index++) {
+      const entry = offset + 2 + index * 12,
+        type = view.getUint16(entry + 2, little);
+      const widths = [0, 1, 1, 2, 4, 8, 1, 1, 2, 4, 8, 4, 8];
+      const width = widths[type];
+      if (!width) invalid("Unsupported TIFF field type.");
+      const size = view.getUint32(entry + 4, little) * width;
+      if (size > 4) {
+        const pointer = view.getUint32(entry + 8, little);
+        if (pointer < 8 || pointer > bytes.length || size > bytes.length - pointer)
+          invalid("Truncated TIFF field.");
+      }
+    }
+    offset = view.getUint32(offset + 2 + count * 12, little);
+  }
+  const metadata = imageMetadata(bytes, "image/tiff");
+  if (!metadata.pixelWidth || !metadata.pixelHeight) invalid("TIFF dimensions are missing.");
+  dimensions(metadata.pixelWidth, metadata.pixelHeight);
+}
+function wmf(bytes: Uint8Array, view: DataView): void {
+  if (bytes.length < 46 || view.getUint32(0, true) !== 0x9ac6cdd7)
+    invalid("A placeable WMF header is required.");
+  let checksum = 0;
+  for (let offset = 0; offset < 20; offset += 2) checksum ^= view.getUint16(offset, true);
+  if (checksum !== view.getUint16(20, true) || view.getUint16(14, true) === 0)
+    invalid("Invalid WMF placeable header.");
+  if (
+    ![1, 2].includes(view.getUint16(22, true)) ||
+    view.getUint16(24, true) !== 9 ||
+    ![0x100, 0x300].includes(view.getUint16(26, true)) ||
+    view.getUint32(28, true) * 2 !== bytes.length - 22
+  )
+    invalid("Invalid WMF standard header.");
+  let offset = 40;
+  while (offset <= bytes.length - 6) {
+    const words = view.getUint32(offset, true),
+      type = view.getUint16(offset + 4, true);
+    if (words < 3 || words * 2 > bytes.length - offset) invalid("Invalid WMF record size.");
+    offset += words * 2;
+    if (type === 0) {
+      if (words !== 3 || offset !== bytes.length) invalid("Invalid WMF ending.");
+      const metadata = imageMetadata(bytes, "image/x-wmf");
+      if (!metadata.pixelWidth || !metadata.pixelHeight) invalid("Invalid WMF bounds.");
+      dimensions(metadata.pixelWidth, metadata.pixelHeight);
+      return;
+    }
+  }
+  invalid("WMF is missing its ending.");
+}
+
 export function admitImage(
   bytes: Uint8Array,
   contentType: string
@@ -186,15 +275,14 @@ export function admitImage(
   > = {
     "image/png": { extension: "png", validate: png },
     "image/jpeg": { extension: "jpg", validate: jpeg },
-    "image/gif": { extension: "gif", validate: gif }
+    "image/gif": { extension: "gif", validate: gif },
+    "image/bmp": { extension: "bmp", validate: bmp },
+    "image/tiff": { extension: "tiff", validate: tiff },
+    "image/x-wmf": { extension: "wmf", validate: wmf }
   };
   const format = Object.hasOwn(formats, contentType) ? formats[contentType] : undefined;
   if (!format)
-    throw new OfficeError(
-      "unsupported-profile",
-      "Image content type must be image/png, image/jpeg or image/gif.",
-      "admit"
-    );
+    throw new OfficeError("unsupported-profile", "Unsupported image content type.", "admit");
   format.validate(bytes, new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength));
   return { ...imageMetadata(bytes, contentType), extension: format.extension };
 }

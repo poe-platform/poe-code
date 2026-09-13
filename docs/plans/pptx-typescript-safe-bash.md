@@ -85,7 +85,7 @@ tasks:
     status: done
   - id: reconcile-documented-public-api
     title: Reconcile the whole documented public API
-    status: open
+    status: done
     prompt: |-
       Work on pptx using root/scoped AGENTS.md, docs/specs/pptx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Documentation/research only; do not implement product code in this task.
@@ -5467,3 +5467,19 @@ Completed 2026-09-13 UTC. Documentation only; remaining 124 tasks stay open.
 - Owned commit paths: this plan, docs/pptx/standards-coverage.md and
   docs/pptx/standards-sources.json. Local commit identity is recorded in Git;
   no remote delivery or release is implied. Next task: reconcile-documented-public-api.
+
+## Documented API reconciliation evidence
+
+Completed 2026-09-13 UTC as documentation research. See the [reconciliation
+findings](../pptx/api-reconciliation.md), [language/security mappings](../pptx/api-language-mappings.md)
+and [agent verification record](./pptx-api-reconciliation.md). All 719 original
+candidate IDs remain; inherited/returned interfaces, constructors, separate
+read/write signatures, collection protocols and enum aliases are now recorded.
+The mixed record count is not a completeness or implementation certificate.
+
+D01–D15 distinguish source annotation errors, guide typos, documented behavior
+missing from source and deliberate shared-contract mappings. The next task is
+`define-mirrored-js-api`: concrete TS declarations, per-operation schemas and
+original acceptance evidence are still required. Source unit/BDD adaptation
+statuses and corpus QA states are unchanged. No product code, README, fixture
+cleanup, runtime execution, push or release occurred.

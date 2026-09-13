@@ -1,0 +1,335 @@
+{
+  "retrieved_at": "2026-09-13T02:01:23.751137+00:00",
+  "purpose": "Explicit published API/user-guide documentation research; no asset or link traversal",
+  "pages": [
+    {
+      "path": "docs/api/action.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/action.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/chart-data.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/chart-data.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/chart.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/chart.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/dml.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/dml.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/ExcelNumFormat.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/ExcelNumFormat.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoAutoShapeType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoAutoShapeType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoAutoSize.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoAutoSize.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoColorType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoColorType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoConnectorType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoConnectorType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoFillType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoFillType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoLanguageId.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoLanguageId.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoLineDashStyle.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoLineDashStyle.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoPatternType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoPatternType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoShapeType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoShapeType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoTextUnderlineType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoTextUnderlineType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoThemeColorIndex.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoThemeColorIndex.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/MsoVerticalAnchor.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/MsoVerticalAnchor.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/PpActionType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/PpActionType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/PpMediaType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/PpMediaType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/PpParagraphAlignment.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/PpParagraphAlignment.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/PpPlaceholderType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/PpPlaceholderType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/XlAxisCrosses.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/XlAxisCrosses.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/XlCategoryType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/XlCategoryType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/XlChartType.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/XlChartType.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/XlDataLabelPosition.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/XlDataLabelPosition.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/XlLegendPosition.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/XlLegendPosition.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/XlMarkerStyle.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/XlMarkerStyle.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/XlTickLabelPosition.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/XlTickLabelPosition.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/XlTickMark.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/XlTickMark.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/enum/index.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/enum/index.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/exc.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/exc.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/image.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/image.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/placeholders.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/placeholders.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/presentation.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/presentation.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/shapes.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/shapes.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/slides.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/slides.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/table.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/table.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/text.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/text.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/api/util.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/api/util.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/autoshapes.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/autoshapes.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/charts.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/charts.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/concepts.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/concepts.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/install.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/install.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/intro.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/intro.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/notes.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/notes.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/placeholders-understanding.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/placeholders-understanding.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/placeholders-using.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/placeholders-using.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/presentations.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/presentations.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/quickstart.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/quickstart.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/slides.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/slides.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/table.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/table.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/text.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/text.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/understanding-shapes.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/understanding-shapes.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    },
+    {
+      "path": "docs/user/use-cases.rst",
+      "url": "https://python-pptx.readthedocs.io/en/latest/user/use-cases.html",
+      "error": "HTTP Error 403: Forbidden",
+      "web_reader_status": "opened"
+    }
+  ],
+  "reviewed_at": "2026-09-13T02:06:40.885454+00:00",
+  "web_reader": "All listed published page URLs opened successfully with web tool; displayed documentation version 1.0.0. Reader is not raw-byte acquisition or a verified source revision.",
+  "pinned_source_version": "1.0.2",
+  "pinned_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "raw_acquisition_success_count": 0
+}

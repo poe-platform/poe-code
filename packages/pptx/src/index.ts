@@ -235,3 +235,20 @@ export { readShapes, addShape, mutateShapes, type ShapeSelection } from "./shape
 export { PP_PLACEHOLDER_TYPE, PP_PLACEHOLDER } from "./shape-placeholder-types.js";
 
 export { MSO_SHAPE_TYPE } from "./shape-types.js";
+
+export {
+  validateShapePath,
+  pathFromVertices,
+  readShapePath,
+  applyShapePath,
+  shapePathXml,
+  type ShapePath,
+  type ShapePathCommand
+} from "./shape-paths.js";
+export {
+  addShapePath,
+  setShapePath,
+  readShapePaths,
+  type AddShapePathOptions,
+  type SetShapePathOptions
+} from "./shape-path-operations.js";

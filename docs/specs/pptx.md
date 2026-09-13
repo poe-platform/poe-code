@@ -501,14 +501,38 @@ not restore inherited fill. `lineWidth: null` removes the direct width attribute
 model `line.width` reads an absent width as zero while inspection retains null.
 Changing preset kind cannot convert tables, media, charts or
 groups. Existing adjustments use the typed model collection, not an unvalidated
-formula string. Basic custom paths are one or more move/line subpaths, with
-optional close, integer local EMU vertices and no guide formulas, arcs or Bézier
-editing. Direct `shapes paths add/set` defines one subpath from at least two
-vertices (three distinct vertices if closed), first vertex as move, remaining
-vertices as lines. Typed freeform builder operations support multiple subpaths and retain their
-documented finite numeric local coordinates and explicit scale; the direct EMU
-path schema does not narrow those model inputs.
-Curves, arbitrary guides and unsupported geometry are inspect/preserve-only.
+formula string. The bounded custom-path subset supports ordered move, line,
+quadratic Bézier, cubic Bézier and explicit close commands in one or more
+subpaths. `ShapePath` declares `unit: "emu"`, positive integer `width`/`height`
+and `commands`. Viewport dimensions are at most 2,147,483,647; coordinates and
+control coordinates are integers in [-2,147,483,647, 2,147,483,647]. There are
+at most 4,096 commands. Shape placement and extents remain separate explicit
+lengths; viewport dimensions map local coordinates onto those shape extents.
+No coordinate clamping, normalization, curve flattening or formula evaluation
+is permitted. Input order preserves contour winding; the utility does not
+calculate areas, intersections, boolean geometry or visual equivalence.
+
+Direct `shapes paths add/set --path` accepts the closed command union: `move`
+and `line` carry `x,y`; `quadratic` carries `cx,cy,x,y`; `cubic` carries
+`cx1,cy1,cx2,cy2,x,y`; `close` has no coordinates. Each subpath starts with
+move and has at least one drawing command. Close requires a drawn subpath;
+following close, another subpath requires a new move. No implicit close command
+is inserted. Malformed commands, unknown fields, unsafe/nonfinite/fractional
+numbers and unsupported units fail before input admission.
+
+The alternative `--vertices` plus explicit `--close` defines one line subpath
+from at least two integer EMU vertices (three distinct vertices if closed), first
+vertex as move and remaining vertices as lines. Its viewport is the maximum of
+one and each axis's largest coordinate; negative coordinates remain unchanged.
+The two input forms are mutually exclusive. Add requires explicit shape
+placement/extents; set preserves them. Inspection exposes exact custom-geometry
+XML and identifies whether it belongs to the supported subset. Replacement of
+arbitrary existing geometry, guides, formulas, arcs, connection sites, handles
+or unknown geometry metadata is rejected; unrelated edits retain them unchanged.
+
+Typed freeform builder operations retain their separately documented finite
+numeric local coordinates, explicit scale, collection and ownership semantics;
+the bounded path operations do not implement or narrow that broader model API.
 
 Group/ungroup preserves world-space transforms and z-order. Group requires at
 least two distinct sibling shapes and an explicit nonnegative EMU tolerance;
@@ -1200,8 +1224,10 @@ schemas, not extra undocumented direct flags.
 | `shapes set` / `shapes.set`                 | 1      | `--kind?: "text-box" / MSO_AUTO_SHAPE_TYPE`; `--name?: string`; `--text?: string`; `--left?: Length`; `--top?: Length`; `--width?: Length`; `--height?: Length`; `--rotation?: Degrees`; `--fill?: "solid" / Color / null`; `--line-color?: "solid" / Color / null`; `--line-width?: Length / null`; `--title?: string / null`; `--description?: string / null`; `--alt-text?: string / null`; `--locked?: boolean / null` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `shapes add` / `shapes.add`                 | 1      | `--kind: "text-box" / MSO_AUTO_SHAPE_TYPE`; `--name?: string`; `--text?: string`; `--left: Length`; `--top: Length`; `--width: Length`; `--height: Length`; `--rotation?: Degrees`; `--fill?: "solid" / Color / null`; `--line-color?: "solid" / Color / null`; `--line-width?: Length / null`; `--title?: string / null`; `--description?: string / null`; `--alt-text?: string / null`; `--locked?: boolean / null`      | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `shapes remove` / `shapes.remove`           | 1      | none                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `shapes paths add` / `shapes.paths.add`     | 1      | `--vertices: EmuVertices`; `--close: boolean`                                                                                                                                                                                                                                                           | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes paths set` / `shapes.paths.set`     | 1      | `--vertices: EmuVertices`; `--close: boolean`                                                                                                                                                                                                                                                           | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `shapes paths list` / `shapes.paths.list` | 1 | no path arguments | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part` | slides; selected shape records; read-only |
+| `shapes paths get` / `shapes.paths.get` | 1 | no path arguments | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part` | slides; exactly one shape; read-only |
+| `shapes paths add` / `shapes.paths.add` | 1 | `--path: ShapePath` OR `--vertices: PathVertices` plus `--close: boolean`; `--left: Length`; `--top: Length`; `--width: Length`; `--height: Length`; optional shape metadata/paint | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--part`, `--output`, `--in-place`, `--force`, `--dry-run` | slides; exactly one owning part; package |
+| `shapes paths set` / `shapes.paths.set` | 1 | `--path: ShapePath` OR `--vertices: PathVertices` plus `--close: boolean` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `shapes group` / `shapes.group`             | 1      | `--shapes: Location[]`; `--tolerance: Length`                                                                                                                                                                                                                                                           | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `shapes ungroup` / `shapes.ungroup`         | 1      | `--tolerance: Length`                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `shapes move` / `shapes.move`               | 1      | `--position: Position`                                                                                                                                                                                                                                                                                  | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
@@ -2819,6 +2845,227 @@ method/property evaluation.
   },
   "maxItems": 250000,
   "minItems": 2
+}
+```
+
+### C. ShapePath
+
+The command state constraints in the bounded-path contract apply in addition to
+this structural schema. Coordinates are literal local EMUs; winding is retained
+by preserving command order, without geometric evaluation.
+
+```json
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "unit",
+    "width",
+    "height",
+    "commands"
+  ],
+  "properties": {
+    "unit": {
+      "const": "emu"
+    },
+    "width": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "height": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 4096,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "x",
+              "y"
+            ],
+            "properties": {
+              "type": {
+                "const": "move"
+              },
+              "x": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "y": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "x",
+              "y"
+            ],
+            "properties": {
+              "type": {
+                "const": "line"
+              },
+              "x": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "y": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "cx",
+              "cy",
+              "x",
+              "y"
+            ],
+            "properties": {
+              "type": {
+                "const": "quadratic"
+              },
+              "cx": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "cy": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "x": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "y": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "cx1",
+              "cy1",
+              "cx2",
+              "cy2",
+              "x",
+              "y"
+            ],
+            "properties": {
+              "type": {
+                "const": "cubic"
+              },
+              "cx1": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "cy1": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "cx2": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "cy2": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "x": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              },
+              "y": {
+                "type": "integer",
+                "minimum": -2147483647,
+                "maximum": 2147483647
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "close"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### C. PathVertices
+
+The explicit `close` argument is required with this alternative. A closed path
+requires at least three distinct vertices. Viewport derivation is defined in the
+bounded-path contract.
+
+```json
+{
+  "type": "array",
+  "minItems": 2,
+  "maxItems": 4095,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "x",
+      "y"
+    ],
+    "properties": {
+      "x": {
+        "type": "integer",
+        "minimum": -2147483647,
+        "maximum": 2147483647
+      },
+      "y": {
+        "type": "integer",
+        "minimum": -2147483647,
+        "maximum": 2147483647
+      }
+    }
+  }
 }
 ```
 

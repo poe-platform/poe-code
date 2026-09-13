@@ -105,6 +105,107 @@ const shapeSchemaDefinitions = Object.fromEntries(
   ])
 );
 
+const pathCoordinate = { type: "integer", minimum: -2147483647, maximum: 2147483647 };
+const pathValue = {
+  type: "object",
+  additionalProperties: false,
+  required: ["unit", "width", "height", "commands"],
+  properties: {
+    unit: { const: "emu" },
+    width: { type: "integer", minimum: 1, maximum: 2147483647 },
+    height: { type: "integer", minimum: 1, maximum: 2147483647 },
+    commands: {
+      type: "array",
+      minItems: 2,
+      maxItems: 4096,
+      items: {
+        oneOf: Object.entries({
+          move: ["x", "y"],
+          line: ["x", "y"],
+          quadratic: ["cx", "cy", "x", "y"],
+          cubic: ["cx1", "cy1", "cx2", "cy2", "x", "y"],
+          close: []
+        }).map(([type, coordinates]) => ({
+          type: "object",
+          additionalProperties: false,
+          required: ["type", ...coordinates],
+          properties: {
+            type: { const: type },
+            ...Object.fromEntries(coordinates.map((key) => [key, pathCoordinate]))
+          }
+        }))
+      }
+    }
+  }
+};
+for (const action of ["add", "set"]) {
+  const base = shapeSchemaDefinitions["shapes." + action]!;
+  const update = Object.fromEntries(Object.entries(shapeValues).filter(([key]) => key !== "kind"));
+  Object.assign(shapeSchemaDefinitions, {
+    ["shapes.paths." + action]: {
+      ...base,
+      description:
+        "Bounded local EMU move, line, quadratic and cubic paths with optional closure and retained command order without winding evaluation. Arbitrary formulas and geometry remain preserve-only.",
+      options: {
+        ...base.options,
+        ...(action === "add" ? { required: ["left", "top", "width", "height"] } : {}),
+        properties: {
+          json: { type: "boolean" },
+          limit: { type: "object" },
+          scope: { enum: ["slides", "layouts", "masters", "shared"] },
+          part: { type: "string" },
+          slide: { type: "integer", minimum: 1 },
+          shape: { type: "string" },
+          select: { type: "string" },
+          output: { type: "string" },
+          inPlace: { type: "boolean" },
+          force: { type: "boolean" },
+          dryRun: { type: "boolean" },
+          ...(action === "add"
+            ? update
+            : { all: { type: "boolean" }, allowEmpty: { type: "boolean" } }),
+          path: pathValue,
+          vertices: {
+            type: "array",
+            minItems: 2,
+            maxItems: 4095,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["x", "y"],
+              properties: { x: pathCoordinate, y: pathCoordinate }
+            }
+          },
+          close: { type: "boolean" }
+        }
+      }
+    }
+  });
+}
+
+for (const action of ["list", "get"]) {
+  const base = shapeSchemaDefinitions["shapes." + action]!;
+  Object.assign(shapeSchemaDefinitions, {
+    ["shapes.paths." + action]: {
+      ...base,
+      description:
+        "Inspect original custom geometry XML without formula evaluation. Supported paths include local EMU commands.",
+      options: {
+        ...base.options,
+        properties: {
+          json: { type: "boolean" },
+          limit: { type: "object" },
+          scope: { enum: ["slides", "layouts", "masters", "shared"] },
+          part: { type: "string" },
+          slide: { type: "integer", minimum: 1 },
+          shape: { type: "string" },
+          select: { type: "string" }
+        }
+      }
+    }
+  });
+}
+
 export const inspectSchema = {
   input: { type: "string", minLength: 1, description: "Explicit VFS path, or - for stdin." },
   options: {
@@ -1813,6 +1914,19 @@ export const shapeSchemas = Object.fromEntries(
               }
             },
             ...(mutation ? xmlSetSchema.options.allOf.slice(xmlSelectionRules.length) : []),
+            ...(mutation && operation.startsWith("shapes.paths.")
+              ? [
+                  {
+                    oneOf: [
+                      {
+                        required: ["path"],
+                        not: { anyOf: [{ required: ["vertices"] }, { required: ["close"] }] }
+                      },
+                      { required: ["vertices", "close"], not: { required: ["path"] } }
+                    ]
+                  }
+                ]
+              : []),
             ...(operation === "shapes.set"
               ? [{ anyOf: Object.keys(shapeValues).map((key) => ({ required: [key] })) }]
               : [])
@@ -1836,8 +1950,29 @@ export const shapeSchemas = Object.fromEntries(
                           items: {
                             type: "object",
                             additionalProperties: false,
-                            required: Object.keys(shapeRecordProperties),
-                            properties: shapeRecordProperties
+                            required: operation.startsWith("shapes.paths.")
+                              ? [
+                                  "path",
+                                  "xml",
+                                  "unsupported",
+                                  "shapeId",
+                                  "location",
+                                  "token",
+                                  "part"
+                                ]
+                              : Object.keys(shapeRecordProperties),
+                            properties: operation.startsWith("shapes.paths.")
+                              ? {
+                                  path: { anyOf: [pathValue, { type: "null" }] },
+                                  xml: { type: ["string", "null"] },
+                                  unsupported: { type: "boolean" },
+                                  shapeId: { type: "integer" },
+                                  name: { type: "string" },
+                                  location: shapeRecordProperties.location,
+                                  token: { type: "string" },
+                                  part: { type: "string" }
+                                }
+                              : shapeRecordProperties
                           }
                         }
                       },

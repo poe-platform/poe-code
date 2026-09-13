@@ -2,6 +2,13 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Current bounded paths: [64-case accounting](path-case-map.json),
+[public member/language mappings and remaining gaps](path-api-map.json), and
+[draft usage](paths-usage.md). The direct path operation supports literal
+move/line/quadratic/cubic/close commands; it does not complete the freeform builder
+model. The focused API receipt adds six missing public source-member obligations
+without deleting or reclassifying existing inventory records.
+
 Current text fitting: [implementation and exact JS mappings](text-fitting-evidence.md),
 [complete fitting case ledger](text-fitting-case-map.json). The historical
 "not implemented" statements below describe the audit checkpoint, not current

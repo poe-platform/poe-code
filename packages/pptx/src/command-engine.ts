@@ -1,3 +1,5 @@
+import { addShapePath, setShapePath, readShapePaths } from "./shape-path-operations.js";
+import { validateShapePath, pathFromVertices, type ShapePath } from "./shape-paths.js";
 import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
 import { fieldSchemas } from "./fields-schema.js";
 import { addShape, mutateShapes, readShapes, type ShapeSelection } from "./shape-operations.js";
@@ -261,6 +263,7 @@ const help =
   "       pptx layouts apply INPUT [--slide N | --select TOKEN | --all] --layout NAME_OR_URI\n" +
   "                          --placeholder-policy type-index|reject-unmatched\n" +
   "       pptx shapes list|get INPUT [--slide N --shape NAME] [--scope SCOPE] [--json]\n" +
+  "       pptx shapes paths list|get|add|set INPUT [selection] [--path JSON]\n" +
   "       pptx shapes add INPUT --slide N --kind text-box|PRESET\n" +
   "                       --left LENGTH --top LENGTH --width LENGTH --height LENGTH [--name TEXT] [--text TEXT]\n" +
   "       pptx shapes set INPUT --slide N --shape NAME [--scope SCOPE]\n" +
@@ -316,12 +319,19 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  path?: ShapePath;
+  vertices?: unknown;
+  close?: boolean;
   shapeEdit?: ShapeUpdate;
   fieldEdit?: FieldUpdate;
   operation:
     | `fields.${"list" | "get" | "set" | "add" | "remove"}`
     | `masters.${"list" | "get" | "add" | "set"}`
     | `layouts.${"list" | "get" | "add" | "set" | "remove" | "apply"}`
+    | "shapes.paths.list"
+    | "shapes.paths.get"
+    | "shapes.paths.add"
+    | "shapes.paths.set"
     | "shapes.add"
     | "shapes.set"
     | "shapes.list"
@@ -527,6 +537,9 @@ const scalarOptions = [
   ...frameFlags,
   ...paragraphFlags,
   ...runFlags,
+  "--path",
+  "--vertices",
+  "--close",
   "--style-json",
   "--find",
   "--with",
@@ -664,6 +677,15 @@ function parse(
     ["get", "set", "list"].includes(args[2]!)
   ) {
     const path = `text.${args[1]}.${args[2]}`;
+    args.splice(0, 3, path);
+    output.operation = path;
+  }
+  if (
+    args[0] === "shapes" &&
+    args[1] === "paths" &&
+    ["add", "set", "list", "get"].includes(args[2]!)
+  ) {
+    const path = `shapes.paths.${args[2]}`;
     args.splice(0, 3, path);
     output.operation = path;
   }
@@ -1114,6 +1136,16 @@ function parse(
               ? commandJson(value)
               : value
       };
+      continue;
+    }
+    if (operation.startsWith("shapes.paths.") && argument === "--close") {
+      if (!["true", "false"].includes(value)) usage("Close requires true or false.");
+      result.close = value === "true";
+      continue;
+    }
+    if (operation.startsWith("shapes.paths.") && ["--path", "--vertices"].includes(argument)) {
+      if (argument === "--path") result.path = commandJson(value) as ShapePath;
+      else result.vertices = commandJson(value);
       continue;
     }
     if (
@@ -1753,8 +1785,29 @@ function parse(
     if (result.token && (result.slide !== undefined || result.part || result.shape || result.all))
       usage("Opaque and simple selectors cannot be combined.");
     if (mutation) {
-      if (!result.shapeEdit) usage("Shape mutation requires update fields.");
-      validateShapeOptions(result.shapeEdit, operation === "shapes.add");
+      if (operation.startsWith("shapes.paths.")) {
+        if (
+          result.path !== undefined &&
+          (result.vertices !== undefined || result.close !== undefined)
+        )
+          usage("Path and vertices/close cannot be combined.");
+        if (result.vertices !== undefined) {
+          if (result.close === undefined) usage("Vertices require explicit --close true|false.");
+          if (
+            !Array.isArray(result.vertices) ||
+            result.vertices.some((vertex) => Array.isArray(vertex))
+          )
+            usage("Vertices require objects with x and y coordinates.");
+          result.path = pathFromVertices(result.vertices, result.close);
+        }
+        if (result.path === undefined) usage("Path mutation requires --path or --vertices.");
+        validateShapePath(result.path);
+        if (operation.endsWith(".add"))
+          validateShapeOptions({ ...result.shapeEdit, kind: "text-box" }, true);
+      } else {
+        if (!result.shapeEdit) usage("Shape mutation requires update fields.");
+        validateShapeOptions(result.shapeEdit, operation === "shapes.add");
+      }
       if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
       if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
       if (!result.dryRun && !result.inPlace && !result.output)
@@ -2440,35 +2493,49 @@ async function execute(
               : args.schemaPath?.startsWith("text.runs.")
                 ? runHelp
                 : help;
-      const resolvedUsage = args.schemaPath?.startsWith("shapes.")
-        ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
-          "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
-          "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
-          "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
-          "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
-          "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
-          "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
-          "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
-          "Omitted values stay unchanged.\n" +
-          "Null line width restores inherited width.\n" +
-          "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
-          "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
-          "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
-          "Set: --all edits every match; --allow-empty accepts zero matches.\n"
-        : args.schemaPath?.startsWith("fields.")
-          ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
-            "Selection: --slide N --shape NAME | --select TOKEN\n" +
-            "           --scope SCOPE --json --limit NAME=VALUE\n" +
-            "Mutation:  --all --allow-empty\n" +
-            "Output:    --output PATH | --in-place | --dry-run; --force\n" +
-            "Set/add:   --kind slide-number|date|footer|header\n" +
-            "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
-            "Add requires --kind and one text body; appends to its last paragraph.\n" +
-            "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
-            "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
-            "No field evaluation, automatic numbering or inherited-content flattening.\n" +
-            "List/get are read-only; get requires one field. Remove accepts no policy.\n"
-          : usage;
+      const resolvedUsage = args.schemaPath?.startsWith("shapes.paths.")
+        ? "Usage: pptx shapes paths list|get|add|set INPUT [selection] [path] [output]\n" +
+          "Read: list|get INPUT [selection]. Add/set require --path JSON or --vertices JSON.\n" +
+          "Path: {unit:emu,width,height,commands:[move|line|quadratic|cubic|close]}\n" +
+          "Coordinates: integer local EMUs, -2147483647..2147483647; viewport 1..2147483647.\n" +
+          "At most 4096 commands; explicit closure; command order preserved without winding evaluation.\n" +
+          "Alternatively --vertices JSON --close true|false uses {x,y} local EMU vertices and a derived viewport.\n" +
+          "Add placement: --left LENGTH --top LENGTH --width LENGTH --height LENGTH.\n" +
+          "Add accepts shape name, text, paint and metadata properties. Lengths require emu/in/cm/mm/pt.\n" +
+          "Selection: --slide N [--shape NAME] | --part URI --scope SCOPE | --select TOKEN.\n" +
+          "Set: selects one shape unless --all; --allow-empty accepts zero matches.\n" +
+          "Scopes: slides (default), layouts, masters; shared requires --part URI.\n" +
+          "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
+          "Unsupported formulas, arcs and arbitrary existing geometry are preserve-only.\n"
+        : args.schemaPath?.startsWith("shapes.")
+          ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
+            "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
+            "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
+            "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
+            "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
+            "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
+            "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
+            "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
+            "Omitted values stay unchanged.\n" +
+            "Null line width restores inherited width.\n" +
+            "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
+            "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
+            "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
+            "Set: --all edits every match; --allow-empty accepts zero matches.\n"
+          : args.schemaPath?.startsWith("fields.")
+            ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
+              "Selection: --slide N --shape NAME | --select TOKEN\n" +
+              "           --scope SCOPE --json --limit NAME=VALUE\n" +
+              "Mutation:  --all --allow-empty\n" +
+              "Output:    --output PATH | --in-place | --dry-run; --force\n" +
+              "Set/add:   --kind slide-number|date|footer|header\n" +
+              "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
+              "Add requires --kind and one text body; appends to its last paragraph.\n" +
+              "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
+              "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
+              "No field evaluation, automatic numbering or inherited-content flattening.\n" +
+              "List/get are read-only; get requires one field. Remove accepts no policy.\n"
+            : usage;
       result = success(operation, { usage: resolvedUsage });
       human = resolvedUsage;
     } else if (args.operation === "version") {
@@ -2619,6 +2686,11 @@ async function execute(
               "Merge ordered sources using import closure and combined budgets. Split selected slides into independent packages with deterministic manifests; outward slide navigation is rejected. Multiple outputs require an atomic adapter or explicit partial-output mode."
           },
           editing: { level: "reject", reason: "Other semantic model editing is not exposed." },
+          customPaths: {
+            level: "edit",
+            subset:
+              "Local integer EMU move/line/quadratic/cubic commands, explicit closure and retained command order without winding evaluation; 4096 commands, coordinates bounded to ±2147483647. Existing unsupported custom geometry and formulas are preserved; geometry-engine edits are rejected."
+          },
           shapes: {
             level: "edit",
             subset:
@@ -2893,22 +2965,35 @@ async function execute(
         ...(args.all === undefined ? {} : { all: args.all }),
         ...(args.allowEmpty === undefined ? {} : { allowEmpty: args.allowEmpty })
       };
-      if (args.operation === "shapes.list" || args.operation === "shapes.get") {
-        const records = await readShapes(bytes, selection, context);
-        if (args.operation === "shapes.get" && records.length !== 1)
+      if (args.operation.endsWith(".list") || args.operation.endsWith(".get")) {
+        const records = args.operation.startsWith("shapes.paths.")
+          ? await readShapePaths(bytes, selection, context)
+          : await readShapes(bytes, selection, context);
+        if (args.operation.endsWith(".get") && records.length !== 1)
           throw new SelectionError(
             records.length ? "ambiguous-selection" : "missing-selection",
             records.map((x) => x.location)
           );
         result = { ...success(operation, { records }), locations: records.map((x) => x.location) };
         human = records
-          .map((x) => `${x.shapeId}\t${x.name}\t${x.kind ?? "unsupported"}\n`)
+          .map(
+            (x) =>
+              `${x.shapeId}\t${x.name}\t${"kind" in x ? (x.kind ?? "unsupported") : x.path ? "path" : "unsupported"}\n`
+          )
           .join("");
       } else {
         const mutation =
-          args.operation === "shapes.add"
-            ? await addShape(bytes, { ...selection, update: args.shapeEdit! }, context)
-            : await mutateShapes(bytes, { ...selection, update: args.shapeEdit! }, context);
+          args.operation === "shapes.paths.add"
+            ? await addShapePath(
+                bytes,
+                { ...selection, path: args.path!, update: args.shapeEdit! },
+                context
+              )
+            : args.operation === "shapes.paths.set"
+              ? await setShapePath(bytes, { ...selection, path: args.path! }, context)
+              : args.operation === "shapes.add"
+                ? await addShape(bytes, { ...selection, update: args.shapeEdit! }, context)
+                : await mutateShapes(bytes, { ...selection, update: args.shapeEdit! }, context);
         const after = await readSelectionIndex(mutation.bytes, context);
         const dryRun = args.dryRun ?? false;
         const destination = args.inPlace ? args.input! : args.output;
@@ -2924,8 +3009,8 @@ async function execute(
               affectedSlides: mutation.affectedSlides,
               effects: changed.map((x) => ({
                 location: x.location,
-                action: args.operation === "shapes.add" ? "add" : "set",
-                feature: "F22"
+                action: args.operation.endsWith(".add") ? "add" : "set",
+                feature: args.operation.startsWith("shapes.paths.") ? "F23" : "F22"
               })),
               outputs: dryRun
                 ? []

@@ -20,7 +20,7 @@ export interface ShapeSelection {
   readonly all?: boolean;
   readonly allowEmpty?: boolean;
 }
-function validateSelection(options: ShapeSelection, action: "read" | "add" | "set") {
+export function validateSelection(options: ShapeSelection, action: "read" | "add" | "set") {
   const allowed = [
     "scope",
     "slide",
@@ -64,7 +64,7 @@ function validateSelection(options: ShapeSelection, action: "read" | "add" | "se
   )
     throw new SelectionError("invalid-selection");
 }
-function selected(
+export function selected(
   s: Awaited<ReturnType<typeof loadShared>>,
   options: ShapeSelection,
   adding = false
@@ -117,7 +117,7 @@ function selected(
   }
   return records;
 }
-function nodeFor(root: XmlElement, id: string): XmlElement {
+export function nodeFor(root: XmlElement, id: string): XmlElement {
   const pending = [root];
   while (pending.length) {
     const node = pending.shift()!;

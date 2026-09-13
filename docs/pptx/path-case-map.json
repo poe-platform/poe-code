@@ -1,0 +1,2306 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "F23 bounded custom path research ledger. All 45 freeform unit variants, 17 expanded BDD scenarios and two adjacent shape-classification/custom-mask variants retained; this is not full FreeformBuilder parity.",
+  "notice": "Research/provenance only. Required research notices: upstream-license-notice.txt and test-case-map-notice.txt. Original TypeScript tests use original in-memory markup; no upstream fixtures copied.",
+  "inventoryPolicy": "Exact selected fixture bindings and every BDD example remain individually referenced. Baseline inventory statuses are historical; this receipt does not rewrite them. No deferred or partial row counts as parity.",
+  "counts": {
+    "unit": 47,
+    "bdd": 17,
+    "total": 64,
+    "byStatus": {
+      "original-behavior-covered": 1,
+      "deferred-builder-api": 54,
+      "partial-observable-behavior": 8,
+      "deferred-unsupported-edit": 1
+    }
+  },
+  "lowLevelReview": {
+    "sourceFiles": [
+      "tests/shapes/test_freeform.py",
+      "tests/oxml/shapes/test_autoshape.py",
+      "tests/shapes/test_autoshape.py",
+      "tests/shapes/test_picture.py"
+    ],
+    "finding": "Low-level path append assertions are collected inside tests/shapes/test_freeform.py, not a separate CT_Path2D test class. Integer XML-output effects have partial original assertions; no raw XML-node identity or unchecked path append API is claimed."
+  },
+  "rows": [
+    {
+      "id": "presentation-unit-ee78efe47f5a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1706",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_autoshape.py",
+        "line": 333,
+        "file_sha256": "6e1c34547a918a4877502cba5b8c3ef9dec02cd4ec4750f6068963940db73a6f",
+        "identity": "tests/shapes/test_autoshape.py::DescribeShape::and_it_knows_its_shape_type_when_its_not_a_placeholder",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_autoshape.py::DescribeShape::and_it_knows_its_shape_type_when_its_not_a_placeholder"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1706/original_behavior",
+      "status": "original-behavior-covered",
+      "reason": "Existing original parameter rows independently assert preset=1, text box=17 and custom geometry=5; the complete three-category source assertion is covered.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/shapes-regressions.test.ts",
+          "title": "classifies primitive shapes independently %s %s"
+        }
+      ],
+      "wholeRowParity": true
+    },
+    {
+      "id": "presentation-unit-3194dfcd73b8",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1834",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 36,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_provides_a_constructor",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_provides_a_constructor"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1834/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-f962cde1c056",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1835",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 45,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_can_add_straight_line_segments[True]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_can_add_straight_line_segments[True]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "close": "True"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1835/original_behavior",
+      "status": "partial-observable-behavior",
+      "reason": "Original assertions cover command order, integer point serialization and/or explicit closure in the validated path API. Builder identity/chaining, automatic origin translation and returned XML-node identity are not implemented. This is a partial mapping, not whole-row parity.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/path-behavior-cases.test.ts",
+          "title": "retains each vertex and applies closure only when requested %s"
+        }
+      ],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-b0a0b38e60e9",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1836",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 45,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_can_add_straight_line_segments[False]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_can_add_straight_line_segments[False]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "close": "False"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1836/original_behavior",
+      "status": "partial-observable-behavior",
+      "reason": "Original assertions cover command order, integer point serialization and/or explicit closure in the validated path API. Builder identity/chaining, automatic origin translation and returned XML-node identity are not implemented. This is a partial mapping, not whole-row parity.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/path-behavior-cases.test.ts",
+          "title": "retains each vertex and applies closure only when requested %s"
+        }
+      ],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-f09ac56e2ec9",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1837",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 61,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_can_move_the_pen_location",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_can_move_the_pen_location"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1837/original_behavior",
+      "status": "partial-observable-behavior",
+      "reason": "Original assertions cover command order, integer point serialization and/or explicit closure in the validated path API. Builder identity/chaining, automatic origin translation and returned XML-node identity are not implemented. This is a partial mapping, not whole-row parity.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/path-behavior-cases.test.ts",
+          "title": "serializes supplied local points without inferring an origin or bounds"
+        }
+      ],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-4c5fc10b4977",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1838",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 72,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_can_build_the_specified_freeform_shape",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_can_build_the_specified_freeform_shape"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1838/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-37cdb1a62c15",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1839",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 101,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_x_offset[0-xs0-0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_x_offset[0-xs0-0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "start_x": "Mm(0)",
+            "xs": "(1, None, 2, 3)",
+            "expected_value": "Mm(0)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1839/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-a6be1ef10e25",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1840",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 101,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_x_offset[216000-xs1-36000]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_x_offset[216000-xs1-36000]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "start_x": "Mm(6)",
+            "xs": "(1, None, 2, 3)",
+            "expected_value": "Mm(1)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1840/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-9ef699f493b6",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1841",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 101,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_x_offset[1800000-xs2--180000]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_x_offset[1800000-xs2--180000]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "start_x": "Mm(50)",
+            "xs": "(150, -5, None, 100)",
+            "expected_value": "Mm(-5)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1841/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-1cc957672918",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1842",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 118,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_y_offset[0-ys0-0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_y_offset[0-ys0-0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "start_y": "Mm(0)",
+            "ys": "(2, None, 6, 8)",
+            "expected_value": "Mm(0)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1842/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-4e950b9bb96c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1843",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 118,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_y_offset[144000-ys1-72000]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_y_offset[144000-ys1-72000]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "start_y": "Mm(4)",
+            "ys": "(2, None, 6, 8)",
+            "expected_value": "Mm(2)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1843/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-8dec82684419",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1844",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 118,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_y_offset[684000-ys2--792000]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_shape_y_offset[684000-ys2--792000]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "start_y": "Mm(19)",
+            "ys": "(213, -22, None, 100)",
+            "expected_value": "Mm(-22)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1844/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-13e7938e27c4",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1845",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 135,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_adds_a_freeform_sp_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_adds_a_freeform_sp_to_help"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1845/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-f64adb4ed316",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1846",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 151,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_adds_a_line_segment_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_adds_a_line_segment_to_help"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1846/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-270ca1dfe68d",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1847",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 162,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_closes_a_contour_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_closes_a_contour_to_help"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1847/original_behavior",
+      "status": "partial-observable-behavior",
+      "reason": "Original assertions cover command order, integer point serialization and/or explicit closure in the validated path API. Builder identity/chaining, automatic origin translation and returned XML-node identity are not implemented. This is a partial mapping, not whole-row parity.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/path-behavior-cases.test.ts",
+          "title": "serializes supplied local points without inferring an origin or bounds"
+        }
+      ],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-7d8ab951b1c6",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1848",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 171,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_left_extent_to_help[left_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_left_extent_to_help[left_fixture0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "left_fixture": "(0, 1.0, 0)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1848/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-53c92eb5413a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1849",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 171,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_left_extent_to_help[left_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_left_extent_to_help[left_fixture1]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "left_fixture": "(4, 10.0, 40)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1849/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-2838c3a881c1",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1850",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 171,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_left_extent_to_help[left_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_left_extent_to_help[left_fixture2]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "left_fixture": "(914400, 914.3, 836035920)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1850/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-2c52d04a2800",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1851",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 176,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_top_extent_to_help[top_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_top_extent_to_help[top_fixture0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "top_fixture": "(0, 11.0, 0)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1851/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-710e709e5bd7",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1852",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 176,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_top_extent_to_help[top_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_top_extent_to_help[top_fixture1]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "top_fixture": "(100, 10.36, 1036)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1852/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-4fcf1b10305e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1853",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 176,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_top_extent_to_help[top_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_top_extent_to_help[top_fixture2]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "top_fixture": "(914242, 943.1, 862221630)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1853/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-16ac98c30558",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1854",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 181,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_width_to_help[width_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_width_to_help[width_fixture0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "width_fixture": "(0, 1.0, 0)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1854/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-1b6b9a9c3d40",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1855",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 181,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_width_to_help[width_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_width_to_help[width_fixture1]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "width_fixture": "(42, 10.0, 420)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1855/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-80f02e2a5b14",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1856",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 181,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_width_to_help[width_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_width_to_help[width_fixture2]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "width_fixture": "(914400, 914.4, 836127360)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1856/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-dfee5538409e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1857",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 186,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_height_to_help[0-2.0-0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_height_to_help[0-2.0-0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "dy": "0",
+            "y_scale": "2.0",
+            "expected_value": "0"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1857/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-40efd626b610",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1858",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 186,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_height_to_help[24-10.0-240]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_height_to_help[24-10.0-240]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "dy": "24",
+            "y_scale": "10.0",
+            "expected_value": "240"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1858/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-34fec0daa779",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1859",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 186,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_height_to_help[914400-314.1-287213040]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_freeform_height_to_help[914400-314.1-287213040]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "dy": "914400",
+            "y_scale": "314.1",
+            "expected_value": "287213040"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1859/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-410bdfa70519",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1860",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 198,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_width_to_help[dx_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_width_to_help[dx_fixture0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "dx_fixture": "(0, (1, None, 2, 3), 3)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1860/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-adf395cbcd45",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1861",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 198,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_width_to_help[dx_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_width_to_help[dx_fixture1]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "dx_fixture": "(6, (1, None, 2, 3), 5)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1861/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-62c994215d82",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1862",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 198,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_width_to_help[dx_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_width_to_help[dx_fixture2]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "dx_fixture": "(50, (150, -5, None, 100), 155)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1862/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-3dd37a106ca6",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1863",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 203,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_height_to_help[dy_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_height_to_help[dy_fixture0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "dy_fixture": "(0, (1, None, 2, 3), 3)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1863/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-4b3ca0fa7fab",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1864",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 203,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_height_to_help[dy_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_height_to_help[dy_fixture1]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "dy_fixture": "(2, (1, None, 2, 3), 2)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1864/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-562b2aba4b2c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1865",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 203,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_height_to_help[dy_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_knows_the_local_coordinate_height_to_help[dy_fixture2]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "dy_fixture": "(32, (160, -8, None, 101), 168)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1865/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-b9de6658b7cb",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1866",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 208,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_can_start_a_new_path_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_can_start_a_new_path_to_help"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1866/original_behavior",
+      "status": "partial-observable-behavior",
+      "reason": "Original assertions cover command order, integer point serialization and/or explicit closure in the validated path API. Builder identity/chaining, automatic origin translation and returned XML-node identity are not implemented. This is a partial mapping, not whole-row parity.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/path-behavior-cases.test.ts",
+          "title": "serializes supplied local points without inferring an origin or bounds"
+        }
+      ],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-de9593d18e1c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1867",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 227,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::DescribeFreeformBuilder::it_translates_local_to_shape_coordinates_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::DescribeFreeformBuilder::it_translates_local_to_shape_coordinates_to_help"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1867/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-d6e9e692a077",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1868",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 408,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::Describe_BaseDrawingOperation::it_knows_its_x_coordinate",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::Describe_BaseDrawingOperation::it_knows_its_x_coordinate"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1868/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-d023b1318647",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1869",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 413,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::Describe_BaseDrawingOperation::it_knows_its_y_coordinate",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::Describe_BaseDrawingOperation::it_knows_its_y_coordinate"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1869/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-4d690b9ac6a6",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1870",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 438,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::Describe_Close::it_provides_a_constructor",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::Describe_Close::it_provides_a_constructor"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1870/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-cebc2d5adf1c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1871",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 446,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::Describe_Close::it_can_add_close_a_contour",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::Describe_Close::it_can_add_close_a_contour"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1871/original_behavior",
+      "status": "partial-observable-behavior",
+      "reason": "Original assertions cover command order, integer point serialization and/or explicit closure in the validated path API. Builder identity/chaining, automatic origin translation and returned XML-node identity are not implemented. This is a partial mapping, not whole-row parity.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/path-behavior-cases.test.ts",
+          "title": "serializes supplied local points without inferring an origin or bounds"
+        }
+      ],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-0276c1f15a41",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1872",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 477,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::Describe_LineSegment::it_provides_a_constructor",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::Describe_LineSegment::it_provides_a_constructor"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1872/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-8b2cafce5669",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1873",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 485,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::Describe_LineSegment::it_can_add_its_line_segment_to_a_path",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::Describe_LineSegment::it_can_add_its_line_segment_to_a_path"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1873/original_behavior",
+      "status": "partial-observable-behavior",
+      "reason": "Original assertions cover command order, integer point serialization and/or explicit closure in the validated path API. Builder identity/chaining, automatic origin translation and returned XML-node identity are not implemented. This is a partial mapping, not whole-row parity.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/path-behavior-cases.test.ts",
+          "title": "serializes supplied local points without inferring an origin or bounds"
+        }
+      ],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-cc0f8baf6795",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1874",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 524,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::Describe_MoveTo::it_provides_a_constructor",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::Describe_MoveTo::it_provides_a_constructor"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1874/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-a92377d8b13c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1875",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_freeform.py",
+        "line": 532,
+        "file_sha256": "4d4ce01dbdac8b101adc0a6d4587fb33c23856587b6b39f99b99fad419d7ad9f",
+        "identity": "tests/shapes/test_freeform.py::Describe_MoveTo::it_can_add_its_move_to_a_path",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_freeform.py::Describe_MoveTo::it_can_add_its_move_to_a_path"
+      },
+      "selectedParameters": {},
+      "behaviorEvidence": "test-case-map.json#/rows/1875/original_behavior",
+      "status": "partial-observable-behavior",
+      "reason": "Original assertions cover command order, integer point serialization and/or explicit closure in the validated path API. Builder identity/chaining, automatic origin translation and returned XML-node identity are not implemented. This is a partial mapping, not whole-row parity.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/path-behavior-cases.test.ts",
+          "title": "serializes supplied local points without inferring an origin or bounds"
+        }
+      ],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-2b0ceede9805",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1928",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_picture.py",
+        "line": 228,
+        "file_sha256": "0fe7d90aebf7ed30d99f34faea9be7d72392462354279f4c4d8c0b9866827693",
+        "identity": "tests/shapes/test_picture.py::DescribePicture::it_can_change_its_masking_shape[autoshape_set_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_picture.py::DescribePicture::it_can_change_its_masking_shape[autoshape_set_fixture0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "autoshape_set_fixture": "('p:pic/p:spPr/a:custGeom', MSO_SHAPE.RECTANGLE, 'p:pic/p:spPr/a:prstGeom{prst=rect}')"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/1928/original_behavior",
+      "status": "deferred-unsupported-edit",
+      "reason": "Picture mask replacement that discards existing custom geometry is outside this shape-path subset. Existing arbitrary custom geometry is preserved; destructive replacement requires a separately declared picture-mask contract.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-5181ebec853b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2009",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 340,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture0]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "freeform_fixture": "(0, 0, 1.0, 1.0, 1.0)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/2009/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-5bc93f4be53f",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2010",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 340,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture1]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "freeform_fixture": "(100, 200, 2.0, 2.0, 2.0)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/2010/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-538eb9a0ab2b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2011",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 340,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_provide_a_freeform_builder[freeform_fixture2]"
+      },
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "freeform_fixture": "(100, 200, (4.2, 2.4), 4.2, 2.4)"
+          }
+        }
+      ],
+      "behaviorEvidence": "test-case-map.json#/rows/2011/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-54c426f6ef8b",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/559",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 20,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.add_vertices() -- @1.1 Pen start position and scaling factor",
+        "scenario_line": 7,
+        "example_line": 20,
+        "example": {
+          "start_x": "0",
+          "start_y": "0",
+          "x_scale": "1.0",
+          "y_scale": "1.0",
+          "left": "0",
+          "top": "0",
+          "width": "100",
+          "height": "100"
+        },
+        "expanded_steps": [
+          {
+            "line": 8,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 9,
+            "text": "And (builder._start_x, builder._start_y) is (0, 0)"
+          },
+          {
+            "line": 10,
+            "text": "And (builder._x_scale, builder._y_scale) is (1.0, 1.0)"
+          },
+          {
+            "line": 11,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 12,
+            "text": "And I assign builder.convert_to_shape() to shape"
+          },
+          {
+            "line": 13,
+            "text": "Then shape.left == 0"
+          },
+          {
+            "line": 14,
+            "text": "And shape.top == 0"
+          },
+          {
+            "line": 15,
+            "text": "And shape.width == 100"
+          },
+          {
+            "line": 16,
+            "text": "And shape.height == 100"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "0",
+        "start_y": "0",
+        "x_scale": "1.0",
+        "y_scale": "1.0",
+        "left": "0",
+        "top": "0",
+        "width": "100",
+        "height": "100"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3259/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-367fffc7653f",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/560",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 21,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.add_vertices() -- @1.2 Pen start position and scaling factor",
+        "scenario_line": 7,
+        "example_line": 21,
+        "example": {
+          "start_x": "25",
+          "start_y": "25",
+          "x_scale": "1.0",
+          "y_scale": "1.0",
+          "left": "25",
+          "top": "25",
+          "width": "75",
+          "height": "75"
+        },
+        "expanded_steps": [
+          {
+            "line": 8,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 9,
+            "text": "And (builder._start_x, builder._start_y) is (25, 25)"
+          },
+          {
+            "line": 10,
+            "text": "And (builder._x_scale, builder._y_scale) is (1.0, 1.0)"
+          },
+          {
+            "line": 11,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 12,
+            "text": "And I assign builder.convert_to_shape() to shape"
+          },
+          {
+            "line": 13,
+            "text": "Then shape.left == 25"
+          },
+          {
+            "line": 14,
+            "text": "And shape.top == 25"
+          },
+          {
+            "line": 15,
+            "text": "And shape.width == 75"
+          },
+          {
+            "line": 16,
+            "text": "And shape.height == 75"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "25",
+        "start_y": "25",
+        "x_scale": "1.0",
+        "y_scale": "1.0",
+        "left": "25",
+        "top": "25",
+        "width": "75",
+        "height": "75"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3260/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-5209f18ba4fd",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/561",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 22,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.add_vertices() -- @1.3 Pen start position and scaling factor",
+        "scenario_line": 7,
+        "example_line": 22,
+        "example": {
+          "start_x": "0",
+          "start_y": "0",
+          "x_scale": "2.0",
+          "y_scale": "2.0",
+          "left": "0",
+          "top": "0",
+          "width": "200",
+          "height": "200"
+        },
+        "expanded_steps": [
+          {
+            "line": 8,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 9,
+            "text": "And (builder._start_x, builder._start_y) is (0, 0)"
+          },
+          {
+            "line": 10,
+            "text": "And (builder._x_scale, builder._y_scale) is (2.0, 2.0)"
+          },
+          {
+            "line": 11,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 12,
+            "text": "And I assign builder.convert_to_shape() to shape"
+          },
+          {
+            "line": 13,
+            "text": "Then shape.left == 0"
+          },
+          {
+            "line": 14,
+            "text": "And shape.top == 0"
+          },
+          {
+            "line": 15,
+            "text": "And shape.width == 200"
+          },
+          {
+            "line": 16,
+            "text": "And shape.height == 200"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "0",
+        "start_y": "0",
+        "x_scale": "2.0",
+        "y_scale": "2.0",
+        "left": "0",
+        "top": "0",
+        "width": "200",
+        "height": "200"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3261/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-a2faa65c9687",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/562",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 23,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.add_vertices() -- @1.4 Pen start position and scaling factor",
+        "scenario_line": 7,
+        "example_line": 23,
+        "example": {
+          "start_x": "25",
+          "start_y": "25",
+          "x_scale": "2.0",
+          "y_scale": "2.0",
+          "left": "50",
+          "top": "50",
+          "width": "150",
+          "height": "150"
+        },
+        "expanded_steps": [
+          {
+            "line": 8,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 9,
+            "text": "And (builder._start_x, builder._start_y) is (25, 25)"
+          },
+          {
+            "line": 10,
+            "text": "And (builder._x_scale, builder._y_scale) is (2.0, 2.0)"
+          },
+          {
+            "line": 11,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 12,
+            "text": "And I assign builder.convert_to_shape() to shape"
+          },
+          {
+            "line": 13,
+            "text": "Then shape.left == 50"
+          },
+          {
+            "line": 14,
+            "text": "And shape.top == 50"
+          },
+          {
+            "line": 15,
+            "text": "And shape.width == 150"
+          },
+          {
+            "line": 16,
+            "text": "And shape.height == 150"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "25",
+        "start_y": "25",
+        "x_scale": "2.0",
+        "y_scale": "2.0",
+        "left": "50",
+        "top": "50",
+        "width": "150",
+        "height": "150"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3262/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-fcf2680481d9",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/563",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 24,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.add_vertices() -- @1.5 Pen start position and scaling factor",
+        "scenario_line": 7,
+        "example_line": 24,
+        "example": {
+          "start_x": "25",
+          "start_y": "10",
+          "x_scale": "2.0",
+          "y_scale": "3.0",
+          "left": "50",
+          "top": "30",
+          "width": "150",
+          "height": "270"
+        },
+        "expanded_steps": [
+          {
+            "line": 8,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 9,
+            "text": "And (builder._start_x, builder._start_y) is (25, 10)"
+          },
+          {
+            "line": 10,
+            "text": "And (builder._x_scale, builder._y_scale) is (2.0, 3.0)"
+          },
+          {
+            "line": 11,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 12,
+            "text": "And I assign builder.convert_to_shape() to shape"
+          },
+          {
+            "line": 13,
+            "text": "Then shape.left == 50"
+          },
+          {
+            "line": 14,
+            "text": "And shape.top == 30"
+          },
+          {
+            "line": 15,
+            "text": "And shape.width == 150"
+          },
+          {
+            "line": 16,
+            "text": "And shape.height == 270"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "25",
+        "start_y": "10",
+        "x_scale": "2.0",
+        "y_scale": "3.0",
+        "left": "50",
+        "top": "30",
+        "width": "150",
+        "height": "270"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3263/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-7a3f58e6bd3d",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/564",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 39,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.convert_to_shape() -- @1.1 Local origin position",
+        "scenario_line": 27,
+        "example_line": 39,
+        "example": {
+          "start_x": "0",
+          "start_y": "0",
+          "origin_x": "0",
+          "origin_y": "0",
+          "x": "0",
+          "y": "0",
+          "cx": "100",
+          "cy": "100"
+        },
+        "expanded_steps": [
+          {
+            "line": 28,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 29,
+            "text": "And (builder._start_x, builder._start_y) is (0, 0)"
+          },
+          {
+            "line": 30,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 31,
+            "text": "And I assign builder.convert_to_shape(0, 0) to shape"
+          },
+          {
+            "line": 32,
+            "text": "Then shape.left == 0"
+          },
+          {
+            "line": 33,
+            "text": "And shape.top == 0"
+          },
+          {
+            "line": 34,
+            "text": "And shape.width == 100"
+          },
+          {
+            "line": 35,
+            "text": "And shape.height == 100"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "0",
+        "start_y": "0",
+        "origin_x": "0",
+        "origin_y": "0",
+        "x": "0",
+        "y": "0",
+        "cx": "100",
+        "cy": "100"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3264/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-5e1ab8b1f041",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/565",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 40,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.convert_to_shape() -- @1.2 Local origin position",
+        "scenario_line": 27,
+        "example_line": 40,
+        "example": {
+          "start_x": "0",
+          "start_y": "0",
+          "origin_x": "42",
+          "origin_y": "0",
+          "x": "42",
+          "y": "0",
+          "cx": "100",
+          "cy": "100"
+        },
+        "expanded_steps": [
+          {
+            "line": 28,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 29,
+            "text": "And (builder._start_x, builder._start_y) is (0, 0)"
+          },
+          {
+            "line": 30,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 31,
+            "text": "And I assign builder.convert_to_shape(42, 0) to shape"
+          },
+          {
+            "line": 32,
+            "text": "Then shape.left == 42"
+          },
+          {
+            "line": 33,
+            "text": "And shape.top == 0"
+          },
+          {
+            "line": 34,
+            "text": "And shape.width == 100"
+          },
+          {
+            "line": 35,
+            "text": "And shape.height == 100"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "0",
+        "start_y": "0",
+        "origin_x": "42",
+        "origin_y": "0",
+        "x": "42",
+        "y": "0",
+        "cx": "100",
+        "cy": "100"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3265/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-6455d9cd5a8d",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/566",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 41,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.convert_to_shape() -- @1.3 Local origin position",
+        "scenario_line": 27,
+        "example_line": 41,
+        "example": {
+          "start_x": "0",
+          "start_y": "0",
+          "origin_x": "0",
+          "origin_y": "42",
+          "x": "0",
+          "y": "42",
+          "cx": "100",
+          "cy": "100"
+        },
+        "expanded_steps": [
+          {
+            "line": 28,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 29,
+            "text": "And (builder._start_x, builder._start_y) is (0, 0)"
+          },
+          {
+            "line": 30,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 31,
+            "text": "And I assign builder.convert_to_shape(0, 42) to shape"
+          },
+          {
+            "line": 32,
+            "text": "Then shape.left == 0"
+          },
+          {
+            "line": 33,
+            "text": "And shape.top == 42"
+          },
+          {
+            "line": 34,
+            "text": "And shape.width == 100"
+          },
+          {
+            "line": 35,
+            "text": "And shape.height == 100"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "0",
+        "start_y": "0",
+        "origin_x": "0",
+        "origin_y": "42",
+        "x": "0",
+        "y": "42",
+        "cx": "100",
+        "cy": "100"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3266/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-de5469e30202",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/567",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 42,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.convert_to_shape() -- @1.4 Local origin position",
+        "scenario_line": 27,
+        "example_line": 42,
+        "example": {
+          "start_x": "0",
+          "start_y": "0",
+          "origin_x": "24",
+          "origin_y": "24",
+          "x": "24",
+          "y": "24",
+          "cx": "100",
+          "cy": "100"
+        },
+        "expanded_steps": [
+          {
+            "line": 28,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 29,
+            "text": "And (builder._start_x, builder._start_y) is (0, 0)"
+          },
+          {
+            "line": 30,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 31,
+            "text": "And I assign builder.convert_to_shape(24, 24) to shape"
+          },
+          {
+            "line": 32,
+            "text": "Then shape.left == 24"
+          },
+          {
+            "line": 33,
+            "text": "And shape.top == 24"
+          },
+          {
+            "line": 34,
+            "text": "And shape.width == 100"
+          },
+          {
+            "line": 35,
+            "text": "And shape.height == 100"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "0",
+        "start_y": "0",
+        "origin_x": "24",
+        "origin_y": "24",
+        "x": "24",
+        "y": "24",
+        "cx": "100",
+        "cy": "100"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3267/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-e0983e5c2a9c",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/568",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 43,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.convert_to_shape() -- @1.5 Local origin position",
+        "scenario_line": 27,
+        "example_line": 43,
+        "example": {
+          "start_x": "25",
+          "start_y": "0",
+          "origin_x": "24",
+          "origin_y": "24",
+          "x": "49",
+          "y": "24",
+          "cx": "75",
+          "cy": "100"
+        },
+        "expanded_steps": [
+          {
+            "line": 28,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 29,
+            "text": "And (builder._start_x, builder._start_y) is (25, 0)"
+          },
+          {
+            "line": 30,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 31,
+            "text": "And I assign builder.convert_to_shape(24, 24) to shape"
+          },
+          {
+            "line": 32,
+            "text": "Then shape.left == 49"
+          },
+          {
+            "line": 33,
+            "text": "And shape.top == 24"
+          },
+          {
+            "line": 34,
+            "text": "And shape.width == 75"
+          },
+          {
+            "line": 35,
+            "text": "And shape.height == 100"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "25",
+        "start_y": "0",
+        "origin_x": "24",
+        "origin_y": "24",
+        "x": "49",
+        "y": "24",
+        "cx": "75",
+        "cy": "100"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3268/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-27474f5055c7",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/569",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 44,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.convert_to_shape() -- @1.6 Local origin position",
+        "scenario_line": 27,
+        "example_line": 44,
+        "example": {
+          "start_x": "25",
+          "start_y": "12",
+          "origin_x": "24",
+          "origin_y": "24",
+          "x": "49",
+          "y": "36",
+          "cx": "75",
+          "cy": "88"
+        },
+        "expanded_steps": [
+          {
+            "line": 28,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 29,
+            "text": "And (builder._start_x, builder._start_y) is (25, 12)"
+          },
+          {
+            "line": 30,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 31,
+            "text": "And I assign builder.convert_to_shape(24, 24) to shape"
+          },
+          {
+            "line": 32,
+            "text": "Then shape.left == 49"
+          },
+          {
+            "line": 33,
+            "text": "And shape.top == 36"
+          },
+          {
+            "line": 34,
+            "text": "And shape.width == 75"
+          },
+          {
+            "line": 35,
+            "text": "And shape.height == 88"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "25",
+        "start_y": "12",
+        "origin_x": "24",
+        "origin_y": "24",
+        "x": "49",
+        "y": "36",
+        "cx": "75",
+        "cy": "88"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3269/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-eaa968d0823a",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/570",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-freeform.feature",
+        "line": 45,
+        "file_sha256": "5823f189054929092d5d5320ee1a4fb271df1db1d773d9252a9cb90a7be0c644",
+        "identity": "FreeformBuilder.convert_to_shape() -- @1.7 Local origin position",
+        "scenario_line": 27,
+        "example_line": 45,
+        "example": {
+          "start_x": "10",
+          "start_y": "20",
+          "origin_x": "30",
+          "origin_y": "40",
+          "x": "40",
+          "y": "60",
+          "cx": "90",
+          "cy": "80"
+        },
+        "expanded_steps": [
+          {
+            "line": 28,
+            "text": "Given a FreeformBuilder object as builder"
+          },
+          {
+            "line": 29,
+            "text": "And (builder._start_x, builder._start_y) is (10, 20)"
+          },
+          {
+            "line": 30,
+            "text": "When I call builder.add_line_segments([(100, 25), (25, 100)])"
+          },
+          {
+            "line": 31,
+            "text": "And I assign builder.convert_to_shape(30, 40) to shape"
+          },
+          {
+            "line": 32,
+            "text": "Then shape.left == 40"
+          },
+          {
+            "line": 33,
+            "text": "And shape.top == 60"
+          },
+          {
+            "line": 34,
+            "text": "And shape.width == 90"
+          },
+          {
+            "line": 35,
+            "text": "And shape.height == 80"
+          }
+        ]
+      },
+      "selectedParameters": {
+        "start_x": "10",
+        "start_y": "20",
+        "origin_x": "30",
+        "origin_y": "40",
+        "x": "40",
+        "y": "60",
+        "cx": "90",
+        "cy": "80"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3270/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-85a868ae8bbf",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/626",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-shapes.feature",
+        "line": 69,
+        "file_sha256": "0c95352447a4990aa7d5b140a06b372f0c0ff645d600f88e62b9c0705a836a2c",
+        "identity": "GroupShapes.build_freeform()",
+        "scenario_line": 69,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 70,
+            "text": "Given a GroupShapes object as shapes"
+          },
+          {
+            "line": 71,
+            "text": "When I assign shapes.build_freeform() to builder"
+          },
+          {
+            "line": 72,
+            "text": "Then builder is a FreeformBuilder object"
+          }
+        ]
+      },
+      "selectedParameters": null,
+      "behaviorEvidence": "test-case-map.json#/rows/3326/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-2e5ae4fe23b4",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/690",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-shapes.feature",
+        "line": 310,
+        "file_sha256": "0c95352447a4990aa7d5b140a06b372f0c0ff645d600f88e62b9c0705a836a2c",
+        "identity": "SlideShapes.build_freeform() (no parameters)",
+        "scenario_line": 310,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 311,
+            "text": "Given a SlideShapes object as shapes"
+          },
+          {
+            "line": 312,
+            "text": "When I assign shapes.build_freeform() to builder"
+          },
+          {
+            "line": 313,
+            "text": "Then builder is a FreeformBuilder object"
+          },
+          {
+            "line": 314,
+            "text": "And (builder._start_x, builder._start_y) is (0, 0)"
+          },
+          {
+            "line": 315,
+            "text": "And (builder._x_scale, builder._y_scale) is (1.0, 1.0)"
+          }
+        ]
+      },
+      "selectedParameters": null,
+      "behaviorEvidence": "test-case-map.json#/rows/3390/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-adc4fe4bbdb2",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/691",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-shapes.feature",
+        "line": 318,
+        "file_sha256": "0c95352447a4990aa7d5b140a06b372f0c0ff645d600f88e62b9c0705a836a2c",
+        "identity": "SlideShapes.build_freeform() (with pen start position)",
+        "scenario_line": 318,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 319,
+            "text": "Given a SlideShapes object as shapes"
+          },
+          {
+            "line": 320,
+            "text": "When I assign shapes.build_freeform(start_x=25, start_y=125) to builder"
+          },
+          {
+            "line": 321,
+            "text": "Then builder is a FreeformBuilder object"
+          },
+          {
+            "line": 322,
+            "text": "And (builder._start_x, builder._start_y) is (25, 125)"
+          }
+        ]
+      },
+      "selectedParameters": null,
+      "behaviorEvidence": "test-case-map.json#/rows/3391/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-6e70035cd901",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/692",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-shapes.feature",
+        "line": 325,
+        "file_sha256": "0c95352447a4990aa7d5b140a06b372f0c0ff645d600f88e62b9c0705a836a2c",
+        "identity": "SlideShapes.build_freeform() (square scaling)",
+        "scenario_line": 325,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 326,
+            "text": "Given a SlideShapes object as shapes"
+          },
+          {
+            "line": 327,
+            "text": "When I assign shapes.build_freeform(scale=100.0) to builder"
+          },
+          {
+            "line": 328,
+            "text": "Then builder is a FreeformBuilder object"
+          },
+          {
+            "line": 329,
+            "text": "And (builder._x_scale, builder._y_scale) is (100.0, 100.0)"
+          }
+        ]
+      },
+      "selectedParameters": null,
+      "behaviorEvidence": "test-case-map.json#/rows/3392/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-bdd-e85364a6f798",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/693",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-shapes.feature",
+        "line": 332,
+        "file_sha256": "0c95352447a4990aa7d5b140a06b372f0c0ff645d600f88e62b9c0705a836a2c",
+        "identity": "SlideShapes.build_freeform() (rectangular scaling)",
+        "scenario_line": 332,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 333,
+            "text": "Given a SlideShapes object as shapes"
+          },
+          {
+            "line": 334,
+            "text": "When I assign shapes.build_freeform(scale=(200.0, 100.0)) to builder"
+          },
+          {
+            "line": 335,
+            "text": "Then builder is a FreeformBuilder object"
+          },
+          {
+            "line": 336,
+            "text": "And (builder._x_scale, builder._y_scale) is (200.0, 100.0)"
+          }
+        ]
+      },
+      "selectedParameters": null,
+      "behaviorEvidence": "test-case-map.json#/rows/3393/original_behavior",
+      "status": "deferred-builder-api",
+      "reason": "Bounded path edits accept already supplied integer local coordinates and an explicit viewport; no live builder, implicit origin normalization, coordinate scaling, sequence protocol or operation-object ownership API is implemented. The exact source assertions remain obligations; serialization is not builder parity.",
+      "originalTests": [],
+      "wholeRowParity": false
+    }
+  ],
+  "supplementalOriginalTests": [
+    {
+      "file": "packages/pptx/src/path-behavior-cases.test.ts",
+      "titles": [
+        "distinguishes a repeated endpoint from explicit closure",
+        "writes opposite contour directions without normalizing winding",
+        "closes a single quadratic segment without inventing polygon vertices"
+      ]
+    },
+    {
+      "file": "packages/pptx/src/shape-paths.test.ts",
+      "coverage": "Malformed command/point shapes, accessor and sparse-array rejection, numeric bounds, curves, ordered contours, arbitrary formula preservation and unsupported-edit refusal."
+    }
+  ],
+  "validation": {
+    "command": "npx vitest run packages/pptx/src/path-behavior-cases.test.ts packages/pptx/src/shapes-regressions.test.ts",
+    "result": "279 passed across two files; scoped ESLint passed",
+    "date": "2026-09-13",
+    "limitation": "Bounded original behavior and existing category assertions executed. Maintained package lint/test validation is recorded by the parent task; deferred rows have no passing target claim."
+  }
+}

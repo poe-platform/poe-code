@@ -908,8 +908,19 @@
       "featureId": "F23",
       "family": "Custom geometry",
       "requiredSubset": "Inspect/preserve arbitrary path geometry; create/edit a documented bounded path subset; reject unsupported formulas",
-      "status": "proposed_not_implemented",
-      "operationIds": ["inspect", "shapes.paths.add", "shapes.paths.set"],
+      "status": "implemented_bounded_subset",
+      "operationIds": ["inspect", "shapes.paths.list", "shapes.paths.get", "shapes.paths.add", "shapes.paths.set"],
+      "currentImplementation": {
+        "authority": "docs/specs/pptx.md#c-shapepath",
+        "usage": "docs/pptx/paths-usage.md",
+        "caseAccounting": "docs/pptx/path-case-map.json",
+        "apiAccounting": "docs/pptx/path-api-map.json",
+        "schemas": "packages/pptx/src/command-schema.ts#shapeSchemas",
+        "supersedes": "Historical proposed shapes.paths add/set argument rows below: the current direct schema accepts either ShapePath or object vertices with explicit boolean close; add also requires explicit placement. List/get are read-only. Common selected scopes include slides/layouts/masters/shared with part selectors. Batch and full freeform model remain proposed.",
+        "subset": "Literal local EMU move/line/quadratic/cubic/close commands; maximum 4096 commands and coordinate magnitude 2147483647; positive viewport; preserved command order and explicit closure. Unsupported existing geometry/formulas are inspect/preserve-only and replacement fails.",
+        "sdk": ["addShapePath", "setShapePath", "readShapePaths"],
+        "tests": ["packages/pptx/src/shape-paths.test.ts", "packages/pptx/src/shape-path-security.test.ts", "packages/pptx/src/path-behavior-cases.test.ts", "packages/pptx/src/command-paths.test.ts"]
+      },
       "levels": ["read", "edit", "preserve"],
       "inspection": {
         "operation": "inspect",

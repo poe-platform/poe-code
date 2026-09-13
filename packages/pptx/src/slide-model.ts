@@ -725,6 +725,22 @@ export class SlideShapes implements Iterable<Shape | Connector> {
       createShapeXml(kind, id, { left, top, width, height }, this.#owner.read().root.name.namespace)
     ) as Shape;
   }
+  add_table(
+    rows: number,
+    cols: number,
+    left: Length,
+    top: Length,
+    width: Length,
+    height: Length
+  ): GraphicFrame {
+    return this.#append((id) =>
+      createTableXml(
+        id,
+        { rows, columns: cols, left, top, width, height },
+        this.#owner.read().root.name.namespace
+      )
+    ) as GraphicFrame;
+  }
   add_textbox(left: Length, top: Length, width: Length, height: Length): Shape {
     return this.#append((id) =>
       createShapeXml(

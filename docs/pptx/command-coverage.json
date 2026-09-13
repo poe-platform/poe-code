@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "status": "proposed-documentation-only",
   "implementedThrough": null,
-  "scope": "All F01–F60 format features, all 2,407 reconciled upstream API records, and all 17 additive bounded-view members in the existing public API map. Full command design remains proposed; current direct XML and slide-insertion operation evidence is recorded separately from unimplemented batch/model contracts.",
+  "scope": "All F01–F60 format features, all 2,407 reconciled upstream API records, and all 17 additive bounded-view members in the existing public API map. Full command design remains proposed; current direct XML, slide-insertion and shared master operation evidence is recorded separately from unimplemented batch/model contracts.",
   "authority": ["docs/specs/office-cli.md", "docs/specs/office-sdk.md", "docs/specs/pptx.md"],
   "inputEvidence": {
     "docs/specs/pptx.md": {
@@ -242,6 +242,15 @@
       "flag": "--json",
       "schema": {
         "type": "boolean"
+      }
+    },
+    "part": {
+      "flag": "--part",
+      "schema": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1048576,
+        "description": "Canonical package part URI; explicit shared-resource owner selector."
       }
     }
   },
@@ -6428,7 +6437,7 @@
         "required": [],
         "additionalProperties": false
       },
-      "commonOptions": ["json", "limit", "select", "scope", "slide"],
+      "commonOptions": ["json", "limit", "select", "scope", "slide", "part"],
       "commonProfile": "inspect",
       "inputArity": 1,
       "help": ["pptx", "help", "masters", "list"],
@@ -6461,6 +6470,10 @@
           },
           "slide": {
             "$ref": "#/$defs/Position"
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [],
@@ -6493,12 +6506,24 @@
           },
           "slide": {
             "$ref": "#/commonOptions/slide/schema"
+          },
+          "part": {
+            "$ref": "#/commonOptions/part/schema"
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "scopedImplementationEvidence": {
+        "status": "supported-subset; full proposed operation/model contract remains pending",
+        "usage": "master-usage.md",
+        "plan": "../plans/pptx-master-editing.md",
+        "tests": [
+          "../../packages/pptx/src/command-masters.test.ts",
+          "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ]
+      }
     },
     "masters.get": {
       "path": ["masters", "get"],
@@ -6512,7 +6537,7 @@
         "required": [],
         "additionalProperties": false
       },
-      "commonOptions": ["json", "limit", "select", "scope", "slide"],
+      "commonOptions": ["json", "limit", "select", "scope", "slide", "part"],
       "commonProfile": "inspect",
       "inputArity": 1,
       "help": ["pptx", "help", "masters", "get"],
@@ -6545,6 +6570,10 @@
           },
           "slide": {
             "$ref": "#/$defs/Position"
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [],
@@ -6577,12 +6606,24 @@
           },
           "slide": {
             "$ref": "#/commonOptions/slide/schema"
+          },
+          "part": {
+            "$ref": "#/commonOptions/part/schema"
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "scopedImplementationEvidence": {
+        "status": "supported-subset; full proposed operation/model contract remains pending",
+        "usage": "master-usage.md",
+        "plan": "../plans/pptx-master-editing.md",
+        "tests": [
+          "../../packages/pptx/src/command-masters.test.ts",
+          "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ]
+      }
     },
     "masters.set": {
       "path": ["masters", "set"],
@@ -6617,7 +6658,9 @@
         "force",
         "dryRun",
         "all",
-        "allowEmpty"
+        "allowEmpty",
+        "part",
+        "shape"
       ],
       "commonProfile": "edit",
       "inputArity": 1,
@@ -6662,6 +6705,14 @@
           },
           "allowEmpty": {
             "type": "boolean"
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
+          },
+          "shape": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [],
@@ -6712,12 +6763,27 @@
           },
           "allowEmpty": {
             "$ref": "#/commonOptions/allowEmpty/schema"
+          },
+          "part": {
+            "$ref": "#/commonOptions/part/schema"
+          },
+          "shape": {
+            "$ref": "#/commonOptions/shape/schema"
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "scopedImplementationEvidence": {
+        "status": "supported-subset; full proposed operation/model contract remains pending",
+        "usage": "master-usage.md",
+        "plan": "../plans/pptx-master-editing.md",
+        "tests": [
+          "../../packages/pptx/src/command-masters.test.ts",
+          "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ]
+      }
     },
     "masters.add": {
       "path": ["masters", "add"],
@@ -6735,6 +6801,11 @@
           "text": {
             "type": "string",
             "maxLength": 1048576
+          },
+          "theme": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Canonical existing theme part URI; required to disambiguate multiple available themes."
           }
         },
         "required": ["name"],
@@ -6764,9 +6835,12 @@
       "cli": ["pptx", "masters", "add", "INPUT"],
       "flags": {
         "name": "--name",
-        "text": "--text"
+        "text": "--text",
+        "theme": "--theme"
       },
-      "constraints": [],
+      "constraints": [
+        "Explicit masters/shared scope; theme selects an existing theme URI and is required when existing themes are ambiguous; creation does not edit the theme."
+      ],
       "batchOptions": {
         "type": "object",
         "properties": {
@@ -6849,7 +6923,16 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "scopedImplementationEvidence": {
+        "status": "supported-subset; full proposed operation/model contract remains pending",
+        "usage": "master-usage.md",
+        "plan": "../plans/pptx-master-editing.md",
+        "tests": [
+          "../../packages/pptx/src/command-masters.test.ts",
+          "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ]
+      }
     },
     "masters.remove": {
       "path": ["masters", "remove"],
@@ -7176,7 +7259,8 @@
         "force",
         "dryRun",
         "all",
-        "allowEmpty"
+        "allowEmpty",
+        "part"
       ],
       "commonProfile": "edit",
       "inputArity": 1,
@@ -7222,6 +7306,10 @@
           },
           "allowEmpty": {
             "type": "boolean"
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [],
@@ -7272,12 +7360,24 @@
           },
           "allowEmpty": {
             "$ref": "#/commonOptions/allowEmpty/schema"
+          },
+          "part": {
+            "$ref": "#/commonOptions/part/schema"
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "scopedImplementationEvidence": {
+        "status": "supported-subset; full proposed operation/model contract remains pending",
+        "usage": "master-usage.md",
+        "plan": "../plans/pptx-master-editing.md",
+        "tests": [
+          "../../packages/pptx/src/command-masters.test.ts",
+          "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ]
+      }
     },
     "layouts.add": {
       "path": ["layouts", "add"],
@@ -8335,7 +8435,7 @@
         "properties": {
           "kind": {
             "type": "string",
-            "enum": ["solid", "gradient", "picture"]
+            "enum": ["solid", "gradient", "picture", "inherit"]
           },
           "color": {
             "$ref": "#/$defs/Color"
@@ -8369,7 +8469,8 @@
         "force",
         "dryRun",
         "all",
-        "allowEmpty"
+        "allowEmpty",
+        "part"
       ],
       "commonProfile": "edit",
       "inputArity": 1,
@@ -8389,7 +8490,8 @@
       },
       "constraints": [
         "Require at least one declared update field; unknown/inapplicable fields fail; no silent no-op.",
-        "kind required; exactly matching solid color, gradient stops/angle, or picture file payload."
+        "kind required; exactly matching solid color, gradient stops/angle, picture file payload, or inherit without fill payload.",
+        "Master fill changes preserve background effects and unrelated extensions; unsupported edits fail before publication. Master inheritance reset removes the explicit background definition."
       ],
       "batchOptions": {
         "type": "object",
@@ -8418,6 +8520,10 @@
           },
           "allowEmpty": {
             "type": "boolean"
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [],
@@ -8468,12 +8574,24 @@
           },
           "allowEmpty": {
             "$ref": "#/commonOptions/allowEmpty/schema"
+          },
+          "part": {
+            "$ref": "#/commonOptions/part/schema"
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "scopedImplementationEvidence": {
+        "status": "supported-subset; full proposed operation/model contract remains pending",
+        "usage": "master-usage.md",
+        "plan": "../plans/pptx-master-editing.md",
+        "tests": [
+          "../../packages/pptx/src/command-masters.test.ts",
+          "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ]
+      }
     },
     "shapes.list": {
       "path": ["shapes", "list"],
@@ -8732,7 +8850,8 @@
         "force",
         "dryRun",
         "all",
-        "allowEmpty"
+        "allowEmpty",
+        "part"
       ],
       "commonProfile": "edit",
       "inputArity": 1,
@@ -8792,6 +8911,10 @@
           },
           "allowEmpty": {
             "type": "boolean"
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [],
@@ -8845,12 +8968,24 @@
           },
           "allowEmpty": {
             "$ref": "#/commonOptions/allowEmpty/schema"
+          },
+          "part": {
+            "$ref": "#/commonOptions/part/schema"
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "scopedImplementationEvidence": {
+        "status": "supported-subset; full proposed operation/model contract remains pending",
+        "usage": "master-usage.md",
+        "plan": "../plans/pptx-master-editing.md",
+        "tests": [
+          "../../packages/pptx/src/command-masters.test.ts",
+          "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ]
+      }
     },
     "shapes.add": {
       "path": ["shapes", "add"],
@@ -8926,7 +9061,8 @@
         "force",
         "dryRun",
         "all",
-        "allowEmpty"
+        "allowEmpty",
+        "part"
       ],
       "commonProfile": "edit",
       "inputArity": 1,
@@ -8984,6 +9120,10 @@
           },
           "allowEmpty": {
             "type": "boolean"
+          },
+          "part": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [],
@@ -9037,12 +9177,24 @@
           },
           "allowEmpty": {
             "$ref": "#/commonOptions/allowEmpty/schema"
+          },
+          "part": {
+            "$ref": "#/commonOptions/part/schema"
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "scopedImplementationEvidence": {
+        "status": "supported-subset; full proposed operation/model contract remains pending",
+        "usage": "master-usage.md",
+        "plan": "../plans/pptx-master-editing.md",
+        "tests": [
+          "../../packages/pptx/src/command-masters.test.ts",
+          "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ]
+      }
     },
     "shapes.remove": {
       "path": ["shapes", "remove"],
@@ -260959,6 +261111,11 @@
       "id": "C04",
       "evidence": "Earlier schema routes use commandPath and nonexistent cell coordinate types",
       "resolution": "Use positional schema path and type/member filters; cell coordinate recipes map to tables get report."
+    },
+    {
+      "id": "C05",
+      "evidence": "Shared master editing requires explicit part ownership, selected text shapes and an operation for clearing explicit background values.",
+      "resolution": "Register --part for shared master, shape, background and layout routes, --shape for masters set text, --theme for master creation and backgrounds set --kind inherit. Full model/batch coverage remains proposed; compiled supported-subset evidence is linked on individual operations."
     }
   ],
   "sdkBehaviors": [

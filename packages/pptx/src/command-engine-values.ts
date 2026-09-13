@@ -4,7 +4,7 @@ export function commandLength(value: string, minimum = 1): number {
   const units = { emu: 1, in: 914400, cm: 360000, mm: 36000, pt: 12700 };
   const unit = Object.keys(units).find((candidate) => value.endsWith(candidate));
   const digits = unit ? value.slice(0, -unit.length) : "";
-  const pieces = digits.split(".");
+  const pieces = (minimum < 0 && digits.startsWith("-") ? digits.slice(1) : digits).split(".");
   if (
     !unit ||
     pieces.length > 2 ||
@@ -19,10 +19,10 @@ export function commandLength(value: string, minimum = 1): number {
       "usage"
     );
   const raw = Number(digits) * units[unit as keyof typeof units];
-  const result = Math.round(raw);
+  const result = Math.sign(raw) * Math.round(Math.abs(raw));
   if (
     !Number.isFinite(raw) ||
-    raw > Number.MAX_SAFE_INTEGER ||
+    Math.abs(raw) > Number.MAX_SAFE_INTEGER ||
     !Number.isSafeInteger(result) ||
     result < minimum
   )

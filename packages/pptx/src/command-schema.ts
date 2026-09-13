@@ -1141,3 +1141,227 @@ export const membershipSchemas = Object.fromEntries(
     })
   )
 );
+
+const masterRecordSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["part", "name", "layouts", "affectedSlides"],
+  properties: {
+    part: { type: "string" },
+    name: { type: "string" },
+    layouts: { type: "array", items: { type: "string" } },
+    affectedSlides: { type: "array", uniqueItems: true, items: { type: "integer", minimum: 1 } }
+  }
+};
+const masterShapeValues = {
+  name: { type: "string" },
+  text: { type: "string" },
+  left: {
+    ...creationLength,
+    properties: { ...creationLength.properties, value: { type: "number" } }
+  },
+  top: {
+    ...creationLength,
+    properties: { ...creationLength.properties, value: { type: "number" } }
+  },
+  width: creationLength,
+  height: creationLength
+};
+const masterOperationFields: Record<string, Record<string, unknown>> = {
+  "masters.list": {},
+  "masters.get": {},
+  "masters.add": {
+    name: { type: "string", minLength: 1 },
+    text: { type: "string" },
+    theme: { type: "string", minLength: 1 }
+  },
+  "masters.set": {
+    name: { type: "string" },
+    text: { type: "string" },
+    shape: { type: "string", minLength: 1 }
+  },
+  "layouts.set": { master: { type: "string", minLength: 1 } },
+  "shapes.add": { ...masterShapeValues, kind: { const: "text-box" } },
+  "shapes.set": { ...masterShapeValues, shape: { type: "string", minLength: 1 } },
+  "backgrounds.set": {
+    kind: { enum: ["solid", "inherit"] },
+    color: { type: "string", minLength: 6, maxLength: 6 }
+  }
+};
+export const masterSchemas = Object.fromEntries(
+  Object.entries(masterOperationFields).map(([operation, fields]) => {
+    const mutation = !["masters.list", "masters.get"].includes(operation);
+    const adding = operation.endsWith(".add");
+    const required =
+      operation === "masters.add"
+        ? ["name"]
+        : operation === "shapes.add"
+          ? ["kind", "left", "top", "width", "height"]
+          : operation === "layouts.set"
+            ? ["master"]
+            : operation === "backgrounds.set"
+              ? ["kind"]
+              : [];
+    return [
+      operation,
+      {
+        description:
+          "Supported master content only. Mutations require explicit shared or resource scope; dependent slides are reported and local overrides retained. Shape creation supports text boxes; background editing supports solid RGB or reset to inheritance. Unsupported drawing, background and layout features are rejected.",
+        input: inspectSchema.input,
+        options: {
+          $schema: "https://json-schema.org/draft/2020-12/schema",
+          type: "object",
+          additionalProperties: false,
+          required: [...required, ...(mutation ? ["scope"] : [])],
+          properties: {
+            json: { type: "boolean" },
+            limit: xmlSelection.limit,
+            scope: {
+              enum: operation === "layouts.set" ? ["layouts", "shared"] : ["masters", "shared"]
+            },
+            ...(!adding
+              ? {
+                  part: { type: "string", minLength: 1 },
+                  select: { type: "string", minLength: 1 },
+                  slide: { type: "integer", minimum: 1 }
+                }
+              : operation === "shapes.add"
+                ? {
+                    part: { type: "string", minLength: 1 },
+                    select: { type: "string", minLength: 1 },
+                    slide: { type: "integer", minimum: 1 }
+                  }
+                : {}),
+            ...fields,
+            ...(mutation
+              ? {
+                  output: { type: "string", minLength: 1 },
+                  inPlace: { type: "boolean" },
+                  force: { type: "boolean" },
+                  dryRun: { type: "boolean" },
+                  ...(!adding ? { all: { type: "boolean" }, allowEmpty: { type: "boolean" } } : {})
+                }
+              : {})
+          },
+          allOf: [
+            ...(operation === "backgrounds.set"
+              ? [
+                  {
+                    if: { properties: { kind: { const: "solid" } } },
+                    then: { required: ["color"] },
+                    else: { not: { required: ["color"] } }
+                  }
+                ]
+              : []),
+            { not: { required: ["part", "slide"] } },
+            {
+              if: { required: ["select"] },
+              then: {
+                not: {
+                  anyOf: ["part", "slide", "shape", "all"].map((key) => ({ required: [key] }))
+                }
+              }
+            },
+            ...(operation === "masters.set"
+              ? [
+                  { anyOf: ["name", "text"].map((key) => ({ required: [key] })) },
+                  {
+                    if: { required: ["text"] },
+                    then: { anyOf: [{ required: ["shape"] }, { required: ["select"] }] }
+                  }
+                ]
+              : []),
+            ...(operation === "shapes.set"
+              ? [
+                  { anyOf: Object.keys(masterShapeValues).map((key) => ({ required: [key] })) },
+                  { anyOf: [{ required: ["shape"] }, { required: ["select"] }] }
+                ]
+              : []),
+            ...(mutation
+              ? [
+                  {
+                    anyOf: [
+                      { required: ["output"] },
+                      { required: ["inPlace"], properties: { inPlace: { const: true } } },
+                      { required: ["dryRun"], properties: { dryRun: { const: true } } }
+                    ]
+                  },
+                  {
+                    if: { required: ["inPlace"], properties: { inPlace: { const: true } } },
+                    then: { not: { required: ["output"] } }
+                  },
+                  {
+                    if: { required: ["force"], properties: { force: { const: true } } },
+                    then: { required: ["output"] }
+                  },
+                  {
+                    if: {
+                      required: ["json", "output"],
+                      properties: { json: { const: true }, output: { const: "-" } }
+                    },
+                    then: { required: ["dryRun"], properties: { dryRun: { const: true } } }
+                  }
+                ]
+              : [])
+          ]
+        },
+        result: {
+          ...inspectSchema.result,
+          properties: {
+            ...inspectSchema.result.properties,
+            operation: { const: operation },
+            affected: mutation ? { type: "integer", minimum: 0 } : { const: 0 },
+            data: {
+              oneOf: [
+                { type: "null" },
+                {
+                  type: "object",
+                  additionalProperties: false,
+                  required: mutation
+                    ? ["part", "affectedSlides", "effects", "outputs", "fingerprint"]
+                    : ["records", "fingerprint"],
+                  properties: mutation
+                    ? {
+                        part: { type: ["string", "null"] },
+                        affectedSlides: masterRecordSchema.properties.affectedSlides,
+                        effects: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            additionalProperties: false,
+                            required: ["location", "action", "feature"],
+                            properties: {
+                              location: { $ref: "#/$defs/location" },
+                              action: { enum: ["add", "set"] },
+                              feature: { enum: ["F11", "F12", "F14", "F22"] }
+                            }
+                          }
+                        },
+                        outputs: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            additionalProperties: false,
+                            required: ["path", "sha256", "bytes"],
+                            properties: {
+                              path: { type: "string" },
+                              sha256: { type: "string" },
+                              bytes: { type: "integer", minimum: 0 }
+                            }
+                          }
+                        },
+                        fingerprint: { type: ["string", "null"] }
+                      }
+                    : {
+                        records: { type: "array", items: masterRecordSchema },
+                        fingerprint: { type: "string" }
+                      }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ];
+  })
+);

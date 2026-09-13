@@ -6,6 +6,7 @@ import {
   addSlide,
   createPptxCommandEngine,
   createPresentation,
+  getXmlPart,
   duplicateSlides,
   importSlides,
   mergeSlides,
@@ -114,6 +115,138 @@ const assemblyContext = { ...context,
   xmlLimits: { ...context.xmlLimits, maxBytes: 1048576, maxNodes: 20000 },
   relationshipLimits: { ...context.relationshipLimits, maxBytes: 1048576, maxParts: 4096, maxRelationships: 4096 }
 };
+test("pptx shared master rename reports dependent slides and retains slide content", async () => {
+  const xmlContext = { ...context, validationLimits: { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64 } };
+  const { shell, volume } = fixture(xmlContext);
+  const original = await createPresentation({ slides: [
+    { name: "Harbor", shapes: [{ name: "Local caption", x: 10, y: 20, width: 300, height: 100, text: "Local wording" }] },
+    { name: "Island" }
+  ] }, context);
+  volume.writeFileSync("/work/input deck.pptx", original);
+  const result = await shell.exec("pptx masters set 'input deck.pptx' --scope shared --part /ppt/slideMasters/slideMaster1.xml --name 'Coastal τ' --output result.pptx --json");
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  const envelope = JSON.parse(result.stdout);
+  assert.equal(envelope.operation, "masters.set");
+  assert.equal(envelope.affected, 1);
+  assert.deepEqual(envelope.data.affectedSlides, [1, 2]);
+  const output = new Uint8Array(volume.readFileSync("/work/result.pptx") as Buffer);
+  const index = await readSelectionIndex(output, context);
+  const masterXml = await getXmlPart(output, "/ppt/slideMasters/slideMaster1.xml", xmlContext);
+  assert.ok(masterXml.xml.includes('name="Coastal τ"'));
+  assert.deepEqual(index.slides.map(slide => slide.name), ["Harbor", "Island"]);
+  const local = await shell.exec("pptx xml get result.pptx --part /ppt/slides/slide1.xml");
+  const initial = await shell.exec("pptx xml get 'input deck.pptx' --part /ppt/slides/slide1.xml");
+  assert.equal(local.exitCode, 0, local.stderr);
+  assert.equal(initial.exitCode, 0, initial.stderr);
+  assert.equal(local.stdout, initial.stdout);
+  assert.ok(local.stdout.includes("Local wording"));
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/input deck.pptx") as Buffer), original);
+  const dry = await shell.exec("pptx masters set result.pptx --scope shared --part /ppt/slideMasters/slideMaster1.xml --name Preview --in-place --dry-run --json");
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.deepEqual(JSON.parse(dry.stdout).data.outputs, []);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/result.pptx") as Buffer), output);
+  const rejected = await shell.exec("pptx masters set result.pptx --part /ppt/slideMasters/slideMaster1.xml --name Rejected --in-place --json");
+  assert.equal(rejected.exitCode, 2, rejected.stdout + rejected.stderr);
+  assert.equal(JSON.parse(rejected.stdout).affected, 0);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/result.pptx") as Buffer), output);
+});
+
+test("pptx creates master content and reassigns layouts without modifying a shared theme", async () => {
+  const xmlContext = { ...context, validationLimits: { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64 } };
+  const { shell, volume } = fixture(xmlContext);
+  const original = await createPresentation({ slides: [{ name: "Dawn" }, { name: "Dusk" }] }, context);
+  volume.writeFileSync("/work/deck.pptx", original);
+  const created = await shell.exec("pptx masters add deck.pptx --scope shared --name Lagoon --theme /ppt/theme/theme1.xml --output created.pptx --json");
+  assert.equal(created.exitCode, 0, created.stdout + created.stderr);
+  assert.deepEqual(JSON.parse(created.stdout).data.affectedSlides, []);
+  const index = await readSelectionIndex(new Uint8Array(volume.readFileSync("/work/created.pptx") as Buffer), context);
+  const master = index.parts.find(part => part.scope === "masters" && part.part !== "/ppt/slideMasters/slideMaster1.xml");
+  assert.ok(master);
+  assert.equal(index.parts.filter(part => part.scope === "masters").length, 2);
+  const shape = await shell.exec(`pptx shapes add created.pptx --scope masters --part ${master.part} --kind text-box --name 'Shared caption' --left 100emu --top 200emu --width 3000emu --height 1000emu --text 'Tidal survey' --in-place --json`);
+  assert.equal(shape.exitCode, 0, shape.stdout + shape.stderr);
+  const background = await shell.exec(`pptx backgrounds set created.pptx --scope masters --part ${master.part} --kind solid --color AABBCC --in-place --json`);
+  assert.equal(background.exitCode, 0, background.stdout + background.stderr);
+  const edited = await shell.exec(`pptx shapes set created.pptx --scope masters --part ${master.part} --shape 'Shared caption' --text 'Measured τ' --in-place --json`);
+  assert.equal(edited.exitCode, 0, edited.stdout + edited.stderr);
+  const xml = await shell.exec(`pptx xml get created.pptx --part ${master.part} --scope masters`);
+  assert.equal(xml.exitCode, 0, xml.stderr);
+  assert.ok(xml.stdout.includes("Measured τ"));
+  assert.ok(xml.stdout.includes('val="AABBCC"'));
+  assert.equal(xml.stdout.includes("Tidal survey"), false);
+  const associated = await shell.exec(`pptx layouts set created.pptx --scope shared --part /ppt/slideLayouts/slideLayout1.xml --master ${master.part} --output associated.pptx --json`);
+  assert.equal(associated.exitCode, 0, associated.stdout + associated.stderr);
+  assert.deepEqual(JSON.parse(associated.stdout).data.affectedSlides, [1, 2]);
+  const relationship = await shell.exec("pptx xml get associated.pptx --part /ppt/slideLayouts/_rels/slideLayout1.xml.rels --scope shared");
+  assert.equal(relationship.exitCode, 0, relationship.stderr);
+  assert.ok(relationship.stdout.includes(master.part.slice(master.part.lastIndexOf("/") + 1)));
+  const themeBefore = await shell.exec("pptx xml get deck.pptx --part /ppt/theme/theme1.xml --scope shared");
+  const themeAfter = await shell.exec("pptx xml get associated.pptx --part /ppt/theme/theme1.xml --scope shared");
+  assert.equal(themeBefore.exitCode, 0, themeBefore.stderr);
+  assert.equal(themeAfter.exitCode, 0, themeAfter.stderr);
+  assert.equal(themeAfter.stdout, themeBefore.stdout);
+  const piped = await shell.exec(`pptx masters set associated.pptx --scope shared --part ${master.part} --name Estuary --output - | pptx masters list - --json`);
+  assert.equal(piped.exitCode, 0, piped.stdout + piped.stderr);
+  assert.equal(JSON.parse(piped.stdout).operation, "masters.list");
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), original);
+});
+
+test("pptx master text safely encodes XML closing delimiters", async () => {
+  const { shell, volume } = fixture();
+  volume.writeFileSync("/work/deck.pptx", await createPresentation({}, context));
+  const result = await shell.exec("pptx masters add deck.pptx --scope masters --name Delimiters --text 'A]]>B' --in-place --json");
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  const xml = await getXmlPart(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), "/ppt/slideMasters/slideMaster2.xml", { ...context, validationLimits: { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64 } });
+  assert.ok(xml.xml.includes("A]]&gt;B"));
+});
+
+test("pptx master geometry updates preserve unspecified coordinates and support inheritance reset", async () => {
+  const { shell, volume } = fixture();
+  volume.writeFileSync("/work/deck.pptx", await createPresentation({}, context));
+  const add = await shell.exec("pptx shapes add deck.pptx --scope masters --part /ppt/slideMasters/slideMaster1.xml --kind text-box --name Caption --left 20emu --top 30emu --width 400emu --height 500emu --text Retained --in-place --json");
+  assert.equal(add.exitCode, 0, add.stdout + add.stderr);
+  const resize = await shell.exec("pptx shapes set deck.pptx --scope masters --part /ppt/slideMasters/slideMaster1.xml --shape Caption --width 600emu --in-place --json");
+  assert.equal(resize.exitCode, 0, resize.stdout + resize.stderr);
+  const solid = await shell.exec("pptx backgrounds set deck.pptx --scope masters --part /ppt/slideMasters/slideMaster1.xml --kind solid --color AABBCC --in-place --json");
+  assert.equal(solid.exitCode, 0, solid.stdout + solid.stderr);
+  const reset = await shell.exec("pptx backgrounds set deck.pptx --scope masters --part /ppt/slideMasters/slideMaster1.xml --kind inherit --in-place --json");
+  assert.equal(reset.exitCode, 0, reset.stdout + reset.stderr);
+  const xml = await getXmlPart(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), "/ppt/slideMasters/slideMaster1.xml", { ...context, validationLimits: { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64 } });
+  assert.ok(xml.xml.includes('x="20" y="30"'));
+  assert.ok(xml.xml.includes('cx="600" cy="500"'));
+  assert.ok(xml.xml.includes("Retained"));
+  assert.equal(xml.xml.includes("<p:bg"), false);
+  assert.deepEqual(JSON.parse(reset.stdout).data.affectedSlides, []);
+});
+
+test("pptx master part selectors remain exact when another master name resembles a URI", async () => {
+  const { shell, volume } = fixture();
+  volume.writeFileSync("/work/deck.pptx", await createPresentation({}, context));
+  const added = await shell.exec("pptx masters add deck.pptx --scope masters --name /ppt/slideMasters/slideMaster1.xml --in-place --json");
+  assert.equal(added.exitCode, 0, added.stdout + added.stderr);
+  const edited = await shell.exec("pptx masters set deck.pptx --scope masters --part /ppt/slideMasters/slideMaster1.xml --name Primary --in-place --json");
+  assert.equal(edited.exitCode, 0, edited.stdout + edited.stderr);
+  const listed = await shell.exec("pptx masters list deck.pptx --json");
+  assert.equal(listed.exitCode, 0, listed.stdout + listed.stderr);
+  assert.deepEqual(JSON.parse(listed.stdout).data.records.map((record: { name: string }) => record.name), ["Primary", "/ppt/slideMasters/slideMaster1.xml"]);
+});
+
+for (const names of [["3", "Other"], ["Caption", "2"]]) {
+  test(`pptx master text selects exact shape names despite numeric identities ${names.join(" / ")}`, async () => {
+    const { shell, volume } = fixture();
+    volume.writeFileSync("/work/deck.pptx", await createPresentation({}, context));
+    for (const name of names) {
+      const added = await shell.exec(`pptx shapes add deck.pptx --scope masters --part /ppt/slideMasters/slideMaster1.xml --kind text-box --name '${name}' --left 0emu --top 0emu --width 100emu --height 100emu --text Original --in-place --json`);
+      assert.equal(added.exitCode, 0, added.stdout + added.stderr);
+    }
+    const result = await shell.exec(`pptx shapes set deck.pptx --scope masters --part /ppt/slideMasters/slideMaster1.xml --shape '${names[0]}' --text Changed --in-place --json`);
+    assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+    const xml = await getXmlPart(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), "/ppt/slideMasters/slideMaster1.xml", { ...context, validationLimits: { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: 64 } });
+    assert.ok(xml.xml.includes("Changed"));
+    assert.ok(xml.xml.includes("Original"));
+  });
+}
+
 test("pptx settings edit through shell and public SDK with canvas-only defaults", async () => {
   const { shell, volume } = fixture();
   const original = await createPresentation({ slides: [{ shapes: [{ x: 20, y: 30, width: 400, height: 500, text: "Independent canvas" }] }] }, context);

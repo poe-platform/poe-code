@@ -86,10 +86,18 @@ Validation checkpoints:
   passed, including the final admission changes.
 - `check_spec.py docs/specs/pptx.md`: passed, zero warnings. The whole-format
   `Implemented Through: Not applicable` remains unchanged.
-- Guarded repository ESLint is running; final result recorded before commit.
+- `npm run lint:eslint`: passed with zero errors/warnings, 11,889 configured
+  files linted and all 25 authenticated receipts. No full pipeline was executed.
 
 The research ledger retains 643 unit variants, 194 BDD examples and 413 API
 records as a relevance superset. 116 rows have supplementary original operation
 evidence. These are not 837 ported cases: full live-model/advanced formatting and
 adjacent behaviors remain explicit gaps, including creating background getters,
 collections, inherited members, enums and untested public API obligations.
+
+## Local delivery
+
+`38b22eefe` contains the byte SDK, original domain tests and research accounting.
+The following atomic commit contains command routes/schemas, signed coordinate
+parity, CLI regressions, usage and reconciled contracts. Both are local on main.
+No push, remote-main verification or release was requested or performed.

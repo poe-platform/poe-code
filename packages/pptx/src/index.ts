@@ -271,3 +271,23 @@ export {
   type ShapeAlignment,
   type ShapeAxis
 } from "./shape-selection.js";
+export {
+  MSO_CONNECTOR_TYPE,
+  MSO_CONNECTOR,
+  createConnectorXml,
+  applyConnectorUpdate,
+  readConnector,
+  validateConnectorUpdate,
+  removeDrawingObjects,
+  type ConnectorKind,
+  type ConnectorUpdate
+} from "./connectors.js";
+export {
+  readConnectors,
+  addConnector,
+  mutateConnectors,
+  removeConnectors,
+  removeShapes,
+  validateConnectorOptions
+} from "./connector-operations.js";
+export { Connector } from "./connectors-model.js";

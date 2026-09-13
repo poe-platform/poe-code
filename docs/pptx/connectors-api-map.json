@@ -1,0 +1,2712 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Connector, inherited public members, both collection add_connector owners, complete connector enum symbols/alias/helpers; no underscore-name exclusions.",
+  "wholePublicApiParity": false,
+  "languageSecurityMapping": {
+    "names": "Neutral snake_case model names retained; async operation options camelCase; no blanket aliases.",
+    "construction": "Returned live owned Connector remains a separate contract from a detached XML Shape/Connector view. Raw XML constructors do not establish Presentation graph parity.",
+    "protocol": "equals(other) is owner/underlying-element equality; JS === remains reference identity. Shapes use length, Symbol.iterator, checked zero-based at(index), negative positions only where documented; CLI ordinals one-based.",
+    "values": "Length objects expose exact safe integer .emu; strict finite values and enum validation; null only for explicit absence. Coordinates use immediate-parent space; cross-group projection must be explicit and validated.",
+    "io": "Byte admission/publication always async through caller capabilities. In-memory views synchronous. No implicit host paths, network, native execution, timestamps, or identity.",
+    "elementPart": "Bounded XML/package views only; no raw XPath or unrestricted library/host interfaces. Missing model members remain gaps.",
+    "errors": "Neutral OfficeError codes; invalid-value for malformed arguments, unsupported-edit for opaque geometry; owner/site validation before mutation; typed model error parity remains separately accountable."
+  },
+  "drift": [
+    "Historical audit and generated batch paths are baseline design, not present implementation evidence.",
+    "Connection functions mutate both attachment metadata and endpoint coordinates; generic pure-call text in the historical register is incorrect for these methods.",
+    "Automatic GroupShapes ancestor extent recalculation is a model obligation, distinct from package insertion.",
+    "MIXED is a read sentinel and not a creatable connector preset.",
+    "Numeric connector enum metadata uses metadata(value).name/value/xml_value rather than Python enum instances; frozen metadata rejects reassignment.",
+    "Connector construction currently accepts a bounded XmlPart snapshot and optional shapeId. It does not pretend to return a Presentation-owned object.",
+    "readShape retains absent geometry as null; connector endpoint edits require explicit valid geometry instead of inventing zero coordinates.",
+    "Actual begin_connect/end_connect calls mutate attachment metadata and endpoint geometry; they are not pure calls despite generic historical effect text."
+  ],
+  "rows": [
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR",
+      "source": "upstream-api-inventory.json#/objects/1352",
+      "declaredOn": null,
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "shapes",
+        "member": "MSO_CONNECTOR",
+        "form": "enum-alias",
+        "ts_signature": "const MSO_CONNECTOR: typeof MSO_CONNECTOR_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "typeof MSO_CONNECTOR_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": "pptx.enum.shapes.MSO_CONNECTOR_TYPE",
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "const MSO_CONNECTOR = MSO_CONNECTOR_TYPE",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE",
+      "source": "upstream-api-inventory.json#/objects/1353",
+      "declaredOn": null,
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "MSO_CONNECTOR_TYPE",
+        "form": "EnumType",
+        "ts_signature": "interface MSO_CONNECTOR_TYPE extends EnumValue",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_CONNECTOR_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "Readonly numeric symbols with from_xml/to_xml/validate/metadata helpers",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.CURVE",
+      "source": "upstream-api-inventory.json#/objects/1354",
+      "declaredOn": null,
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "CURVE",
+        "form": "enum-member",
+        "ts_signature": "readonly CURVE: MSO_CONNECTOR_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_CONNECTOR_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": 3,
+      "xmlValue": "curvedConnector3",
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "readonly CURVE: MSO_CONNECTOR_TYPE",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.ELBOW",
+      "source": "upstream-api-inventory.json#/objects/1355",
+      "declaredOn": null,
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "ELBOW",
+        "form": "enum-member",
+        "ts_signature": "readonly ELBOW: MSO_CONNECTOR_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_CONNECTOR_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": 2,
+      "xmlValue": "bentConnector3",
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "readonly ELBOW: MSO_CONNECTOR_TYPE",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.MIXED",
+      "source": "upstream-api-inventory.json#/objects/1356",
+      "declaredOn": null,
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "MIXED",
+        "form": "enum-member",
+        "ts_signature": "readonly MIXED: MSO_CONNECTOR_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_CONNECTOR_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": -2,
+      "xmlValue": "",
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "readonly MIXED: MSO_CONNECTOR_TYPE",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.STRAIGHT",
+      "source": "upstream-api-inventory.json#/objects/1357",
+      "declaredOn": null,
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "STRAIGHT",
+        "form": "enum-member",
+        "ts_signature": "readonly STRAIGHT: MSO_CONNECTOR_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_CONNECTOR_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": 1,
+      "xmlValue": "line",
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "readonly STRAIGHT: MSO_CONNECTOR_TYPE",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.from_xml",
+      "source": "upstream-api-inventory.json#/objects/1358",
+      "declaredOn": "pptx.enum.base.BaseXmlEnum",
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "from_xml",
+        "form": "classmethod",
+        "ts_signature": "from_xml(xml_value: string): MSO_CONNECTOR_TYPE",
+        "arguments": [
+          {
+            "name": "xml_value",
+            "target_binding": "xml_value",
+            "ts_type": "string",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_CONNECTOR_TYPE",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "xml_value",
+          "target_binding": "xml_value",
+          "ts_type": "string",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "from_xml(xml_value: string): MSO_CONNECTOR_TYPE",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.name",
+      "source": "upstream-api-inventory.json#/objects/1359",
+      "declaredOn": null,
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string",
+        "arguments": [],
+        "getter": "get name(): string",
+        "setter": null,
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors get; connectors set --name NAME",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "get name(): string; set name(value: string)",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.to_xml",
+      "source": "upstream-api-inventory.json#/objects/1360",
+      "declaredOn": "pptx.enum.base.BaseXmlEnum",
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "to_xml",
+        "form": "classmethod",
+        "ts_signature": "to_xml(value: MSO_CONNECTOR_TYPE): string",
+        "arguments": [
+          {
+            "name": "value",
+            "target_binding": "value",
+            "ts_type": "MSO_CONNECTOR_TYPE",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "target_binding": "value",
+          "ts_type": "MSO_CONNECTOR_TYPE",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "to_xml(value: MSO_CONNECTOR_TYPE): string",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.validate",
+      "source": "upstream-api-inventory.json#/objects/1361",
+      "declaredOn": "pptx.enum.base.BaseXmlEnum",
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "validate",
+        "form": "classmethod",
+        "ts_signature": "validate(value: MSO_CONNECTOR_TYPE): void",
+        "arguments": [
+          {
+            "name": "value",
+            "target_binding": "value",
+            "ts_type": "MSO_CONNECTOR_TYPE",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "void",
+        "ownership": "no returned value"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "target_binding": "value",
+          "ts_type": "MSO_CONNECTOR_TYPE",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "validate(value: MSO_CONNECTOR_TYPE): void",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.value",
+      "source": "upstream-api-inventory.json#/objects/1362",
+      "declaredOn": null,
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "value",
+        "form": "property",
+        "ts_signature": "get value(): number",
+        "arguments": [],
+        "getter": "get value(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "MSO_CONNECTOR_TYPE.metadata(value).value",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_CONNECTOR_TYPE.xml_value",
+      "source": "upstream-api-inventory.json#/objects/1363",
+      "declaredOn": null,
+      "status": "implemented-language-mapping",
+      "target": {
+        "owner": "MSO_CONNECTOR_TYPE",
+        "member": "xml_value",
+        "form": "property",
+        "ts_signature": "get xml_value(): string | null",
+        "arguments": [],
+        "getter": "get xml_value(): string | null",
+        "setter": null,
+        "return_type": "string | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J04", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "keeps connector enum %s metadata and conversion boundaries"
+        }
+      ],
+      "gap": null,
+      "implementation": {
+        "signature": "MSO_CONNECTOR_TYPE.metadata(value).xml_value",
+        "ownership": "Frozen numeric enum definition and copied frozen metadata; no host capability.",
+        "exceptions": "OfficeError invalid-value for unknown values/XML and MIXED write attempts.",
+        "mapping": "JS numeric constants use metadata(value) to expose name/value/xml_value. MIXED is retained readonly metadata, rejected for creation or XML conversion."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector",
+      "source": "upstream-api-inventory.json#/objects/1621",
+      "declaredOn": null,
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "Connector",
+        "form": "returned-interface",
+        "ts_signature": "interface Connector",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "Connector",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "new Connector(xml: XmlPart, shapeId?: number)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.__eq__",
+      "source": "upstream-api-inventory.json#/objects/1622",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "unsupported-public-model",
+      "target": {
+        "owner": "Connector",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "other",
+          "ts_type": "ModelComparable",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J03", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [],
+      "gap": "__eq__ remains publicly required; no private-name or architecture-only waiver. Shared operational analogues do not establish this model interface."
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.__init__",
+      "source": "upstream-api-inventory.json#/objects/1623",
+      "declaredOn": null,
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = Connector",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "Connector",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "new Connector(xml: XmlPart, shapeId?: number)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.begin_connect",
+      "source": "upstream-api-inventory.json#/objects/1624",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "begin_connect",
+        "form": "function",
+        "ts_signature": "begin_connect(shape: BaseShape, cxn_pt_idx: number): void",
+        "arguments": [
+          {
+            "name": "shape",
+            "target_binding": "shape",
+            "ts_type": "BaseShape",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "cxn_pt_idx",
+            "target_binding": "cxn_pt_idx",
+            "ts_type": "number",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "void",
+        "ownership": "no returned value"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "shape",
+          "target_binding": "shape",
+          "ts_type": "BaseShape",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "cxn_pt_idx",
+          "target_binding": "cxn_pt_idx",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "binds the neutral begin method to the one-inch picture midpoint"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "begin_connect(shape: { readonly element: XmlElement }, connectionSiteIdx: number): void",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Replaces attachment ID/site and coordinate pair atomically in owned XML. Other endpoint and unsupported geometry retained."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.begin_x",
+      "source": "upstream-api-inventory.json#/objects/1625",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "begin_x",
+        "form": "property",
+        "ts_signature": "get begin_x(): Length; set begin_x(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get begin_x(): Length",
+        "setter": "set begin_x(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads %s from box %s,%s,%s,%s with flips %s,%s"
+        },
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes %s with prior flip %s assigned %s"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get begin_x(): Length; set begin_x(value: Length)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.begin_y",
+      "source": "upstream-api-inventory.json#/objects/1626",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "begin_y",
+        "form": "property",
+        "ts_signature": "get begin_y(): Length; set begin_y(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get begin_y(): Length",
+        "setter": "set begin_y(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads %s from box %s,%s,%s,%s with flips %s,%s"
+        },
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes %s with prior flip %s assigned %s"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get begin_y(): Length; set begin_y(value: Length)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.click_action",
+      "source": "upstream-api-inventory.json#/objects/1627",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "unsupported-public-model",
+      "target": {
+        "owner": "Connector",
+        "member": "click_action",
+        "form": "lazyproperty",
+        "ts_signature": "get click_action(): ActionSetting",
+        "arguments": [],
+        "getter": "get click_action(): ActionSetting",
+        "setter": null,
+        "return_type": "ActionSetting",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [],
+      "gap": "click_action remains publicly required; no private-name or architecture-only waiver. Shared operational analogues do not establish this model interface."
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.element",
+      "source": "upstream-api-inventory.json#/objects/1628",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J09", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "readonly element: XmlElement",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.end_connect",
+      "source": "upstream-api-inventory.json#/objects/1629",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "end_connect",
+        "form": "function",
+        "ts_signature": "end_connect(shape: BaseShape, cxn_pt_idx: number): void",
+        "arguments": [
+          {
+            "name": "shape",
+            "target_binding": "shape",
+            "ts_type": "BaseShape",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "cxn_pt_idx",
+            "target_binding": "cxn_pt_idx",
+            "ts_type": "number",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "void",
+        "ownership": "no returned value"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "shape",
+          "target_binding": "shape",
+          "ts_type": "BaseShape",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "cxn_pt_idx",
+          "target_binding": "cxn_pt_idx",
+          "ts_type": "number",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": [
+          "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+        ]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "binds the neutral end method to the one-inch picture midpoint"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "end_connect(shape: { readonly element: XmlElement }, connectionSiteIdx: number): void",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Replaces attachment ID/site and coordinate pair atomically in owned XML. Other endpoint and unsupported geometry retained."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.end_x",
+      "source": "upstream-api-inventory.json#/objects/1630",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "end_x",
+        "form": "property",
+        "ts_signature": "get end_x(): Length; set end_x(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get end_x(): Length",
+        "setter": "set end_x(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads %s from box %s,%s,%s,%s with flips %s,%s"
+        },
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes %s with prior flip %s assigned %s"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get end_x(): Length; set end_x(value: Length)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.end_y",
+      "source": "upstream-api-inventory.json#/objects/1631",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "end_y",
+        "form": "property",
+        "ts_signature": "get end_y(): Length; set end_y(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get end_y(): Length",
+        "setter": "set end_y(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads %s from box %s,%s,%s,%s with flips %s,%s"
+        },
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "serializes %s with prior flip %s assigned %s"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get end_y(): Length; set end_y(value: Length)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.has_chart",
+      "source": "upstream-api-inventory.json#/objects/1632",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "has_chart",
+        "form": "property",
+        "ts_signature": "get has_chart(): boolean",
+        "arguments": [],
+        "getter": "get has_chart(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get has_chart(): boolean",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.has_table",
+      "source": "upstream-api-inventory.json#/objects/1633",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "has_table",
+        "form": "property",
+        "ts_signature": "get has_table(): boolean",
+        "arguments": [],
+        "getter": "get has_table(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get has_table(): boolean",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.has_text_frame",
+      "source": "upstream-api-inventory.json#/objects/1634",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "has_text_frame",
+        "form": "property",
+        "ts_signature": "get has_text_frame(): boolean",
+        "arguments": [],
+        "getter": "get has_text_frame(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get has_text_frame(): boolean",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.height",
+      "source": "upstream-api-inventory.json#/objects/1635",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "height",
+        "form": "property",
+        "ts_signature": "get height(): Length; set height(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get height(): Length",
+        "setter": "set height(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains neutral connector coordinates and inherited geometry in an owned XML view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get height(): Length; set height(value: Length)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.is_placeholder",
+      "source": "upstream-api-inventory.json#/objects/1636",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "is_placeholder",
+        "form": "property",
+        "ts_signature": "get is_placeholder(): boolean",
+        "arguments": [],
+        "getter": "get is_placeholder(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get is_placeholder(): boolean",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.left",
+      "source": "upstream-api-inventory.json#/objects/1637",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "left",
+        "form": "property",
+        "ts_signature": "get left(): Length; set left(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get left(): Length",
+        "setter": "set left(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains neutral connector coordinates and inherited geometry in an owned XML view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get left(): Length; set left(value: Length)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.line",
+      "source": "upstream-api-inventory.json#/objects/1638",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "line",
+        "form": "lazyproperty",
+        "ts_signature": "get line(): LineFormat",
+        "arguments": [],
+        "getter": "get line(): LineFormat",
+        "setter": null,
+        "return_type": "LineFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "gap": "Complete LineFormat/DrawingML returned graph still separately bounded; whole Presentation model unavailable.",
+      "implementation": {
+        "signature": "readonly line: LineFormat",
+        "ownership": "Live callback-backed line wrapper over Connector owned XML snapshot.",
+        "sideEffects": "Reading wrapper does not create line XML. Width/color setters create/update line XML through shared domain behavior.",
+        "exceptions": "OfficeError invalid-value for invalid lengths/colors; unsupported geometry retained.",
+        "cli": "connectors set --line-width LENGTH --line-color COLOR; null resets via typed JSON; solid exposes solid-fill selection."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.name",
+      "source": "upstream-api-inventory.json#/objects/1639",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string; set name(value: string)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "string",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get name(): string",
+        "setter": "set name(value: string)",
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "string",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors get; connectors set --name NAME",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains a live line format and mutable connector name in drawing XML"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get name(): string; set name(value: string)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.part",
+      "source": "upstream-api-inventory.json#/objects/1640",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "unsupported-public-model",
+      "target": {
+        "owner": "Connector",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J09", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [],
+      "gap": "part remains publicly required; no private-name or architecture-only waiver. Shared operational analogues do not establish this model interface."
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.placeholder_format",
+      "source": "upstream-api-inventory.json#/objects/1641",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "unsupported-public-model",
+      "target": {
+        "owner": "Connector",
+        "member": "placeholder_format",
+        "form": "property",
+        "ts_signature": "get placeholder_format(): _PlaceholderFormat",
+        "arguments": [],
+        "getter": "get placeholder_format(): _PlaceholderFormat",
+        "setter": null,
+        "return_type": "_PlaceholderFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [],
+      "gap": "placeholder_format remains publicly required; no private-name or architecture-only waiver. Shared operational analogues do not establish this model interface."
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.rotation",
+      "source": "upstream-api-inventory.json#/objects/1642",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "rotation",
+        "form": "property",
+        "ts_signature": "get rotation(): number; set rotation(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get rotation(): number",
+        "setter": "set rotation(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "number",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains neutral connector coordinates and inherited geometry in an owned XML view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get rotation(): number; set rotation(value: number)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.shadow",
+      "source": "upstream-api-inventory.json#/objects/1643",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "unsupported-public-model",
+      "target": {
+        "owner": "Connector",
+        "member": "shadow",
+        "form": "lazyproperty",
+        "ts_signature": "get shadow(): ShadowFormat",
+        "arguments": [],
+        "getter": "get shadow(): ShadowFormat",
+        "setter": null,
+        "return_type": "ShadowFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [],
+      "gap": "shadow remains publicly required; no private-name or architecture-only waiver. Shared operational analogues do not establish this model interface."
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.shape_id",
+      "source": "upstream-api-inventory.json#/objects/1644",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "shape_id",
+        "form": "property",
+        "ts_signature": "get shape_id(): number",
+        "arguments": [],
+        "getter": "get shape_id(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get shape_id(): number",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.shape_type",
+      "source": "upstream-api-inventory.json#/objects/1645",
+      "declaredOn": "pptx.shapes.connector.Connector",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "shape_type",
+        "form": "property",
+        "ts_signature": "get shape_type(): MSO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": "get shape_type(): MSO_SHAPE_TYPE",
+        "setter": null,
+        "return_type": "MSO_SHAPE_TYPE",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+        ],
+        "write": [],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get shape_type(): MSO_SHAPE_TYPE",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.top",
+      "source": "upstream-api-inventory.json#/objects/1646",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "top",
+        "form": "property",
+        "ts_signature": "get top(): Length; set top(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get top(): Length",
+        "setter": "set top(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains neutral connector coordinates and inherited geometry in an owned XML view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get top(): Length; set top(value: Length)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.width",
+      "source": "upstream-api-inventory.json#/objects/1647",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "status": "implemented-bounded-model",
+      "target": {
+        "owner": "Connector",
+        "member": "width",
+        "form": "property",
+        "ts_signature": "get width(): Length; set width(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get width(): Length",
+        "setter": "set width(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "value",
+          "ts_type": "Length",
+          "position": "assignment",
+          "optional": false,
+          "source_default": null,
+          "target_default": null
+        }
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J02", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [
+          "Noncreating value/live-view access; wrapper allocation alone does not edit the package."
+        ],
+        "write": [
+          "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+        ],
+        "call": []
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [
+        {
+          "file": "packages/pptx/src/connector-behavior-cases.test.ts",
+          "title": "reads connector identity and inherited shape flags from an owned view"
+        },
+        {
+          "file": "packages/pptx/src/connectors-model.test.ts",
+          "title": "retains neutral connector coordinates and inherited geometry in an owned XML view"
+        }
+      ],
+      "gap": "Live Presentation/SlideShapes/GroupShapes ownership and automatic group extents remain separate public gaps.",
+      "implementation": {
+        "signature": "get width(): Length; set width(value: Length)",
+        "ownership": "Owns an immutable XML snapshot replaced after each edit; current target element must belong to that snapshot. Not document-owned live model graph.",
+        "defaults": "shapeId defaults to connector root identity; connection site has no default; no ambient I/O.",
+        "exceptions": "OfficeError for malformed/unsupported input; missing/stale/foreign owner rejected before changes.",
+        "sideEffects": "Reads are noncreating; supported setters update only owned XML snapshot."
+      }
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.GroupShapes.add_connector",
+      "source": "upstream-api-inventory.json#/objects/2041",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "unsupported-public-model",
+      "target": {
+        "owner": "GroupShapes",
+        "member": "add_connector",
+        "form": "function",
+        "ts_signature": "add_connector(connector_type: MSO_CONNECTOR_TYPE, begin_x: Length, begin_y: Length, end_x: Length, end_y: Length): Connector",
+        "arguments": [
+          {
+            "name": "connector_type",
+            "target_binding": "connector_type",
+            "ts_type": "MSO_CONNECTOR_TYPE",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "begin_x",
+            "target_binding": "begin_x",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "begin_y",
+            "target_binding": "begin_y",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "end_x",
+            "target_binding": "end_x",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "end_y",
+            "target_binding": "end_y",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "Connector",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "connector_type",
+          "target_binding": "connector_type",
+          "ts_type": "MSO_CONNECTOR_TYPE",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "begin_x",
+          "target_binding": "begin_x",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "begin_y",
+          "target_binding": "begin_y",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "end_x",
+          "target_binding": "end_x",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "end_y",
+          "target_binding": "end_y",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": ["Append the documented child/content to its owner in source order."]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [],
+      "gap": "Live SlideShapes/GroupShapes.add_connector positional method, collection mutation and ancestor extent recalculation remain unavailable; async addConnector operational creation is not a substitute."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.add_connector",
+      "source": "upstream-api-inventory.json#/objects/2132",
+      "declaredOn": "pptx.shapes.shapetree._BaseGroupShapes",
+      "status": "unsupported-public-model",
+      "target": {
+        "owner": "SlideShapes",
+        "member": "add_connector",
+        "form": "function",
+        "ts_signature": "add_connector(connector_type: MSO_CONNECTOR_TYPE, begin_x: Length, begin_y: Length, end_x: Length, end_y: Length): Connector",
+        "arguments": [
+          {
+            "name": "connector_type",
+            "target_binding": "connector_type",
+            "ts_type": "MSO_CONNECTOR_TYPE",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "begin_x",
+            "target_binding": "begin_x",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "begin_y",
+            "target_binding": "begin_y",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "end_x",
+            "target_binding": "end_x",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "end_y",
+            "target_binding": "end_y",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "Connector",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "value": null,
+      "xmlValue": null,
+      "aliasOf": null,
+      "defaults": [
+        {
+          "name": "connector_type",
+          "target_binding": "connector_type",
+          "ts_type": "MSO_CONNECTOR_TYPE",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "begin_x",
+          "target_binding": "begin_x",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "begin_y",
+          "target_binding": "begin_y",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "end_x",
+          "target_binding": "end_x",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        },
+        {
+          "name": "end_y",
+          "target_binding": "end_y",
+          "ts_type": "Length",
+          "position": "positional",
+          "optional": false,
+          "source_default": null,
+          "target_default": null,
+          "undefined_behavior": "required",
+          "null_behavior": "TypeError"
+        }
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "mappingRules": ["J01", "J08", "J10"],
+      "effectsByAccess": {
+        "read": [],
+        "write": [],
+        "call": ["Append the documented child/content to its owner in source order."]
+      },
+      "cli": "connectors list/get/add/set/remove; geometry through shapes get/set. Advanced unavailable model members have no executable batch route.",
+      "tests": [],
+      "gap": "Live SlideShapes/GroupShapes.add_connector positional method, collection mutation and ancestor extent recalculation remain unavailable; async addConnector operational creation is not a substitute."
+    }
+  ],
+  "counts": {
+    "records": 41,
+    "byStatus": {
+      "implemented-language-mapping": 12,
+      "implemented-bounded-model": 22,
+      "unsupported-public-model": 7
+    }
+  }
+}

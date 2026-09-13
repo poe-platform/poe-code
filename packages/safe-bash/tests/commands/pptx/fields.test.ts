@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, createPresentation, readFields } from "pptx";
+import {
+  addConnector,
+  createPptxCommandEngine,
+  createPresentation,
+  readFields,
+  readConnectors,
+  readShapes
+} from "pptx";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -98,6 +105,110 @@ function fixture(engineContext = context) {
   );
   return { shell, fs, volume };
 }
+
+test("connector commands round trip quoted paths through a shell script and SDK", async () => {
+  const { shell, volume } = fixture();
+  volume.writeFileSync(
+    "/work/input deck.pptx",
+    await createPresentation({ slides: [{}] }, context)
+  );
+  volume.writeFileSync(
+    "/work/connectors.sh",
+    `pptx connectors add 'input deck.pptx' --slide 1 --kind ELBOW --begin-x 1in --begin-y 2in --end-x 3in --end-y 4in --output 'joined deck.pptx' --json
+pptx connectors list 'joined deck.pptx' --json`
+  );
+  const result = await shell.exec("sh connectors.sh");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout.trim().split("\n").at(-1)!).data.records.length, 1);
+  const records = await readConnectors(
+    new Uint8Array(volume.readFileSync("/work/joined deck.pptx") as Buffer),
+    {},
+    context
+  );
+  assert.equal(records.length, 1);
+  assert.deepEqual(
+    [records[0]!.kind, records[0]!.beginX, records[0]!.beginY, records[0]!.endX, records[0]!.endY],
+    [2, 914400, 1828800, 2743200, 3657600]
+  );
+  const sdk = await addConnector(
+    new Uint8Array(volume.readFileSync("/work/input deck.pptx") as Buffer),
+    {
+      slide: 1,
+      update: {
+        kind: "ELBOW",
+        beginX: { value: 1, unit: "in" },
+        beginY: { value: 2, unit: "in" },
+        endX: { value: 3, unit: "in" },
+        endY: { value: 4, unit: "in" }
+      }
+    },
+    context
+  );
+  assert.deepEqual(
+    new Uint8Array(volume.readFileSync("/work/joined deck.pptx") as Buffer),
+    sdk.bytes
+  );
+  const original = volume.readFileSync("/work/joined deck.pptx");
+  const invalid = await shell.exec(
+    "pptx connectors set 'joined deck.pptx' --all --site -1 --in-place --json"
+  );
+  assert.equal(invalid.exitCode, 2);
+  assert.deepEqual(volume.readFileSync("/work/joined deck.pptx"), original);
+});
+
+test("connector target rebinding and deletion policy survive shell publication", async () => {
+  const { shell, volume } = fixture();
+  volume.writeFileSync(
+    "/work/deck.pptx",
+    await createPresentation(
+      {
+        slides: [
+          {
+            shapes: [
+              { name: "Left", x: 0, y: 0, width: 100, height: 100, text: "" },
+              { name: "Right", x: 200, y: 0, width: 100, height: 100, text: "" }
+            ]
+          }
+        ]
+      },
+      context
+    )
+  );
+  const bytes = () => new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer);
+  let targets = await readShapes(bytes(), {}, context);
+  const add = await shell.exec(
+    `pptx connectors add deck.pptx --slide 1 --kind STRAIGHT --begin-x 0emu --begin-y 0emu --end-x 400emu --end-y 400emu --begin-target '${JSON.stringify(targets[0]!.location)}' --site 0 --in-place --json`
+  );
+  assert.equal(add.exitCode, 0, add.stderr);
+  targets = await readShapes(bytes(), {}, context);
+  const connectors = await readConnectors(bytes(), {}, context);
+  const rebound = await shell.exec(
+    `pptx connectors set deck.pptx --select '${connectors[0]!.token}' --begin-target '${JSON.stringify(targets[1]!.location)}' --site 3 --in-place --json`
+  );
+  assert.equal(rebound.exitCode, 0, rebound.stderr);
+  assert.deepEqual((await readConnectors(bytes(), {}, context))[0]!.beginTarget, {
+    objectId: 3,
+    site: 3
+  });
+  const original = bytes();
+  const rejected = await shell.exec(
+    "pptx shapes remove deck.pptx --slide 1 --shape Right --in-place --json"
+  );
+  assert.equal(rejected.exitCode, 1);
+  assert.deepEqual(bytes(), original);
+  const removed = await shell.exec(
+    "pptx shapes remove deck.pptx --slide 1 --shape Right --detach-policy detach --in-place --json"
+  );
+  assert.equal(removed.exitCode, 0, removed.stderr);
+  const detached = (await readConnectors(bytes(), {}, context))[0]!;
+  assert.equal(detached.beginTarget, null);
+  assert.deepEqual([detached.beginX, detached.beginY], [300, 50]);
+  const deleted = await shell.exec(
+    `pptx connectors remove deck.pptx --select '${detached.token}' --in-place --json`
+  );
+  assert.equal(deleted.exitCode, 0, deleted.stderr);
+  assert.deepEqual(await readConnectors(bytes(), {}, context), []);
+});
 
 test("field caches round trip through a registered shell script and SDK", async () => {
   const { shell, volume } = fixture();

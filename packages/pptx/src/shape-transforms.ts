@@ -78,6 +78,32 @@ function transform(node: XmlElement) {
 }
 
 export function readShapeGeometry(root: XmlElement, node: XmlElement): ShapeGeometry | null {
+  const projection = prepareProjection(root, node);
+  if (!projection) return null;
+  const { own, groups } = projection;
+  return {
+    coordinateSystem: groups.length ? "group" : "slide",
+    unit: "emu",
+    groupPath: groups.map((group) => {
+      const nv = child(group, "nvGrpSpPr"),
+        cn = nv && child(nv, "cNvPr");
+      return cn ? (attr(cn, "id") ?? null) : null;
+    }),
+    corners: projection.project([
+      { x: own.x, y: own.y },
+      { x: own.x + own.w, y: own.y },
+      { x: own.x + own.w, y: own.y + own.h },
+      { x: own.x, y: own.y + own.h }
+    ])
+  };
+}
+
+export function projectShapePoint(root: XmlElement, node: XmlElement, x: number, y: number) {
+  const projection = prepareProjection(root, node);
+  return projection?.project([{ x, y }])[0] ?? null;
+}
+
+function prepareProjection(root: XmlElement, node: XmlElement) {
   const pending = [{ node: root, groups: [] as XmlElement[] }];
   let groups: XmlElement[] | undefined;
   while (pending.length) {
@@ -100,12 +126,13 @@ export function readShapeGeometry(root: XmlElement, node: XmlElement): ShapeGeom
     );
   const own = transform(node);
   if (!own) return null;
-  let corners = [
-    [own.x, own.y],
-    [own.x + own.w, own.y],
-    [own.x + own.w, own.y + own.h],
-    [own.x, own.y + own.h]
-  ].map(([x, y]) => own.map(x!, y!));
+  const parents: {
+    parent: NonNullable<ReturnType<typeof transform>>;
+    cx: number;
+    cy: number;
+    cw: number;
+    ch: number;
+  }[] = [];
   for (const group of [...groups].reverse()) {
     const parent = transform(group);
     if (!parent) return null;
@@ -115,21 +142,21 @@ export function readShapeGeometry(root: XmlElement, node: XmlElement): ShapeGeom
       ch = parent.integer("chExt", "cy");
     if (cx === null || cy === null || cw === null || ch === null) return null;
     if (cw <= 0 || ch <= 0 || parent.w <= 0 || parent.h <= 0) invalid();
-    corners = corners.map((point) =>
-      parent.map(
-        parent.x + ((point.x - cx) * parent.w) / cw,
-        parent.y + ((point.y - cy) * parent.h) / ch
-      )
-    );
+    parents.push({ parent, cx, cy, cw, ch });
   }
   return {
-    coordinateSystem: groups.length ? "group" : "slide",
-    unit: "emu",
-    groupPath: groups.map((group) => {
-      const nv = child(group, "nvGrpSpPr"),
-        cn = nv && child(nv, "cNvPr");
-      return cn ? (attr(cn, "id") ?? null) : null;
-    }),
-    corners: corners.map((point) => ({ x: new Length(point.x).emu, y: new Length(point.y).emu }))
+    own,
+    groups,
+    project(points: readonly { x: number; y: number }[]) {
+      let projected = points.map((point) => own.map(point.x, point.y));
+      for (const { parent, cx, cy, cw, ch } of parents)
+        projected = projected.map((point) =>
+          parent.map(
+            parent.x + ((point.x - cx) * parent.w) / cw,
+            parent.y + ((point.y - cy) * parent.h) / ch
+          )
+        );
+      return projected.map((point) => ({ x: new Length(point.x).emu, y: new Length(point.y).emu }));
+    }
   };
 }

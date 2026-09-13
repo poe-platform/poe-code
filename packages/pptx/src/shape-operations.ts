@@ -133,7 +133,13 @@ export function nodeFor(root: XmlElement, id: string): XmlElement {
               )
           )
         : undefined;
-    if (nv && attr(required(nv, "cNvPr"), "id") === id) return node;
+    if (
+      nv &&
+      Number.isInteger(Number(id)) &&
+      Number(id) >= 0 &&
+      Number(attr(required(nv, "cNvPr"), "id")) === Number(id)
+    )
+      return node;
     pending.unshift(...node.children);
   }
   throw new SelectionError("missing-selection");

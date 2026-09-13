@@ -518,7 +518,7 @@ function executeHostCall(
   try {
     result = invoke();
   } catch (error) {
-    if (error instanceof HostCallResumabilityError) {
+    if (!types.isProxy(error) && error instanceof HostCallResumabilityError) {
       throw error;
     }
 
@@ -657,7 +657,8 @@ function createHostErrorValue(
   state: { seen: WeakMap<object, SandboxValue> } = { seen: new WeakMap() },
   chargeBudget = false
 ): SandboxObject {
-  const nativeError = types.isNativeError(reason) || reason instanceof Error;
+  const proxy = types.isProxy(reason);
+  const nativeError = !proxy && (types.isNativeError(reason) || reason instanceof Error);
   if (nativeError) {
     const existing = state.seen.get(reason);
     if (existing !== undefined) return existing as SandboxObject;
@@ -669,7 +670,7 @@ function createHostErrorValue(
           chargeBudget,
           transport: true
         })
-      : createSubsetErrorValue("Error", describeThrownReason(reason), stackFrames, budget, {
+      : createSubsetErrorValue("Error", proxy ? "Host operation failed." : describeThrownReason(reason), stackFrames, budget, {
           chargeBudget: false,
           transport: true
         });
@@ -911,8 +912,10 @@ function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
 
 function isFatalBridgeError(error: unknown): error is SandboxError | HostCallResumabilityError {
   return (
-    error instanceof HostCallResumabilityError ||
-    (error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry"))
+    !types.isProxy(error) && (
+      error instanceof HostCallResumabilityError ||
+      (error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry"))
+    )
   );
 }
 

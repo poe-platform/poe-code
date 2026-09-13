@@ -1,0 +1,15 @@
+{
+  "status": "validated candidate; delivery pending",
+  "base": "d9c5a82cfa54323d08f560c1b16ace45ea6ae65e",
+  "localCommit": null,
+  "remoteMainVerified": false,
+  "publicationVerified": false,
+  "associatedIssue": null,
+  "affectedPublications": [
+    "poe-code",
+    "@poe-platform/safe-js",
+    "@poe-platform/safe-fs",
+    "@poe-platform/safe-bash"
+  ],
+  "acceptance": "blocked; clean candidate corpus has 91 explicitly disposed nonpasses and inherited Proxy trap blocker"
+}

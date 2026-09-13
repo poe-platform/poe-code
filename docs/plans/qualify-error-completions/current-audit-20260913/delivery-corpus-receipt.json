@@ -1,0 +1,1393 @@
+{
+  "sourceSha": "d9c5a82cfa54323d08f560c1b16ace45ea6ae65e",
+  "sourceHash": "cfdb6af260cadb631198fb201db08ac990d415f285e72de2657eafff7c26c3d3",
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+  "execution": {
+    "timeoutMs": 3000,
+    "budget": {},
+    "effectiveBudget": {
+      "maxSteps": "unlimited",
+      "maxCallDepth": "unlimited",
+      "stringLength": "unlimited",
+      "arrayLength": "unlimited",
+      "dataSize": "unlimited"
+    },
+    "deadline": "per-variant timeout",
+    "isolation": {
+      "kind": "persistent-child-process",
+      "startupTimeoutMs": 10000,
+      "wallTimeoutMs": 3000,
+      "timerStarts": "before-dispatch",
+      "recovery": "kill-and-replace-without-retrying-variant"
+    }
+  },
+  "startedAt": "2026-09-13T13:16:08.661Z",
+  "complete": true,
+  "completedAt": "2026-09-13T13:18:58.528Z",
+  "counts": {
+    "files": 914,
+    "fixtures": 0,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 1811,
+    "passed": 1720,
+    "failed": 91,
+    "unsupported": 0
+  },
+  "exit": 1,
+  "failures": [
+    {
+      "filename": "built-ins/AsyncGeneratorPrototype/return/return-state-completed-broken-promise.js",
+      "sourceHash": "d68b80950e91b35852ea7c8f42fb9f6328b6f4a90dd2308c5b6a261139ea3222",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "async-failure",
+      "case": "E-ASYNC-RETURN",
+      "disposition": "Async-generator return rejection ownership; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/AsyncGeneratorPrototype/return/return-state-completed-broken-promise.js",
+      "sourceHash": "d68b80950e91b35852ea7c8f42fb9f6328b6f4a90dd2308c5b6a261139ea3222",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "async-failure",
+      "case": "E-ASYNC-RETURN",
+      "disposition": "Async-generator return rejection ownership; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/AsyncGeneratorPrototype/return/return-suspendedStart-broken-promise.js",
+      "sourceHash": "c98dd19e5164d75173e98094099a9f723aec646250ecb89c0e969d6bf16fa6c2",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "async-failure",
+      "case": "E-ASYNC-RETURN",
+      "disposition": "Async-generator return rejection ownership; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/AsyncGeneratorPrototype/return/return-suspendedStart-broken-promise.js",
+      "sourceHash": "c98dd19e5164d75173e98094099a9f723aec646250ecb89c0e969d6bf16fa6c2",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "async-failure",
+      "case": "E-ASYNC-RETURN",
+      "disposition": "Async-generator return rejection ownership; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/AsyncGeneratorPrototype/return/return-suspendedYield-broken-promise-try-catch.js",
+      "sourceHash": "7c07c4f5f82e7e46b17919aaa5e8fbf6b751abdaa3141819eedfeba6958ac27f",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "async-failure",
+      "case": "E-ASYNC-RETURN",
+      "disposition": "Async-generator return rejection ownership; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/AsyncGeneratorPrototype/return/return-suspendedYield-broken-promise-try-catch.js",
+      "sourceHash": "7c07c4f5f82e7e46b17919aaa5e8fbf6b751abdaa3141819eedfeba6958ac27f",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "async-failure",
+      "case": "E-ASYNC-RETURN",
+      "disposition": "Async-generator return rejection ownership; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-cross-realm.js",
+      "sourceHash": "b2241461c9df86beacaa9a831f2d9a6977901d5e440d0fa66879696049250636",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-cross-realm.js",
+      "sourceHash": "b2241461c9df86beacaa9a831f2d9a6977901d5e440d0fa66879696049250636",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-data-property-shadows.js",
+      "sourceHash": "4d5c55b8dee7c582a9245d0d6af85a6a69fd3deb0ce2a7e08668a93c58802479",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-data-property-shadows.js",
+      "sourceHash": "4d5c55b8dee7c582a9245d0d6af85a6a69fd3deb0ce2a7e08668a93c58802479",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-error-as-prototype.js",
+      "sourceHash": "63fab4386037833bff1b37287b8b2ad25651bf5953ed6b193d9f387d7faf2161",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-error-as-prototype.js",
+      "sourceHash": "63fab4386037833bff1b37287b8b2ad25651bf5953ed6b193d9f387d7faf2161",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-error-instance.js",
+      "sourceHash": "5214aced9ef3d5ee13b99ca6098e1a01cda705477a7ae01fd36a459284984c5c",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-error-instance.js",
+      "sourceHash": "5214aced9ef3d5ee13b99ca6098e1a01cda705477a7ae01fd36a459284984c5c",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-error-prototype.js",
+      "sourceHash": "6d7da6c8752a79d369dffd2108d18a6fe9673ab85f8ec10c56e4af613a13250d",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-error-prototype.js",
+      "sourceHash": "6d7da6c8752a79d369dffd2108d18a6fe9673ab85f8ec10c56e4af613a13250d",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-foreign-new-target.js",
+      "sourceHash": "574d3d267999b83037e2e40331e3f165cac776090358fd1ab4016adf4d92aa07",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-foreign-new-target.js",
+      "sourceHash": "574d3d267999b83037e2e40331e3f165cac776090358fd1ab4016adf4d92aa07",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-no-error-data.js",
+      "sourceHash": "2121fae24c46b62f2c4a344216541b617a632d445d3e868b61952bf389c92fb8",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-no-error-data.js",
+      "sourceHash": "2121fae24c46b62f2c4a344216541b617a632d445d3e868b61952bf389c92fb8",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-not-a-constructor.js",
+      "sourceHash": "9dd387d70abd2facb094959507409e3b0ce4eb3b9a2fbbc0115759b6490be527",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-not-a-constructor.js",
+      "sourceHash": "9dd387d70abd2facb094959507409e3b0ce4eb3b9a2fbbc0115759b6490be527",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-receiver-is-proxy.js",
+      "sourceHash": "7c123da652d10d42aad01c61a169f7fadedd265583a95dfe5ea1cc2ea1dd4fc0",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-receiver-is-proxy.js",
+      "sourceHash": "7c123da652d10d42aad01c61a169f7fadedd265583a95dfe5ea1cc2ea1dd4fc0",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-subclass.js",
+      "sourceHash": "c1147393e1f061634c8309a8d0f877f7d56c0e9f635f67f50abd0a1f7c573831",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-subclass.js",
+      "sourceHash": "c1147393e1f061634c8309a8d0f877f7d56c0e9f635f67f50abd0a1f7c573831",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-this-not-object.js",
+      "sourceHash": "bba757a77bb67002cf86071d2ea551f82a336cb5bda8d14e144b886348a2b838",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/getter-this-not-object.js",
+      "sourceHash": "bba757a77bb67002cf86071d2ea551f82a336cb5bda8d14e144b886348a2b838",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/instance-no-own-stack.js",
+      "sourceHash": "6e3561587c6919620d593b7e57041f41d8096f49c16f5549218e2ceae43f37a4",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Error: hasOwnProperty(\"stack\") is false Expected SameValue(\u00abtrue\u00bb, \u00abfalse\u00bb) to be true",
+        "type": "Test262Error"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/instance-no-own-stack.js",
+      "sourceHash": "6e3561587c6919620d593b7e57041f41d8096f49c16f5549218e2ceae43f37a4",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Error: hasOwnProperty(\"stack\") is false Expected SameValue(\u00abtrue\u00bb, \u00abfalse\u00bb) to be true",
+        "type": "Test262Error"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/instance-not-enumerable.js",
+      "sourceHash": "dec2cd0c59748c9d42489b75d7824eff8a1d66c04b69a1cf3144fd60549302d3",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Error: getOwnPropertyNames does not include \"stack\" Expected SameValue(\u00ab1\u00bb, \u00ab-1\u00bb) to be true",
+        "type": "Test262Error"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/instance-not-enumerable.js",
+      "sourceHash": "dec2cd0c59748c9d42489b75d7824eff8a1d66c04b69a1cf3144fd60549302d3",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Error: getOwnPropertyNames does not include \"stack\" Expected SameValue(\u00ab1\u00bb, \u00ab-1\u00bb) to be true",
+        "type": "Test262Error"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/prop-desc.js",
+      "sourceHash": "46b553b544f20bac8d21a0571d8adc682f28b571d147280fc158254731dc50b4",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Error.prototype.stack getter should be a function Expected SameValue(\u00ab\"undefined\"\u00bb, \u00ab\"function\"\u00bb) to be true",
+        "type": "Test262Error"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/prop-desc.js",
+      "sourceHash": "46b553b544f20bac8d21a0571d8adc682f28b571d147280fc158254731dc50b4",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Error.prototype.stack getter should be a function Expected SameValue(\u00ab\"undefined\"\u00bb, \u00ab\"function\"\u00bb) to be true",
+        "type": "Test262Error"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-creates-own-property.js",
+      "sourceHash": "7383bac5b7ca2c479a06362289ac51bb7c4437ec7cce052cde6e920a74e383a9",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-creates-own-property.js",
+      "sourceHash": "7383bac5b7ca2c479a06362289ac51bb7c4437ec7cce052cde6e920a74e383a9",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-cross-realm.js",
+      "sourceHash": "c5f285647e114e5a388b711308aac5afa26066a2984746353dc468e9e801c8d5",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-cross-realm.js",
+      "sourceHash": "c5f285647e114e5a388b711308aac5afa26066a2984746353dc468e9e801c8d5",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-delete-round-trip.js",
+      "sourceHash": "7e51b9edb6d2663c2cfc252e9b7cf986516ade760e7930adee22c116d5acacb0",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-delete-round-trip.js",
+      "sourceHash": "7e51b9edb6d2663c2cfc252e9b7cf986516ade760e7930adee22c116d5acacb0",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-empty-string.js",
+      "sourceHash": "a23d5ea6da60d14886ba2df1e43e7d7c005c65e8476a21a64ce187d038706c3f",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-empty-string.js",
+      "sourceHash": "a23d5ea6da60d14886ba2df1e43e7d7c005c65e8476a21a64ce187d038706c3f",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-existing-own-property.js",
+      "sourceHash": "df378d04635bdeb7e680c168cf463605b1bbcd1abbdc5962ff1f0e993ac1d9dc",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-existing-own-property.js",
+      "sourceHash": "df378d04635bdeb7e680c168cf463605b1bbcd1abbdc5962ff1f0e993ac1d9dc",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-no-argument.js",
+      "sourceHash": "1f3c62ab5dd7f76f0ccb6927e9a907670ecc5d0fe2ca9bedf5d33d37794f6b39",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-no-argument.js",
+      "sourceHash": "1f3c62ab5dd7f76f0ccb6927e9a907670ecc5d0fe2ca9bedf5d33d37794f6b39",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-non-error-receiver.js",
+      "sourceHash": "c5b9199473cb169f961705e5252bc4bf678be170cd618015e9190e3cbe155f01",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-non-error-receiver.js",
+      "sourceHash": "c5b9199473cb169f961705e5252bc4bf678be170cd618015e9190e3cbe155f01",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-non-extensible-receiver.js",
+      "sourceHash": "6a1a2dcce3594f930ff6fd464c91e3ea4882dac4e193e1d50fc5247dea81cec0",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-non-extensible-receiver.js",
+      "sourceHash": "6a1a2dcce3594f930ff6fd464c91e3ea4882dac4e193e1d50fc5247dea81cec0",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-non-string-value.js",
+      "sourceHash": "5c936dc4f732c6075f3daf34f3ddd5829871c6e70182228689d3d3624ed0ce49",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-non-string-value.js",
+      "sourceHash": "5c936dc4f732c6075f3daf34f3ddd5829871c6e70182228689d3d3624ed0ce49",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-non-writable-stack.js",
+      "sourceHash": "a9a11fa96f783197aa73d23f13d51e318fc825c68c15559ce5d7fd11b1efe051",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-non-writable-stack.js",
+      "sourceHash": "a9a11fa96f783197aa73d23f13d51e318fc825c68c15559ce5d7fd11b1efe051",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-not-a-constructor.js",
+      "sourceHash": "ee3282caa6a3805a7ba8e3c80f8eaf1c19f5eada9d775f10def88b56e6396ea3",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-not-a-constructor.js",
+      "sourceHash": "ee3282caa6a3805a7ba8e3c80f8eaf1c19f5eada9d775f10def88b56e6396ea3",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-own-accessor.js",
+      "sourceHash": "457a08187469475f7555d476d7ccf032e87e20eaf6b99789267ec4a50e392e61",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-own-accessor.js",
+      "sourceHash": "457a08187469475f7555d476d7ccf032e87e20eaf6b99789267ec4a50e392e61",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-proxy-trap-rejects.js",
+      "sourceHash": "d46e27a20c59c0ce5e10d3cd4f01322ad587a3ed8344f5a718fa938abbe5d8f2",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-proxy-trap-rejects.js",
+      "sourceHash": "d46e27a20c59c0ce5e10d3cd4f01322ad587a3ed8344f5a718fa938abbe5d8f2",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-proxy-trap-throws.js",
+      "sourceHash": "ecec4d21666b39f335bcc3b63535006d6ba0bf050ce055491b18e3a096924a2f",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-proxy-trap-throws.js",
+      "sourceHash": "ecec4d21666b39f335bcc3b63535006d6ba0bf050ce055491b18e3a096924a2f",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-proxy-wrapping-prototype.js",
+      "sourceHash": "6be477eff2739c6afe2fefe58362f9da98c1504d5fcbefeb95216b63af43f623",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-proxy-wrapping-prototype.js",
+      "sourceHash": "6be477eff2739c6afe2fefe58362f9da98c1504d5fcbefeb95216b63af43f623",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-receiver-is-null-proto.js",
+      "sourceHash": "e051fd295eb9e11eb64a8c4fe995f68427c7d1727b7c6a0d021f724ec13a915f",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-receiver-is-null-proto.js",
+      "sourceHash": "e051fd295eb9e11eb64a8c4fe995f68427c7d1727b7c6a0d021f724ec13a915f",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-receiver-is-other-prototype.js",
+      "sourceHash": "39f15f056c6d9f320f6de583522ae61c9e3a24437628aef7b905385345c48e54",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-receiver-is-other-prototype.js",
+      "sourceHash": "39f15f056c6d9f320f6de583522ae61c9e3a24437628aef7b905385345c48e54",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-receiver-is-prototype.js",
+      "sourceHash": "1971669235df1762a8f569c877ce2e0449eda092ff874ee00ea32a9f02484faa",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-receiver-is-prototype.js",
+      "sourceHash": "1971669235df1762a8f569c877ce2e0449eda092ff874ee00ea32a9f02484faa",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-receiver-is-proxy.js",
+      "sourceHash": "79315af5a71a55ab91c6d08d6fa5e723f06b527f08d3ab5b21dfe2a7429ebcbd",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-receiver-is-proxy.js",
+      "sourceHash": "79315af5a71a55ab91c6d08d6fa5e723f06b527f08d3ab5b21dfe2a7429ebcbd",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-this-not-object.js",
+      "sourceHash": "04a17ec3f31867db722c224607e2d93740cbab5073ded974a058f60525122452",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-this-not-object.js",
+      "sourceHash": "04a17ec3f31867db722c224607e2d93740cbab5073ded974a058f60525122452",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-via-assignment.js",
+      "sourceHash": "cc8d0fd5672ee0b400cb2d6966388f3162b59de0634ecb13a984664e5763f93d",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/Error/prototype/stack/setter-via-assignment.js",
+      "sourceHash": "cc8d0fd5672ee0b400cb2d6966388f3162b59de0634ecb13a984664e5763f93d",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Cannot read properties of null or undefined.",
+        "type": "TypeError"
+      },
+      "case": "E-STACK-EXT",
+      "disposition": "Newer error-stack-accessor extension gap; blocks extension qualification, not an edition-16 defect.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/GeneratorPrototype/next/from-state-executing.js",
+      "sourceHash": "72b16fc8f1c44aa3e9c5b55deab493bb8061306ae8a1378c7a09caf443ca6663",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "host-error",
+      "detail": {
+        "phase": "host",
+        "message": "Sandbox object is already running.",
+        "code": "reentry"
+      },
+      "case": "E-GENERATOR-REENTRY",
+      "disposition": "Guest generator reentry is incorrectly treated as fatal; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/GeneratorPrototype/next/from-state-executing.js",
+      "sourceHash": "72b16fc8f1c44aa3e9c5b55deab493bb8061306ae8a1378c7a09caf443ca6663",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "host-error",
+      "detail": {
+        "phase": "host",
+        "message": "Sandbox object is already running.",
+        "code": "reentry"
+      },
+      "case": "E-GENERATOR-REENTRY",
+      "disposition": "Guest generator reentry is incorrectly treated as fatal; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/GeneratorPrototype/return/from-state-executing.js",
+      "sourceHash": "276000e933d65575f2ecd3e43cffe578512650c1ff6cf259f8c96313a96fece9",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "host-error",
+      "detail": {
+        "phase": "host",
+        "message": "Sandbox object is already running.",
+        "code": "reentry"
+      },
+      "case": "E-GENERATOR-REENTRY",
+      "disposition": "Guest generator reentry is incorrectly treated as fatal; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/GeneratorPrototype/return/from-state-executing.js",
+      "sourceHash": "276000e933d65575f2ecd3e43cffe578512650c1ff6cf259f8c96313a96fece9",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "host-error",
+      "detail": {
+        "phase": "host",
+        "message": "Sandbox object is already running.",
+        "code": "reentry"
+      },
+      "case": "E-GENERATOR-REENTRY",
+      "disposition": "Guest generator reentry is incorrectly treated as fatal; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/GeneratorPrototype/throw/from-state-executing.js",
+      "sourceHash": "88ab37ceb5d34b660b1fa0d25476f2b588804193daa9cd8ce31e2e013f6f695c",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "host-error",
+      "detail": {
+        "phase": "host",
+        "message": "Sandbox object is already running.",
+        "code": "reentry"
+      },
+      "case": "E-GENERATOR-REENTRY",
+      "disposition": "Guest generator reentry is incorrectly treated as fatal; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/GeneratorPrototype/throw/from-state-executing.js",
+      "sourceHash": "88ab37ceb5d34b660b1fa0d25476f2b588804193daa9cd8ce31e2e013f6f695c",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "host-error",
+      "detail": {
+        "phase": "host",
+        "message": "Sandbox object is already running.",
+        "code": "reentry"
+      },
+      "case": "E-GENERATOR-REENTRY",
+      "disposition": "Guest generator reentry is incorrectly treated as fatal; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/SuppressedError/order-of-args-evaluation.js",
+      "sourceHash": "6baf99d7a2224ff18719796097e1998df371330946c74da17c9e1a1ec79964e5",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected 'error' to be defined after 'message' Expected SameValue(\u00ab2\u00bb, \u00ab1\u00bb) to be true",
+        "type": "Test262Error"
+      },
+      "case": "E-SUPPRESSED-ORDER",
+      "disposition": "SuppressedError argument/property evaluation order; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/SuppressedError/order-of-args-evaluation.js",
+      "sourceHash": "6baf99d7a2224ff18719796097e1998df371330946c74da17c9e1a1ec79964e5",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected 'error' to be defined after 'message' Expected SameValue(\u00ab2\u00bb, \u00ab1\u00bb) to be true",
+        "type": "Test262Error"
+      },
+      "case": "E-SUPPRESSED-ORDER",
+      "disposition": "SuppressedError argument/property evaluation order; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/ThrowTypeError/distinct-cross-realm.js",
+      "sourceHash": "7a8c4f7ed4dd85e5fb8393cc1c8841999e1ed366f6311ce0f027fecc4bc3890e",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a TypeError but got a different error constructor with the same name",
+        "type": "Test262Error"
+      },
+      "case": "E-REALM",
+      "disposition": "Foreign restricted accessor ownership remains unresolved and blocks qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "built-ins/ThrowTypeError/distinct-cross-realm.js",
+      "sourceHash": "7a8c4f7ed4dd85e5fb8393cc1c8841999e1ed366f6311ce0f027fecc4bc3890e",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a TypeError but got a different error constructor with the same name",
+        "type": "Test262Error"
+      },
+      "case": "E-REALM",
+      "disposition": "Foreign restricted accessor ownership remains unresolved and blocks qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "language/statements/try/static-init-await-binding-invalid.js",
+      "sourceHash": "8c56df2ee7fc0de72a10227fa4e75e52d155ba677293b88d41814f7ed3b3ef8a",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "wrong-phase",
+      "detail": {
+        "phase": "runtime",
+        "type": "string",
+        "value": "Test262: This statement should not be evaluated."
+      },
+      "case": "E-STATIC-AWAIT",
+      "disposition": "Script static-block catch binding is accepted in the wrong phase; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "language/statements/try/static-init-await-binding-invalid.js",
+      "sourceHash": "8c56df2ee7fc0de72a10227fa4e75e52d155ba677293b88d41814f7ed3b3ef8a",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "wrong-phase",
+      "detail": {
+        "phase": "runtime",
+        "type": "string",
+        "value": "Test262: This statement should not be evaluated."
+      },
+      "case": "E-STATIC-AWAIT",
+      "disposition": "Script static-block catch binding is accepted in the wrong phase; local repair is not part of this delivery. Blocks candidate qualification.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "language/statements/try/tco-catch-finally.js",
+      "sourceHash": "034586cd465886510da019be9203a3d4311ebbeefd42e9c79d6feea1484ead94",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      },
+      "case": "E-TCO",
+      "disposition": "Unchanged 3000 ms strict-tail-call timeout; blocks qualification, no deadline relaxation.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "language/statements/try/tco-catch.js",
+      "sourceHash": "ef970699ded1887477f104fadd5f58fee7abe0400439fce21f5bbdedec166608",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      },
+      "case": "E-TCO",
+      "disposition": "Unchanged 3000 ms strict-tail-call timeout; blocks qualification, no deadline relaxation.",
+      "owner": "qualify-error-completions"
+    },
+    {
+      "filename": "language/statements/try/tco-finally.js",
+      "sourceHash": "232683deafdbe82d70bbbe4785f96654197d9dae51dfcd5373dc909c53ba3583",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      },
+      "case": "E-TCO",
+      "disposition": "Unchanged 3000 ms strict-tail-call timeout; blocks qualification, no deadline relaxation.",
+      "owner": "qualify-error-completions"
+    }
+  ],
+  "dispositionCounts": {
+    "E-ASYNC-RETURN": 6,
+    "E-STACK-EXT": 70,
+    "E-GENERATOR-REENTRY": 6,
+    "E-SUPPRESSED-ORDER": 2,
+    "E-REALM": 2,
+    "E-STATIC-AWAIT": 2,
+    "E-TCO": 3
+  },
+  "rawSha256": "d5cfb0e9d9f05cf073acf6427f3472aa5ade4e2e8d6a2e3369d7679cbc57a359",
+  "relationship": "Isolated remote-main candidate; differs from working-tree source with uncommitted repairs. These results do not replace the separately fingerprinted working-source receipt."
+}

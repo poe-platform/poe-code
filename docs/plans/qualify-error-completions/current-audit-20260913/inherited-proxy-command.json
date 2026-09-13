@@ -1,0 +1,8 @@
+[
+  "node",
+  "--import",
+  "tsx",
+  "--input-type=module",
+  "-e",
+  "import {run} from './packages/safe-js/src/run.ts';\nconst trace=[];const reason=new Error('host diagnostic');Object.setPrototypeOf(reason,new Proxy(Error.prototype,{getPrototypeOf(t){trace.push('getPrototypeOf');return Reflect.getPrototypeOf(t)},getOwnPropertyDescriptor(t,k){trace.push('descriptor:'+String(k));return Reflect.getOwnPropertyDescriptor(t,k)}}));\nconst result=await run('try{fail()}catch(e){return [e.name,e.message]}',{bindings:{fail(){throw reason}}});console.log(JSON.stringify({trace,result:result.returnValue}));"
+]

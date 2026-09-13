@@ -1,0 +1,20 @@
+{
+  "18.18.0": [
+    "/Users/kjopek/.nvm/versions/node/v18.18.0/bin/node",
+    "--input-type=module",
+    "-e",
+    "import assert from 'node:assert/strict';import {run,dump} from './packages/safe-js/dist/index.js';const results=[];for(const kind of ['sync','async']){const trace=[];const reason=new Proxy(new Error('private host diagnostic'),{getPrototypeOf(t){trace.push('prototype');return Reflect.getPrototypeOf(t)},getOwnPropertyDescriptor(t,k){trace.push('descriptor:'+String(k));return Reflect.getOwnPropertyDescriptor(t,k)}});let calls=0;const fail=kind==='sync'?()=>{calls++;throw reason}:async()=>{calls++;throw reason};const source='try{await fail()}catch(e){return [e.name,e.message,e.stack]}';const original=await run(source,{bindings:{fail}});const replay=await run(source,{bindings:{fail},snapshot:JSON.parse(await dump(original))});assert.equal(original.ok,true);assert.deepEqual(original.returnValue,['Error','Host operation failed.','Error: Host operation failed.\\n    at fail (line 1, column 11)']);assert.deepEqual(replay.returnValue,original.returnValue);assert.deepEqual(trace,[]);assert.equal(calls,1);results.push({kind,trace,calls,original:original.returnValue,replay:replay.returnValue})}console.log(JSON.stringify({node:process.version,icu:process.versions.icu,results},null,2));"
+  ],
+  "22.23.2": [
+    "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+    "--input-type=module",
+    "-e",
+    "import assert from 'node:assert/strict';import {run,dump} from './packages/safe-js/dist/index.js';const results=[];for(const kind of ['sync','async']){const trace=[];const reason=new Proxy(new Error('private host diagnostic'),{getPrototypeOf(t){trace.push('prototype');return Reflect.getPrototypeOf(t)},getOwnPropertyDescriptor(t,k){trace.push('descriptor:'+String(k));return Reflect.getOwnPropertyDescriptor(t,k)}});let calls=0;const fail=kind==='sync'?()=>{calls++;throw reason}:async()=>{calls++;throw reason};const source='try{await fail()}catch(e){return [e.name,e.message,e.stack]}';const original=await run(source,{bindings:{fail}});const replay=await run(source,{bindings:{fail},snapshot:JSON.parse(await dump(original))});assert.equal(original.ok,true);assert.deepEqual(original.returnValue,['Error','Host operation failed.','Error: Host operation failed.\\n    at fail (line 1, column 11)']);assert.deepEqual(replay.returnValue,original.returnValue);assert.deepEqual(trace,[]);assert.equal(calls,1);results.push({kind,trace,calls,original:original.returnValue,replay:replay.returnValue})}console.log(JSON.stringify({node:process.version,icu:process.versions.icu,results},null,2));"
+  ],
+  "24.14.0": [
+    "/Users/kjopek/.nvm/versions/node/v24.14.0/bin/node",
+    "--input-type=module",
+    "-e",
+    "import assert from 'node:assert/strict';import {run,dump} from './packages/safe-js/dist/index.js';const results=[];for(const kind of ['sync','async']){const trace=[];const reason=new Proxy(new Error('private host diagnostic'),{getPrototypeOf(t){trace.push('prototype');return Reflect.getPrototypeOf(t)},getOwnPropertyDescriptor(t,k){trace.push('descriptor:'+String(k));return Reflect.getOwnPropertyDescriptor(t,k)}});let calls=0;const fail=kind==='sync'?()=>{calls++;throw reason}:async()=>{calls++;throw reason};const source='try{await fail()}catch(e){return [e.name,e.message,e.stack]}';const original=await run(source,{bindings:{fail}});const replay=await run(source,{bindings:{fail},snapshot:JSON.parse(await dump(original))});assert.equal(original.ok,true);assert.deepEqual(original.returnValue,['Error','Host operation failed.','Error: Host operation failed.\\n    at fail (line 1, column 11)']);assert.deepEqual(replay.returnValue,original.returnValue);assert.deepEqual(trace,[]);assert.equal(calls,1);results.push({kind,trace,calls,original:original.returnValue,replay:replay.returnValue})}console.log(JSON.stringify({node:process.version,icu:process.versions.icu,results},null,2));"
+  ]
+}

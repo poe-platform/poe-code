@@ -148,11 +148,11 @@ function renderLine(
   }
 
   const visibleLength = MAX_EXCERPT_CONTENT_LENGTH - ELLIPSIS.length * 2;
-  const highlightStartIndex = Math.max(startColumn - 1, 0);
+  const highlightStartIndex = Array.from(line.slice(0, Math.max(startColumn - 1, 0))).length;
   const highlightEndIndex =
     endColumn === Number.MAX_SAFE_INTEGER
       ? highlightStartIndex
-      : Math.max(endColumn - 1, highlightStartIndex);
+      : Math.max(Array.from(line.slice(0, Math.max(endColumn - 1, 0))).length, highlightStartIndex);
   const highlightCenter = Math.floor((highlightStartIndex + highlightEndIndex) / 2);
   let sourceStartIndex = Math.max(0, highlightCenter - Math.floor(visibleLength / 2));
   sourceStartIndex = Math.min(sourceStartIndex, Math.max(characters.length - visibleLength, 0));
@@ -164,7 +164,7 @@ function renderLine(
   return {
     number: lineNumber,
     content: `${prefix}${characters.slice(sourceStartIndex, sourceEndIndex).join("")}${suffix}`,
-    sourceColumnStart: sourceStartIndex + 1 - prefix.length
+    sourceColumnStart: characters.slice(0, sourceStartIndex).join("").length + 1 - prefix.length
   };
 }
 
@@ -173,7 +173,7 @@ function createCaret(
   lineNumberWidth: number,
   location: ParseErrorLocation
 ): string {
-  const contentColumns = Array.from(line.content).length;
+  const contentColumns = line.content.length;
   const isSpan = location.line !== location.endLine || location.column !== location.endColumn;
   const startColumn = getHighlightStartColumn(location, line.number);
   const endColumn = isSpan ? getHighlightEndColumn(location, line.number) : startColumn + 1;
@@ -183,22 +183,22 @@ function createCaret(
     contentColumns + 1
   );
   const caretPadding = createCaretPadding(line.content, renderedStartColumn);
-  const caretLength = Math.max(renderedEndColumn - renderedStartColumn, 1);
+  const caretLength = Math.max(Array.from(line.content.slice(renderedStartColumn - 1, renderedEndColumn - 1)).length, 1);
   return `${" ".repeat(lineNumberWidth)} | ${caretPadding}${"^".repeat(caretLength)}`;
 }
 
 function createCaretPadding(line: string, column: number): string {
   let padding = "";
-  const characters = Array.from(line);
   const maxColumn = Math.max(column - 1, 0);
 
-  // Parser columns are character indexes. Terminals may render full-width glyphs wider.
-  for (const character of characters.slice(0, maxColumn)) {
+  // Parser columns count UTF-16 units; render one column per code point.
+  // Terminals may render full-width glyphs wider.
+  for (const character of line.slice(0, maxColumn)) {
     padding += character === "\t" ? "\t" : " ";
   }
 
-  if (maxColumn > characters.length) {
-    padding += " ".repeat(maxColumn - characters.length);
+  if (maxColumn > line.length) {
+    padding += " ".repeat(maxColumn - line.length);
   }
 
   return padding;

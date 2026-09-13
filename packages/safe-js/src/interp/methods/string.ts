@@ -6,7 +6,7 @@ import { CompileScope } from "../regex/compile-guard.js";
 import { advanceStringIndex, normalizeLastIndex } from "../regex/engine.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
-import { getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototype, hasRegexPropertyOverride, setSandboxPrototype } from "../object-model.js";
+import { getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasRegexPropertyOverride, setSandboxPrototype } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { createSandboxBox } from "../boxed.js";
 import { setSandboxProperty } from "../interpreter.js";
@@ -177,7 +177,8 @@ export function callStringMethod(
   const dispatch = () => {
     const overriddenRegex = isSandboxRegex(pattern) && getSandboxPropertyDescriptor(pattern, symbol, budget) !== undefined;
     const applyHook = (hook: SandboxValue) => {
-      if (hook === null || hook === undefined) return fallback(overriddenRegex);
+      if (hook === null || hook === undefined) return fallback(overriddenRegex ||
+        (context?.getProperty !== undefined && (!isSandboxRegex(pattern) || hasExplicitSandboxPrototype(pattern))));
       if (!isSandboxClosure(hook)) throw new TypeError(`String#${methodName} symbol hook must be callable.`);
       return invokeBuiltinClosure(hook, symbol === Symbol.split || symbol === Symbol.replace ? [value, args[1]] : [value], budget, context, pattern);
     };

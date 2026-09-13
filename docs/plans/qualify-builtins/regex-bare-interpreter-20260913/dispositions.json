@@ -1,0 +1,282 @@
+{
+  "corpusVariants": [
+    {
+      "id": "built-ins/Array/S15.4.5.2_A3_T1.js#sloppy",
+      "status": "passed",
+      "fixtureHash": "06246170b64e3f4091a6c70e9597e7743504c2783239aa1c8df9021e031a6267",
+      "report": "qualified-corpus.jsonl",
+      "reportHash": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/Array/S15.4.5.2_A3_T1.js#strict",
+      "status": "passed",
+      "fixtureHash": "06246170b64e3f4091a6c70e9597e7743504c2783239aa1c8df9021e031a6267",
+      "report": "qualified-corpus.jsonl",
+      "reportHash": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/Array/S15.4.5.2_A3_T2.js#sloppy",
+      "status": "passed",
+      "fixtureHash": "e6e8e696ffcc0d53685d447420479cd2b3f2057b2041ff36c2139bef6ac50127",
+      "report": "qualified-corpus.jsonl",
+      "reportHash": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/Array/S15.4.5.2_A3_T2.js#strict",
+      "status": "passed",
+      "fixtureHash": "e6e8e696ffcc0d53685d447420479cd2b3f2057b2041ff36c2139bef6ac50127",
+      "report": "qualified-corpus.jsonl",
+      "reportHash": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/match/cstm-matcher-is-null.js#sloppy",
+      "status": "passed",
+      "fixtureHash": "4e2b02de5024e2a405cc784f951723b3528fb8614054079d8e21c36b35d6df4f",
+      "report": "qualified-corpus.jsonl",
+      "reportHash": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/match/cstm-matcher-is-null.js#strict",
+      "status": "passed",
+      "fixtureHash": "4e2b02de5024e2a405cc784f951723b3528fb8614054079d8e21c36b35d6df4f",
+      "report": "qualified-corpus.jsonl",
+      "reportHash": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/match/cstm-matcher-on-bigint-primitive.js#sloppy",
+      "status": "failed",
+      "fixtureHash": "e4655ab8abca63f765cc6e78c2daf672de85cb752dbb05b8d5512d6ca16b52ec",
+      "report": "qualified-corpus.jsonl",
+      "reportHash": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "QB-MATCH-EDITION: newer fixture conflicts with edition-16 primitive symbol lookup"
+    },
+    {
+      "id": "built-ins/String/prototype/match/cstm-matcher-on-bigint-primitive.js#strict",
+      "status": "failed",
+      "fixtureHash": "e4655ab8abca63f765cc6e78c2daf672de85cb752dbb05b8d5512d6ca16b52ec",
+      "report": "qualified-corpus.jsonl",
+      "reportHash": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "QB-MATCH-EDITION: newer fixture conflicts with edition-16 primitive symbol lookup"
+    },
+    {
+      "id": "built-ins/String/prototype/split/argument-is-new-reg-exp-and-instance-is-string-hello.js#sloppy",
+      "status": "passed",
+      "fixtureHash": "50f50b1503e618f5cf2a813597a11ef99b7e0f03807d28e495b002023f329a25",
+      "report": "split-corpus.jsonl",
+      "reportHash": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/split/argument-is-new-reg-exp-and-instance-is-string-hello.js#strict",
+      "status": "passed",
+      "fixtureHash": "50f50b1503e618f5cf2a813597a11ef99b7e0f03807d28e495b002023f329a25",
+      "report": "split-corpus.jsonl",
+      "reportHash": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/split/cstm-split-get-err.js#sloppy",
+      "status": "passed",
+      "fixtureHash": "89710bc7f8d00dc1a9ea93ec98650d4ad7fea96efe14b54504da76f160bd5556",
+      "report": "split-corpus.jsonl",
+      "reportHash": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/split/cstm-split-get-err.js#strict",
+      "status": "passed",
+      "fixtureHash": "89710bc7f8d00dc1a9ea93ec98650d4ad7fea96efe14b54504da76f160bd5556",
+      "report": "split-corpus.jsonl",
+      "reportHash": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/split/cstm-split-invocation.js#sloppy",
+      "status": "passed",
+      "fixtureHash": "820390ad96e990613d514b37a2bce43fdee3c1683fb76147994b7f7a7402ed92",
+      "report": "split-corpus.jsonl",
+      "reportHash": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/split/cstm-split-invocation.js#strict",
+      "status": "passed",
+      "fixtureHash": "820390ad96e990613d514b37a2bce43fdee3c1683fb76147994b7f7a7402ed92",
+      "report": "split-corpus.jsonl",
+      "reportHash": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/split/cstm-split-is-null.js#sloppy",
+      "status": "passed",
+      "fixtureHash": "2791d9a83e3ebcb4de99483a693bcd3895b11eb411c748a81313d941d5aac8ab",
+      "report": "split-corpus.jsonl",
+      "reportHash": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    },
+    {
+      "id": "built-ins/String/prototype/split/cstm-split-is-null.js#strict",
+      "status": "passed",
+      "fixtureHash": "2791d9a83e3ebcb4de99483a693bcd3895b11eb411c748a81313d941d5aac8ab",
+      "report": "split-corpus.jsonl",
+      "reportHash": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "disposition": "Current-source selected fixture passed; not whole-category qualification"
+    }
+  ],
+  "repairedControls": [
+    "QB-ARRAY-BOX",
+    "QB-ARRAY-ORDER",
+    "QB-BARE-REGEX-SPLIT"
+  ],
+  "remainingCategoryQualification": "open"
+}

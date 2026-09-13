@@ -858,7 +858,8 @@ async function evaluateObjectExpression(
       try {
         value = await evaluateNode(property.value, {
           ...context,
-          inferredName: propertyFunctionName(key.value),
+          inferredName: isObjectPrototypeSetterProperty(property, key.value)
+            ? undefined : propertyFunctionName(key.value),
           ...(property.value.type === "FunctionExpression" && property.value.method === true
             ? { functionEnvironment: { homeObject: object } }
             : {})

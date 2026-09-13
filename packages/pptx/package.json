@@ -32,6 +32,7 @@
     "directory": "packages/pptx"
   },
   "dependencies": {
-    "@poe-code/office-package": "*"
+    "@poe-code/office-package": "*",
+    "saxes": "6.0.0"
   }
 }

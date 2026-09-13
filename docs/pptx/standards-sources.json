@@ -1,0 +1,2486 @@
+{
+  "schema_version": 1,
+  "retrieved_at": "2026-09-13T01:56:22.028963+00:00",
+  "purpose": "Standards research only; hashes are acquisition evidence, not product conformance. No downloaded schema or document is shipped.",
+  "sources": [
+    {
+      "id": "ecma-p1",
+      "url": "https://ecma-international.org/wp-content/uploads/ECMA-376-1_5th_edition_december_2016.zip",
+      "bytes": 43501721,
+      "sha256": "9d0bcad9cf06054785b03762fcfadbf6bab7e54a5f9d69434e34b7fd464d4129",
+      "members": [
+        {
+          "path": "Ecma Office Open XML Part 1 - Fundamentals And Markup Language Reference.pdf",
+          "bytes": 35304993,
+          "sha256": "7cccfd0ad0e2ef89316acece15e44a8a088d0603ce4bba4e7b0361b50d13a37d"
+        },
+        {
+          "path": "OfficeOpenXML-DrawingMLGeometries.zip",
+          "bytes": 51672,
+          "sha256": "a8517838a3a60492d267d1ff92e1ebd831adc04584de79a38a5532a68902abf6"
+        },
+        {
+          "path": "OfficeOpenXML-RELAXNG-Strict.zip",
+          "bytes": 95533,
+          "sha256": "380c2a76210e48479ccb6eda79858cf394524534d54c51fcab5433a86c2dc99f"
+        },
+        {
+          "path": "OfficeOpenXML-SpreadsheetMLStyles.zip",
+          "bytes": 83776,
+          "sha256": "bfe5b222db0c12494350b6c36cf0c24ebad3c8ef0cd470d18a0d96a316bbc0c9"
+        },
+        {
+          "path": "OfficeOpenXML-WordprocessingMLArtBorders.zip",
+          "bytes": 14425345,
+          "sha256": "f9894d9a26f7b59ba2b233fe87930c9f0a1ec17967fe66f3d2ddf83b79c631ff"
+        },
+        {
+          "path": "OfficeOpenXML-XMLSchema-Strict.zip",
+          "bytes": 93849,
+          "sha256": "73fab4b04ddd93da020ed07583f755466dcaf69f115b2ff6649af7ae16a816f7"
+        }
+      ],
+      "revision": "5th edition, December 2016"
+    },
+    {
+      "id": "ecma-p2",
+      "url": "https://ecma-international.org/wp-content/uploads/ECMA-376-2_5th_edition_december_2021.zip",
+      "bytes": 1899204,
+      "sha256": "1d489dc491168ea1f9e9a59063acc8dd5f02b4ad1d21aa7ec19ba9a58d020c70",
+      "members": [
+        {
+          "path": "Ecma Office Open XML Part 2 - Open Packaging Conventions.pdf",
+          "bytes": 2009726,
+          "sha256": "18701071fe15f39389761f82512c70d2effbf22bd16dd034f2939797ff5f6147"
+        },
+        {
+          "path": "OpenPackagingConventions-RELAXNG.zip",
+          "bytes": 2575,
+          "sha256": "5e7992d3a681055cf21873d1746fa228c5b4d594a7a05d357421e694549ffe98"
+        },
+        {
+          "path": "OpenPackagingConventions-XMLSchema.zip",
+          "bytes": 3037,
+          "sha256": "e5a0a7c1f43ac8b8f66d850f48545c2ead09f6d632bb8539fab79962c7fd55df"
+        }
+      ],
+      "revision": "5th edition, December 2021"
+    },
+    {
+      "id": "ecma-p3",
+      "url": "https://ecma-international.org/wp-content/uploads/ECMA-376-3_5th_edition_december_2015.zip",
+      "bytes": 741741,
+      "sha256": "42294159fbbbe9393ccadac95b859d7729cc68d908898bcbe31034dda059daa8",
+      "members": [
+        {
+          "path": "Ecma Office Open XML Part 3 - Markup Compatibility and Extensibility.pdf",
+          "bytes": 864652,
+          "sha256": "3742ae2573fcf2eec6878ee345bf540541b77df47f09a57603851ca2d02dfa13"
+        }
+      ],
+      "revision": "5th edition, December 2015"
+    },
+    {
+      "id": "ecma-p4",
+      "url": "https://ecma-international.org/wp-content/uploads/ECMA-376-4_5th_edition_december_2016.zip",
+      "bytes": 8471820,
+      "sha256": "bd25da1109f73762356596918bf5ff8b74a1331642dba5f1c1d1dfc6bed34ecd",
+      "members": [
+        {
+          "path": "Ecma Office Open XML Part 4 - Transitional Migration Features.pdf",
+          "bytes": 10205576,
+          "sha256": "753990eae4920e5c75ffca700be7ea73390cd9725530b756a3e68d33757354ee"
+        },
+        {
+          "path": "OfficeOpenXML-RELAXNG-Transitional.zip",
+          "bytes": 107278,
+          "sha256": "0945ac7b30a1c9b371287a313fbf948a58fb44b68ebfb6cdce4f60036afbff5c"
+        },
+        {
+          "path": "OfficeOpenXML-XMLSchema-Transitional.zip",
+          "bytes": 105808,
+          "sha256": "d34187520749998af306faf1b730e568b0ca6d88ad24638a407c0a9bb4ca04fc"
+        }
+      ],
+      "revision": "5th edition, December 2016"
+    },
+    {
+      "id": "MS-PPTX",
+      "url": "https://officeprotocoldocs-f5hpbjgea6b8gneq.b02.azurefd.net/files/MS-PPTX/%5bMS-PPTX%5d.pdf",
+      "bytes": 5066218,
+      "sha256": "1e42899cab0da9ca66c6db3055bdd0e9e424232f7fd4d9c670c0d4df93bb9081",
+      "members": [],
+      "revision": "25.0, August 20, 2024"
+    },
+    {
+      "id": "MS-ODRAWXML",
+      "url": "https://officeprotocoldocs-f5hpbjgea6b8gneq.b02.azurefd.net/files/MS-ODRAWXML/%5bMS-ODRAWXML%5d.pdf",
+      "bytes": 10150622,
+      "sha256": "b2ff9f11c5251acdaa4de103575932820433fb9d1bc67586323106c0bdf3a0fb",
+      "members": [],
+      "revision": "34.0, February 17, 2026"
+    }
+  ],
+  "schema_hash_rules": {
+    "ecma": "SHA-256 of exact uncompressed XSD member bytes in the named nested ZIP.",
+    "extensions": "SHA-256 of the sole HTML pre block containing xsd:schema, decoded by Python HTMLParser, replacing U+00A0 with U+0020, then UTF-8 encoding. No trimming or newline changes. page_sha256 hashes response bytes.",
+    "revision_boundary": "PDF revisions and online schema snapshots are separately pinned. A page date is not a protocol revision; hashes do not assert schema compilation or identical PDF/HTML serialization."
+  },
+  "schemas": {
+    "ecma": [
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "dml-chart.xsd",
+        "sha256": "189b9631129a7d6c9f971b42b94c8942d260f11f81615f427db059bbf442cdc3",
+        "bytes": 74388,
+        "namespace": "http://purl.oclc.org/ooxml/drawingml/chart",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/chartDrawing",
+            "schemaLocation": "dml-chartDrawing.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "dml-chartDrawing.xsd",
+        "sha256": "1943abd37970b25b355890f183c19a3b1a9b67a1420633030eb50ed5b278bec7",
+        "bytes": 6902,
+        "namespace": "http://purl.oclc.org/ooxml/drawingml/chartDrawing",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+            "schemaLocation": "dml-main.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "dml-diagram.xsd",
+        "sha256": "179cd2fa4b981e1e2faa9ce99bb18c5d4d896dc1edb144af50f5cc8c52eb8569",
+        "bytes": 52278,
+        "namespace": "http://purl.oclc.org/ooxml/drawingml/diagram",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "dml-lockedCanvas.xsd",
+        "sha256": "9c3038dd6ccc3472378be0e7c4e3e34013ee7a5619555e7463dd6d7e1d9bde1e",
+        "bytes": 558,
+        "namespace": "http://purl.oclc.org/ooxml/drawingml/lockedCanvas",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+            "schemaLocation": "dml-main.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "dml-main.xsd",
+        "sha256": "078871240cff323ddd22a395281421b737fa61508fd39ffaa2947ba2bc01175e",
+        "bytes": 153356,
+        "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/diagram",
+            "schemaLocation": "dml-diagram.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/chart",
+            "schemaLocation": "dml-chart.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/picture",
+            "schemaLocation": "dml-picture.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/lockedCanvas",
+            "schemaLocation": "dml-lockedCanvas.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "dml-picture.xsd",
+        "sha256": "d36c91b21f80ec504cd05d40737e7e2104713d8ed7c6c8af51e5c6b778fd667c",
+        "bytes": 1179,
+        "namespace": "http://purl.oclc.org/ooxml/drawingml/picture",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+            "schemaLocation": "dml-main.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "dml-spreadsheetDrawing.xsd",
+        "sha256": "1135493946a4d86773f1421e3453fa94bdebe575f6746e0b09a716360b44b925",
+        "bytes": 8786,
+        "namespace": "http://purl.oclc.org/ooxml/drawingml/spreadsheetDrawing",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "schemaLocation": "shared-relationshipReference.xsd",
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "dml-wordprocessingDrawing.xsd",
+        "sha256": "725d64911076b34f1b2d60004cd14866fc0a399ab9808dc09415197a9e4dd144",
+        "bytes": 14942,
+        "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "schemaLocation": "wml.xsd",
+            "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/picture",
+            "schemaLocation": "dml-picture.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "pml.xsd",
+        "sha256": "63f991936d4b11ecdab09442043d2806f1b19383e6c49b13c64186bcf485fb0b",
+        "bytes": 81795,
+        "namespace": "http://purl.oclc.org/ooxml/presentationml/main",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-additionalCharacteristics.xsd",
+        "sha256": "2642f009105af888c2374aa550593d7bccc0a953579a4ff70b9a2fbbb76757b2",
+        "bytes": 1245,
+        "namespace": "http://purl.oclc.org/ooxml/officeDocument/characteristics",
+        "imports": []
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-bibliography.xsd",
+        "sha256": "380653d1a4e9760717c33c4d643a042d7f22d070ef012fac51d3fced3ffe36dd",
+        "bytes": 7280,
+        "namespace": "http://purl.oclc.org/ooxml/officeDocument/bibliography",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-commonSimpleTypes.xsd",
+        "sha256": "02df434395eb22d0e13aa2f6445b7f7fbecd3687c6dff238823bbdd3bd9cdf6a",
+        "bytes": 4831,
+        "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+        "imports": []
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-customXmlDataProperties.xsd",
+        "sha256": "e5679dbc139f9e192b7754863401f6a429002c10d8189ed68237c4972080125c",
+        "bytes": 1225,
+        "namespace": "http://purl.oclc.org/ooxml/officeDocument/customXml",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-customXmlSchemaProperties.xsd",
+        "sha256": "32034ef469e73047751ca00f88c4b6e62dd47a7a655b72daf7f95a1c5015f228",
+        "bytes": 856,
+        "namespace": "http://purl.oclc.org/ooxml/schemaLibrary/main",
+        "imports": []
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-documentPropertiesCustom.xsd",
+        "sha256": "e04e42fb42404c6e9025fe235b67b0f726b5735d62ac799ec4dca0fa67e99b04",
+        "bytes": 2534,
+        "namespace": "http://purl.oclc.org/ooxml/officeDocument/customProperties",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes",
+            "schemaLocation": "shared-documentPropertiesVariantTypes.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-documentPropertiesExtended.xsd",
+        "sha256": "62fbc970cd9f08faad142e59085c3656b5248fd97039d9bc35d24c31f032fb62",
+        "bytes": 3457,
+        "namespace": "http://purl.oclc.org/ooxml/officeDocument/extendedProperties",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes",
+            "schemaLocation": "shared-documentPropertiesVariantTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-documentPropertiesVariantTypes.xsd",
+        "sha256": "105b7556e4d40ff808410764b4e31193fceb0f5b73191517c45166e0403d8cf6",
+        "bytes": 7459,
+        "namespace": "http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-math.xsd",
+        "sha256": "4c6e2aaed399993c80e67e848752dd9c0e177a8b671cf792f0c820496d037823",
+        "bytes": 23786,
+        "namespace": "http://purl.oclc.org/ooxml/officeDocument/math",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+            "schemaLocation": "wml.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://www.w3.org/XML/1998/namespace"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "shared-relationshipReference.xsd",
+        "sha256": "82409aacec09c8672eec2f8d7e44bec10c450649f31603659a8229b122a01163",
+        "bytes": 1327,
+        "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+        "imports": []
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "sml.xsd",
+        "sha256": "dc4b61faf2b62d2caf875faf40bb14a8f3c0cf3dc52763a2db394a28e79634b4",
+        "bytes": 244208,
+        "namespace": "http://purl.oclc.org/ooxml/spreadsheetml/main",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/spreadsheetDrawing",
+            "schemaLocation": "dml-spreadsheetDrawing.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p1",
+        "archive_member": "OfficeOpenXML-XMLSchema-Strict.zip",
+        "path": "wml.xsd",
+        "sha256": "44fc2233c5df2cfbe0b3b50e7024bd8412ec99dfe7176313ef58845fdec5498d",
+        "bytes": 163400,
+        "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+        "imports": [
+          {
+            "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+            "schemaLocation": "dml-wordprocessingDrawing.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/math",
+            "schemaLocation": "shared-math.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://purl.oclc.org/ooxml/schemaLibrary/main",
+            "schemaLocation": "shared-customXmlSchemaProperties.xsd"
+          },
+          {
+            "namespace": "http://www.w3.org/XML/1998/namespace"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p2",
+        "archive_member": "OpenPackagingConventions-XMLSchema.zip",
+        "path": "opc-coreProperties.xsd",
+        "sha256": "69688ea15f82a870053b9a60c79359063dbcfeec9cdabafabad51a53934bc35b",
+        "bytes": 2565,
+        "namespace": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+        "imports": [
+          {
+            "namespace": "http://purl.org/dc/elements/1.1/",
+            "schemaLocation": "http://dublincore.org/schemas/xmls/qdc/2003/04/02/dc.xsd"
+          },
+          {
+            "namespace": "http://purl.org/dc/terms/",
+            "schemaLocation": "http://dublincore.org/schemas/xmls/qdc/2003/04/02/dcterms.xsd"
+          },
+          {
+            "id": "xml",
+            "namespace": "http://www.w3.org/XML/1998/namespace"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p2",
+        "archive_member": "OpenPackagingConventions-XMLSchema.zip",
+        "path": "opc-digSig.xsd",
+        "sha256": "ee7e7e1b9a1340536e25e87c8650a2b90a43b0e67d02d6746cd430048b3c1439",
+        "bytes": 2905,
+        "namespace": "http://schemas.openxmlformats.org/package/2006/digital-signature",
+        "imports": []
+      },
+      {
+        "source": "ecma-p2",
+        "archive_member": "OpenPackagingConventions-XMLSchema.zip",
+        "path": "opc-relationships.xsd",
+        "sha256": "607ffb6879cf5d5d765bfdfb2548f3f427ea964ddee6d08a15f0dc781749866d",
+        "bytes": 1377,
+        "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+        "imports": []
+      },
+      {
+        "source": "ecma-p2",
+        "archive_member": "OpenPackagingConventions-XMLSchema.zip",
+        "path": "opc-contentTypes.xsd",
+        "sha256": "49ec1c03440a9b5590e69acdf92b200fe133697de0b05f43a129fb94d1885026",
+        "bytes": 2005,
+        "namespace": "http://schemas.openxmlformats.org/package/2006/content-types",
+        "imports": []
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "dml-chart.xsd",
+        "sha256": "4de4390a26e7e44e682ed98b39872cce2620f807f5b0de421567a43f74526388",
+        "bytes": 76483,
+        "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing",
+            "schemaLocation": "dml-chartDrawing.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "dml-chartDrawing.xsd",
+        "sha256": "3fd0586f2637b98bb9886f0e0b67d89e1cc987c2d158cc7deb5f5b9890ced412",
+        "bytes": 6956,
+        "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "dml-diagram.xsd",
+        "sha256": "809f77f658f71e10f5cfbf99e25c895a23a4e62c81210b59a2fe8c7fb24849d2",
+        "bytes": 52387,
+        "namespace": "http://schemas.openxmlformats.org/drawingml/2006/diagram",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "dml-lockedCanvas.xsd",
+        "sha256": "5cb76dabd8b97d1e9308a1700b90c20139be4d50792d21a7f09789f5cccd6026",
+        "bytes": 624,
+        "namespace": "http://schemas.openxmlformats.org/drawingml/2006/lockedCanvas",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "dml-main.xsd",
+        "sha256": "6978ba7e889070b0c3cb5b546b23e5a6c3516134afc53b87a21f482ca33f3858",
+        "bytes": 155120,
+        "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/diagram",
+            "schemaLocation": "dml-diagram.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+            "schemaLocation": "dml-chart.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/picture",
+            "schemaLocation": "dml-picture.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/lockedCanvas",
+            "schemaLocation": "dml-lockedCanvas.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "dml-picture.xsd",
+        "sha256": "5d389d42befbebd91945d620242347caecd3367f9a3a7cf8d97949507ae1f53c",
+        "bytes": 1231,
+        "namespace": "http://schemas.openxmlformats.org/drawingml/2006/picture",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "dml-spreadsheetDrawing.xsd",
+        "sha256": "b4532b6d258832953fbb3ee4c711f4fe25d3faf46a10644b2505f17010d01e88",
+        "bytes": 8862,
+        "namespace": "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "schemaLocation": "shared-relationshipReference.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "dml-wordprocessingDrawing.xsd",
+        "sha256": "2dbfd4719505bf39b568005994a433997cbeac59cebc9d4867d564c94e9ba03a",
+        "bytes": 15082,
+        "namespace": "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "schemaLocation": "wml.xsd",
+            "namespace": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/picture",
+            "schemaLocation": "dml-picture.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "pml.xsd",
+        "sha256": "39c6396b7b1f096885c3ceba5dab30e3ee14291c45a1d6fa6038ec4db69d88d0",
+        "bytes": 85288,
+        "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-additionalCharacteristics.xsd",
+        "sha256": "3c6709101c6aaa82888df5d8795c33f9e857196790eb320d9194e64be2b6bdd8",
+        "bytes": 1269,
+        "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/characteristics",
+        "imports": []
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-bibliography.xsd",
+        "sha256": "0b364451dc36a48dd6dae0f3b6ada05fd9b71e5208211f8ee5537d7e51a587e2",
+        "bytes": 7328,
+        "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/bibliography",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-commonSimpleTypes.xsd",
+        "sha256": "48675c4f82f6b097434d4b7e313635b790257cca58fa90dd0e8f19c9affa18ed",
+        "bytes": 6501,
+        "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+        "imports": []
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-customXmlDataProperties.xsd",
+        "sha256": "0ef4bb354ff44b923564c4ddbdda5987919d220225129ec94614a618ceafc281",
+        "bytes": 1248,
+        "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/customXml",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-customXmlSchemaProperties.xsd",
+        "sha256": "0d103b99a4a8652f8871552a69d42d2a3760ac6a5e3ef02d979c4273257ff6a4",
+        "bytes": 880,
+        "namespace": "http://schemas.openxmlformats.org/schemaLibrary/2006/main",
+        "imports": []
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-documentPropertiesCustom.xsd",
+        "sha256": "9c085407751b9061c1f996f6c39ce58451be22a8d334f09175f0e89e42736285",
+        "bytes": 2608,
+        "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+            "schemaLocation": "shared-documentPropertiesVariantTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-documentPropertiesExtended.xsd",
+        "sha256": "bc92e36ccd233722d4c5869bec71ddc7b12e2df56059942cce5a39065cc9c368",
+        "bytes": 3507,
+        "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+            "schemaLocation": "shared-documentPropertiesVariantTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-documentPropertiesVariantTypes.xsd",
+        "sha256": "7b5b7413e2c895b1e148e82e292a117d53c7ec65b0696c992edca57b61b4a74b",
+        "bytes": 7507,
+        "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-math.xsd",
+        "sha256": "132e44dc10f2959e3f585584e5d82e7b2e329691e3010646e497710bd9774152",
+        "bytes": 23870,
+        "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/math",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+            "schemaLocation": "wml.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://www.w3.org/XML/1998/namespace"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "shared-relationshipReference.xsd",
+        "sha256": "12264f3c03d738311cd9237d212f1c07479e70f0cbe1ae725d29b36539aef637",
+        "bytes": 1367,
+        "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+        "imports": []
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "sml.xsd",
+        "sha256": "495debc8fa967b77ed37799747b049832f2c95b2ecdb9f19ddcd68f8c9f96ab9",
+        "bytes": 246716,
+        "namespace": "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing",
+            "schemaLocation": "dml-spreadsheetDrawing.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "vml-main.xsd",
+        "sha256": "335e9ecd40bb594ec4b916ac8c7b9eead4e16fe1b79f9d4105fdb1c43b66bb1c",
+        "bytes": 26718,
+        "namespace": "urn:schemas-microsoft-com:vml",
+        "imports": [
+          {
+            "namespace": "urn:schemas-microsoft-com:office:office",
+            "schemaLocation": "vml-officeDrawing.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+            "schemaLocation": "wml.xsd"
+          },
+          {
+            "namespace": "urn:schemas-microsoft-com:office:word",
+            "schemaLocation": "vml-wordprocessingDrawing.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "urn:schemas-microsoft-com:office:excel",
+            "schemaLocation": "vml-spreadsheetDrawing.xsd"
+          },
+          {
+            "namespace": "urn:schemas-microsoft-com:office:powerpoint",
+            "schemaLocation": "vml-presentationDrawing.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "vml-officeDrawing.xsd",
+        "sha256": "585bedc1313b40888dcc544cb74cd939a105ee674f3b1d3aa1cc6d34f70ff155",
+        "bytes": 25279,
+        "namespace": "urn:schemas-microsoft-com:office:office",
+        "imports": [
+          {
+            "namespace": "urn:schemas-microsoft-com:vml",
+            "schemaLocation": "vml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "vml-presentationDrawing.xsd",
+        "sha256": "133c9f64a5c5d573b78d0a474122b22506d8eadb5e063f67cdbbb8fa2f161d0e",
+        "bytes": 535,
+        "namespace": "urn:schemas-microsoft-com:office:powerpoint",
+        "imports": []
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "vml-spreadsheetDrawing.xsd",
+        "sha256": "6bdeb169c3717eb01108853bd9fc5a3750fb1fa5b82abbdd854d49855a40f519",
+        "bytes": 5712,
+        "namespace": "urn:schemas-microsoft-com:office:excel",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          }
+        ]
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "vml-wordprocessingDrawing.xsd",
+        "sha256": "475dcae1e7d1ea46232db6f8481040c15e53a52a3c256831d3df204212b0e831",
+        "bytes": 4010,
+        "namespace": "urn:schemas-microsoft-com:office:word",
+        "imports": []
+      },
+      {
+        "source": "ecma-p4",
+        "archive_member": "OfficeOpenXML-XMLSchema-Transitional.zip",
+        "path": "wml.xsd",
+        "sha256": "0f7784b36ddc42950e5ff354cd608b83b60e4de39325d5568913f1225365029b",
+        "bytes": 174758,
+        "namespace": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",
+            "schemaLocation": "dml-wordprocessingDrawing.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/math",
+            "schemaLocation": "shared-math.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/schemaLibrary/2006/main",
+            "schemaLocation": "shared-customXmlSchemaProperties.xsd"
+          },
+          {
+            "namespace": "http://www.w3.org/XML/1998/namespace"
+          }
+        ]
+      }
+    ],
+    "extensions": [
+      {
+        "source": "MS-PPTX",
+        "section": "5.1",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/cc915728-85a4-46a0-a07c-eb5416a5762e",
+        "page_sha256": "e20c0a428da9b15d1ac55849688500c1feac7981aff5ccdd349845950cdd7085",
+        "sha256": "cfbda4144bbd3c8d1ec06f271d518410bce05e5b373363a037631395ad1c24a8",
+        "bytes": 12858,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2010/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.microsoft.com/office/drawing/2010/main",
+            "schemaLocation": "dml-mainExt.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "shared-relationshipReference.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.2",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/27d7324c-0a29-4475-a980-de020defb315",
+        "page_sha256": "80d1072bd2efcbd2c9aa46a133b846e4d2c1b742eb3af62bd12e0a2c108b4cd6",
+        "sha256": "7605ae9f774e93e1108d0da3373c70559296e992f30da40a90b5401c9a5dda98",
+        "bytes": 3859,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2012/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.4",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/a54fd7b7-04d6-4d16-bbdd-b20b2b99578c",
+        "page_sha256": "4a990da6a5fc434285b34556f36f1d0490c47879fbc139cdc284694ec00605a4",
+        "sha256": "bd24c69506692334e378e023cc36428e3a4886a447719f5bebcec20509f24ab1",
+        "bytes": 1041,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2015/09/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.5",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/e5047fb0-5d6d-421f-bfe9-ce8cd549843f",
+        "page_sha256": "bc2088bf409c3c92249b8b87f5800576af3f345db72351517bd0c3271a6bcabf",
+        "sha256": "9ad940047db3a9cea1ad78b8af89adb9af518362e2fe32da57a22e5a0bdce1b4",
+        "bytes": 2198,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2015/10/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.6",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/16648623-7c2a-4c18-a7cb-093daa05500e",
+        "page_sha256": "c91a895153995e95078389babf8a9a333b1f200c40596e632c709147dfaa14e3",
+        "sha256": "28d6b1a61a66d23b65c5a4820d0058d292d8090e7ff54939a008290f71e1cf98",
+        "bytes": 936,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2015/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.7",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/84585d01-dfd5-403e-9235-27853aff4d46",
+        "page_sha256": "c5cc4db0de6897af4c9655ddedb63418554572322a0532d13dd7cf7dd920a8ca",
+        "sha256": "d4a3f3430a32d7a1a824a3ba7927d25f3f53626e00b42184e20fbc889ba37f9e",
+        "bytes": 2038,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2016/6/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.microsoft.com/office/powerpoint/2010/main",
+            "schemaLocation": "ms-pptx14.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.8",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/55c6a539-eea9-478f-a6ff-6ad2f1dde7e7",
+        "page_sha256": "3494a2badee71e72c57fb463d0e02c4856f2042b44546a7d548f9e08600f054c",
+        "sha256": "df6b983778b7db9b3aaed58a9d31ca240a43c706a06158391b273eaf549f81a1",
+        "bytes": 1713,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom",
+        "imports": [
+          {
+            "namespace": "http://schemas.microsoft.com/office/powerpoint/2016/6/main",
+            "schemaLocation": "ms-pptx166.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.9",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/87141ff2-6609-4acc-a63f-1b230b4a1b38",
+        "page_sha256": "b57c331e02b64a4a49ab4038e0ffc2e31cf904b4e61b8fa6a94e5bb4372f7ad8",
+        "sha256": "475ec6b8a469e17564a42dc59f6b07779bcd86bb0a3ce1cd098c8a03b893c258",
+        "bytes": 1697,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2016/slidezoom",
+        "imports": [
+          {
+            "namespace": "http://schemas.microsoft.com/office/powerpoint/2016/6/main",
+            "schemaLocation": "ms-pptx166.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.10",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/3aa207bf-1c1a-4bb9-8776-16d130f1557f",
+        "page_sha256": "c52bef9fe20ca8d079afb8b5a8633443a25f38eb3847f87f7f39fc00b01a63a3",
+        "sha256": "c20ef7d2d595f9580e15184f4cbc6330b464ecc8a8bf63a68c6e15c786c8acef",
+        "bytes": 2656,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom",
+        "imports": [
+          {
+            "namespace": "http://schemas.microsoft.com/office/powerpoint/2016/6/main",
+            "schemaLocation": "ms-pptx166.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.15",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/03d8f774-bc53-4111-820c-afdd3ab2753a",
+        "page_sha256": "8621628ce7b51e472e78551cb31a841f35bc03762d4e3df8c117d135db8b2486",
+        "sha256": "d79c944cb39b211812a3b86ad157530b4c09f5e3834acb25ea3e5f40c33ad216",
+        "bytes": 1429,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2019/9/main/command",
+        "imports": [
+          {
+            "namespace": "http://schemas.microsoft.com/office/powerpoint/2018/8/main",
+            "schemaLocation": "ms-pptx188.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.18",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/7501f644-0980-4b9f-ad3c-b827d9f74501",
+        "page_sha256": "0b17eff06caa2b85174b12c5576c11ed82aec873119db712867cc9c06218431d",
+        "sha256": "f833a69985de6df6acc078dffbcc7deb4438858faa2d04a922713200a95509f6",
+        "bytes": 3086,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2022/06/main/command",
+        "imports": [
+          {
+            "namespace": "http://schemas.microsoft.com/office/drawing/2013/main/command",
+            "schemaLocation": "dml-cmd.xsd"
+          },
+          {
+            "namespace": "http://schemas.microsoft.com/office/powerpoint/2019/9/main/command",
+            "schemaLocation": "ms-pptxMonikerList2.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.3",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/cf9393f7-a144-45e6-b7d5-5dec18fcfce0",
+        "page_sha256": "1a2719bf5085ecc5f7be27a3dd6823e7b8b811392d0687185e0f81b8cbaf5c23",
+        "sha256": "9cc3e498c517eb97baa0304fe37a33330c839ce481ce1323b1a05b16957f20f6",
+        "bytes": 16897,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2013/main/command",
+        "imports": [
+          {
+            "namespace": "http://schemas.microsoft.com/office/drawing/2013/main/command",
+            "schemaLocation": "dml-cmd.xsd"
+          },
+          {
+            "namespace": "http://schemas.microsoft.com/office/powerpoint/2022/06/main/command",
+            "schemaLocation": "ms-pptxCmd226.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.12",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/f696ec1a-db5c-4234-b5af-123d2c8e6a2b",
+        "page_sha256": "9b98b78cd87b55d725e86500a44c819199f0b4cd1183b2c62519131c23ff72e1",
+        "sha256": "500706b99ce968028104917021fab4c5c51ce42e3ee82596b2607dea8a894f84",
+        "bytes": 1798,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2017/3/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.11",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/28180d30-0176-416f-baf7-2212d5dd0c48",
+        "page_sha256": "0660ce85594589e66110b8a0ee7286f9e2d32c9bd4a196c0e0295ef5c4d11d21",
+        "sha256": "fd4bf466770fce5e0622e9637ef7adc7f81c5512a290e2830107ce6a6fa58768",
+        "bytes": 616,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2017/10/main",
+        "imports": []
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.13",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/e34b98f1-94c0-43f7-af10-83a0c8a0a03b",
+        "page_sha256": "c95b6e5dae6a6e7e5508cbab5d57dfb357b5d602b4ac0dd32f08d4a6b6bcb424",
+        "sha256": "a6bec482abbf876da305281012bc4124e6c47fd68f2de76e388e580daa4d12f7",
+        "bytes": 837,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2018/4/main",
+        "imports": []
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.17",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/2f7f5f35-9fbd-4210-bfb8-bf411b5d2dd5",
+        "page_sha256": "327435d55e575afe37567a5717bc50d3ea292e453a73887ab4f83a4efe427c31",
+        "sha256": "8f5420af7d798fcb549ec8bbbd3ac70a571f0c73fa212008c1e38b467812335a",
+        "bytes": 1820,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2022/03/main",
+        "imports": []
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.19",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/553f8c1b-d46b-4f15-ab68-ee241748605a",
+        "page_sha256": "2c20ca7891a9549eec1d17deade1c072a50abf464a35bb338e0f9c88df6a96ee",
+        "sha256": "440cb46b03d4fb604e56d24ac6bc70041ab24e5f7df79bc3d1773820375b46a7",
+        "bytes": 5070,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2022/08/main",
+        "imports": []
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.14",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/af0dc8d7-ee58-435b-80fb-72f2b351b689",
+        "page_sha256": "12d69914b1e875380741ee5b4fd50acf2c162f298213f761d672db947dd956b0",
+        "sha256": "7dce05a8abb8796730535bdb6745434e0afc84eb96cbbd1a3a18229a2b6a13fd",
+        "bytes": 5879,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2018/8/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.microsoft.com/office/drawing/2013/main/command",
+            "schemaLocation": "dml-cmd.xsd"
+          },
+          {
+            "namespace": "http://schemas.microsoft.com/office/powerpoint/2022/03/main",
+            "schemaLocation": "ms-pptxReactions223.xsd"
+          },
+          {
+            "namespace": "http://schemas.microsoft.com/office/powerpoint/2022/08/main",
+            "schemaLocation": "ms-pptxTasks228.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.16",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/e68b6b19-9654-4d2b-929a-0860e37ce25d",
+        "page_sha256": "c828914f6b0b3d2fdddf4569695f62d5a89f938c4611377b5e2b6bd3a06bbbf2",
+        "sha256": "94857f519214ec698aca2ee894470069e620910b7845a5ff526107d9e4019be8",
+        "bytes": 1742,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2020/02/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "dml-main.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+            "schemaLocation": "shared-commonSimpleTypes.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-PPTX",
+        "section": "5.20",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-pptx/36179565-a686-4c4c-a074-7ed8b8808b7e",
+        "page_sha256": "307e797411854fcbe50d418f4b1ebe302b744abd57a9841cf872df7b42dddda1",
+        "sha256": "b0776ebcb5b354f3a180c84dbca44fc2448bb56e12589639a38f3dbf413b5bde",
+        "bytes": 1007,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2023/02/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "schemaLocation": "pml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.1",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/869af0ef-665b-4f28-a596-0917474ede26",
+        "page_sha256": "e2f3fd093b8368ad37579a11acc7b558e5aef6f57ec888a59f6fa9bbeb77d284",
+        "sha256": "6920d787cafbc7c0783643ea0ef26527b177771753abdc91e147a70f693a7a70",
+        "bytes": 18196,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2010/main",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/math",
+            "schemaLocation": "shared-math.xsd"
+          },
+          {
+            "schemaLocation": "oartdocprop.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          },
+          {
+            "schemaLocation": "oartsp3dscene.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartsp3dstyles.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartspeffects.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartsplineproperties.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.33",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/014fbc20-3705-4812-b8cd-93f5af05b504",
+        "page_sha256": "759bc081a71afa2818c3d23c0eedb5825ee55777d7cc752e38f56a4f63b0ed39",
+        "sha256": "66f34a6842f829000384c9dd2e2396151c3c690f0e3f8e3682eefca3603d671e",
+        "bytes": 730,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2018/hyperlinkcolor",
+        "imports": []
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.27",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/f01549ab-276f-461a-a9be-c672a5393b1a",
+        "page_sha256": "8ac6bb9361382778aef177ad43d3d75d155bc9ed6a3593bd4730fccb4ac2d99e",
+        "sha256": "e3a93b5e9aa691720fb89cc9cc39f0a5a94f2d21b445bce9bd3e06b90e02a582",
+        "bytes": 11791,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2013/main/command",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.36",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/8d84ecec-8b42-42d7-a51a-ca81862b0dd3",
+        "page_sha256": "b1326f23bdb09779d27b88634a69b33de5dea8dc2b770a400e1d979c4eccfb70",
+        "sha256": "eb0336004467394af1bc5f87260b02496f975b49927b6c813a5f512fe21557dd",
+        "bytes": 1903,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2018/sketchyshapes",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartspgeometry.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.17",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/de6e746a-c9e3-48ad-884a-774aac2ad80d",
+        "page_sha256": "65ca352ced3039293e227346ffbd28b3522642f268edf41db0a20fe6479e1f10",
+        "sha256": "6441e899a5c2b8c7b0672b02ab8a9c585025b311ea9860ef9657a1bd153acf76",
+        "bytes": 1252,
+        "namespace": "http://schemas.microsoft.com/office/thememl/2012/main",
+        "imports": [
+          {
+            "schemaLocation": "oartbasestylesheet.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.7",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/b0e5b36b-68a8-4fd4-874c-e5e187ba574f",
+        "page_sha256": "e851a9ce63f43395558b3611129baea8bb102840326a0002e67ebf0eefcfbdc1",
+        "sha256": "fe419b2526facc21bde4c07fe5131b71294e4aef833ce965698e9045c2f7e521",
+        "bytes": 5737,
+        "namespace": "http://schemas.microsoft.com/ink/2010/main",
+        "imports": []
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.28",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/9fb2d49d-0881-4e7d-8b38-95373d76302c",
+        "page_sha256": "88c80395e2ccd1af8d2c5b87489a03c1250edf66f0b7c852f4056cb1d3743ce4",
+        "sha256": "695d9eda1cb6f8cc6e0d2ae7b953627eb0ed20eee3f63f95f47593b08a031e0f",
+        "bytes": 1091,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2016/ink",
+        "imports": []
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.8",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/53d31d11-3b07-4ca3-ac54-e8562713e647",
+        "page_sha256": "a8bbc2243a7d2066a9a2bfae92e877bc7df9b12e6bc1e01ab920dc4f987520ff",
+        "sha256": "686e7880ebfe4d68587f8d8125917b32df1c71bb659bf5a71015257580ac052c",
+        "bytes": 2215,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2010/chartDrawing",
+        "imports": [
+          {
+            "schemaLocation": "oart14docprop.xsd",
+            "namespace": "http://schemas.microsoft.com/office/drawing/2010/main"
+          },
+          {
+            "schemaLocation": "oartdocprop.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.13",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/1c52d959-25d3-4556-9381-cc86c1221029",
+        "page_sha256": "547c67cb71c72d78d84f2ab8b0be49a4ffd800a6fc250226fc4d19ca022b25ab",
+        "sha256": "7bb33db56df4a40c178c1efc98275fafaa637df877a4ae599c9f43fc25361e85",
+        "bytes": 6673,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2012/chart",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+            "schemaLocation": "chart.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "oartspproperties.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.20",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/40b8f1fc-b266-4f1f-90ec-d8ae7bafb140",
+        "page_sha256": "4489394b26d88c89667352d3c7949af4e4219ee3d74c9b3d0b6505e90e2b51e7",
+        "sha256": "0bdb1c73ee1227b743645fa8b444c96e5b8b203894e74cee0a5608041b53ca31",
+        "bytes": 3875,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2014/chart",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+            "schemaLocation": "chart.xsd"
+          },
+          {
+            "schemaLocation": "oartspproperties.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.21",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/5a2048a5-7116-48a9-95b6-9c7b8e70ff44",
+        "page_sha256": "aba24dbc90bbc94fed2b3b0860770bed5cbc362fce9f9685dbee121e197f4bc6",
+        "sha256": "3051aa7a0f72cb395de478d7c8df38e61dfa7ddbacb3dc341c81da681f289713",
+        "bytes": 546,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2014/chart/ac",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+            "schemaLocation": "chart.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.42",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/4a7a3cd6-1782-4b99-b223-5a811e505d73",
+        "page_sha256": "64df28f1b52caab39687c38cd13cdadb1e011e4c231172cfd15fe3144efc14ec",
+        "sha256": "1dc9a7b862cb52fd3df983d4735fbde948f9bc43a8236c10e03f7054ed6dceb1",
+        "bytes": 592,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2015/06/chart",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+            "schemaLocation": "chart.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.31",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/07ad9d54-eb9e-4d52-831e-aa6487b295c2",
+        "page_sha256": "788e9d8a0f3b46cda0ef591822562d0db532123a8e907b4e4a05c2653c6e3d46",
+        "sha256": "0c78bda239c891e6d2f9537a362314f3cebf232a6fa7194d08ad2dbea26474fc",
+        "bytes": 911,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2017/03/chart",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+            "schemaLocation": "chart.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.10",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/070bea84-2201-463c-aeaa-cf258492b5b5",
+        "page_sha256": "fd1c2d445ec978ccc7d9706cb89b5f514289130bd38c82a046d020c411e52bc0",
+        "sha256": "b7f1fd260f5b15c26780e04be1237500fe25935397c7114878cb207a1374b0f4",
+        "bytes": 2890,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2007/8/2/chart",
+        "imports": [
+          {
+            "schemaLocation": "oartspproperties.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartstylesheet.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oarttx.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          },
+          {
+            "schemaLocation": "ChartDrawing.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing"
+          },
+          {
+            "schemaLocation": "Chart.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chart"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.22",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/e2723b0a-9120-42a5-bd11-c252ccb13c1e",
+        "page_sha256": "4bbe9a4d4ccd114c9b90a215d73dcbefbc0a44d114c1c4c51da2a602edde896c",
+        "sha256": "ade8963e17a4e43c23b7837c4d80fd57bf2a5a193bffbbc1248829c8f12497a8",
+        "bytes": 44452,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2014/chartex",
+        "imports": [
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "oartspproperties.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "oarttx.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "oartspeffects.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+            "schemaLocation": "oartstylesheet.xsd"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "orel.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.23",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/55a2958e-599f-46a0-8812-029155d485cb",
+        "page_sha256": "182df426a45d3437853d6de68484083724e4aa5f92011597fd531ab6e77b42aa",
+        "sha256": "b9fccd1ab0d63398f18892889060529eaeec9fbddec945aa432a418e543971e6",
+        "bytes": 1350,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2014/main",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.15",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/a7bb9c01-d274-47ee-a16a-90e26877e8a4",
+        "page_sha256": "bd15567b5408e9bf4f4dfaa152abca01beb4edd2960b2905204ff0ccaf55ba2c",
+        "sha256": "38fabd1de9b5cdfc0fb5773d398f13c74ea6fada1e58d955250b0ecf41139b9e",
+        "bytes": 9434,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2012/chartStyle",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartspstyle.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oarttx.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.16",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/6a404d68-14de-4124-b7db-bb48398538ac",
+        "page_sha256": "ef2b1e7df35c48798ec6813d0b52a6876a9256bfc508f3a6277b70ab85c34d72",
+        "sha256": "6628904fb842560628ff196af377f15c299880de3daf6aa36ebaa0df5c6a6ef8",
+        "bytes": 841,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2010/diagram",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartdocprop.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.6",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/e1b56dd5-305b-4b3b-a983-28df1d4ffc3f",
+        "page_sha256": "b8b6ebaa152f3403d0ace070ed6f4e3b8dae7bc0f33cf93f3eaf6ba942088311",
+        "sha256": "611cfce57adc6ec0cf5dc291bf369d19a8af8636af8d0e8c1e92c573aca78751",
+        "bytes": 3604,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2008/diagram",
+        "imports": [
+          {
+            "schemaLocation": "igxelementpropertyset.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/diagram"
+          },
+          {
+            "schemaLocation": "oartspstyle.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartdocprop.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oarte2o.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oarttx.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.14",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/a87e4aa0-8ba3-41f1-a6a3-67c2afcca6b3",
+        "page_sha256": "ab2ae42be3439480c46ac70dd55703693990dd62c2075931075420c4ac506082",
+        "sha256": "eb40942d5308e0140ec3fd32f3fe95e979d2d5afc30cb4d8af5f2df9c77a01df",
+        "bytes": 2773,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2012/main",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.2",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/f73ea06d-4749-4611-b20b-755df087eb21",
+        "page_sha256": "a16744d77d86972d631c6b401603129e2c3d3b71e4254948721457a30a620540",
+        "sha256": "496c995112952f1f4fc197ade220f35bb3cef5183d8f7c1606460ce9e55ae44a",
+        "bytes": 3393,
+        "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape",
+        "imports": [
+          {
+            "schemaLocation": "oartdocprop.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartspproperties.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartstylesheet.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          },
+          {
+            "schemaLocation": "oartWordShapeTextbox.xsd",
+            "namespace": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartWordNonEcmaShapeTextbox.xsd",
+            "namespace": "http://schemas.microsoft.com/office/word/2006/wordml"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.3",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/20b04a8a-b93e-4ecd-9522-96d4bb1847c8",
+        "page_sha256": "4672ccda478228b73dfd4a04ae095adb8acdbf7f133d3486ec6beb5f7ea8f706",
+        "sha256": "bc6553c01a6d37c5cfeff70de767defd0a803de12b84cd011385d82640da9dc4",
+        "bytes": 1732,
+        "namespace": "http://schemas.microsoft.com/office/word/2010/wordml",
+        "imports": [
+          {
+            "schemaLocation": "oart14docprop.xsd",
+            "namespace": "http://schemas.microsoft.com/office/drawing/2010/main"
+          },
+          {
+            "schemaLocation": "oartdocprop.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.12",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/81dd13dc-144f-4099-bb1f-658ce7b65b6d",
+        "page_sha256": "14566f7ee55ca7d0e078b05cac9b3679fcb8591aa5a8c91b3b5972619092857b",
+        "sha256": "e853915d74bc07869f9961876d4fb070f64240bdfbdea8c6141dafc7b1342f11",
+        "bytes": 664,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2010/picture",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartspstyle.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.4",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/fbe733bf-85e2-46f9-b548-9292b44670ce",
+        "page_sha256": "2de075fd43f17e9c11cb18a77fe71cb35569d485229da2fcfda264a513fb97f3",
+        "sha256": "c9411acef922d7e7efa965571f3885952cad117f35df7dd6de566fffaf3c7f04",
+        "bytes": 2763,
+        "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup",
+        "imports": [
+          {
+            "schemaLocation": "oartdocprop.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oarte2o.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartspproperties.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartwordshape.xsd",
+            "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+          },
+          {
+            "schemaLocation": "oartwordcontentpart.xsd",
+            "namespace": "http://schemas.microsoft.com/office/word/2010/wordml"
+          },
+          {
+            "schemaLocation": "picturee2o.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/picture"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.5",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/0af4dfe1-b07b-41eb-a48b-87aadd16b51b",
+        "page_sha256": "688fbc1fb969c98d9d4319459e3d66a9c9b3eaf307dd0a2db61215385c0c64b3",
+        "sha256": "be66b412a4acf9fcbc971001aec33420ed25115b2db50ac85276266293de650b",
+        "bytes": 2035,
+        "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas",
+        "imports": [
+          {
+            "schemaLocation": "oartwordcontentpart.xsd",
+            "namespace": "http://schemas.microsoft.com/office/word/2010/wordml"
+          },
+          {
+            "schemaLocation": "oartwordgroup.xsd",
+            "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+          },
+          {
+            "schemaLocation": "oartwordshape.xsd",
+            "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+          },
+          {
+            "schemaLocation": "oarte2oformat.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "picturee2o.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/picture"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.11",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/1a38a99a-16ae-420d-8c79-23dc2e922717",
+        "page_sha256": "c2a454f4981b6a76550168b8ac94d15668b9e39186e946f79ef7e5953c3b301c",
+        "sha256": "c38775df354e23a1d7461de748299fb9d12b0a636a77b0a483d4b8204081ba21",
+        "bytes": 2399,
+        "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing",
+        "imports": [
+          {
+            "schemaLocation": "oarte2o.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartdocprop.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.18",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/44351d27-cd96-461b-89ae-3be25ed82425",
+        "page_sha256": "a1f49dc996444d731b04a002df23ae8185013365cdf0a344f8cd3ca82fd5e260",
+        "sha256": "660f18e34cb3f50a9a2ed231a83babdb146a73efd87d97a0783cfbbb4813c5f7",
+        "bytes": 1019,
+        "namespace": "http://schemas.microsoft.com/office/word/2012/wordprocessingDrawing",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+            "schemaLocation": "orel.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.9",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/ec810aeb-26c0-4f32-a6a4-59abb9a0398f",
+        "page_sha256": "6fa1fa557140d3b526948ac2cd2d16e0bdb94ec97657f8cc278facbb4908398f",
+        "sha256": "a897d1207c2ed2ee8b87dab3ed85a255333995f82eb3b6e41fac76493a9c7754",
+        "bytes": 2223,
+        "namespace": "http://schemas.microsoft.com/office/excel/2010/spreadsheetDrawing",
+        "imports": [
+          {
+            "schemaLocation": "oart14docprop.xsd",
+            "namespace": "http://schemas.microsoft.com/office/drawing/2010/main"
+          },
+          {
+            "schemaLocation": "oartdocprop.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.19",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/eebdf5ec-b1ff-4953-b2bc-6febc0df7f1e",
+        "page_sha256": "9c62d94ded8d0862f51e0670fbf080e51252133a4de1ec4a35d0e3be5f1a4ab5",
+        "sha256": "afbafe8e1173901f1842ca994a534cb55784cfd655db36f495fd4896014c051b",
+        "bytes": 5384,
+        "namespace": "http://schemas.microsoft.com/office/powerpoint/2014/inkAction",
+        "imports": [
+          {
+            "id": "inkml",
+            "namespace": "http://www.w3.org/2003/InkML",
+            "schemaLocation": "inkml.xsd"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.24",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/cc083f6d-bc38-4ff4-b32a-5bc97df8addc",
+        "page_sha256": "4c051d7f31a772432dabc20a0f4331a76b8d0e60a699cdd1e773b2125cf8cdb4",
+        "sha256": "5fb9fb9dff15bc4ce6b1ff6496939184b3552fe7aea6ae218f0502db5262a8de",
+        "bytes": 785,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2016/SVG/main",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.25",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/96e8cdeb-7774-461b-957e-09b7ec8e2765",
+        "page_sha256": "3c738eaacbc0c9d71ea15ce68e433ef67af4b81f65d854d67996c0b6534b373a",
+        "sha256": "a4b99138ced5f48e7ad7fac5b31ed5811ebefdc78044a145e34a1ce2c6844cea",
+        "bytes": 716,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2016/11/main",
+        "imports": [
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.26",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/8607d4b7-2dc8-45e7-9317-808373935e47",
+        "page_sha256": "b3d18eeaa4344ec7f453b2c8d0cc9b4bfc95b7174db63cf3caa9a4ef06640cf9",
+        "sha256": "590ff54189c811bf2a0e0ad8508ee9414602be1b502bf78ef4995b2300d0df2c",
+        "bytes": 1791,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2016/11/diagram",
+        "imports": [
+          {
+            "schemaLocation": "igxtypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/diagram"
+          },
+          {
+            "schemaLocation": "oarttxbullet.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.35",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/901a7e62-aa4a-48a0-9ecb-cf2401a2b47a",
+        "page_sha256": "22b96a0cd3e3ca13977ce62c5b0358a3e64a3182ea2fd889cfe70cd238778c13",
+        "sha256": "b8ac0e9229e402574bd614c7bc94c1bd623b971b3a6306446baa61c466e2bbf7",
+        "bytes": 1857,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2018/animation",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.34",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/c939a613-ae17-423a-9d33-7fb2e07b7b7f",
+        "page_sha256": "aed4c7ec2389423f601ccce23e4bd0bbefc34b7bfc808aaa03569dcc68e83eef",
+        "sha256": "91cf003df436fa93eed47455834edb6cb14d915124b6d55952da861017d32785",
+        "bytes": 1559,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2018/animation/model3d",
+        "imports": [
+          {
+            "schemaLocation": "oartAnimationProps.xsd",
+            "namespace": "http://schemas.microsoft.com/office/drawing/2018/animation"
+          },
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.29",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/6c414e62-4825-4100-9ca1-88fefc5fb699",
+        "page_sha256": "f1d944b9a46896879c833f80f17826884685b448d03b78e9e26a1f93f2ced06a",
+        "sha256": "f320bc603b0c9c9b5476609102e80350e8051f6c66b9aee918fb4992a9577360",
+        "bytes": 9043,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2017/model3d",
+        "imports": [
+          {
+            "schemaLocation": "oart16BlipExtensions.xsd",
+            "namespace": "http://schemas.microsoft.com/office/drawing/2016/11/main"
+          },
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartspproperties.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oartPlay3D.xsd",
+            "namespace": "http://schemas.microsoft.com/office/drawing/2018/animation/model3d"
+          },
+          {
+            "schemaLocation": "orel.xsd",
+            "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.30",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/e2d5dcbc-cb93-40b9-896d-46033bc2711c",
+        "page_sha256": "a29ffbe13b68d4cd0de988a3e932eb3e808fadbc1d525dbafe0099c072bc4eeb",
+        "sha256": "0ece964b395174614d205f910e0caebf51b431e0b86581278c326131b5c1a7f3",
+        "bytes": 665,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2016/12/diagram",
+        "imports": [
+          {
+            "schemaLocation": "oartspproperties.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          },
+          {
+            "schemaLocation": "oarttx.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.32",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/6146d89f-9146-415b-99e2-39e694b5a980",
+        "page_sha256": "cc8655516ff8093cdc05a905501f97e9292f825fc5f3a317e8e9a129c5ec60ae",
+        "sha256": "4da12bc24246ac22be6318a9081f832a8a2d32f791377570d05aee0ef000e11f",
+        "bytes": 621,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2017/decorative",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.37",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/1f3ad775-d46f-4c60-8457-04121d909fe3",
+        "page_sha256": "07b215af9055ad1ea90ce4330403fb8a7e2372d360779ce4e4dfa888489b83b1",
+        "sha256": "b84d505146efa2c4996a26fce7f617ec105df83a4811152bb1f93fa236be3afb",
+        "bytes": 1004,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2020/classificationShape",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.38",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/b495a2c4-89bf-47e3-b165-dacb3508bb72",
+        "page_sha256": "a9397e665ee6bb143d99b801e81f952f58f87dd63f25134d4c0fd58c1b73dee7",
+        "sha256": "2941a76fc84097dc5d34c8a4aab02483a97cbda534999c6d84c894536d206fda",
+        "bytes": 626,
+        "namespace": "http://schemas.microsoft.com/office/word/2020/oembed",
+        "imports": []
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.39",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/f830ed7e-a16f-4863-9112-711c02e00269",
+        "page_sha256": "85e53e37dd2f10b4fb8da9020c674df2f0735b120d27ecf1ee2bee4457b1bb93",
+        "sha256": "a6be493667ae8cf5ba40b92d8ed307ab445bc790a0f4fc05774460012509328f",
+        "bytes": 760,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2021/scriptlink",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.40",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/2084bd49-c84a-4779-b7b6-331902b88dfe",
+        "page_sha256": "e3c208a80ed604c093f01b39afaa5d31afa2747441a38f73376e45d2320af3e9",
+        "sha256": "8b4cb80f0037b36226a0b032fc306f5a126a5ec64f6edce6c3655b91a17746be",
+        "bytes": 2499,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2021/livefeed",
+        "imports": [
+          {
+            "schemaLocation": "oartbasetypes.xsd",
+            "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main"
+          }
+        ]
+      },
+      {
+        "source": "MS-ODRAWXML",
+        "section": "5.41",
+        "url": "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/0c47e53f-d2a7-457d-b7a0-26c7544dd7b2",
+        "page_sha256": "749c02cb19648991fc482d96829e90c3fd9475f5761f07b38c19b4997a3ca640",
+        "sha256": "a695d48dc962d3fc2b7a6af13f78b7b2dbcb27eadfbd1f87723f90cb6c2a18b3",
+        "bytes": 501,
+        "namespace": "http://schemas.microsoft.com/office/drawing/2022/imageformula",
+        "imports": []
+      }
+    ]
+  },
+  "baseline_inventories": {
+    "upstream-test-inventory.json": {
+      "sha256": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+      "unit_case_count": 2700,
+      "bdd_expanded_case_count": 973
+    },
+    "upstream-api-inventory.json": {
+      "sha256": "949ebc89dad78bfbcc7111e47b4a6ed32142cac3454f4aea48504f0bf7fd13d0",
+      "object_count": 719
+    },
+    "corpus-manifest.json": {
+      "sha256": "0d64b6d546028d82b74d51995cfe464ca15a65870582c6d00e91f061319eb380",
+      "document_count": 12
+    }
+  },
+  "corpus_namespaces": [
+    {
+      "namespace": "",
+      "references": [],
+      "status": "opaque_unmapped_no_semantic_edit",
+      "product_evidence": []
+    },
+    {
+      "namespace": "6f3790c7-67fb-414c-a32c-61b9533d28b9",
+      "references": [],
+      "status": "opaque_unmapped_no_semantic_edit",
+      "product_evidence": []
+    },
+    {
+      "namespace": "b48ef656-dbf8-430e-9f3a-6099689c4f09",
+      "references": [],
+      "status": "opaque_unmapped_no_semantic_edit",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://purl.org/dc/elements/1.1/",
+      "references": [
+        "ecma-p2:8 and opc-coreProperties.xsd import (external vocabulary, not vendored)"
+      ],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://purl.org/dc/terms/",
+      "references": [
+        "ecma-p2:8 and opc-coreProperties.xsd import (external vocabulary, not vendored)"
+      ],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/2006/metadata/contentType",
+      "references": [],
+      "status": "opaque_unmapped_no_semantic_edit",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/2006/metadata/properties",
+      "references": [],
+      "status": "opaque_unmapped_no_semantic_edit",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/2020/mipLabelMetadata",
+      "references": [],
+      "status": "opaque_unmapped_no_semantic_edit",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/drawing/2010/main",
+      "references": ["MS-ODRAWXML:5.1"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/drawing/2014/main",
+      "references": ["MS-ODRAWXML:5.23"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/drawing/2017/decorative",
+      "references": ["MS-ODRAWXML:5.32"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/drawing/2018/hyperlinkcolor",
+      "references": ["MS-ODRAWXML:5.33"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/mac/drawingml/2011/main",
+      "references": [],
+      "status": "opaque_unmapped_no_semantic_edit",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/powerpoint/2010/main",
+      "references": ["MS-PPTX:5.1"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/powerpoint/2012/main",
+      "references": ["MS-PPTX:5.2"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/powerpoint/2018/8/main",
+      "references": ["MS-PPTX:5.14"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/office/thememl/2012/main",
+      "references": ["MS-ODRAWXML:5.17"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.microsoft.com/sharepoint/v3/contenttype/forms",
+      "references": [],
+      "status": "opaque_unmapped_no_semantic_edit",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+      "references": ["ecma-p4:dml-main.xsd"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/markup-compatibility/2006",
+      "references": ["ecma-p3:7\u20139 (processing rules; no XSD in distribution)"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties",
+      "references": ["ecma-p4:shared-documentPropertiesCustom.xsd"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/customXml",
+      "references": ["ecma-p4:shared-customXmlDataProperties.xsd"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+      "references": ["ecma-p4:shared-documentPropertiesVariantTypes.xsd"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
+      "references": ["ecma-p4:shared-documentPropertiesExtended.xsd"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/package/2006/content-types",
+      "references": ["ecma-p2:opc-contentTypes.xsd"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+      "references": ["ecma-p2:opc-coreProperties.xsd"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+      "references": ["ecma-p2:opc-relationships.xsd"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+      "references": ["ecma-p4:pml.xsd"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    },
+    {
+      "namespace": "http://www.w3.org/2001/XMLSchema",
+      "references": ["W3C schema language; declaration is not evidence of presentation semantics"],
+      "status": "identified_not_implemented",
+      "product_evidence": []
+    }
+  ],
+  "product_evidence": {
+    "features_implemented": 0,
+    "unit_cases_adapted": 0,
+    "bdd_examples_adapted": 0,
+    "api_records_implemented": 0,
+    "schema_validation_runs": 0,
+    "render_runs": 0,
+    "playback_runs": 0
+  }
+}

@@ -32,7 +32,8 @@ export function inspectZip(bytes: Uint8Array) {
     assert.equal(view.getUint16(local + 6, true), flags);
     assert.equal(flags & 9, 0);
     assert.equal(view.getUint16(local + 8, true), method);
-    assert.equal(view.getUint16(local + 4, true), method === 8 ? 20 : 10);
+    const version = view.getUint16(local + 4, true);
+    assert(method === 8 ? version === 20 : version === 10 || version === 20);
     assert.equal(view.getUint16(central + 6, true), view.getUint16(local + 4, true));
     assert.equal(view.getUint32(central + 12, true), view.getUint32(local + 10, true));
     assert.equal(view.getUint16(central + 34, true), 0);

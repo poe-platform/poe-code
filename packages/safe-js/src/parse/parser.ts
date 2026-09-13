@@ -3172,6 +3172,10 @@ class Parser {
       }
 
       if (this.currentToken().type === "template") {
+        if (continuesOptionalChain) {
+          const { line, column } = this.currentToken().start;
+          throw new SyntaxError(`Tagged templates are not allowed in optional chains at line ${line}, column ${column}.`);
+        }
         expression = {
           node: this.parseTaggedTemplate(expression.node),
           parenthesized: false

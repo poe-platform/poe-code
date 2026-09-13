@@ -93,6 +93,18 @@ export {
 
 export { removeSlides, type RemoveSlidesOptions } from "./slide-removal.js";
 
+export {
+  listLinks,
+  setLink,
+  removeLink,
+  openLinkSession,
+  type LinkAction,
+  type LinkOptions,
+  type SetLinkOptions,
+  type LinkSession,
+  type LinkData
+} from "./links.js";
+
 export { duplicateSlides, type DuplicateSlidesOptions } from "./slide-copy.js";
 
 export { importSlides, type ImportSlidesOptions } from "./slide-import.js";

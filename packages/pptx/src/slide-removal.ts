@@ -341,7 +341,7 @@ export async function removeSlides(
         if (attribute.name.namespace === d.r && edges.has(attribute.value)) {
           if (
             ns !== d.a ||
-            !["hlinkClick", "hlinkHover"].includes(local) ||
+            !["hlinkClick", "hlinkHover", "hlinkMouseOver"].includes(local) ||
             attribute.name.localName !== "id" ||
             options.referencePolicy !== "remove"
           )
@@ -381,7 +381,7 @@ export async function removeSlides(
             if (
               options.referencePolicy !== "remove" ||
               ns !== d.a ||
-              !["hlinkClick", "hlinkHover"].includes(local)
+              !["hlinkClick", "hlinkHover", "hlinkMouseOver"].includes(local)
             )
               dangling();
             removed.add(node);

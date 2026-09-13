@@ -124,7 +124,7 @@ export function remapCopiedXml(
       unsupported();
     if (
       node.name.namespace === options.dialect.a &&
-      ["hlinkClick", "hlinkHover"].includes(node.name.localName)
+      ["hlinkClick", "hlinkHover", "hlinkMouseOver"].includes(node.name.localName)
     ) {
       const action = attr(node, "action");
       if (action && action !== "ppaction://hlinksldjump") unsupported();

@@ -2357,3 +2357,15 @@ Node18/20/22/24/26 and Bun SDK replay/source/host-escape controls pass; CLI scre
 was inspected. Original source hashes, edition pins, deadlines and budgets remain.
 Residual accounting is159 nonpasses after this two-case repair; whole-task acceptance
 and required publication remain open, not replaced by passing selected cases.
+
+### qualify-language-semantics — parenthesized assignment names, 2026-09-13
+
+[Atomic repair and evidence](qualify-language-semantics/parenthesized-assignment-name/audit.md)
+preserve empty function/class names for grouped assignment targets, including logical
+assignment. Ten independent regressions failed before preserving that AST fact and
+using it during named evaluation. New/target checks pass25 tests, maintained naming
+and dynamic-function neighbors pass141; lint and selected build pass. Original
+fixture/neighbor **four/four variants pass**, hashes/modes/deadlines unchanged.
+Built Node18/20/22/24/26 and Bun replay/source/name/host-escape controls pass and the
+CLI screenshot was inspected. Residual accounting is157 nonpasses; full qualification
+and required publication remain unresolved and are not inferred from these passes.

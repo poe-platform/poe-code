@@ -305,6 +305,7 @@ export type AssignmentExpression = BaseNode & {
   type: "AssignmentExpression";
   operator: AssignmentOperator;
   left: AssignmentTarget;
+  parenthesizedLeft?: true;
   right: Expression;
 };
 
@@ -1066,6 +1067,7 @@ class Parser {
         type: "AssignmentExpression",
         operator,
         left: this.toAssignmentTarget(left.node),
+        ...(left.parenthesized ? { parenthesizedLeft: true as const } : {}),
         right: right.node,
         span: createSpan(left.node.span.start, right.node.span.end)
       },

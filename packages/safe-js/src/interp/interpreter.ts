@@ -1194,7 +1194,9 @@ async function evaluateAssignmentExpression(
   const release = retainValues(context.budget, () => [current,
     ...(reference.kind === "object" ? [reference.object] : reference.kind === "binding" ? reference.scope.retainedDataRoots() : [])]);
   try {
-    const right = await evaluateNode(node.right, { ...context, inferredName: node.left.name });
+    const right = await evaluateNode(node.right, {
+      ...context, inferredName: node.parenthesizedLeft ? undefined : node.left.name
+    });
     if (right.kind !== "normal") {
       return right;
     }

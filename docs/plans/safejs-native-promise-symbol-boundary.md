@@ -116,3 +116,9 @@ unique, global and well-known symbol negative controls reproduce the failure.
 Normal host/binding imports still preserve those primitives and admitted
 Promise key/value/settlement aliases. This is a host proof-capability contract,
 not a claim about ECMAScript symbol support.
+
+The maintained exact SDK export inventory must include
+`admitNativePromiseProperties`. Its public contract test requires that `index`,
+`core` and `workerd` export the identical registration function, so admission
+registered through one entrypoint is shared by the others. The strict export
+list remains exact; it is not replaced by a partial match.

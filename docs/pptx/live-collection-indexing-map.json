@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "scope": "Supplemental J03 negative bracket versus explicit at correction; not a full family adaptation receipt",
+  "api": [
+    {
+      "sourceId": "pptx.chart.category.Categories.__getitem__",
+      "found": true,
+      "mapping": "Nonnegative brackets; negative positions only through at; invalid brackets raise IndexError/index-out-of-range",
+      "originalTests": "packages/pptx/src/live-collection-indexing.test.ts"
+    },
+    {
+      "sourceId": "pptx.chart.category.CategoryLevel.__getitem__",
+      "found": true,
+      "mapping": "Nonnegative brackets; negative positions only through at; invalid brackets raise IndexError/index-out-of-range",
+      "originalTests": "packages/pptx/src/live-collection-indexing.test.ts"
+    },
+    {
+      "sourceId": "pptx.chart.chart._Plots.__getitem__",
+      "found": true,
+      "mapping": "Nonnegative brackets; negative positions only through at; invalid brackets raise IndexError/index-out-of-range",
+      "originalTests": "packages/pptx/src/live-collection-indexing.test.ts"
+    },
+    {
+      "sourceId": "pptx.chart.series.SeriesCollection.__getitem__",
+      "found": true,
+      "mapping": "Nonnegative brackets; negative positions only through at; invalid brackets raise IndexError/index-out-of-range",
+      "originalTests": "packages/pptx/src/live-collection-indexing.test.ts"
+    },
+    {
+      "sourceId": "pptx.dml.fill._GradientStops.__getitem__",
+      "found": true,
+      "mapping": "Nonnegative brackets; negative positions only through at; invalid brackets raise IndexError/index-out-of-range",
+      "originalTests": "packages/pptx/src/live-collection-indexing.test.ts"
+    }
+  ],
+  "sourceCases": [
+    {
+      "sourceId": "tests/chart/test_category.py::DescribeCategories::it_supports_indexed_access[getitem_fixture0]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-review.test.ts",
+      "existingAssertionGroup": "retains category equality for inherited collection membership and sparse hierarchy traversal",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_category.py::DescribeCategories::it_supports_indexed_access[getitem_fixture1]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-review.test.ts",
+      "existingAssertionGroup": "retains category equality for inherited collection membership and sparse hierarchy traversal",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_category.py::DescribeCategories::it_supports_indexed_access[getitem_fixture2]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-review.test.ts",
+      "existingAssertionGroup": "retains category equality for inherited collection membership and sparse hierarchy traversal",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_category.py::DescribeCategories::it_supports_indexed_access[getitem_fixture3]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-review.test.ts",
+      "existingAssertionGroup": "retains category equality for inherited collection membership and sparse hierarchy traversal",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_category.py::DescribeCategoryLevel::it_supports_indexed_access[0]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-review.test.ts",
+      "existingAssertionGroup": "retains category equality for inherited collection membership and sparse hierarchy traversal",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_category.py::DescribeCategoryLevel::it_supports_indexed_access[1]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-review.test.ts",
+      "existingAssertionGroup": "retains category equality for inherited collection membership and sparse hierarchy traversal",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_category.py::DescribeCategoryLevel::it_supports_indexed_access[2]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-review.test.ts",
+      "existingAssertionGroup": "retains category equality for inherited collection membership and sparse hierarchy traversal",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_chart.py::Describe_Plots::it_supports_indexed_access[getitem_fixture0]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-objects.test.ts",
+      "existingAssertionGroup": "creates chart and axis rich titles through live shared text frames",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_chart.py::Describe_Plots::it_supports_indexed_access[getitem_fixture1]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-objects.test.ts",
+      "existingAssertionGroup": "creates chart and axis rich titles through live shared text frames",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_series.py::DescribeSeriesCollection::it_supports_indexed_access[getitem_fixture0]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-objects.test.ts",
+      "existingAssertionGroup": "retains subtype defaults, boundary scalars, and series-specific marker behavior",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_series.py::DescribeSeriesCollection::it_supports_indexed_access[getitem_fixture1]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-objects.test.ts",
+      "existingAssertionGroup": "retains subtype defaults, boundary scalars, and series-specific marker behavior",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/chart/test_series.py::DescribeSeriesCollection::it_supports_indexed_access[getitem_fixture2]",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "chart-live-graph-cases-20260913.json",
+      "existingOriginalTest": "packages/pptx/src/chart-model-objects.test.ts",
+      "existingAssertionGroup": "retains subtype defaults, boundary scalars, and series-specific marker behavior",
+      "existingDisposition": "behavior-family-covered; exact-variant-not-certified"
+    },
+    {
+      "sourceId": "tests/dml/test_fill.py::Describe_GradientStops::it_provides_access_to_its_stops",
+      "disposition": "Existing positional-family accounting retained; supplemental JS negative bracket regression does not certify this complete parameter payload",
+      "existingAccounting": "drawing-case-map.json",
+      "existingOriginalTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "distinguishes missing stops from an explicitly empty stop list"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "gradient collections expose checked indices and inherited sequence operations"
+        }
+      ],
+      "existingDisposition": "adapted-observable-behavior"
+    }
+  ],
+  "bdd": {
+    "negativeBracketScenarioCount": 0,
+    "method": "Reviewed expanded scenario names for collection/index lookup; JS bracket-versus-at distinction is a language mapping beyond source syntax",
+    "existingAccounting": "chart-live-graph-cases-20260913.json"
+  },
+  "limits": "Sparse cache reconstruction and ordering payloads remain separate obligations; no historical record is marked implemented by this receipt."
+}

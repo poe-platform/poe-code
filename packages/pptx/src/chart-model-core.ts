@@ -581,7 +581,10 @@ export class ChartSequence<T> implements Iterable<T> {
       typeof key === "string" && key !== "" && String(Number(key)) === key;
     const proxy = new Proxy(this, {
       get(target, key, receiver) {
-        if (numeric(key)) return target.at(Number(key));
+        if (numeric(key)) {
+          if (Number(key) < 0) throw new IndexError();
+          return target.at(Number(key));
+        }
         return Reflect.get(target, key, receiver);
       },
       set(target, key, value, receiver) {

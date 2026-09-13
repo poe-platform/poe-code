@@ -1280,8 +1280,10 @@ export class GradientStops implements Iterable<GradientStop> {
   ) {
     return new Proxy(this, {
       get(target, key) {
-        if (typeof key === "string" && key !== "" && String(Number(key)) === key)
+        if (typeof key === "string" && key !== "" && String(Number(key)) === key) {
+          if (Number(key) < 0) throw new IndexError("Gradient stop index is out of range.");
           return target.at(Number(key));
+        }
         const value = Reflect.get(target, key, target);
         return typeof value === "function" ? value.bind(target) : value;
       },

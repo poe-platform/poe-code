@@ -2237,3 +2237,12 @@ Residual historical accounting: **161 primary nonpasses /126 secondary resource
 nonpasses**; proposal/exclusion rows remain visible, never counted as passes.
 Local commit, remote-main delivery and publication remain separate; no publication
 is claimed by this pre-delivery observation. Concurrent local/staged work is preserved.
+
+
+## qualify-exotic-object-invariants — descriptor reentrancy, 2026-09-13
+
+**Acceptance remains open.** [Reproducible commands, source provenance and disposition](qualify-exotic-object-invariants/descriptor-recheck-20260913/qualification.md) record eight new independent descriptor mutation/revocation/throw controls. The final focused run passes **111/111 tests**, zero failures/skips; targeted ESLint passes on the exact new test bytes. No production change or weakened budget, assertion, timeout or support policy was introduced.
+
+Source HEAD `4caaa017fc01858ed43ebd0759b4a69e3063a844`, preserved dirty working-source hash `88a0352b98cd5d377ebca117613126187348eef5ff90b9b21022b7d238e185df`; Node **22.23.2 / ICU 78.2**. Edition 16 / June 2025, ECMA-402 edition 12, tracked newer APIs and Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` remain pinned. These are working-candidate results, not clean-HEAD qualification.
+
+Fresh pinned selection: **8 passes / 2 failures** across five files / ten variants, no unsupported or metadata/execution errors. Numeric typed-array subarray custom-species cases still fail both modes with `worker-wall-timeout` at **3,000 ms**. Prior broad timeout and runtime coverage gaps remain unresolved. The test and report form a local atomic qualification commit; its SHA is reported after creation. **Verified remote-main delivery: none; publication/release receipts: none.**

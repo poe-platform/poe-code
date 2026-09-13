@@ -232,6 +232,7 @@ export {
   type ShapeRecord
 } from "./shapes.js";
 export { readShapes, addShape, mutateShapes, type ShapeSelection } from "./shape-operations.js";
+export { readShapeGeometry, type ShapeGeometry } from "./shape-transforms.js";
 export { PP_PLACEHOLDER_TYPE, PP_PLACEHOLDER } from "./shape-placeholder-types.js";
 
 export { MSO_SHAPE_TYPE } from "./shape-types.js";

@@ -526,6 +526,8 @@ const frameFlags = [
 ];
 
 const scalarOptions = [
+  "--flip-horizontal",
+  "--flip-vertical",
   "--title",
   "--description",
   "--alt-text",
@@ -1165,7 +1167,9 @@ function parse(
         "--top",
         "--width",
         "--height",
-        "--rotation"
+        "--rotation",
+        "--flip-horizontal",
+        "--flip-vertical"
       ].includes(argument)
     ) {
       const key = argument
@@ -1182,6 +1186,9 @@ function parse(
         );
         if (Math.abs(length) > 27273042316900) usage("Shape geometry exceeds DrawingML bounds.");
         parsed = { value: length, unit: "emu" };
+      } else if (key === "flipHorizontal" || key === "flipVertical") {
+        if (!["true", "false"].includes(value)) usage("Flips require true or false.");
+        parsed = value === "true";
       } else if (key === "locked") {
         if (!["true", "false", "null"].includes(value))
           usage("Locked requires true, false or null.");
@@ -2514,6 +2521,8 @@ async function execute(
             "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
             "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
             "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
+            "  --flip-horizontal true|false --flip-vertical true|false\n" +
+            "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
             "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
             "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
             "Omitted values stay unchanged.\n" +
@@ -2694,7 +2703,7 @@ async function execute(
           shapes: {
             level: "edit",
             subset:
-              "Text boxes and documented presets on slides, layouts and masters. Names, read-only allocated IDs, geometry in explicit units, title/description, locks and basic solid fill/line. Unknown geometry and advanced formatting remain preserve-only."
+              "Text boxes and documented presets on slides, layouts and masters. Names, read-only allocated IDs, title/description, locks and basic solid fill/line. Position, size, rotation and flips also edit pictures, connectors, groups and graphic frames. Stored geometry uses parent coordinates; inspection projects explicit nested transforms into slide EMUs. Missing inherited geometry is not resolved. Group/ungroup and advanced formatting remain unavailable."
           },
           xml: {
             level: options.context.validationLimits ? "edit" : "reject",

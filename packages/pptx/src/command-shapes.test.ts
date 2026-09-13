@@ -35,9 +35,9 @@ beforeAll(() => {
     delay === 0 ? setImmediate(callback) : timer(callback, delay)) as typeof setTimeout);
 });
 afterAll(() => vi.restoreAllMocks());
-async function fixture() {
+async function fixture(input?: Uint8Array) {
   const fs = Volume.fromJSON({});
-  fs.writeFileSync("/deck.pptx", await createPresentation({ slides: [{}] }, context));
+  fs.writeFileSync("/deck.pptx", input ?? (await createPresentation({ slides: [{}] }, context)));
   return async (args: string[]) => {
     const output = await engine.execute({
       args: [...args, "--json"].map((x) => new TextEncoder().encode(x)),
@@ -51,6 +51,183 @@ async function fixture() {
   };
 }
 describe("shape resource commands", () => {
+  it("projects nested group coordinates through CLI and changes only local placement", async () => {
+    const archive = await readPackage(await createPresentation({ slides: [{}] }, context), context);
+    const part = "/ppt/slides/slide1.xml";
+    let xml = parseXmlPart(archive.get(part), context.xmlLimits);
+    const p = xml.root.name.namespace,
+      a = "http://schemas.openxmlformats.org/drawingml/2006/main";
+    const tree = xml.root.children[0]!.children.find((x) => x.name.localName === "spTree")!;
+    const group = `<p:grpSp xmlns:p="${p}" xmlns:a="${a}"><p:nvGrpSpPr><p:cNvPr id="2" name="Outer"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm rot="10800000"><a:off x="1000" y="2000"/><a:ext cx="300" cy="600"/><a:chOff x="0" y="0"/><a:chExt cx="300" cy="300"/></a:xfrm></p:grpSpPr><p:grpSp><p:nvGrpSpPr><p:cNvPr id="3" name="Inner"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm rot="5400000" flipH="1"><a:off x="30" y="-20"/><a:ext cx="200" cy="100"/><a:chOff x="0" y="0"/><a:chExt cx="100" cy="100"/></a:xfrm></p:grpSpPr><p:sp><p:nvSpPr><p:cNvPr id="4" name="Panel"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="-10" y="20"/><a:ext cx="40" cy="20"/></a:xfrm><a:prstGeom prst="rect"/></p:spPr></p:sp></p:grpSp></p:grpSp>`;
+    xml = xml.spliceChildren(tree, tree.children.length, 0, [group]);
+    const input = storedArchive(
+      archive.names.map((name) => ({
+        name: name.slice(1),
+        bytes: name === part ? xml.bytes() : archive.get(name)
+      }))
+    );
+    const run = await fixture(input);
+    const before = await run(["shapes", "get", "/deck.pptx", "--slide", "1", "--shape", "Panel"]);
+    expect(before.code, JSON.stringify(before.value)).toBe(0);
+    expect(before.value.data.records[0].geometry).toEqual({
+      coordinateSystem: "group",
+      unit: "emu",
+      groupPath: ["2", "3"],
+      corners: [
+        { x: 1140, y: 2300 },
+        { x: 1140, y: 2460 },
+        { x: 1160, y: 2460 },
+        { x: 1160, y: 2300 }
+      ]
+    });
+    const changed = await run([
+      "shapes",
+      "set",
+      "/deck.pptx",
+      "--slide",
+      "1",
+      "--shape",
+      "Panel",
+      "--left",
+      "-20emu",
+      "--in-place"
+    ]);
+    expect(changed.code, JSON.stringify(changed.value)).toBe(0);
+    const after = await run(["shapes", "get", "/deck.pptx", "--slide", "1", "--shape", "Panel"]);
+    expect(after.value.data.records[0]).toMatchObject({
+      left: -20,
+      top: 20,
+      geometry: {
+        corners: [
+          { x: 1140, y: 2260 },
+          { x: 1140, y: 2420 },
+          { x: 1160, y: 2420 },
+          { x: 1160, y: 2260 }
+        ]
+      }
+    });
+    const sdk = await mutateShapes(
+      input,
+      { slide: 1, shape: "Panel", update: { left: { value: -20, unit: "emu" } } },
+      context
+    );
+    expect(
+      (await readShapes(sdk.bytes, { slide: 1, shape: "Panel" }, context))[0]!.geometry
+    ).toEqual(after.value.data.records[0].geometry);
+  });
+  it("applies signed placement, center rotation and explicit flips through CLI and byte SDK", async () => {
+    const run = await fixture();
+    const added = await run([
+      "shapes",
+      "add",
+      "/deck.pptx",
+      "--slide",
+      "1",
+      "--kind",
+      "text-box",
+      "--name",
+      "Tile",
+      "--left",
+      "-10emu",
+      "--top",
+      "20emu",
+      "--width",
+      "40emu",
+      "--height",
+      "20emu",
+      "--rotation",
+      "90",
+      "--flip-horizontal",
+      "true",
+      "--in-place"
+    ]);
+    expect(added.code, JSON.stringify(added.value)).toBe(0);
+    const inspected = await run(["shapes", "get", "/deck.pptx", "--slide", "1", "--shape", "Tile"]);
+    expect(inspected.code).toBe(0);
+    expect(inspected.value.data.records[0]).toMatchObject({
+      left: -10,
+      top: 20,
+      width: 40,
+      height: 20,
+      rotation: 90,
+      flipHorizontal: true,
+      flipVertical: false,
+      geometry: {
+        coordinateSystem: "slide",
+        unit: "emu",
+        groupPath: [],
+        corners: [
+          { x: 20, y: 50 },
+          { x: 20, y: 10 },
+          { x: 0, y: 10 },
+          { x: 0, y: 50 }
+        ]
+      }
+    });
+    const schema = (await run(["schema", "shapes", "get"])).value.data.operations["shapes.get"]
+      .result;
+    expect(compileJsonSchema(schema).validate(inspected.value).ok).toBe(true);
+    const set = await run([
+      "shapes",
+      "set",
+      "/deck.pptx",
+      "--slide",
+      "1",
+      "--shape",
+      "Tile",
+      "--flip-horizontal",
+      "false",
+      "--flip-vertical",
+      "true",
+      "--left",
+      "-2.5emu",
+      "--in-place"
+    ]);
+    expect(set.code, JSON.stringify(set.value)).toBe(0);
+    const after = (await run(["shapes", "get", "/deck.pptx", "--slide", "1", "--shape", "Tile"]))
+      .value.data.records[0];
+    expect(after).toMatchObject({
+      left: -3,
+      top: 20,
+      width: 40,
+      height: 20,
+      flipHorizontal: false,
+      flipVertical: true
+    });
+    const source = await createPresentation(
+      { slides: [{ shapes: [{ x: -10, y: 20, width: 40, height: 20, text: "Tile" }] }] },
+      context
+    );
+    const result = await mutateShapes(
+      source,
+      { slide: 1, update: { rotation: 90, flipHorizontal: true } },
+      context
+    );
+    expect((await readShapes(result.bytes, { slide: 1 }, context))[0]!.geometry?.corners).toEqual([
+      { x: 20, y: 50 },
+      { x: 20, y: 10 },
+      { x: 0, y: 10 },
+      { x: 0, y: 50 }
+    ]);
+    for (const value of ["null", "0", "1", "False"]) {
+      expect(
+        (
+          await run([
+            "shapes",
+            "set",
+            "/deck.pptx",
+            "--slide",
+            "1",
+            "--shape",
+            "Tile",
+            "--flip-horizontal",
+            value,
+            "--in-place"
+          ])
+        ).code
+      ).toBe(2);
+    }
+  });
   it("rejects untyped SDK selector controls before input admission", async () => {
     const read = vi.fn(async () => null);
     for (const invalid of [

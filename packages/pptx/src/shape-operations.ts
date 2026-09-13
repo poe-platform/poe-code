@@ -10,6 +10,7 @@ import {
   type ShapeUpdate
 } from "./shapes.js";
 import type { XmlElement } from "./xml.js";
+import { readShapeGeometry } from "./shape-transforms.js";
 
 export interface ShapeSelection {
   readonly scope?: Scope;
@@ -144,12 +145,17 @@ export async function readShapes(
 ) {
   validateSelection(options, "read");
   const s = await loadShared(input, context, false);
-  return selected(s, options).map((record) => ({
-    ...readShape(nodeFor(s.doc(record.part).root, record.id)),
-    location: record.location,
-    token: record.token,
-    part: record.part
-  }));
+  return selected(s, options).map((record) => {
+    const root = s.doc(record.part).root;
+    const node = nodeFor(root, record.id);
+    return {
+      ...readShape(node),
+      geometry: readShapeGeometry(root, node),
+      location: record.location,
+      token: record.token,
+      part: record.part
+    };
+  });
 }
 export async function mutateShapes(
   input: BinaryInput,

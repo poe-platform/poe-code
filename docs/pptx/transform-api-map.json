@@ -1,0 +1,1493 @@
+{
+  "schemaVersion": 1,
+  "scope": "Exact geometry-member reconciliation including inherited and underscore-prefixed documented owners; full live object graph remains pending.",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "notice": "Research only; existing standalone research notices retained.",
+  "languageMapping": "Neutral model spellings retained. Length is an immutable finite safe-integer EMU value, not a number subclass; null is absence, not zero. Byte I/O operations are always async with supplied capabilities; XML/model-only access is synchronous. Booleans are strict and numeric strings rejected. No ambient host/file/network/native authority.",
+  "rounding": "Lengths round nearest, ties away from zero. Shape rounded EMU bounds ±27273042316900 match CLI. Rotation rounds signed integer angle units before modulo; zero is explicit rot=0. Existing source normalization expectations retained without floating modulo noise.",
+  "securityMapping": "Public XML is an admitted bounded XmlPart, not a host XML library. Non-sp geometry can be edited through applyShapeUpdate/mutateShapes; unsupported nongeometry edits reject. Inherited placeholders and document-owned returned subclass objects stay planned, not private.",
+  "extensions": [
+    {
+      "target": "Shape.flip_horizontal / Shape.flip_vertical: boolean (get/set)",
+      "operationOptions": [
+        "flipHorizontal",
+        "flipVertical"
+      ],
+      "defaults": "false when absent; undefined update preserves",
+      "evidence": "packages/pptx/src/shape-transforms.test.ts",
+      "note": "Typed neutral extensions; no matching flip member was found in pinned documented inventory."
+    },
+    {
+      "target": "readShapeGeometry(root, node): ShapeGeometry | null",
+      "evidence": "packages/pptx/src/shape-transforms.test.ts",
+      "note": "Bounded explicit geometry projection; not a substitute for missing live model APIs."
+    }
+  ],
+  "counts": {
+    "members": 80,
+    "standaloneImplemented": 5,
+    "liveModelPending": 75
+  },
+  "rows": [
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.height",
+      "source": "upstream-api-inventory.json#/objects/1580",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "height",
+      "status": "implemented-standalone-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [
+        "packages/pptx/src/shapes.test.ts",
+        "packages/pptx/src/shape-transforms.test.ts",
+        "packages/pptx/src/transform-behavior-cases.test.ts"
+      ],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.left",
+      "source": "upstream-api-inventory.json#/objects/1582",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "left",
+      "status": "implemented-standalone-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [
+        "packages/pptx/src/shapes.test.ts",
+        "packages/pptx/src/shape-transforms.test.ts",
+        "packages/pptx/src/transform-behavior-cases.test.ts"
+      ],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.rotation",
+      "source": "upstream-api-inventory.json#/objects/1587",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "implemented-standalone-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [
+        "packages/pptx/src/shapes.test.ts",
+        "packages/pptx/src/shape-transforms.test.ts",
+        "packages/pptx/src/transform-behavior-cases.test.ts"
+      ],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.top",
+      "source": "upstream-api-inventory.json#/objects/1593",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "top",
+      "status": "implemented-standalone-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [
+        "packages/pptx/src/shapes.test.ts",
+        "packages/pptx/src/shape-transforms.test.ts",
+        "packages/pptx/src/transform-behavior-cases.test.ts"
+      ],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.autoshape.Shape.width",
+      "source": "upstream-api-inventory.json#/objects/1594",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "width",
+      "status": "implemented-standalone-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [
+        "packages/pptx/src/shapes.test.ts",
+        "packages/pptx/src/shape-transforms.test.ts",
+        "packages/pptx/src/transform-behavior-cases.test.ts"
+      ],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.height",
+      "source": "upstream-api-inventory.json#/objects/1603",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.left",
+      "source": "upstream-api-inventory.json#/objects/1605",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.rotation",
+      "source": "upstream-api-inventory.json#/objects/1609",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.top",
+      "source": "upstream-api-inventory.json#/objects/1613",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.base.BaseShape.width",
+      "source": "upstream-api-inventory.json#/objects/1614",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.height",
+      "source": "upstream-api-inventory.json#/objects/1635",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.left",
+      "source": "upstream-api-inventory.json#/objects/1637",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.rotation",
+      "source": "upstream-api-inventory.json#/objects/1642",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.top",
+      "source": "upstream-api-inventory.json#/objects/1646",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.connector.Connector.width",
+      "source": "upstream-api-inventory.json#/objects/1647",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.height",
+      "source": "upstream-api-inventory.json#/objects/1681",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.left",
+      "source": "upstream-api-inventory.json#/objects/1683",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.rotation",
+      "source": "upstream-api-inventory.json#/objects/1688",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.top",
+      "source": "upstream-api-inventory.json#/objects/1693",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.graphfrm.GraphicFrame.width",
+      "source": "upstream-api-inventory.json#/objects/1694",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.height",
+      "source": "upstream-api-inventory.json#/objects/1712",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.left",
+      "source": "upstream-api-inventory.json#/objects/1714",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.rotation",
+      "source": "upstream-api-inventory.json#/objects/1718",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.top",
+      "source": "upstream-api-inventory.json#/objects/1723",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.group.GroupShape.width",
+      "source": "upstream-api-inventory.json#/objects/1724",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.height",
+      "source": "upstream-api-inventory.json#/objects/1738",
+      "discovery": "returned-interface/protocol-review",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.left",
+      "source": "upstream-api-inventory.json#/objects/1740",
+      "discovery": "returned-interface/protocol-review",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.rotation",
+      "source": "upstream-api-inventory.json#/objects/1749",
+      "discovery": "returned-interface/protocol-review",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.top",
+      "source": "upstream-api-inventory.json#/objects/1753",
+      "discovery": "returned-interface/protocol-review",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.width",
+      "source": "upstream-api-inventory.json#/objects/1754",
+      "discovery": "returned-interface/protocol-review",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.height",
+      "source": "upstream-api-inventory.json#/objects/1768",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.left",
+      "source": "upstream-api-inventory.json#/objects/1771",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.rotation",
+      "source": "upstream-api-inventory.json#/objects/1776",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.top",
+      "source": "upstream-api-inventory.json#/objects/1780",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Picture.width",
+      "source": "upstream-api-inventory.json#/objects/1781",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1800",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1803",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1809",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1815",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.ChartPlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1816",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1828",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1830",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1835",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1841",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.LayoutPlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1842",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1854",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1857",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1864",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1871",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.MasterPlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1872",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1884",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1886",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1891",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1897",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.NotesSlidePlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1898",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1911",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1914",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1920",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/1926",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/1927",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.height",
+      "source": "upstream-api-inventory.json#/objects/1938",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.left",
+      "source": "upstream-api-inventory.json#/objects/1940",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.rotation",
+      "source": "upstream-api-inventory.json#/objects/1945",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.top",
+      "source": "upstream-api-inventory.json#/objects/1950",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderGraphicFrame.width",
+      "source": "upstream-api-inventory.json#/objects/1951",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.height",
+      "source": "upstream-api-inventory.json#/objects/1965",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.left",
+      "source": "upstream-api-inventory.json#/objects/1968",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.rotation",
+      "source": "upstream-api-inventory.json#/objects/1973",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.top",
+      "source": "upstream-api-inventory.json#/objects/1977",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.width",
+      "source": "upstream-api-inventory.json#/objects/1978",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/1990",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/1992",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/1997",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/2003",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.SlidePlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/2004",
+      "discovery": "inherited-member",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.height",
+      "source": "upstream-api-inventory.json#/objects/2017",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "height",
+      "status": "planned-live-model",
+      "targetSignature": "height: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.left",
+      "source": "upstream-api-inventory.json#/objects/2020",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "left",
+      "status": "planned-live-model",
+      "targetSignature": "left: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.rotation",
+      "source": "upstream-api-inventory.json#/objects/2026",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "member": "rotation",
+      "status": "planned-live-model",
+      "targetSignature": "rotation: number (get/set)",
+      "defaults": "Absent explicit angle reads 0.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.top",
+      "source": "upstream-api-inventory.json#/objects/2032",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "top",
+      "status": "planned-live-model",
+      "targetSignature": "top: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    },
+    {
+      "sourceId": "pptx.shapes.placeholder.TablePlaceholder.width",
+      "source": "upstream-api-inventory.json#/objects/2033",
+      "discovery": "autodoc-expanded",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "member": "width",
+      "status": "planned-live-model",
+      "targetSignature": "width: Length | null (get); Length (set)",
+      "defaults": "Absent explicit geometry reads null; no inherited placement inference.",
+      "errors": "OfficeError invalid-value for nonfinite/out-of-range values and invalid dimensions. Missing counterpart dimension requires explicit width and height.",
+      "ownership": "Standalone Shape owns its admitted XML view; byte operations return new bytes and leave input unchanged. Live presentation-owned subclass handles are not claimed.",
+      "cli": "shapes get/set; shapes add for authored preset/text boxes",
+      "tests": [],
+      "domainEvidence": [
+        "packages/pptx/src/transform-behavior-cases.test.ts",
+        "packages/pptx/src/command-shapes.test.ts"
+      ]
+    }
+  ]
+}

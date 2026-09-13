@@ -534,6 +534,40 @@ Typed freeform builder operations retain their separately documented finite
 numeric local coordinates, explicit scale, collection and ownership semantics;
 the bounded path operations do not implement or narrow that broader model API.
 
+#### Shape transforms
+
+Shape position and dimensions MUST use the immediate parent's coordinate space:
+slide coordinates for top-level shapes, child coordinates for grouped shapes.
+Setting a group transform MUST retain its `chOff`/`chExt` mapping and child XML.
+Shape coordinate edits admit rounded EMUs within ±27273042316900; dimensions
+remain positive. The SDK and CLI MUST apply the same admission bounds.
+
+`shapes add/set` MUST accept `--flip-horizontal` and `--flip-vertical` as explicit
+booleans (SDK operation options `flipHorizontal` and `flipVertical`). Omitted
+values retain the existing transform; newly authored shapes default to false.
+Position, size, rotation and flip edits also apply to pictures, connectors,
+graphic frames and groups, without implying support for their other properties.
+
+Rotation assignment MUST round signed degrees to integer 1/60000-degree units,
+nearest with ties away from zero, then normalize the integer modulo 21600000.
+Rotation reads MUST normalize integer angle units before converting to degrees.
+Flips precede clockwise rotation about the center of the shape's unrotated box.
+For each ancestor group, subtract its child origin, scale by extent/child extent,
+add its offset, then apply flips and rotation about the group's box center.
+
+Shape inspection MUST distinguish stored parent coordinates from projected slide
+coordinates. The bounded projection record is `geometry: {coordinateSystem,
+unit, groupPath, corners}`: `coordinateSystem` is `slide` or `group` for stored
+placement, `unit` is `emu`, `groupPath` lists outer-to-inner group IDs (null if
+absent), and `corners` are always slide-space points in original top-left,
+top-right, bottom-right, bottom-left order. Missing explicit geometry yields null;
+this does not claim inherited placeholder resolution. Singular group child
+extents MUST fail projection. Projection MUST retain fractional intermediate
+coordinates and round only final corners to safe integer EMUs with ties away
+from zero. General-angle trigonometry uses JavaScript numeric precision; quarter
+turns use exact axis swaps/signs. This projection alone MUST NOT certify lossless
+group/ungroup operations.
+
 Group/ungroup preserves world-space transforms and z-order. Group requires at
 least two distinct sibling shapes and an explicit nonnegative EMU tolerance;
 ungroup requires one group. Maximum deviation is measured at every transformed
@@ -1221,8 +1255,8 @@ schemas, not extra undocumented direct flags.
 | ------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `shapes list` / `shapes.list`               | 1      | none                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; collection; omitted filter means all in scope; none        |
 | `shapes get` / `shapes.get`                 | 1      | none                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; one; ambiguity fails; none                                 |
-| `shapes set` / `shapes.set`                 | 1      | `--kind?: "text-box" / MSO_AUTO_SHAPE_TYPE`; `--name?: string`; `--text?: string`; `--left?: Length`; `--top?: Length`; `--width?: Length`; `--height?: Length`; `--rotation?: Degrees`; `--fill?: "solid" / Color / null`; `--line-color?: "solid" / Color / null`; `--line-width?: Length / null`; `--title?: string / null`; `--description?: string / null`; `--alt-text?: string / null`; `--locked?: boolean / null` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `shapes add` / `shapes.add`                 | 1      | `--kind: "text-box" / MSO_AUTO_SHAPE_TYPE`; `--name?: string`; `--text?: string`; `--left: Length`; `--top: Length`; `--width: Length`; `--height: Length`; `--rotation?: Degrees`; `--fill?: "solid" / Color / null`; `--line-color?: "solid" / Color / null`; `--line-width?: Length / null`; `--title?: string / null`; `--description?: string / null`; `--alt-text?: string / null`; `--locked?: boolean / null`      | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `shapes set` / `shapes.set`                 | 1      | `--kind?: "text-box" / MSO_AUTO_SHAPE_TYPE`; `--name?: string`; `--text?: string`; `--left?: Length`; `--top?: Length`; `--width?: Length`; `--height?: Length`; `--rotation?: Degrees`; `--flip-horizontal?: boolean`; `--flip-vertical?: boolean`; `--fill?: "solid" / Color / null`; `--line-color?: "solid" / Color / null`; `--line-width?: Length / null`; `--title?: string / null`; `--description?: string / null`; `--alt-text?: string / null`; `--locked?: boolean / null` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `shapes add` / `shapes.add`                 | 1      | `--kind: "text-box" / MSO_AUTO_SHAPE_TYPE`; `--name?: string`; `--text?: string`; `--left: Length`; `--top: Length`; `--width: Length`; `--height: Length`; `--rotation?: Degrees`; `--flip-horizontal?: boolean`; `--flip-vertical?: boolean`; `--fill?: "solid" / Color / null`; `--line-color?: "solid" / Color / null`; `--line-width?: Length / null`; `--title?: string / null`; `--description?: string / null`; `--alt-text?: string / null`; `--locked?: boolean / null`      | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `shapes remove` / `shapes.remove`           | 1      | none                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `shapes paths list` / `shapes.paths.list` | 1 | no path arguments | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part` | slides; selected shape records; read-only |
 | `shapes paths get` / `shapes.paths.get` | 1 | no path arguments | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part` | slides; exactly one shape; read-only |

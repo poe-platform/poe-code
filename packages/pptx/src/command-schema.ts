@@ -19,6 +19,8 @@ const shapeValues = {
   altText: { type: ["string", "null"] },
   locked: { type: ["boolean", "null"] },
   rotation: { type: "number", minimum: -360000, maximum: 360000 },
+  flipHorizontal: { type: "boolean" },
+  flipVertical: { type: "boolean" },
   fill: { anyOf: [{ enum: ["solid", null] }, { type: "string", pattern: "^[0-9A-Fa-f]{6}$" }] },
   lineColor: {
     anyOf: [{ enum: ["solid", null] }, { type: "string", pattern: "^[0-9A-Fa-f]{6}$" }]
@@ -1865,6 +1867,34 @@ const shapeRecordProperties = {
     ])
   ),
   rotation: { type: "number" },
+  flipHorizontal: { type: "boolean" },
+  flipVertical: { type: "boolean" },
+  geometry: {
+    oneOf: [
+      { type: "null" },
+      {
+        type: "object",
+        additionalProperties: false,
+        required: ["coordinateSystem", "unit", "groupPath", "corners"],
+        properties: {
+          coordinateSystem: { enum: ["slide", "group"] },
+          unit: { const: "emu" },
+          groupPath: { type: "array", items: { type: ["string", "null"] } },
+          corners: {
+            type: "array",
+            minItems: 4,
+            maxItems: 4,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["x", "y"],
+              properties: { x: { type: "integer" }, y: { type: "integer" } }
+            }
+          }
+        }
+      }
+    ]
+  },
   locked: { type: ["boolean", "null"] },
   fill: { type: ["string", "null"] },
   lineColor: { type: ["string", "null"] },

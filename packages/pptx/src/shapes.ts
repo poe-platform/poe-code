@@ -26,6 +26,8 @@ export interface ShapeUpdate {
   readonly width?: ShapeLength;
   readonly height?: ShapeLength;
   readonly rotation?: number;
+  readonly flipHorizontal?: boolean;
+  readonly flipVertical?: boolean;
   readonly fill?: string | null;
   readonly lineColor?: string | null;
   readonly lineWidth?: ShapeLength | null;
@@ -118,6 +120,8 @@ export function validateShapeOptions(options: ShapeUpdate, adding = false): void
           "width",
           "height",
           "rotation",
+          "flipHorizontal",
+          "flipVertical",
           "fill",
           "lineColor",
           "lineWidth",
@@ -127,6 +131,8 @@ export function validateShapeOptions(options: ShapeUpdate, adding = false): void
   )
     invalid();
   if (options.kind !== undefined) preset(options.kind);
+  for (const key of ["flipHorizontal", "flipVertical"] as const)
+    if (options[key] !== undefined && typeof options[key] !== "boolean") invalid();
   if (adding && options.kind === undefined) invalid("Shape creation requires a kind.");
   if (
     adding &&
@@ -137,6 +143,7 @@ export function validateShapeOptions(options: ShapeUpdate, adding = false): void
     if (options[k] === null && k !== "lineWidth") invalid();
     if (options[k] !== undefined && options[k] !== null) {
       const n = emu(options[k]);
+      if (Math.abs(n) > 27273042316900) invalid("Shape geometry exceeds DrawingML bounds.");
       if (((k === "width" || k === "height") && n <= 0) || (k === "lineWidth" && n < 0)) invalid();
     }
   }
@@ -245,7 +252,9 @@ export function readShape(node: XmlElement) {
     top: num(off, "y"),
     width: num(ext, "cx"),
     height: num(ext, "cy"),
-    rotation: ((((num(x, "rot") ?? 0) / 60000) % 360) + 360) % 360,
+    rotation: ((((num(x, "rot") ?? 0) % 21600000) + 21600000) % 21600000) / 60000,
+    flipHorizontal: x ? ["true", "1"].includes(attr(x, "flipH") ?? "0") : false,
+    flipVertical: x ? ["true", "1"].includes(attr(x, "flipV") ?? "0") : false,
     locked: lock === undefined ? null : ["1", "true"].includes(lock),
     fill: readColor(pr),
     fillType:
@@ -299,8 +308,23 @@ export function applyShapeUpdate(
   options: ShapeUpdate
 ): XmlPart {
   validateShapeOptions(options);
-  if (node.name.localName !== "sp")
-    unsupported("Only preset shapes and text boxes support these edits.");
+  if (
+    node.name.localName !== "sp" &&
+    (!["pic", "cxnSp", "graphicFrame", "grpSp"].includes(node.name.localName) ||
+      Object.keys(options).some(
+        (key) =>
+          ![
+            "left",
+            "top",
+            "width",
+            "height",
+            "rotation",
+            "flipHorizontal",
+            "flipVertical"
+          ].includes(key)
+      ))
+  )
+    unsupported("This object supports only position, size, rotation and flip edits.");
   const p = node.name.namespace,
     a = drawing(node);
   const at = (name: string, value: string | null) => ({ namespace: "", localName: name, value });
@@ -380,7 +404,10 @@ export function applyShapeUpdate(
       .map(([k, v]) => at(v, String(emu(options[k]!))));
     if (values.length) {
       const existingProperties = props(node);
-      const existingTransform = existingProperties && child(existingProperties, "xfrm", a);
+      const existingTransform =
+        node.name.localName === "graphicFrame"
+          ? child(node, "xfrm")
+          : existingProperties && child(existingProperties, "xfrm", a);
       const existingPair = existingTransform && child(existingTransform, name, a);
       for (const [key, attribute] of keys) {
         if (
@@ -394,17 +421,21 @@ export function applyShapeUpdate(
     }
     if (values.length) coords.push(u(a, name, { attributes: values }));
   }
-  if (coords.length || options.rotation !== undefined)
+  const transformAttributes = [];
+  if (options.rotation !== undefined) {
+    const angle = Math.sign(options.rotation) * Math.round(Math.abs(options.rotation) * 60000);
+    transformAttributes.push(at("rot", String(((angle % 21600000) + 21600000) % 21600000)));
+  }
+  for (const [key, name] of [
+    ["flipHorizontal", "flipH"],
+    ["flipVertical", "flipV"]
+  ] as const)
+    if (options[key] !== undefined) transformAttributes.push(at(name, options[key] ? "1" : "0"));
+  if (coords.length || transformAttributes.length)
     propEdits.push(
       u(a, "xfrm", {
         ...ch(a, ["off", "ext", "chOff", "chExt"], coords),
-        ...(options.rotation === undefined
-          ? {}
-          : {
-              attributes: [
-                at("rot", String(Math.round((((options.rotation % 360) + 360) % 360) * 60000)))
-              ]
-            })
+        attributes: transformAttributes
       })
     );
   if (options.kind !== undefined) {
@@ -467,6 +498,21 @@ export function applyShapeUpdate(
     );
   }
   const top = [];
+  if (node.name.localName === "graphicFrame")
+    return document.merge(node, {
+      children: {
+        sequence: ["nvGraphicFramePr", "xfrm", "graphic", "extLst"].map((localName) => ({
+          namespace: localName === "graphic" ? a : p,
+          localName
+        })),
+        upsert: propEdits.map((edit) => u(p, "xfrm", edit.merge))
+      }
+    });
+  if (node.name.localName !== "sp") {
+    const existing = props(node);
+    if (!existing) unsupported("Transform edits require existing shape properties.");
+    return document.merge(existing, ch(a, propertyOrder, propEdits));
+  }
   if (nvEdits.length) top.push(u(p, "nvSpPr", ch(p, ["cNvPr", "cNvSpPr", "nvPr"], nvEdits)));
   if (propEdits.length) top.push(u(p, "spPr", ch(a, propertyOrder, propEdits, removes)));
   let updated = document.merge(node, ch(p, ["nvSpPr", "spPr", "style", "txBody", "extLst"], top));
@@ -601,6 +647,18 @@ export class Shape {
   }
   set rotation(v: number) {
     this.#xml = applyShapeUpdate(this.#xml, this.element, { rotation: v });
+  }
+  get flip_horizontal() {
+    return readShape(this.element).flipHorizontal;
+  }
+  set flip_horizontal(v: boolean) {
+    this.#xml = applyShapeUpdate(this.#xml, this.element, { flipHorizontal: v });
+  }
+  get flip_vertical() {
+    return readShape(this.element).flipVertical;
+  }
+  set flip_vertical(v: boolean) {
+    this.#xml = applyShapeUpdate(this.#xml, this.element, { flipVertical: v });
   }
   get is_placeholder() {
     return readShape(this.element).placeholder !== null;

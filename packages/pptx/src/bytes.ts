@@ -158,6 +158,7 @@ export async function writeBinary(
       checkCancellation(signal, "publish");
     }
     if (close) await sink.close();
+    checkCancellation(signal, "publish");
   } catch {
     checkCancellation(signal, "publish");
     throw new OfficeError("io-failure", "Byte output failed.", "publish");

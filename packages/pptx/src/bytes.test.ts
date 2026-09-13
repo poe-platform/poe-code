@@ -165,6 +165,77 @@ describe("byte admission", () => {
 });
 
 describe("byte output", () => {
+  it.each([
+    { empty: true, rejects: false },
+    { empty: false, rejects: false },
+    { empty: true, rejects: true },
+    { empty: false, rejects: true }
+  ])("reports cancellation while close is pending: %j", async ({ empty, rejects }) => {
+    const controller = new AbortController();
+    const volume = Volume.fromJSON({ "/source": "seed", "/destination": "retained" });
+    const input = new Uint8Array(volume.readFileSync("/source") as Uint8Array);
+    const delivered: number[] = [];
+    let enter!: () => void;
+    const entered = new Promise<void>((resolve) => {
+      enter = resolve;
+    });
+    let complete!: () => void;
+    let fail!: (reason: Error) => void;
+    const completion = new Promise<void>((resolve, reject) => {
+      complete = resolve;
+      fail = reject;
+    });
+    const close = vi.fn(async () => {
+      enter();
+      await completion;
+    });
+    const pending = writeBinary(
+      empty ? new Uint8Array() : input,
+      {
+        async write(bytes) {
+          delivered.push(...bytes);
+        },
+        close
+      },
+      { ...context, signal: controller.signal },
+      { close: true }
+    );
+    const outcome = expect(pending).rejects.toMatchObject({
+      code: "cancelled",
+      message: "Operation cancelled.",
+      phase: "publish"
+    });
+    await entered;
+    controller.abort("private transport detail");
+    if (rejects) fail(new Error("private close failure"));
+    else complete();
+    await outcome;
+    expect(close).toHaveBeenCalledOnce();
+    expect(delivered).toEqual(empty ? [] : [115, 101, 101, 100]);
+    expect(Array.from(input)).toEqual([115, 101, 101, 100]);
+    expect(volume.toJSON()).toEqual({ "/source": "seed", "/destination": "retained" });
+  });
+
+  it("preserves input and files when stdout fails after a delivered prefix", async () => {
+    const volume = Volume.fromJSON({ "/source": "seed", "/destination": "retained" });
+    const input = new Uint8Array(volume.readFileSync("/source") as Uint8Array);
+    const delivered: number[] = [];
+    const close = vi.fn();
+    const write = vi.fn(async (bytes: Uint8Array) => {
+      if (delivered.length) throw new Error("private transport detail");
+      delivered.push(...bytes);
+      bytes.fill(0);
+    });
+    await expect(
+      writeBinary(input, { write, close }, context, { close: true })
+    ).rejects.toMatchObject({ code: "io-failure", message: "Byte output failed." });
+    expect(delivered).toEqual([115, 101, 101]);
+    expect(write).toHaveBeenCalledTimes(2);
+    expect(close).not.toHaveBeenCalled();
+    expect(Array.from(input)).toEqual([115, 101, 101, 100]);
+    expect(volume.toJSON()).toEqual({ "/source": "seed", "/destination": "retained" });
+  });
+
   it("rejects read-only options before writing", async () => {
     const write = vi.fn();
     await expect(

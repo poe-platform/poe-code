@@ -1587,3 +1587,63 @@ admission commits is verified delivered there. No push was requested or
 performed; no release was initiated; successful-release receipt is **null**.
 See `repair-promise-symbol-admission/final-receipt.json` and
 `proof-authority-qualification.json` for exact candidate and terminal results.
+
+
+### Promise admission current-source audit — 2026-09-12
+
+Source SHA: `78b9470aed67ada59e23b0f94274661699a696f3`, branch `main`.
+Runtime: Node **22.23.2**, ICU **78.2**. This audit makes no runtime or test
+changes: explicit admission already exists in `ba051e363`, proof-authority
+repair in `f30bce387`, and exact public export coverage in `671e42cf3`.
+The task-owned change in this invocation is this evidence section only.
+Existing staged Safe Bash changes and unstaged evidence/README changes are
+excluded from the evidence commit.
+
+Current-source commands and terminal results:
+
+- `npx vitest run packages/safe-js/src/interp/native-promise-admission.test.ts packages/safe-js/src/interp/native-promise-admission-budgets.test.ts packages/safe-js/src/interp/promise-import-properties.test.ts packages/safe-js/src/snapshot/input-symbol-references.test.ts packages/safe-js/src/interp/host-call-callback-proof.test.ts packages/safe-js/src/index.test.ts packages/safe-js/src/core.test.ts`
+  passed **6 files / 60 tests**, zero failures/skips, exit 0, 6.93 s.
+  The supplied `host-call-callback-proof.test.ts` path does not exist and did
+  not execute; it is not counted as a pass. The actual callback-proof control
+  was run separately with the following command.
+- `npx vitest run packages/safe-js/src/run.replay.stress.test.ts -t 'callback completion proof'`
+  passed **2 tests**, with **63 tests deselected**, exit 0, 3.27 s. This is
+  a selected control, not a fresh full replay suite or package gate.
+- `npx eslint packages/safe-js/src/interp/native-promise-properties.ts packages/safe-js/src/interp/native-promise-admission.test.ts packages/safe-js/src/interp/native-promise-admission-budgets.test.ts packages/safe-js/src/interp/promise-import-properties.test.ts packages/safe-js/src/snapshot/input-symbol-references.test.ts packages/safe-js/src/index.test.ts packages/safe-js/src/core.test.ts`
+  passed, exit 0. `git diff --check` for the exact evidence addition also
+  passes. No executable changes require a new package build/full package gate;
+  the previously recorded complete package result remains historical evidence.
+
+An independent built-API control again confirmed the original omission:
+create `Promise.resolve(1)`, define own string `label = "answer"` and own
+`Symbol("label") = 42`, then call `deepCopyToSandbox` and inspect
+`getPromiseProperties`. The string is retained and the unregistered symbol
+is undefined. Register the exact key through `admitNativePromiseProperties`
+and repeat: the value is 42 and the sole imported symbol is that exact key.
+All assertions passed. This is explicit host admission, not a claim of
+transparent symbol copying. Current regression controls separately cover
+active/retired context exclusion, accessors, descriptors, cycles, replay,
+capabilities, settlement/rejection, and budget rollback.
+
+The Workerd blocker reproduces unchanged with this exact bundle command:
+
+```sh
+node --input-type=module <<'JS'
+import { build } from 'esbuild';
+await build({stdin:{contents:"export { admitNativePromiseProperties, run } from './packages/safe-js/dist/workerd.js';",resolveDir:process.cwd(),sourcefile:'promise-admission-worker.mjs'},bundle:true,format:'esm',platform:'neutral',conditions:['workerd'],external:['node:*'],write:false});
+JS
+```
+
+Exit **1**: cannot resolve `#safe-fs-native-seek`, imported by
+`packages/safe-fs/dist/node/native-seek.js:6`. No guest Workerd code executed.
+No dependency was externalized to disguise this failure. Actual Workerd
+integration remains unverified; full task closure is therefore **not claimed**.
+The ECMA-262 edition 16 / ECMA-402 edition 12 target, separately pinned newer
+APIs, runtime support, assertions, budgets and timeouts remain unchanged.
+
+Delivery observation: `git ls-remote origin refs/heads/main` returned
+`40b5ac20e91570772786e5f9cb961881b11d6692`. The admission fixes are still
+local, not verified on remote main. This evidence-only audit does not push
+or initiate publication. Release receipt: **null**. The new evidence commit's
+SHA is reported separately after commit. No CLI behavior changed, so visual
+CLI screenshots do not apply.

@@ -78,6 +78,9 @@ export function validateTextFitOptions(options: FitTextFramesOptions): void {
   )
     throw new OfficeError("invalid-value", "Invalid text fit options.", "usage");
   if (!options.metrics) unsupported();
+  for (const key of ["fontFamily", "maxSize", "minSize", "bold", "italic", "lineSpacing"] as const)
+    if (options[key] === null)
+      throw new OfficeError("invalid-value", "Invalid text fit options.", "usage");
   if ((options.maxSize ?? 18) > 4000)
     throw new OfficeError("invalid-value", "Text fit sizes must not exceed 4000 points.", "usage");
   for (const key of ["all", "allowEmpty", "wrap"] as const)

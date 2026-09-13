@@ -350,3 +350,11 @@ export {
   type TableCoordinate,
   type TableStructureOperation
 } from "./table-spans.js";
+
+export {
+  readImages,
+  type ReadImagesOptions,
+  type ImageOccurrence,
+  type ImageMedia,
+  type ImageInventory
+} from "./images.js";

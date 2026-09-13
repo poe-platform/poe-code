@@ -26,6 +26,8 @@ import { connectorSchemas } from "./connectors-schema.js";
 import { validateShapePath, pathFromVertices, type ShapePath } from "./shape-paths.js";
 import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
 import { fieldSchemas } from "./fields-schema.js";
+import { readImages } from "./images.js";
+import { imageSchemas } from "./images-schema.js";
 import { addShape, mutateShapes, readShapes, type ShapeSelection } from "./shape-operations.js";
 import { groupShapes, ungroupShape, validateGroupOptions } from "./shape-groups.js";
 import {
@@ -266,6 +268,7 @@ const help =
   "                         [--style-json JSON] [--allow-empty] [--dry-run] [--output PATH | --in-place] [--force] [--json]\n" +
   "       pptx text INPUT | pptx text get INPUT --select TOKEN [--json]\n" +
   "       pptx tables list|get|add|set INPUT [--slide N --table N --cell row,column] [properties] [output]\n" +
+  "       pptx images list INPUT [--slide N --image N] [--scope SCOPE] [--unique] [--json]\n" +
   "       pptx schema tables list|get|add|set [--json]\n" +
   "       pptx schema text get [--json]\n" +
   "       Text uses structural shape-tree order, including hidden slides, cached fields and empty paragraphs.\n" +
@@ -431,6 +434,7 @@ interface Arguments {
     | "text.runs.get"
     | "text.runs.list"
     | "inspect"
+    | "images.list"
     | "xml.get"
     | "xml.set"
     | "schema"
@@ -495,6 +499,8 @@ interface Arguments {
   json: boolean;
   input?: string;
   slide?: number;
+  image?: number;
+  unique?: boolean;
   shape?: string;
   part?: string;
   token?: string;
@@ -594,6 +600,7 @@ const frameFlags = [
 ];
 
 const scalarOptions = [
+  "--image",
   "--from",
   "--to",
   "--span-policy",
@@ -755,6 +762,7 @@ function parse(
     } else if (
       index === 1 &&
       [
+        "images",
         "tables",
         "connectors",
         "sections",
@@ -820,6 +828,7 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "images",
     "tables",
     "connectors",
     "text",
@@ -845,6 +854,7 @@ function parse(
         : command;
   if (
     ![
+      ...Object.keys(imageSchemas),
       ...Object.keys(fieldSchemas),
       ...Object.keys(connectorSchemas),
       ...Object.keys(tableSchemas),
@@ -898,7 +908,8 @@ function parse(
       continue;
     }
     if (
-      (operation.startsWith("tables.") ||
+      (operation.startsWith("images.") ||
+        operation.startsWith("tables.") ||
         operation.startsWith("connectors.") ||
         operation.startsWith("fields.") ||
         operation.startsWith("shapes.") ||
@@ -1119,6 +1130,11 @@ function parse(
       result.json = true;
       continue;
     }
+    if (argument === "--unique") {
+      if (operation !== "images.list") usage("Unique requires images list.");
+      result.unique = true;
+      continue;
+    }
     if (["--pretty", "--in-place", "--force", "--dry-run"].includes(argument)) {
       if (argument === "--pretty") result.pretty = true;
       else if (argument === "--in-place") result.inPlace = true;
@@ -1160,6 +1176,18 @@ function parse(
         ].includes(argument))
     )
       usage("Missing option value.");
+    if (argument === "--image") {
+      if (operation !== "images.list") usage("Image selection requires images list.");
+      if (
+        !value.length ||
+        [...value].some((c) => c < "0" || c > "9") ||
+        !Number.isSafeInteger(Number(value)) ||
+        Number(value) < 1
+      )
+        usage("Image positions require positive integers.");
+      result.image = Number(value);
+      continue;
+    }
     if (operation === "text.fit" && fitFlags.includes(argument)) {
       const key = argument
         .slice(2)
@@ -2032,6 +2060,18 @@ function parse(
     operation === "slides.set" ||
     operation === "slides.remove";
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
+  if (operation === "images.list") {
+    const allowed = ["--json", "--limit", "--scope", "--slide", "--image", "--select", "--unique"];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to images list.");
+    if (positionals.length !== 1 || !positionals[0])
+      usage("Image inventory requires exactly one input.");
+    if (result.scope === "presentation") usage("Presentation scope has no image owners.");
+    if (result.token && ["--slide", "--image", "--scope"].some((option) => seen.has(option)))
+      usage("Opaque and simple selectors cannot be combined.");
+    result.input = positionals[0];
+    return result;
+  }
   if (
     operation.startsWith("fields.") ||
     operation === "text.get" ||
@@ -2755,6 +2795,7 @@ function parse(
     if (
       (operation === "schema" || operation === "help") &&
       [
+        ...Object.keys(imageSchemas),
         ...Object.keys(fieldSchemas),
         ...Object.keys(connectorSchemas),
         ...Object.keys(tableSchemas),
@@ -3049,7 +3090,7 @@ async function execute(
               : args.schemaPath?.startsWith("text.runs.")
                 ? runHelp
                 : help;
-      const resolvedUsage =
+      let resolvedUsage =
         args.schemaPath === "shapes.remove"
           ? "Usage: pptx shapes remove INPUT --slide N --shape NAME [--detach-policy detach|remove] [output]\n" +
             "Selection also accepts --select TOKEN or --all. Referenced targets require explicit policy.\n" +
@@ -3160,6 +3201,13 @@ async function execute(
                             "No field evaluation, automatic numbering or inherited-content flattening.\n" +
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
+      if (args.schemaPath === "images.list")
+        resolvedUsage = "Usage: pptx images list INPUT [--slide N --image N | --select TOKEN]\n" +
+          "       [--scope SCOPE] [--unique] [--json] [--limit NAME=VALUE]\n" +
+          "Scopes: slides (default), notes, layouts, masters, notes-master, handout-master, shared.\n" +
+          "Positions are one-based within each source part. Opaque and simple selectors cannot be mixed.\n" +
+          "Lists occurrences separately from media parts; --unique groups identical media hashes.\n" +
+          "Includes source relationships, crop, geometry, alt text and inheritance. Linked images are never fetched.\n";
       result = success(operation, { usage: resolvedUsage });
       human = resolvedUsage;
     } else if (args.operation === "version") {
@@ -3170,6 +3218,7 @@ async function execute(
         version: 1,
         operations: Object.fromEntries(
           Object.entries({
+            ...imageSchemas,
             ...fieldSchemas,
             ...membershipSchemas,
             ...settingsSchemas,
@@ -3207,6 +3256,12 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          images: {
+            level: "read",
+            operations: Object.keys(imageSchemas),
+            subset:
+              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. Links are never fetched; image editing and decoding are not provided."
+          },
           drawing: {
             level: "edit",
             operations: ["shapes.drawing.get", "shapes.drawing.set", "shapes.effects.set"],
@@ -3505,6 +3560,37 @@ async function execute(
           dryRun
         };
       }
+    } else if (args.operation === "images.list") {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const data = await readImages(
+        bytes,
+        {
+          ...(args.scope === undefined ? {} : { scope: args.scope }),
+          ...(args.slide === undefined ? {} : { slide: args.slide }),
+          ...(args.image === undefined ? {} : { image: args.image }),
+          ...(args.token === undefined ? {} : { select: args.token }),
+          ...(args.unique === undefined ? {} : { unique: args.unique })
+        },
+        context
+      );
+      result = {
+        ...success(operation, data),
+        locations: data.occurrences.map((item) => item.location)
+      };
+      human =
+        `Images: ${data.occurrences.length} occurrences, ${data.media.length} media ${args.unique ? "hashes" : "parts"}\n` +
+        (args.unique ? data.media.map((item) =>
+          `${item.sha256}\n  ${item.contentTypes.join(", ")} | ${item.bytes} bytes | ${item.occurrenceIds.length} occurrences\n${item.parts.map((part) => `  ${part}\n`).join("")}`
+        ).join("") : data.occurrences
+          .map(
+            (item) =>
+              `${item.sourcePart} #${item.position}\t${item.shapeName ?? item.kind}\t${item.role}\t${item.contentType ?? "linked"}\t${item.bytes ?? "unknown"} bytes\n`
+          )
+          .join(""));
     } else if (
       args.operation === "fields.list" ||
       args.operation === "fields.get" ||

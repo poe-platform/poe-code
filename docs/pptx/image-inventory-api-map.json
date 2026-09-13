@@ -1,0 +1,1325 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "F30 operation SDK receipt and complete image/picture/returned movie/placeholder family API obligations; inherited and underscore-prefixed entries retained.",
+  "operation": {
+    "name": "images.list",
+    "sdk": "readImages(input: BinaryInput, options: ReadImagesOptions, context: SelectionContext): Promise<ImageInventory>",
+    "cli": "pptx images list INPUT [--scope SCOPE] [--slide N] [--image N] [--select TOKEN] [--unique] [--json]",
+    "status": "implemented",
+    "evidence": [
+      "packages/pptx/src/images.test.ts",
+      "packages/pptx/src/image-metadata.test.ts",
+      "packages/safe-bash/tests/commands/pptx/image-inventory.test.ts"
+    ]
+  },
+  "languageMappings": {
+    "admission": "Always async bytes/stream or explicit capability-scoped VFS input. No path inference, native image runtime, ambient filesystem or network.",
+    "indexing": "CLI picture positions are one-based within owning parts. Fallback references share a picture position. Structural reference IDs remain distinct.",
+    "density": "Missing/invalid density uses 72 per axis. Numbers round to nearest integer with positive halfway values upward, then must be in 1..2048. Numeric strings are rejected; no coercion. This explicitly differs from source float coercion and ties-to-even.",
+    "dimensions": "PNG/JPEG/GIF/BMP/TIFF bounded header metadata, not pixel decoding or image validity certification. Unsupported vector intrinsic dimensions are null.",
+    "hash": "SHA-256 identifies admitted bytes; explicit unique groups hashes while preserving contributing parts. Media sha1 exposes independently tested compatibility metadata, never the integrity identity. Mixed MIME groups retain all declarations, null dimensions and default DPI.",
+    "ownership": "Inventory is a detached noncreating read, not live Image/Picture model objects. Local placement corners and inherited slide membership do not promise rendering.",
+    "names": "Neutral model property spellings remain required; operation fields use camelCase and do not replace the model API.",
+    "selection": "Default slides only; explicit shared is the union of known drawing owners. Slide filtering also applies to notes/layout/master ancestry. --image selects picture positions only, excluding backgrounds and ordinary shape fills; opaque owner/object tokens can select their scope. Empty read selections succeed."
+  },
+  "drift": [
+    {
+      "reference": "api-reconciliation.md#D12",
+      "decision": "Notes drawing inspection does not invent add_picture methods on NotesSlideShapes."
+    },
+    {
+      "reference": "upstream-api-audit.md",
+      "decision": "Historical not-implemented statements describe the initial audit. This receipt establishes only the verified operation/header subset, not complete image model support."
+    }
+  ],
+  "objects": [
+    {
+      "source": "upstream-api-inventory.json#/objects/1536",
+      "sourceId": "pptx.parts.image.Image",
+      "declaredOn": null,
+      "targetMember": "Image",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1537",
+      "sourceId": "pptx.parts.image.Image.__init__",
+      "declaredOn": null,
+      "targetMember": "constructor",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1538",
+      "sourceId": "pptx.parts.image.Image.blob",
+      "declaredOn": "pptx.parts.image.Image",
+      "targetMember": "blob",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1539",
+      "sourceId": "pptx.parts.image.Image.content_type",
+      "declaredOn": "pptx.parts.image.Image",
+      "targetMember": "content_type",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1540",
+      "sourceId": "pptx.parts.image.Image.dpi",
+      "declaredOn": "pptx.parts.image.Image",
+      "targetMember": "dpi",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1541",
+      "sourceId": "pptx.parts.image.Image.ext",
+      "declaredOn": "pptx.parts.image.Image",
+      "targetMember": "ext",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1542",
+      "sourceId": "pptx.parts.image.Image.filename",
+      "declaredOn": "pptx.parts.image.Image",
+      "targetMember": "filename",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1543",
+      "sourceId": "pptx.parts.image.Image.sha1",
+      "declaredOn": "pptx.parts.image.Image",
+      "targetMember": "sha1",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1544",
+      "sourceId": "pptx.parts.image.Image.size",
+      "declaredOn": "pptx.parts.image.Image",
+      "targetMember": "size",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1725",
+      "sourceId": "pptx.shapes.picture.Movie",
+      "declaredOn": null,
+      "targetMember": "Movie",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1726",
+      "sourceId": "pptx.shapes.picture.Movie.__eq__",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "equals",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1727",
+      "sourceId": "pptx.shapes.picture.Movie.__init__",
+      "declaredOn": null,
+      "targetMember": "constructor",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1728",
+      "sourceId": "pptx.shapes.picture.Movie.click_action",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "click_action",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1729",
+      "sourceId": "pptx.shapes.picture.Movie.crop_bottom",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_bottom",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1730",
+      "sourceId": "pptx.shapes.picture.Movie.crop_left",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_left",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1731",
+      "sourceId": "pptx.shapes.picture.Movie.crop_right",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_right",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1732",
+      "sourceId": "pptx.shapes.picture.Movie.crop_top",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_top",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1733",
+      "sourceId": "pptx.shapes.picture.Movie.element",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "element",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1734",
+      "sourceId": "pptx.shapes.picture.Movie.get_or_add_ln",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "get_or_add_ln",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1735",
+      "sourceId": "pptx.shapes.picture.Movie.has_chart",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "has_chart",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1736",
+      "sourceId": "pptx.shapes.picture.Movie.has_table",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "has_table",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1737",
+      "sourceId": "pptx.shapes.picture.Movie.has_text_frame",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "has_text_frame",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1738",
+      "sourceId": "pptx.shapes.picture.Movie.height",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "height",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1739",
+      "sourceId": "pptx.shapes.picture.Movie.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "is_placeholder",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1740",
+      "sourceId": "pptx.shapes.picture.Movie.left",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "left",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1741",
+      "sourceId": "pptx.shapes.picture.Movie.line",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "line",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1742",
+      "sourceId": "pptx.shapes.picture.Movie.ln",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "ln",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1743",
+      "sourceId": "pptx.shapes.picture.Movie.media_format",
+      "declaredOn": "pptx.shapes.picture.Movie",
+      "targetMember": "media_format",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1744",
+      "sourceId": "pptx.shapes.picture.Movie.media_type",
+      "declaredOn": "pptx.shapes.picture.Movie",
+      "targetMember": "media_type",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1745",
+      "sourceId": "pptx.shapes.picture.Movie.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "name",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1746",
+      "sourceId": "pptx.shapes.picture.Movie.part",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "part",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1747",
+      "sourceId": "pptx.shapes.picture.Movie.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "placeholder_format",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1748",
+      "sourceId": "pptx.shapes.picture.Movie.poster_frame",
+      "declaredOn": "pptx.shapes.picture.Movie",
+      "targetMember": "poster_frame",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1749",
+      "sourceId": "pptx.shapes.picture.Movie.rotation",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "rotation",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1750",
+      "sourceId": "pptx.shapes.picture.Movie.shadow",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "shadow",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1751",
+      "sourceId": "pptx.shapes.picture.Movie.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "shape_id",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1752",
+      "sourceId": "pptx.shapes.picture.Movie.shape_type",
+      "declaredOn": "pptx.shapes.picture.Movie",
+      "targetMember": "shape_type",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1753",
+      "sourceId": "pptx.shapes.picture.Movie.top",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "top",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1754",
+      "sourceId": "pptx.shapes.picture.Movie.width",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "width",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1755",
+      "sourceId": "pptx.shapes.picture.Picture",
+      "declaredOn": null,
+      "targetMember": "Picture",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1756",
+      "sourceId": "pptx.shapes.picture.Picture.__eq__",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "equals",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1757",
+      "sourceId": "pptx.shapes.picture.Picture.__init__",
+      "declaredOn": null,
+      "targetMember": "constructor",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1758",
+      "sourceId": "pptx.shapes.picture.Picture.auto_shape_type",
+      "declaredOn": "pptx.shapes.picture.Picture",
+      "targetMember": "auto_shape_type",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1759",
+      "sourceId": "pptx.shapes.picture.Picture.click_action",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "click_action",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1760",
+      "sourceId": "pptx.shapes.picture.Picture.crop_bottom",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_bottom",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1761",
+      "sourceId": "pptx.shapes.picture.Picture.crop_left",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_left",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1762",
+      "sourceId": "pptx.shapes.picture.Picture.crop_right",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_right",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1763",
+      "sourceId": "pptx.shapes.picture.Picture.crop_top",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_top",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1764",
+      "sourceId": "pptx.shapes.picture.Picture.element",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "element",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1765",
+      "sourceId": "pptx.shapes.picture.Picture.has_chart",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "has_chart",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1766",
+      "sourceId": "pptx.shapes.picture.Picture.has_table",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "has_table",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1767",
+      "sourceId": "pptx.shapes.picture.Picture.has_text_frame",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "has_text_frame",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1768",
+      "sourceId": "pptx.shapes.picture.Picture.height",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "height",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1769",
+      "sourceId": "pptx.shapes.picture.Picture.image",
+      "declaredOn": "pptx.shapes.picture.Picture",
+      "targetMember": "image",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1770",
+      "sourceId": "pptx.shapes.picture.Picture.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "is_placeholder",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1771",
+      "sourceId": "pptx.shapes.picture.Picture.left",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "left",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1772",
+      "sourceId": "pptx.shapes.picture.Picture.line",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "line",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1773",
+      "sourceId": "pptx.shapes.picture.Picture.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "name",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1774",
+      "sourceId": "pptx.shapes.picture.Picture.part",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "part",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1775",
+      "sourceId": "pptx.shapes.picture.Picture.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "placeholder_format",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1776",
+      "sourceId": "pptx.shapes.picture.Picture.rotation",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "rotation",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1777",
+      "sourceId": "pptx.shapes.picture.Picture.shadow",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "shadow",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1778",
+      "sourceId": "pptx.shapes.picture.Picture.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "shape_id",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1779",
+      "sourceId": "pptx.shapes.picture.Picture.shape_type",
+      "declaredOn": "pptx.shapes.picture.Picture",
+      "targetMember": "shape_type",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1780",
+      "sourceId": "pptx.shapes.picture.Picture.top",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "top",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1781",
+      "sourceId": "pptx.shapes.picture.Picture.width",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "width",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1782",
+      "sourceId": "pptx.shapes.picture._MediaFormat",
+      "declaredOn": null,
+      "targetMember": "_MediaFormat",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1783",
+      "sourceId": "pptx.shapes.picture._MediaFormat.__eq__",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "targetMember": "equals",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1784",
+      "sourceId": "pptx.shapes.picture._MediaFormat.__init__",
+      "declaredOn": null,
+      "targetMember": "constructor",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1785",
+      "sourceId": "pptx.shapes.picture._MediaFormat.element",
+      "declaredOn": "pptx.shared.ElementProxy",
+      "targetMember": "element",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1786",
+      "sourceId": "pptx.shapes.picture._MediaFormat.parent",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "targetMember": "parent",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1787",
+      "sourceId": "pptx.shapes.picture._MediaFormat.part",
+      "declaredOn": "pptx.shared.ParentedElementProxy",
+      "targetMember": "part",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1952",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture",
+      "declaredOn": null,
+      "targetMember": "PlaceholderPicture",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1953",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.__eq__",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "equals",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J03"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1954",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.__init__",
+      "declaredOn": null,
+      "targetMember": "constructor",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1955",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.auto_shape_type",
+      "declaredOn": "pptx.shapes.picture.Picture",
+      "targetMember": "auto_shape_type",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1956",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.click_action",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "click_action",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1957",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.crop_bottom",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_bottom",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1958",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.crop_left",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_left",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1959",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.crop_right",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_right",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1960",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.crop_top",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "crop_top",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1961",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.element",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "element",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1962",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.has_chart",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "has_chart",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1963",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.has_table",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "has_table",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1964",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.has_text_frame",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "has_text_frame",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1965",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.height",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "targetMember": "height",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1966",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.image",
+      "declaredOn": "pptx.shapes.picture.Picture",
+      "targetMember": "image",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1967",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.is_placeholder",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "is_placeholder",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1968",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.left",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "targetMember": "left",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1969",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.line",
+      "declaredOn": "pptx.shapes.picture._BasePicture",
+      "targetMember": "line",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1970",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.name",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "name",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1971",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.part",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "part",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02",
+        "J09"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1972",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.placeholder_format",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "placeholder_format",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1973",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.rotation",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "rotation",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1974",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.shadow",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "shadow",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1975",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.shape_id",
+      "declaredOn": "pptx.shapes.base.BaseShape",
+      "targetMember": "shape_id",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1976",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.shape_type",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "targetMember": "shape_type",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1977",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.top",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "targetMember": "top",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1978",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.width",
+      "declaredOn": "pptx.shapes.placeholder._InheritsDimensions",
+      "targetMember": "width",
+      "jsSignature": null,
+      "status": "planned-model-api",
+      "reason": "Operation inventory does not implement this documented live model member. Inherited members, constructors, underscore-prefixed returned interfaces and setters stay visible; none are removed by naming.",
+      "mappingRules": [
+        "J01",
+        "J02"
+      ]
+    }
+  ]
+}

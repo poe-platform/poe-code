@@ -319,3 +319,22 @@ export {
   GradientStops as _GradientStops,
   ShadowFormat
 } from "./shapes.js";
+
+export { readTables, addTable, mutateTables, type TableSelection } from "./table-operations.js";
+export {
+  readTable,
+  createTableXml,
+  applyTableUpdate,
+  validateTableUpdate,
+  type TableUpdate,
+  type TableRecord
+} from "./tables.js";
+export {
+  Table,
+  TableCell,
+  TableRow,
+  TableColumn,
+  TableRows,
+  TableColumns,
+  TableCells
+} from "./tables-model.js";

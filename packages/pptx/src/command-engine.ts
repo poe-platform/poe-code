@@ -1,3 +1,13 @@
+import {
+  addTable,
+  mutateTables,
+  readTables,
+  tableCell,
+  validateTableSelection,
+  type TableSelection
+} from "./table-operations.js";
+import { validateTableUpdate, type TableUpdate } from "./tables.js";
+import { tableSchemas, tableValues } from "./tables-schema.js";
 import { readDrawing, mutateDrawing } from "./drawing-operations.js";
 import { validateDrawingUpdate, type DrawingUpdate, type DrawingColor } from "./drawing-format.js";
 import { addShapePath, setShapePath, readShapePaths } from "./shape-path-operations.js";
@@ -253,6 +263,8 @@ const help =
   "                         [--slide N --shape NAME | --select TOKEN] [--scope SCOPE]\n" +
   "                         [--style-json JSON] [--allow-empty] [--dry-run] [--output PATH | --in-place] [--force] [--json]\n" +
   "       pptx text INPUT | pptx text get INPUT --select TOKEN [--json]\n" +
+  "       pptx tables list|get|add|set INPUT [--slide N --table N --cell row,column] [properties] [output]\n" +
+  "       pptx schema tables list|get|add|set [--json]\n" +
   "       pptx schema text get [--json]\n" +
   "       Text uses structural shape-tree order, including hidden slides, cached fields and empty paragraphs.\n" +
   "       Text --slide follows notes/layout/master owners within the explicit scope.\n" +
@@ -343,6 +355,9 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  tableEdit?: TableUpdate;
+  table?: number;
+  cell?: string;
   connectorEdit?: ConnectorUpdate;
   selectionEdit?: ShapeSelectionOptions;
   shapes?: readonly Location[];
@@ -359,6 +374,7 @@ interface Arguments {
   shadowColor?: DrawingColor;
   fieldEdit?: FieldUpdate;
   operation:
+    | `tables.${"list" | "get" | "add" | "set"}`
     | `connectors.${"list" | "get" | "add" | "set" | "remove"}`
     | `fields.${"list" | "get" | "set" | "add" | "remove"}`
     | `masters.${"list" | "get" | "add" | "set"}`
@@ -729,6 +745,7 @@ function parse(
     } else if (
       index === 1 &&
       [
+        "tables",
         "connectors",
         "sections",
         "shows",
@@ -784,6 +801,7 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "tables",
     "connectors",
     "text",
     "xml",
@@ -810,6 +828,7 @@ function parse(
     ![
       ...Object.keys(fieldSchemas),
       ...Object.keys(connectorSchemas),
+      ...Object.keys(tableSchemas),
       ...Object.keys(membershipSchemas),
       ...Object.keys(settingsSchemas),
       ...Object.keys(masterSchemas),
@@ -860,7 +879,8 @@ function parse(
       continue;
     }
     if (
-      (operation.startsWith("connectors.") ||
+      (operation.startsWith("tables.") ||
+        operation.startsWith("connectors.") ||
         operation.startsWith("fields.") ||
         operation.startsWith("shapes.") ||
         operation.startsWith("text.runs.") ||
@@ -870,6 +890,73 @@ function parse(
       ["--help", "-h"].includes(argument)
     )
       return { operation: "help", json: output.json, schemaPath: operation };
+    if (
+      operation.startsWith("tables.") &&
+      (argument === "--table" ||
+        argument === "--cell" ||
+        Object.keys(tableValues).some(
+          (key) =>
+            "--" +
+              [...key].map((c) => (c >= "A" && c <= "Z" ? "-" + c.toLowerCase() : c)).join("") ===
+            argument
+        ))
+    ) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Table option requires a value.");
+      const key = argument
+        .slice(2)
+        .split("-")
+        .map((word, i) => (i ? word[0]!.toUpperCase() + word.slice(1) : word))
+        .join("");
+      if (key === "table" || key === "rows" || key === "columns") {
+        if (
+          !value.length ||
+          [...value].some((c) => c < "0" || c > "9") ||
+          !Number.isSafeInteger(Number(value)) ||
+          Number(value) < 1
+        )
+          usage("Table positions and dimensions require positive integers.");
+        if (key === "table") result.table = Number(value);
+        else result.tableEdit = { ...result.tableEdit, [key]: Number(value) };
+      } else if (key === "cell") {
+        try {
+          tableCell(value);
+        } catch {
+          usage("Cell requires one-based row,column coordinates.");
+        }
+        result.cell = value;
+      } else {
+        const lengths = [
+          "left",
+          "top",
+          "width",
+          "height",
+          "rowHeight",
+          "columnWidth",
+          "borderWidth",
+          "marginLeft",
+          "marginRight",
+          "marginTop",
+          "marginBottom"
+        ];
+        let parsed: unknown = value;
+        if (key === "data") parsed = commandJson(value);
+        else if (
+          ["firstRow", "lastRow", "firstCol", "lastCol", "horzBand", "vertBand"].includes(key)
+        ) {
+          if (!["true", "false"].includes(value)) usage("Table style flags require true or false.");
+          parsed = value === "true";
+        } else if (value === "null" && !["text"].includes(key)) parsed = null;
+        else if (lengths.includes(key))
+          parsed = new Emu(
+            commandLength(value, ["left", "top"].includes(key) ? -Number.MAX_SAFE_INTEGER : 0)
+          );
+        result.tableEdit = { ...result.tableEdit, [key]: parsed };
+      }
+      continue;
+    }
     if (
       (operation.startsWith("connectors.") || operation === "shapes.remove") &&
       [
@@ -2046,7 +2133,11 @@ function parse(
     }
     return result;
   }
-  if (Object.hasOwn(shapeSchemas, operation) || Object.hasOwn(connectorSchemas, operation)) {
+  if (
+    Object.hasOwn(shapeSchemas, operation) ||
+    Object.hasOwn(connectorSchemas, operation) ||
+    Object.hasOwn(tableSchemas, operation)
+  ) {
     const connector = operation.startsWith("connectors.");
     const selectionMutation = [
       "shapes.move",
@@ -2062,7 +2153,8 @@ function parse(
       operation.endsWith(".set") ||
       operation.endsWith(".remove");
     const flags = Object.keys(
-      (connectorSchemas[operation] ?? shapeSchemas[operation])!.options.properties
+      (tableSchemas[operation] ?? connectorSchemas[operation] ?? shapeSchemas[operation])!.options
+        .properties
     ).map(
       (key) =>
         "--" + [...key].map((c) => (c >= "A" && c <= "Z" ? "-" + c.toLowerCase() : c)).join("")
@@ -2073,8 +2165,30 @@ function parse(
     result.input = positionals[0];
     if (result.token && (result.slide !== undefined || result.part || result.shape || result.all))
       usage("Opaque and simple selectors cannot be combined.");
+    if (operation.startsWith("tables."))
+      validateTableSelection(
+        {
+          ...(result.scope === undefined ? {} : { scope: result.scope }),
+          ...(result.slide === undefined ? {} : { slide: result.slide }),
+          ...(result.table === undefined ? {} : { table: result.table }),
+          ...(result.cell === undefined ? {} : { cell: result.cell }),
+          ...(result.token === undefined ? {} : { select: result.token }),
+          ...(result.all === undefined ? {} : { all: result.all }),
+          ...(result.allowEmpty === undefined ? {} : { allowEmpty: result.allowEmpty })
+        },
+        operation === "tables.add" ? "add" : mutation ? "set" : "read"
+      );
     if (mutation) {
-      if (operation === "shapes.remove") {
+      if (operation.startsWith("tables.")) {
+        if (!result.tableEdit) usage("A table edit is required.");
+        validateTableUpdate(
+          {
+            ...result.tableEdit,
+            ...(result.cell === undefined ? {} : { cell: tableCell(result.cell) })
+          },
+          operation === "tables.add"
+        );
+      } else if (operation === "shapes.remove") {
         if (
           result.connectorEdit?.detachPolicy !== undefined &&
           !["detach", "remove"].includes(result.connectorEdit.detachPolicy)
@@ -2587,6 +2701,7 @@ function parse(
       [
         ...Object.keys(fieldSchemas),
         ...Object.keys(connectorSchemas),
+        ...Object.keys(tableSchemas),
         ...Object.keys(membershipSchemas),
         ...Object.keys(settingsSchemas),
         ...Object.keys(masterSchemas),
@@ -2884,101 +2999,108 @@ async function execute(
             "Selection also accepts --select TOKEN or --all. Referenced targets require explicit policy.\n" +
             "Detach keeps connectors with free coordinates; remove deletes affected connectors. Timing references reject deletion.\n" +
             "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n"
-          : args.schemaPath?.startsWith("connectors.")
-            ? "Usage: pptx connectors list|get|add|set|remove INPUT [selection] [properties] [output]\n" +
-              "Selection: --slide N [--shape NAME | --all] | --select TOKEN.\n" +
-              "Add requires --kind STRAIGHT|ELBOW|CURVE --begin-x LENGTH --begin-y LENGTH --end-x LENGTH --end-y LENGTH.\n" +
-              "Attach: --begin-target LOCATION_JSON --end-target LOCATION_JSON --site N (zero-based).\n" +
-              "Set target null to detach one endpoint; --detach-policy detach detaches both, remove removes the connector.\n" +
-              "Lengths use explicit emu/in/cm/mm/pt in parent coordinates. --name TEXT sets the name.\n" +
-              "Line: --line-color RGB|solid|null --line-width LENGTH|null. Solid preserves existing solid color.\n" +
-              "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
-              "Targets: rect/ellipse/roundRect sites 0..3. Grouped connectors require same-parent targets.\n" +
-              "Nonzero-rotated coordinate edits reject; arbitrary routing/guide geometry is preserve-only.\n"
-            : ["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"].includes(
-                  args.schemaPath ?? ""
-                )
-              ? "Usage: pptx shapes move|align|distribute|duplicate INPUT [selection] --coordinate-system slide|group [output]\n" +
-                "Selection: --shapes JSON Location array, or --slide N [--shape NAME | --all], or --select TOKEN.\n" +
-                "Move: --order front|back|forward|backward OR --position N (one-based).\n" +
-                "Align: --alignment left|center|right|top|middle|bottom. Distribute: --axis horizontal|vertical.\n" +
-                "Duplicate: --offset-x LENGTH --offset-y LENGTH (explicit units, signed offsets).\n" +
-                "Hidden siblings participate; locked selections fail. Mixed slides or parent groups fail.\n" +
-                "Output: --output PATH | --in-place | --dry-run; --force, --json, --limit NAME=VALUE.\n"
-              : args.schemaPath?.startsWith("shapes.paths.")
-                ? "Usage: pptx shapes paths list|get|add|set INPUT [selection] [path] [output]\n" +
-                  "Read: list|get INPUT [selection]. Add/set require --path JSON or --vertices JSON.\n" +
-                  "Path: {unit:emu,width,height,commands:[move|line|quadratic|cubic|close]}\n" +
-                  "Coordinates: integer local EMUs, -2147483647..2147483647; viewport 1..2147483647.\n" +
-                  "At most 4096 commands; explicit closure; command order preserved without winding evaluation.\n" +
-                  "Alternatively --vertices JSON --close true|false uses {x,y} local EMU vertices and a derived viewport.\n" +
-                  "Add placement: --left LENGTH --top LENGTH --width LENGTH --height LENGTH.\n" +
-                  "Add accepts shape name, text, paint and metadata properties. Lengths require emu/in/cm/mm/pt.\n" +
-                  "Selection: --slide N [--shape NAME] | --part URI --scope SCOPE | --select TOKEN.\n" +
-                  "Set: selects one shape unless --all; --allow-empty accepts zero matches.\n" +
-                  "Scopes: slides (default), layouts, masters; shared requires --part URI.\n" +
-                  "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
-                  "Unsupported formulas, arcs and arbitrary existing geometry are preserve-only.\n"
-                : ["shapes.group", "shapes.ungroup"].includes(args.schemaPath ?? "")
-                  ? "Usage: pptx shapes group|ungroup INPUT --tolerance LENGTH [selection] [output]\n" +
-                    "Group: --shapes JSON array of at least two inspected Location objects.\n" +
-                    "Shapes must be distinct contiguous siblings; original IDs and z-order are retained.\n" +
-                    "Ungroup: --slide N --shape NAME | --select TOKEN; selects one group.\n" +
-                    "Selection: --part URI --scope SCOPE. Exact cardinality; --all/--allow-empty are unsupported.\n" +
-                    "Tolerance is explicit nonnegative EMU precision using emu/in/cm/mm/pt lengths.\n" +
-                    "Identity groups preserve child XML; transformed ungrouping supports nested groups and rectangles\n" +
-                    "without text, styles or strokes.\n" +
-                    "Transformed ungrouping supports quarter-turn rotation chains only.\n" +
-                    "World geometry must remain within tolerance; unsupported geometry and references fail.\n" +
-                    "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n"
-                  : args.schemaPath?.startsWith("shapes.drawing.") ||
-                      args.schemaPath === "shapes.effects.set"
-                    ? "Usage: pptx shapes drawing get|set INPUT [selection] [paint] [output]\n" +
-                      "       pptx shapes effects set INPUT [selection] --shadow true|false\n" +
-                      "         --opacity RATIO --shadow-blur LENGTH --shadow-color COLOR [output]\n" +
-                      "Paint: --fill-kind inherit|none|solid|gradient|pattern|picture\n" +
-                      "  --color COLOR; gradient: --stops JSON --angle DEGREES\n" +
-                      "  pattern: --pattern PRESET [--foreground COLOR --background COLOR]\n" +
-                      "  picture: --file PATH --mode stretch|tile\n" +
-                      "Advanced paint: --fill JSON --line JSON --shadow-inherit true|false\n" +
-                      "COLOR is six-digit RGB or JSON with rgb/theme, optional brightness and opacity.\n" +
-                      "Selection: --slide N --shape NAME | --part URI --scope SCOPE | --select TOKEN\n" +
-                      "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
-                      "Set selects one shape unless --all; --allow-empty accepts zero matches.\n" +
-                      "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
-                      "Lengths require emu/in/cm/mm/pt. Simple shadows have zero offset.\n" +
-                      "Complex effects and 3D remain intact; editing unsupported effects fails.\n"
-                    : args.schemaPath?.startsWith("shapes.")
-                      ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
-                        "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
+          : args.schemaPath?.startsWith("tables.")
+            ? "Usage: pptx tables list|get|add|set INPUT [--slide N --table N --cell row,column] [properties] [output]\n" +
+              "Add: --rows N --columns N --left LENGTH --top LENGTH --width LENGTH --height LENGTH [--data JSON]\n" +
+              "Set: --text TEXT (one cell), --data JSON, --row-height LENGTH, --column-width LENGTH, --style ID\n" +
+              "Formatting: --fill RGB --border-color RGB --border-width LENGTH --margin-left|right|top|bottom LENGTH\n" +
+              "Style flags: --first-row|last-row|first-col|last-col|horz-band|vert-band true|false; --vertical-anchor top|middle|bottom\n" +
+              "Output: --output PATH or --in-place; --dry-run validates without publication. Selectors are one-based.\n"
+            : args.schemaPath?.startsWith("connectors.")
+              ? "Usage: pptx connectors list|get|add|set|remove INPUT [selection] [properties] [output]\n" +
+                "Selection: --slide N [--shape NAME | --all] | --select TOKEN.\n" +
+                "Add requires --kind STRAIGHT|ELBOW|CURVE --begin-x LENGTH --begin-y LENGTH --end-x LENGTH --end-y LENGTH.\n" +
+                "Attach: --begin-target LOCATION_JSON --end-target LOCATION_JSON --site N (zero-based).\n" +
+                "Set target null to detach one endpoint; --detach-policy detach detaches both, remove removes the connector.\n" +
+                "Lengths use explicit emu/in/cm/mm/pt in parent coordinates. --name TEXT sets the name.\n" +
+                "Line: --line-color RGB|solid|null --line-width LENGTH|null. Solid preserves existing solid color.\n" +
+                "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
+                "Targets: rect/ellipse/roundRect sites 0..3. Grouped connectors require same-parent targets.\n" +
+                "Nonzero-rotated coordinate edits reject; arbitrary routing/guide geometry is preserve-only.\n"
+              : ["shapes.move", "shapes.align", "shapes.distribute", "shapes.duplicate"].includes(
+                    args.schemaPath ?? ""
+                  )
+                ? "Usage: pptx shapes move|align|distribute|duplicate INPUT [selection] --coordinate-system slide|group [output]\n" +
+                  "Selection: --shapes JSON Location array, or --slide N [--shape NAME | --all], or --select TOKEN.\n" +
+                  "Move: --order front|back|forward|backward OR --position N (one-based).\n" +
+                  "Align: --alignment left|center|right|top|middle|bottom. Distribute: --axis horizontal|vertical.\n" +
+                  "Duplicate: --offset-x LENGTH --offset-y LENGTH (explicit units, signed offsets).\n" +
+                  "Hidden siblings participate; locked selections fail. Mixed slides or parent groups fail.\n" +
+                  "Output: --output PATH | --in-place | --dry-run; --force, --json, --limit NAME=VALUE.\n"
+                : args.schemaPath?.startsWith("shapes.paths.")
+                  ? "Usage: pptx shapes paths list|get|add|set INPUT [selection] [path] [output]\n" +
+                    "Read: list|get INPUT [selection]. Add/set require --path JSON or --vertices JSON.\n" +
+                    "Path: {unit:emu,width,height,commands:[move|line|quadratic|cubic|close]}\n" +
+                    "Coordinates: integer local EMUs, -2147483647..2147483647; viewport 1..2147483647.\n" +
+                    "At most 4096 commands; explicit closure; command order preserved without winding evaluation.\n" +
+                    "Alternatively --vertices JSON --close true|false uses {x,y} local EMU vertices and a derived viewport.\n" +
+                    "Add placement: --left LENGTH --top LENGTH --width LENGTH --height LENGTH.\n" +
+                    "Add accepts shape name, text, paint and metadata properties. Lengths require emu/in/cm/mm/pt.\n" +
+                    "Selection: --slide N [--shape NAME] | --part URI --scope SCOPE | --select TOKEN.\n" +
+                    "Set: selects one shape unless --all; --allow-empty accepts zero matches.\n" +
+                    "Scopes: slides (default), layouts, masters; shared requires --part URI.\n" +
+                    "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
+                    "Unsupported formulas, arcs and arbitrary existing geometry are preserve-only.\n"
+                  : ["shapes.group", "shapes.ungroup"].includes(args.schemaPath ?? "")
+                    ? "Usage: pptx shapes group|ungroup INPUT --tolerance LENGTH [selection] [output]\n" +
+                      "Group: --shapes JSON array of at least two inspected Location objects.\n" +
+                      "Shapes must be distinct contiguous siblings; original IDs and z-order are retained.\n" +
+                      "Ungroup: --slide N --shape NAME | --select TOKEN; selects one group.\n" +
+                      "Selection: --part URI --scope SCOPE. Exact cardinality; --all/--allow-empty are unsupported.\n" +
+                      "Tolerance is explicit nonnegative EMU precision using emu/in/cm/mm/pt lengths.\n" +
+                      "Identity groups preserve child XML; transformed ungrouping supports nested groups and rectangles\n" +
+                      "without text, styles or strokes.\n" +
+                      "Transformed ungrouping supports quarter-turn rotation chains only.\n" +
+                      "World geometry must remain within tolerance; unsupported geometry and references fail.\n" +
+                      "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n"
+                    : args.schemaPath?.startsWith("shapes.drawing.") ||
+                        args.schemaPath === "shapes.effects.set"
+                      ? "Usage: pptx shapes drawing get|set INPUT [selection] [paint] [output]\n" +
+                        "       pptx shapes effects set INPUT [selection] --shadow true|false\n" +
+                        "         --opacity RATIO --shadow-blur LENGTH --shadow-color COLOR [output]\n" +
+                        "Paint: --fill-kind inherit|none|solid|gradient|pattern|picture\n" +
+                        "  --color COLOR; gradient: --stops JSON --angle DEGREES\n" +
+                        "  pattern: --pattern PRESET [--foreground COLOR --background COLOR]\n" +
+                        "  picture: --file PATH --mode stretch|tile\n" +
+                        "Advanced paint: --fill JSON --line JSON --shadow-inherit true|false\n" +
+                        "COLOR is six-digit RGB or JSON with rgb/theme, optional brightness and opacity.\n" +
+                        "Selection: --slide N --shape NAME | --part URI --scope SCOPE | --select TOKEN\n" +
                         "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
-                        "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
-                        "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
-                        "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
-                        "  --flip-horizontal true|false --flip-vertical true|false\n" +
-                        "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
-                        "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
-                        "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
-                        "Omitted values stay unchanged.\n" +
-                        "Null line width restores inherited width.\n" +
-                        "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
-                        "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
-                        "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
-                        "Set: --all edits every match; --allow-empty accepts zero matches.\n"
-                      : args.schemaPath?.startsWith("fields.")
-                        ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
-                          "Selection: --slide N --shape NAME | --select TOKEN\n" +
-                          "           --scope SCOPE --json --limit NAME=VALUE\n" +
-                          "Mutation:  --all --allow-empty\n" +
-                          "Output:    --output PATH | --in-place | --dry-run; --force\n" +
-                          "Set/add:   --kind slide-number|date|footer|header\n" +
-                          "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
-                          "Add requires --kind and one text body; appends to its last paragraph.\n" +
-                          "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
-                          "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
-                          "No field evaluation, automatic numbering or inherited-content flattening.\n" +
-                          "List/get are read-only; get requires one field. Remove accepts no policy.\n"
-                        : usage;
+                        "Set selects one shape unless --all; --allow-empty accepts zero matches.\n" +
+                        "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
+                        "Lengths require emu/in/cm/mm/pt. Simple shadows have zero offset.\n" +
+                        "Complex effects and 3D remain intact; editing unsupported effects fails.\n"
+                      : args.schemaPath?.startsWith("shapes.")
+                        ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
+                          "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
+                          "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
+                          "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
+                          "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
+                          "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
+                          "  --flip-horizontal true|false --flip-vertical true|false\n" +
+                          "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
+                          "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
+                          "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
+                          "Omitted values stay unchanged.\n" +
+                          "Null line width restores inherited width.\n" +
+                          "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
+                          "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
+                          "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
+                          "Set: --all edits every match; --allow-empty accepts zero matches.\n"
+                        : args.schemaPath?.startsWith("fields.")
+                          ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
+                            "Selection: --slide N --shape NAME | --select TOKEN\n" +
+                            "           --scope SCOPE --json --limit NAME=VALUE\n" +
+                            "Mutation:  --all --allow-empty\n" +
+                            "Output:    --output PATH | --in-place | --dry-run; --force\n" +
+                            "Set/add:   --kind slide-number|date|footer|header\n" +
+                            "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
+                            "Add requires --kind and one text body; appends to its last paragraph.\n" +
+                            "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
+                            "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
+                            "No field evaluation, automatic numbering or inherited-content flattening.\n" +
+                            "List/get are read-only; get requires one field. Remove accepts no policy.\n"
+                          : usage;
       result = success(operation, { usage: resolvedUsage });
       human = resolvedUsage;
     } else if (args.operation === "version") {
@@ -2995,6 +3117,7 @@ async function execute(
             ...masterSchemas,
             ...shapeSchemas,
             ...connectorSchemas,
+            ...tableSchemas,
             create: createSchema,
             inspect: inspectSchema,
             "text.get": textGetSchema,
@@ -3036,6 +3159,12 @@ async function execute(
             operations: ["shapes.drawing.get"],
             subset:
               "Complex effect DAGs, advanced effect stacks, 3D scenes/materials and unknown effects remain intact; unsupported effect edits reject."
+          },
+          tables: {
+            level: "edit",
+            operations: Object.keys(tableSchemas),
+            description:
+              "F28 subset: rectangular tables, empty cell text, row/column sizes, style references, style flags, direct solid RGB fills, four-side borders and margins. Reports physical cells and logical merge spans; spanned-cell text writes reject. Theme-linked content is retained, not flattened. Merge/split and structural row/column editing remain unavailable."
           },
           connectors: {
             supported: true,
@@ -3428,7 +3557,8 @@ async function execute(
             );
     } else if (
       Object.hasOwn(shapeSchemas, args.operation) ||
-      Object.hasOwn(connectorSchemas, args.operation)
+      Object.hasOwn(connectorSchemas, args.operation) ||
+      Object.hasOwn(tableSchemas, args.operation)
     ) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(
@@ -3444,9 +3574,15 @@ async function execute(
         ...(args.all === undefined ? {} : { all: args.all }),
         ...(args.allowEmpty === undefined ? {} : { allowEmpty: args.allowEmpty })
       };
+      const tableSelection: TableSelection = {
+        ...selection,
+        ...(args.table === undefined ? {} : { table: args.table }),
+        ...(args.cell === undefined ? {} : { cell: args.cell })
+      };
       if (args.operation.endsWith(".list") || args.operation.endsWith(".get")) {
-        const records =
-          args.operation === "shapes.drawing.get"
+        const records = args.operation.startsWith("tables.")
+          ? await readTables(bytes, tableSelection, context)
+          : args.operation === "shapes.drawing.get"
             ? await readDrawing(bytes, selection, context)
             : args.operation.startsWith("connectors.")
               ? await readConnectors(bytes, selection, context)
@@ -3462,76 +3598,89 @@ async function execute(
         human = records
           .map(
             (x) =>
-              `${x.shapeId}\t${x.name}\t${"kind" in x ? (x.kind ?? "unsupported") : x.path ? "path" : "unsupported"}\n`
+              `${x.shapeId}\t${x.name}\t${"rows" in x ? `${x.rows}x${x.columns}` : "kind" in x ? (x.kind ?? "unsupported") : x.path ? "path" : "unsupported"}\n`
           )
           .join("");
       } else {
-        const mutation = args.drawingEdit
-          ? await mutateDrawing(
-              bytes,
-              {
-                ...selection,
-                update: args.drawingEdit,
-                ...(args.file === undefined
-                  ? {}
-                  : { image: await request.readInput(args.file, context.limits.maxBytes) })
-              },
-              context
-            )
-          : args.operation === "shapes.remove"
-            ? await removeShapes(
-                bytes,
-                {
-                  ...selection,
-                  ...(args.connectorEdit?.detachPolicy === undefined
-                    ? {}
-                    : { detachPolicy: args.connectorEdit.detachPolicy })
-                },
-                context
-              )
-            : args.operation === "connectors.add"
-              ? await addConnector(bytes, { ...selection, update: args.connectorEdit! }, context)
-              : args.operation === "connectors.set"
-                ? await mutateConnectors(
+        const mutation =
+          args.operation === "tables.add"
+            ? await addTable(bytes, { ...tableSelection, update: args.tableEdit! }, context)
+            : args.operation === "tables.set"
+              ? await mutateTables(bytes, { ...tableSelection, update: args.tableEdit! }, context)
+              : args.drawingEdit
+                ? await mutateDrawing(
                     bytes,
-                    { ...selection, update: args.connectorEdit! },
+                    {
+                      ...selection,
+                      update: args.drawingEdit,
+                      ...(args.file === undefined
+                        ? {}
+                        : { image: await request.readInput(args.file, context.limits.maxBytes) })
+                    },
                     context
                   )
-                : args.operation === "connectors.remove"
-                  ? await removeConnectors(bytes, selection, context)
-                  : args.selectionEdit
-                    ? await mutateShapeSelection(bytes, args.selectionEdit, context)
-                    : args.operation === "shapes.group"
-                      ? await groupShapes(
+                : args.operation === "shapes.remove"
+                  ? await removeShapes(
+                      bytes,
+                      {
+                        ...selection,
+                        ...(args.connectorEdit?.detachPolicy === undefined
+                          ? {}
+                          : { detachPolicy: args.connectorEdit.detachPolicy })
+                      },
+                      context
+                    )
+                  : args.operation === "connectors.add"
+                    ? await addConnector(
+                        bytes,
+                        { ...selection, update: args.connectorEdit! },
+                        context
+                      )
+                    : args.operation === "connectors.set"
+                      ? await mutateConnectors(
                           bytes,
-                          { ...selection, shapes: args.shapes!, tolerance: args.tolerance! },
+                          { ...selection, update: args.connectorEdit! },
                           context
                         )
-                      : args.operation === "shapes.ungroup"
-                        ? await ungroupShape(
-                            bytes,
-                            { ...selection, tolerance: args.tolerance! },
-                            context
-                          )
-                        : args.operation === "shapes.paths.add"
-                          ? await addShapePath(
-                              bytes,
-                              { ...selection, path: args.path!, update: args.shapeEdit! },
-                              context
-                            )
-                          : args.operation === "shapes.paths.set"
-                            ? await setShapePath(bytes, { ...selection, path: args.path! }, context)
-                            : args.operation === "shapes.add"
-                              ? await addShape(
+                      : args.operation === "connectors.remove"
+                        ? await removeConnectors(bytes, selection, context)
+                        : args.selectionEdit
+                          ? await mutateShapeSelection(bytes, args.selectionEdit, context)
+                          : args.operation === "shapes.group"
+                            ? await groupShapes(
+                                bytes,
+                                { ...selection, shapes: args.shapes!, tolerance: args.tolerance! },
+                                context
+                              )
+                            : args.operation === "shapes.ungroup"
+                              ? await ungroupShape(
                                   bytes,
-                                  { ...selection, update: args.shapeEdit! },
+                                  { ...selection, tolerance: args.tolerance! },
                                   context
                                 )
-                              : await mutateShapes(
-                                  bytes,
-                                  { ...selection, update: args.shapeEdit! },
-                                  context
-                                );
+                              : args.operation === "shapes.paths.add"
+                                ? await addShapePath(
+                                    bytes,
+                                    { ...selection, path: args.path!, update: args.shapeEdit! },
+                                    context
+                                  )
+                                : args.operation === "shapes.paths.set"
+                                  ? await setShapePath(
+                                      bytes,
+                                      { ...selection, path: args.path! },
+                                      context
+                                    )
+                                  : args.operation === "shapes.add"
+                                    ? await addShape(
+                                        bytes,
+                                        { ...selection, update: args.shapeEdit! },
+                                        context
+                                      )
+                                    : await mutateShapes(
+                                        bytes,
+                                        { ...selection, update: args.shapeEdit! },
+                                        context
+                                      );
         const after = await readSelectionIndex(mutation.bytes, context);
         const dryRun = args.dryRun ?? false;
         const destination = args.inPlace ? args.input! : args.output;
@@ -3557,17 +3706,19 @@ async function execute(
                     : removing
                       ? "remove"
                       : "set",
-                feature: args.drawingEdit
-                  ? "F27"
-                  : args.operation.startsWith("connectors.")
-                    ? "F26"
-                    : args.selectionEdit
-                      ? "F25"
-                      : ["shapes.group", "shapes.ungroup"].includes(args.operation)
-                        ? "F24"
-                        : args.operation.startsWith("shapes.paths.")
-                          ? "F23"
-                          : "F22"
+                feature: args.operation.startsWith("tables.")
+                  ? "F28"
+                  : args.drawingEdit
+                    ? "F27"
+                    : args.operation.startsWith("connectors.")
+                      ? "F26"
+                      : args.selectionEdit
+                        ? "F25"
+                        : ["shapes.group", "shapes.ungroup"].includes(args.operation)
+                          ? "F24"
+                          : args.operation.startsWith("shapes.paths.")
+                            ? "F23"
+                            : "F22"
               })),
               outputs: dryRun
                 ? []
@@ -3578,7 +3729,7 @@ async function execute(
           ),
           affected: mutation.affected
         };
-        human = `${dryRun ? "Validated" : "Updated"} ${mutation.affected} shape(s)\n`;
+        human = `${dryRun ? "Validated" : "Updated"} ${mutation.affected} ${args.operation.startsWith("tables.") ? "table(s)" : "shape(s)"}\n`;
         if (destination === "-" && !dryRun) binary = mutation.bytes;
         else if (destination && destination !== "-") {
           if (!request.publishOutput)

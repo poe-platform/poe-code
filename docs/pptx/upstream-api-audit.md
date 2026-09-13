@@ -2,6 +2,13 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Current image insertion: [bounded byte admission and exact security mappings](image-insertion-admission-evidence.md),
+[121-case insertion ledger](image-insertion-case-map.json), and
+[draft SDK/CLI usage](image-insertion-usage.md). PNG/JPEG/GIF insertion is available
+through `addImage` and `images add`; this does not implement the proposed live
+Image/ImagePart/Picture model or complete F31's additional-format obligations.
+Inherited and underscore-prefixed public members remain in the API inventory.
+
 Current bounded paths: [64-case accounting](path-case-map.json),
 [public member/language mappings and remaining gaps](path-api-map.json), and
 [draft usage](paths-usage.md). The direct path operation supports literal

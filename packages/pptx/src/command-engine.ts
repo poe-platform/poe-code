@@ -27,6 +27,7 @@ import { validateShapePath, pathFromVertices, type ShapePath } from "./shape-pat
 import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
 import { fieldSchemas } from "./fields-schema.js";
 import { readImages } from "./images.js";
+import { addImage, type AddImageOptions } from "./image-insertion.js";
 import { imageSchemas } from "./images-schema.js";
 import { addShape, mutateShapes, readShapes, type ShapeSelection } from "./shape-operations.js";
 import { groupShapes, ungroupShape, validateGroupOptions } from "./shape-groups.js";
@@ -268,6 +269,7 @@ const help =
   "                         [--style-json JSON] [--allow-empty] [--dry-run] [--output PATH | --in-place] [--force] [--json]\n" +
   "       pptx text INPUT | pptx text get INPUT --select TOKEN [--json]\n" +
   "       pptx tables list|get|add|set INPUT [--slide N --table N --cell row,column] [properties] [output]\n" +
+  "       pptx images add INPUT --slide N --file PATH [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
   "       pptx images list INPUT [--slide N --image N] [--scope SCOPE] [--unique] [--json]\n" +
   "       pptx schema tables list|get|add|set [--json]\n" +
   "       pptx schema text get [--json]\n" +
@@ -435,6 +437,7 @@ interface Arguments {
     | "text.runs.list"
     | "inspect"
     | "images.list"
+    | "images.add"
     | "xml.get"
     | "xml.set"
     | "schema"
@@ -500,6 +503,7 @@ interface Arguments {
   input?: string;
   slide?: number;
   image?: number;
+  imageAdd?: Partial<AddImageOptions>;
   unique?: boolean;
   shape?: string;
   part?: string;
@@ -600,6 +604,8 @@ const frameFlags = [
 ];
 
 const scalarOptions = [
+  "--content-type",
+  "--fit",
   "--image",
   "--from",
   "--to",
@@ -1165,6 +1171,7 @@ function parse(
     if (
       value === undefined ||
       (value.length === 0 &&
+        !(operation === "images.add" && argument === "--alt-text") &&
         ![
           "--author",
           "--name",
@@ -1176,6 +1183,28 @@ function parse(
         ].includes(argument))
     )
       usage("Missing option value.");
+    if (
+      operation === "images.add" &&
+      ["--content-type", "--fit", "--left", "--top", "--width", "--height", "--alt-text"].includes(
+        argument
+      )
+    ) {
+      const key =
+        argument === "--content-type"
+          ? "contentType"
+          : argument === "--alt-text"
+            ? "altText"
+            : argument.slice(2);
+      if (key === "fit" && !["contain", "cover", "stretch"].includes(value))
+        usage("Invalid image fit.");
+      if (key === "contentType" && !["image/png", "image/jpeg", "image/gif"].includes(value))
+        usage("Unsupported image content type.");
+      const parsed = ["left", "top", "width", "height"].includes(key)
+        ? commandLength(value, key === "left" || key === "top" ? -27273042316900 : 1)
+        : value;
+      result.imageAdd = { ...result.imageAdd, [key]: parsed };
+      continue;
+    }
     if (argument === "--image") {
       if (operation !== "images.list") usage("Image selection requires images list.");
       if (
@@ -2060,6 +2089,57 @@ function parse(
     operation === "slides.set" ||
     operation === "slides.remove";
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
+  if (operation === "images.add") {
+    const allowed = [
+      "--json",
+      "--limit",
+      "--slide",
+      "--file",
+      "--content-type",
+      "--left",
+      "--top",
+      "--width",
+      "--height",
+      "--fit",
+      "--alt-text",
+      "--output",
+      "--in-place",
+      "--force",
+      "--dry-run"
+    ];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to images add.");
+    if (positionals.length !== 1 || !positionals[0] || result.slide === undefined || !result.file)
+      usage("Images add requires one input, slide and file.");
+    result.input = positionals[0];
+    if (result.input === "-" && result.file === "-")
+      usage("Document and image cannot both use stdin.");
+    if (!result.imageAdd?.contentType) {
+      const extension = result.file.slice(result.file.lastIndexOf(".") + 1).toLowerCase();
+      const contentType = (
+        { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif" } as Record<
+          string,
+          string
+        >
+      )[extension];
+      if (!contentType)
+        usage("Image file requires an explicit supported content type or extension.");
+      result.imageAdd = { ...result.imageAdd, contentType };
+    }
+    const both = result.imageAdd.width !== undefined && result.imageAdd.height !== undefined;
+    if (both !== (result.imageAdd.fit !== undefined))
+      usage("Both dimensions and explicit fit must be supplied together.");
+    if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+    if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+    if (!result.dryRun && !result.inPlace && !result.output)
+      usage("Mutation requires a destination.");
+    if (result.force && !result.output) usage("Force requires an explicit output destination.");
+    if (result.output === result.input && result.output !== "-")
+      usage("Replacing input requires --in-place.");
+    if (result.output === "-" && result.json && !result.dryRun)
+      usage("Binary stdout cannot be combined with JSON.");
+    return result;
+  }
   if (operation === "images.list") {
     const allowed = ["--json", "--limit", "--scope", "--slide", "--image", "--select", "--unique"];
     if ([...seen].some((option) => !allowed.includes(option)))
@@ -3201,8 +3281,15 @@ async function execute(
                             "No field evaluation, automatic numbering or inherited-content flattening.\n" +
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
+      if (args.schemaPath === "images.add")
+        resolvedUsage =
+          "Usage: pptx images add INPUT --slide N --file PATH [--content-type image/png|image/jpeg|image/gif]\n" +
+          "  [--left LENGTH --top LENGTH] [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
+          "  [--alt-text TEXT] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+          "Lengths require emu, in, cm, mm or pt. Both dimensions require fit; one dimension preserves aspect.\n";
       if (args.schemaPath === "images.list")
-        resolvedUsage = "Usage: pptx images list INPUT [--slide N --image N | --select TOKEN]\n" +
+        resolvedUsage =
+          "Usage: pptx images list INPUT [--slide N --image N | --select TOKEN]\n" +
           "       [--scope SCOPE] [--unique] [--json] [--limit NAME=VALUE]\n" +
           "Scopes: slides (default), notes, layouts, masters, notes-master, handout-master, shared.\n" +
           "Positions are one-based within each source part. Opaque and simple selectors cannot be mixed.\n" +
@@ -3257,10 +3344,10 @@ async function execute(
       result = success(operation, {
         features: {
           images: {
-            level: "read",
+            level: "edit",
             operations: Object.keys(imageSchemas),
             subset:
-              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. Links are never fetched; image editing and decoding are not provided."
+              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. F31/F33: insert explicit PNG/JPEG/GIF bytes with bounded intrinsic dimensions, sizing and contain/cover/stretch. Links are never fetched; decoding, other formats and other image edits are not provided."
           },
           drawing: {
             level: "edit",
@@ -3554,6 +3641,53 @@ async function execute(
           inputPath: args.input!,
           outputPath: destination,
           bytes: changed.bytes,
+          originalBytes: bytes,
+          inPlace: args.inPlace ?? false,
+          force: args.force ?? false,
+          dryRun
+        };
+      }
+    } else if (args.operation === "images.add") {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const imageBytes = await request.readInput(
+        args.file!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxEntryBytes)
+      );
+      const changed = await addImage(
+        bytes,
+        {
+          ...args.imageAdd,
+          slide: args.slide!,
+          bytes: imageBytes,
+          contentType: args.imageAdd!.contentType!
+        },
+        context
+      );
+      const dryRun = args.dryRun ?? false;
+      const images = await readImages(changed, { slide: args.slide! }, context);
+      const added = images.occurrences.at(-1)!;
+      result = {
+        ...success(operation, { dryRun, images: 1 }),
+        affected: 1,
+        locations: [added.location]
+      };
+      human = `${dryRun ? "Validated" : "Added"} 1 image(s)\n`;
+      const destination = args.inPlace ? args.input! : args.output;
+      if (destination === "-" && !dryRun) binary = changed;
+      else if (destination && destination !== "-") {
+        if (!request.publishOutput)
+          throw Object.assign(new Error("Output publication capability is unavailable."), {
+            code: "publication-unsupported"
+          });
+        publication = {
+          inputPath: args.input!,
+          protectedInputPaths: [args.file!],
+          outputPath: destination,
+          bytes: changed,
           originalBytes: bytes,
           inPlace: args.inPlace ?? false,
           force: args.force ?? false,

@@ -358,3 +358,5 @@ export {
   type ImageMedia,
   type ImageInventory
 } from "./images.js";
+
+export { addImage, type AddImageOptions } from "./image-insertion.js";

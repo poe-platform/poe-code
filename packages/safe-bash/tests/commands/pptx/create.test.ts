@@ -1084,3 +1084,34 @@ test("pptx sections and shows preserve quoted empty names and shell pipeline byt
   const unchanged = await shell.exec("pptx shows list deck.pptx --json");
   assert.deepEqual(JSON.parse(unchanged.stdout).data.records, []);
 });
+
+test("pptx images add carries explicit bytes and sizing through virtual scripts and the SDK", async () => {
+  const { addImage, readImages } = await import("pptx");
+  const f = fixture();
+  const input = await createPresentation({ slides: [{}] }, context);
+  const image = new Uint8Array([71,73,70,56,57,97,1,0,1,0,128,0,0,0,0,0,255,255,255,33,249,4,1,0,0,0,0,44,0,0,0,0,1,0,1,0,0,2,2,68,1,0,59]);
+  f.volume.writeFileSync("/work/deck.pptx", input);
+  f.volume.writeFileSync("/work/tide τ.GIF", image);
+  f.volume.writeFileSync("/work/images.sh", "pptx images add deck.pptx --slide 1 --file 'tide τ.GIF' --left -1pt --top 0emu --width 2in --height 1in --fit contain --alt-text 'Tide & foam' --output 'picture deck.pptx' --json");
+  const result = await f.shell.exec("sh images.sh");
+  assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).affected, 1);
+  const output = new Uint8Array(f.volume.readFileSync("/work/picture deck.pptx") as Buffer);
+  assert.deepEqual(output, await addImage(input, { slide: 1, bytes: image, contentType: "image/gif", left: -12700, top: 0, width: 1828800, height: 914400, fit: "contain", altText: "Tide & foam" }, context));
+  const inventory = await readImages(output, {}, context);
+  assert.deepEqual(inventory.occurrences[0]!.geometry!.corners, [{ x: 444500, y: 0 }, { x: 1358900, y: 0 }, { x: 1358900, y: 914400 }, { x: 444500, y: 914400 }]);
+  assert.equal(inventory.occurrences[0]!.altText, "Tide & foam");
+  assert.deepEqual(new Uint8Array(f.volume.readFileSync("/work/deck.pptx") as Buffer), input);
+  const dry = await f.shell.exec("pptx images add deck.pptx --slide 1 --file 'tide τ.GIF' --dry-run --json");
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.equal(JSON.parse(dry.stdout).data.dryRun, true);
+  const collision = await f.shell.exec("pptx images add deck.pptx --slide 1 --file 'tide τ.GIF' --output 'tide τ.GIF' --force --json");
+  assert.equal(collision.exitCode, 3, collision.stdout + collision.stderr);
+  assert.deepEqual(new Uint8Array(f.volume.readFileSync("/work/tide τ.GIF") as Buffer), image);
+  const mismatch = await f.shell.exec("pptx images add deck.pptx --slide 1 --file 'tide τ.GIF' --content-type image/png --in-place --json");
+  assert.equal(mismatch.exitCode, 1, mismatch.stdout + mismatch.stderr);
+  assert.deepEqual(new Uint8Array(f.volume.readFileSync("/work/deck.pptx") as Buffer), input);
+  const pipe = await f.shell.exec("pptx images add deck.pptx --slide 1 --file 'tide τ.GIF' --output - | pptx images list - --json");
+  assert.equal(pipe.exitCode, 0, pipe.stdout + pipe.stderr);
+  assert.equal(JSON.parse(pipe.stdout).data.occurrences.length, 1);
+});

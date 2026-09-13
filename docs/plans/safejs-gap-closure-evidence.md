@@ -1739,3 +1739,31 @@ This entry accompanies the local atomic dump repair commit; its SHA is reported
 after creation. The pre-existing module candidate and unrelated staged changes
 are preserved. Verified task remote-main delivery: **none**. Successful task
 release/publication receipts: **none**. No push was initiated.
+
+
+
+
+### qualify-module-authority — fresh reproduction and evidence-only commit (2026-09-13 05:34 UTC)
+
+**Acceptance remains unmet.** The [revalidation report](qualify-module-authority-revalidation.md)
+contains exact commands, observed outputs, source hashes and unresolved dispositions.
+Audited HEAD: `61fb23e4dd0fd5ea15d68440e687e647bb71a004` on main, with inherited dirty
+resolver changes. Node **22.23.2**, ICU **78.2**, V8 **12.4.254.21-node.56**.
+ECMA-262 edition 16 / ECMA-402 edition 12, the pinned Test262 revision and
+explicitly tracked newer APIs remain unchanged.
+
+Fresh focused tests: **138 passed / 18 files, zero failures or skips**. Five manual
+probes reproduce transient outside-root access, full oversized-source acquisition
+before budget rejection, absent dedicated graph admission limits, unsupported
+graph restore, and noncooperative host work surviving cancellation until explicit
+host cleanup. Probe exits are successful observations, not acceptance passes.
+All probe work was released and acquired handles closed. No runtime repair,
+weakened assertion, new string filter or broadened host authority was introduced.
+
+Manual checks for the exact documentation changes: scoped Prettier, task-patch
+whitespace validation, command-result review, and preservation checks. Broader
+package/runtime/build receipts above remain historical, not rerun results.
+Only this entry and the linked report belong to the evidence commit; pre-existing
+ledger content, source changes and staged work are preserved. Local SHA is
+reported after commit; remote-main delivery and publication are **not verified**.
+No push or release occurred. No completion or issue-closure claim is made.

@@ -1820,3 +1820,10 @@ Revalidated on the isolated fetched-source candidate: **one failure / two contro
 ### qualify-lexical-and-source-text — Unicode caret rendering, 2026-09-13
 
 On the isolated candidate, ASCII/astral/long-astral identifier and span controls reproduced **three failures / four passing neighbors** before the rendering repair; **7/7 pass** afterward (`npx vitest run packages/safe-js/src/parse/lexical-unicode-rendering.test.ts`). Diagnostic coordinates remain UTF-16 offsets, while clipping and caret padding count rendered code points. Long excerpts remain bounded to 120 code points and do not split a surrogate pair. The regression uses the existing location-bearing error-message interface, so no unrelated source-module formatter overload is adopted. Parser/embedding lint valid neighbors remain accepted. Final visual/runtime/build checks and delivery receipts follow; full source-origin acceptance remains open.
+
+
+### qualify-lexical-and-source-text — isolated CLI origin port, 2026-09-13
+
+Local `bc6107ba5a308e94335f2d419d51d122ed17e6c3` is not an ancestor of fetched remote main. Only its three-line CLI filename/error-kind display repair and four regression cases are ported here; unrelated local dump/module-authority commits and all shared staged/working changes are preserved. This is a new atomic delivery commit, not a claim that the original local SHA is remotely reachable.
+
+Reproduction on the fetched candidate: **one failure / three controls** before the port. Afterward, `npx vitest run packages/safe-js/src/cli.unlocated-diagnostics.test.ts packages/safe-js/src/cli.test.ts` passes **50/50**. Unlocated errors show their supplied filename and kind without invented coordinates; ordinary startup failures retain their messages and runtime exit code 1. Final corpus/build/runtime/screenshots and release receipts follow.

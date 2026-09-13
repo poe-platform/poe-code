@@ -1,3 +1,5 @@
+import { linkSchemas, linksUsage } from "./links-schema.js";
+import { validateLinkCommand, executeLinkCommand, type LinkArguments } from "./command-links.js";
 import {
   addTable,
   mutateTables,
@@ -343,6 +345,7 @@ const help =
   "       pptx themes set INPUT --scope shared [--slide N | --part URI | --select TOKEN]\n" +
   "                       [--name TEXT] [--color-slot SLOT --color RRGGBB] [--font-slot SLOT --font TEXT]\n" +
   "       pptx transitions list|get|add|set|remove INPUT [--slide N] [options]\n" +
+  "       pptx links list|get|add|set|remove INPUT [--slide N --shape NAME] [options]\n" +
   "       pptx animations list|get|add|set|remove INPUT [--slide N --shape NAME] [options]\n" +
   "       pptx backgrounds list|get INPUT [--slide N | --part URI] [--scope SCOPE] [--json]\n" +
   "       pptx backgrounds set INPUT [--slide N | --part URI | --select TOKEN] [--scope SCOPE]\n" +
@@ -419,7 +422,9 @@ interface Arguments {
   animationEdit?: Omit<MutateAnimationsOptions, "selection">;
   animationBatch?: readonly AnimationBatchItem[];
   opsFile?: string;
+  linkEdit?: NonNullable<LinkArguments["linkEdit"]>;
   operation:
+    | `links.${"list" | "get" | "add" | "set" | "remove"}`
     | "batch"
     | `equations.${"list" | "get" | "add"}`
     | `tables.${"list" | "get" | "add" | "set" | "merge" | "split" | "rows.add" | "rows.remove" | "columns.add" | "columns.remove"}`
@@ -849,6 +854,7 @@ function parse(
         "animations",
         "transitions",
         "equations",
+        "links",
         "charts",
         "media",
         "images",
@@ -922,6 +928,7 @@ function parse(
     "transitions",
     "media",
     "equations",
+        "links",
     "charts",
     "images",
     "tables",
@@ -955,6 +962,7 @@ function parse(
       ...Object.keys(mediaSchemas),
       ...Object.keys(imageSchemas),
       ...Object.keys(equationSchemas),
+      ...Object.keys(linkSchemas),
       ...Object.keys(chartSchemas),
       ...Object.keys(fieldSchemas),
       ...Object.keys(connectorSchemas),
@@ -1014,6 +1022,7 @@ function parse(
         operation.startsWith("transitions.") ||
         operation.startsWith("images.") ||
         operation.startsWith("equations.") ||
+        operation.startsWith("links.") ||
         operation.startsWith("charts.") ||
         operation.startsWith("tables.") ||
         operation.startsWith("connectors.") ||
@@ -1291,6 +1300,17 @@ function parse(
       if (!value) usage("Batch option requires a value.");
       if (argument === "--ops-json") result.animationBatch = parseAnimationBatch(commandJson(value));
       else result.opsFile = value;
+      continue;
+    }
+    if (operation.startsWith("links.") && ["--url", "--target-slide", "--action", "--trigger", "--sanitize", "--path"].includes(argument)) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      if (argument === "--sanitize") { result.linkEdit = { ...result.linkEdit, sanitize: true }; continue; }
+      const value = args[++index];
+      if (value === undefined) usage("Link option requires a value.");
+      if (argument === "--target-slide" && (!value.length || [...value].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(value)) || Number(value) < 1)) usage("Slide target requires a positive integer.");
+      const key = argument === "--target-slide" ? "targetSlide" : argument.slice(2);
+      result.linkEdit = { ...result.linkEdit, [key]: argument === "--target-slide" ? Number(value) : argument === "--path" ? commandJson(value) : value };
       continue;
     }
     if (operation.startsWith("transitions.") && ["--kind", "--direction", "--duration", "--advance-after", "--advance-on-click"].includes(argument)) {
@@ -2443,6 +2463,10 @@ function parse(
     validateMediaEditingCommand(result, positionals, seen);
     return result;
   }
+  if (Object.hasOwn(linkSchemas, operation)) {
+    validateLinkCommand(result, positionals, seen);
+    return result;
+  }
   if (Object.hasOwn(equationSchemas, operation)) {
     validateEquationCommand(result, positionals, seen);
     return result;
@@ -3352,6 +3376,7 @@ function parse(
         ...Object.keys(mediaSchemas),
         ...Object.keys(imageSchemas),
         ...Object.keys(equationSchemas),
+      ...Object.keys(linkSchemas),
         ...Object.keys(chartSchemas),
         ...Object.keys(fieldSchemas),
         ...Object.keys(connectorSchemas),
@@ -3767,6 +3792,7 @@ async function execute(
                             "No field evaluation, automatic numbering or inherited-content flattening.\n" +
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
+      if (args.schemaPath?.startsWith("links.")) resolvedUsage = linksUsage;
       if (args.schemaPath?.startsWith("transitions.")) resolvedUsage = transitionsUsage;
       if (args.schemaPath?.startsWith("animations.")) resolvedUsage = animationsUsage;
       if (args.schemaPath === "batch") resolvedUsage = animationBatchUsage;
@@ -3863,6 +3889,7 @@ async function execute(
             ...chartSchemas,
             ...mediaSchemas,
             ...equationSchemas,
+            ...linkSchemas,
             ...fieldSchemas,
             ...membershipSchemas,
             ...settingsSchemas,
@@ -4090,6 +4117,7 @@ async function execute(
             subset:
               "Embedded and linked audio/video, hashes, posters, playback metadata, captions and timing associations. External targets remain inert. Metadata parsing does not prove playback. Explicit supplied media and posters support insertion and occurrence-local or shared replacement. Timing is preserved. No playback or transcoding."
           },
+          links: { level: "edit", operations: Object.keys(linkSchemas), subset: "F47: inert URL and slide navigation editing; custom-show, launch, macro and OLE actions are retained without execution. Unsafe actions require explicit sanitization." },
           equations: {
             level: "edit",
             operations: Object.keys(equationSchemas),
@@ -4282,6 +4310,9 @@ async function execute(
           publication = { inputPath: args.input!, outputPath: destination, bytes: changed.bytes, originalBytes: bytes, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
         }
       }
+    } else if (Object.hasOwn(linkSchemas, args.operation)) {
+      const links = await executeLinkCommand(args, request, options);
+      result = links.result; human = links.human; binary = links.binary; publication = links.publication;
     } else if (Object.hasOwn(equationSchemas, args.operation)) {
       const equation = await executeEquationCommand(args, request, options);
       result = equation.result;

@@ -47,24 +47,28 @@ export interface AssociateLayoutOptions {
   readonly master: string;
 }
 const relns = "http://schemas.openxmlformats.org/package/2006/relationships";
-function invalid(message: string): never {
+export function invalid(message: string): never {
   throw new OfficeError("invalid-value", message, "usage");
 }
-function attr(node: XmlElement, name: string) {
+export function attr(node: XmlElement, name: string) {
   return node.attributes.find((x) => x.name.localName === name && x.name.namespace === "")?.value;
 }
-function child(node: XmlElement, name: string, ns = node.name.namespace) {
+export function child(node: XmlElement, name: string, ns = node.name.namespace) {
   const found = node.children.filter((x) => x.name.localName === name && x.name.namespace === ns);
   if (found.length > 1) invalid("Ambiguous shared structure.");
   return found[0];
 }
-function required(node: XmlElement, name: string) {
+export function required(node: XmlElement, name: string) {
   const found = child(node, name);
   if (!found)
     throw new OfficeError("unsupported-edit", "Unsupported shared structure.", "validate-intent");
   return found;
 }
-function fields(value: unknown, allowed: readonly string[], scopes: readonly string[]): void {
+export function fields(
+  value: unknown,
+  allowed: readonly string[],
+  scopes: readonly string[]
+): void {
   if (
     !value ||
     typeof value !== "object" ||
@@ -74,7 +78,7 @@ function fields(value: unknown, allowed: readonly string[], scopes: readonly str
   )
     invalid("Explicit shared resource scope and valid options are required.");
 }
-function escape(value: string) {
+export function escape(value: string) {
   if (typeof value !== "string") invalid("Expected text.");
   return value
     .split("&")
@@ -92,11 +96,11 @@ function escape(value: string) {
     .split("\t")
     .join("&#9;");
 }
-function relPart(part: string) {
+export function relPart(part: string) {
   const i = part.lastIndexOf("/");
   return `${part.slice(0, i)}/_rels/${part.slice(i + 1)}.rels`;
 }
-function unique<T>(items: readonly T[], message: string): T {
+export function unique<T>(items: readonly T[], message: string): T {
   if (items.length !== 1)
     throw new OfficeError(
       items.length ? "ambiguous-selection" : "missing-selection",
@@ -105,7 +109,7 @@ function unique<T>(items: readonly T[], message: string): T {
     );
   return items[0]!;
 }
-async function load(input: BinaryInput, context: SelectionContext, mutation = true) {
+export async function loadShared(input: BinaryInput, context: SelectionContext, mutation = true) {
   const source = await readBinary(input, context);
   const reader = await readPackage(source, context);
   const index = await readSelectionIndex(source, context);
@@ -147,6 +151,7 @@ async function load(input: BinaryInput, context: SelectionContext, mutation = tr
     pending.push(...n.children);
   }
   const changes = new Map<string, Uint8Array>();
+  const deleted = new Set<string>();
   const doc = (part: string) =>
     parseXmlPart(changes.get(part) ?? reader.get(part), context.xmlLimits);
   const save = (part: string, xml: XmlPart) => changes.set(part, xml.bytes());
@@ -160,10 +165,12 @@ async function load(input: BinaryInput, context: SelectionContext, mutation = tr
   ): Promise<SharedEditResult> {
     const names = new Set([...reader.names, ...changes.keys()]);
     const bytes = await writePackageArchive(
-      [...names].map((name) => ({
-        name: name.slice(1),
-        bytes: changes.get(name) ?? reader.get(name)
-      })),
+      [...names]
+        .filter((name) => !deleted.has(name))
+        .map((name) => ({
+          name: name.slice(1),
+          bytes: changes.get(name) ?? reader.get(name)
+        })),
       context,
       { compression: "auto", source }
     );
@@ -175,13 +182,13 @@ async function load(input: BinaryInput, context: SelectionContext, mutation = tr
       );
     return { bytes, part, affectedSlides };
   }
-  return { source, reader, index, main, p, a, r, doc, save, changes, affected, finish };
+  return { source, reader, index, main, p, a, r, doc, save, changes, deleted, affected, finish };
 }
 export async function readMasters(
   input: BinaryInput,
   context: SelectionContext
 ): Promise<readonly MasterRecord[]> {
-  const s = await load(input, context, false);
+  const s = await loadShared(input, context, false);
   return s.index.inventory.masters.map((part) => ({
     part,
     name: attr(required(s.doc(part).root, "cSld"), "name") ?? "",
@@ -191,7 +198,7 @@ export async function readMasters(
     affectedSlides: s.affected(part)
   }));
 }
-function masterPart(s: Awaited<ReturnType<typeof load>>, selector: string) {
+export function masterPart(s: Awaited<ReturnType<typeof loadShared>>, selector: string) {
   if (s.index.inventory.masters.includes(selector)) return selector;
   return unique(
     s.index.inventory.masters.filter(
@@ -202,13 +209,13 @@ function masterPart(s: Awaited<ReturnType<typeof load>>, selector: string) {
   );
 }
 
-function nextRel(xml: XmlPart) {
+export function nextRel(xml: XmlPart) {
   let i = 1;
   const ids = xml.root.children.map((x) => attr(x, "Id"));
   while (ids.includes(`rId${i}`)) i++;
   return `rId${i}`;
 }
-function editContent(
+export function editContent(
   xml: XmlPart,
   options: Pick<
     MutateMasterOptions,
@@ -377,7 +384,7 @@ export async function mutateMaster(
     ["scope", "master", "name", "shape", "shapeId", "text", "shapes", "background"],
     ["masters", "shared"]
   );
-  const s = await load(input, context),
+  const s = await loadShared(input, context),
     part = masterPart(s, options.master);
   s.save(
     part,
@@ -412,7 +419,7 @@ export async function addMaster(
     context.xmlLimits.maxNodes
   )
     throw new OfficeError("resource-limit", "Shape collection exceeds XML node limits.", "usage");
-  const s = await load(input, context);
+  const s = await loadShared(input, context);
   const theme = unique(
     s.index.inventory.themes.filter((x) => options.theme === undefined || x === options.theme),
     "Select one theme."
@@ -492,7 +499,7 @@ export async function associateLayout(
   context: SelectionContext
 ): Promise<SharedEditResult> {
   fields(options, ["scope", "layout", "master"], ["layouts", "shared"]);
-  const s = await load(input, context),
+  const s = await loadShared(input, context),
     master = masterPart(s, options.master);
   const layout = unique(
     s.index.inventory.layouts.filter((x) =>
@@ -623,7 +630,7 @@ export async function mutateMasterShape(
     )
       invalid("Invalid shape geometry.");
   }
-  const s = await load(input, context),
+  const s = await loadShared(input, context),
     part = masterPart(s, options.master);
   let xml = s.doc(part);
   function selected() {

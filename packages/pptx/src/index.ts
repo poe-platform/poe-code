@@ -102,3 +102,18 @@ export {
   type AssociateLayoutOptions,
   type MutateMasterShapeOptions
 } from "./masters.js";
+
+export {
+  readLayouts,
+  addLayout,
+  mutateLayout,
+  removeLayout,
+  applyLayout,
+  type LayoutRecord,
+  type LayoutPlaceholder,
+  type LayoutPlaceholderRecord,
+  type AddLayoutOptions,
+  type MutateLayoutOptions,
+  type RemoveLayoutOptions,
+  type ApplyLayoutOptions
+} from "./layouts.js";

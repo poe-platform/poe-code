@@ -14,6 +14,57 @@ const alternatives =
   '<mc:AlternateContent><mc:Choice Requires="x"><x:item value="new"/></mc:Choice><mc:Fallback><p:item value="old"/></mc:Fallback></mc:AlternateContent>';
 
 describe("namespace compatibility views", () => {
+  it("preserves explicitly opaque extension payloads without understanding their namespaces", () => {
+    const source = wrap(
+      '<p:extLst><p:ext uri="urn:detail"><x:details><x:entry/></x:details></p:ext></p:extLst>'
+    );
+    const part = parse(source);
+    expect(() => interpretCompatibility(part, [strict])).toThrowError(
+      expect.objectContaining({ code: "unsupported-profile" })
+    );
+    const view = interpretCompatibility(part, [strict], [{ namespace: strict, localName: "ext" }]);
+    const extension = part.root.children[0]!.children[0]!;
+    expect(view.children(extension)).toEqual([]);
+    expect(new TextDecoder().decode(view.part.bytes())).toBe(source);
+    expect(() => view.merge(extension.children[0]!, { attributes: [] })).toThrowError(
+      expect.objectContaining({ code: "unsupported-edit" })
+    );
+    expect(
+      new TextDecoder().decode(
+        view
+          .merge(extension, {
+            attributes: [{ namespace: "", localName: "uri", value: "urn:revised" }]
+          })
+          .part.bytes()
+      )
+    ).toContain("<x:details><x:entry/></x:details>");
+  });
+  it("does not relax required namespace checks around opaque containers", () => {
+    for (const content of [
+      '<p:ext mc:MustUnderstand="x"><x:payload/></p:ext>',
+      '<p:ext x:required="yes"><x:payload/></p:ext>',
+      "<x:required/><p:ext><x:payload/></p:ext>"
+    ]) {
+      expect(() =>
+        interpretCompatibility(
+          parse(wrap(content)),
+          [strict],
+          [{ namespace: strict, localName: "ext" }]
+        )
+      ).toThrowError(expect.objectContaining({ code: "unsupported-profile" }));
+    }
+  });
+  it("snapshots opaque element options across merges", () => {
+    const part = parse(wrap('<p:ext uri="old"><x:payload/></p:ext>'));
+    const options = [{ namespace: strict, localName: "ext" }];
+    const view = interpretCompatibility(part, [strict], options);
+    options[0]!.localName = "elsewhere";
+    options.splice(0);
+    const edited = view.merge(part.root.children[0]!, {
+      attributes: [{ namespace: "", localName: "uri", value: "new" }]
+    });
+    expect(edited.children(edited.part.root.children[0]!)).toEqual([]);
+  });
   it.each([
     [strict, "strict"],
     [transitional, "transitional"]

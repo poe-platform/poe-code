@@ -1,6 +1,6 @@
 import { SaxesParser } from "saxes";
 import { OfficeError } from "./errors.js";
-import type { XmlAttribute, XmlElement, XmlMerge, XmlPart } from "./xml.js";
+import type { XmlAttribute, XmlElement, XmlMerge, XmlPart, XmlName } from "./xml.js";
 
 export interface CompatibilityView {
   readonly part: XmlPart;
@@ -62,13 +62,27 @@ interface Rules {
 
 export function interpretCompatibility(
   part: XmlPart,
-  understoodNamespaces: readonly string[]
+  understoodNamespaces: readonly string[],
+  opaqueElements: readonly XmlName[] = []
 ): CompatibilityView {
   if (
     !Array.isArray(understoodNamespaces) ||
     understoodNamespaces.some((uri) => typeof uri !== "string" || !uri)
   )
     throw new OfficeError("invalid-value", "Expected understood namespace URIs.", "usage");
+  if (
+    !Array.isArray(opaqueElements) ||
+    opaqueElements.some(
+      (name) =>
+        !name ||
+        typeof name.namespace !== "string" ||
+        typeof name.localName !== "string" ||
+        !name.localName ||
+        !understoodNamespaces.includes(name.namespace)
+    )
+  )
+    throw new OfficeError("invalid-value", "Expected understood opaque element names.", "usage");
+  const opaque = opaqueElements.map((name) => Object.freeze({ ...name }));
   const supplied = [...understoodNamespaces];
   const understood = new Set(["", xml, mc, ...supplied]);
   const children = new Map<XmlElement, readonly XmlElement[]>();
@@ -259,6 +273,13 @@ export function interpretCompatibility(
         tasks.push({ ...task, finish: true });
       }
     }
+    if (
+      opaque.some(
+        (name) =>
+          name.namespace === element.name.namespace && name.localName === element.name.localName
+      )
+    )
+      continue;
     for (const child of [...element.children].reverse())
       tasks.push({ element: child, inherited: context, output: destination });
   }
@@ -304,7 +325,7 @@ export function interpretCompatibility(
           "Alternate representations require synchronized editing.",
           "validate-intent"
         );
-      return interpretCompatibility(edited, supplied);
+      return interpretCompatibility(edited, supplied, opaque);
     }
   });
 }

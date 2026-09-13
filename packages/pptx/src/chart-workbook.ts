@@ -68,6 +68,25 @@ function escaped(text: string): string {
     .split("\t")
     .join("&#9;");
 }
+function spreadsheetString(text: string, attribute = false): string {
+  let result = "";
+  for (let index = 0; index < text.length; index++) {
+    const character = text[index]!;
+    if (
+      character === "_" &&
+      text[index + 1] === "x" &&
+      text[index + 6] === "_" &&
+      [...text.slice(index + 2, index + 6)].every((digit) =>
+        "0123456789abcdefABCDEF".includes(digit)
+      )
+    ) {
+      result += "_x005F_";
+    } else if (character === "\r" || (attribute && (character === "\n" || character === "\t"))) {
+      result += `_x${character.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0")}_`;
+    } else result += character;
+  }
+  return result;
+}
 export function workbookColumn(index: number): string {
   if (!Number.isInteger(index) || index < 0 || index >= 16384)
     throw new OfficeError(
@@ -315,7 +334,8 @@ function workbookStyles(
   if (!child("cellXfs")?.children.length) unsupported();
   const indices = formats.map((format) => {
     let numFmts = child("numFmts")!;
-    const id = numFmts.children.find((node) => attribute(node, "formatCode") === format);
+    const code = format === undefined ? undefined : spreadsheetString(format, true);
+    const id = numFmts.children.find((node) => attribute(node, "formatCode") === code);
     let number =
       format === undefined || format === "General" ? "0" : id && attribute(id, "numFmtId");
     if (!number) {
@@ -323,7 +343,7 @@ function workbookStyles(
       if (used.some((value) => !Number.isSafeInteger(value) || value < 0)) unsupported();
       number = String(Math.max(163, ...used) + 1);
       xml = xml.spliceChildren(numFmts, numFmts.children.length, 0, [
-        `<numFmt xmlns="${ns}" numFmtId="${number}" formatCode="${escaped(format!)}"/>`
+        `<numFmt xmlns="${ns}" numFmtId="${number}" formatCode="${escaped(code!)}"/>`
       ]);
       numFmts = child("numFmts")!;
       xml = xml.merge(numFmts, {
@@ -407,7 +427,7 @@ export async function createChartWorkbook(
       cells +=
         typeof value === "number"
           ? `<c r="${ref}"${style}><v>${value}</v></c>`
-          : `<c r="${ref}"${style} t="inlineStr"><is><t xml:space="preserve">${escaped(value)}</t></is></c>`;
+          : `<c r="${ref}"${style} t="inlineStr"><is><t xml:space="preserve">${escaped(spreadsheetString(value))}</t></is></c>`;
     });
     rows += `<row r="${row + 1}">${cells}</row>`;
     if (rows.length > context.xmlLimits.maxBytes)

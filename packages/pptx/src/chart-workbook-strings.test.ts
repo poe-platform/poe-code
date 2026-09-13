@@ -68,7 +68,7 @@ it("replaces shared and rich string cells with literal inline text and retires s
   );
   const sheet = decode(next.find((entry) => entry.name.endsWith("sheet1.xml"))!.payload);
   expect(sheet).toContain('<t xml:space="preserve">=2+2</t>');
-  expect(sheet).toContain("  Bay &amp; &quot;fjord&quot; &lt;雪&gt;&#13;");
+  expect(sheet).toContain("  Bay &amp; &quot;fjord&quot; &lt;雪&gt;_x000D_");
   expect(sheet).not.toContain("<f>");
 });
 it("preserves tabs and line breaks inside number format attributes", async () => {
@@ -85,7 +85,7 @@ it("preserves tabs and line breaks inside number format attributes", async () =>
   const formats = styles.root.children.find((node) => node.name.localName === "numFmts")!;
   expect(
     formats.children[0]!.attributes.find((a) => a.name.localName === "formatCode")!.value
-  ).toBe(format);
+  ).toBe('0.0"_x0009_units_x000A_"');
 });
 it.each(["calcChain", "externalLink", "connections"])(
   "rejects detached %s dependencies by content type",
@@ -107,3 +107,21 @@ it.each(["calcChain", "externalLink", "connections"])(
     ).rejects.toMatchObject({ code: "unsupported-edit" });
   }
 );
+
+it("keeps literal escape-shaped labels distinct from encoded worksheet characters", async () => {
+  const bytes = await createChartWorkbook(
+    {
+      categories: ["_x0041_ _x005f_ _x00aF_ _xZZZZ_"],
+      series: [{ name: "_x000D_", values: [1], numberFormat: '0"_x0041_"' }]
+    },
+    false,
+    context
+  );
+  const entries = inspectZip(bytes);
+  const sheet = decode(entries.find((entry) => entry.name.endsWith("sheet1.xml"))!.payload);
+  expect(sheet).toContain("_x005F_x0041_ _x005F_x005f_ _x005F_x00aF_ _xZZZZ_");
+  expect(sheet).toContain("_x005F_x000D_");
+  expect(decode(entries.find((entry) => entry.name.endsWith("styles.xml"))!.payload)).toContain(
+    "0&quot;_x005F_x0041_&quot;"
+  );
+});

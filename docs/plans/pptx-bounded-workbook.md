@@ -51,3 +51,10 @@ both type checks passed; selected `pptx` workspace closure built successfully
 CLI callback QA honors the declared dryRun publication request; initial test
 adapter mistakes and prefix-sensitive XML assertions were corrected, not counted
 as product regressions. Research ledger and final screenshot receipt remain.
+
+String encoding increment: three original assertions reproduced SpreadsheetML
+escape-shaped literals and required CR/attribute whitespace encoding. They passed
+after the fix; number formats still retain consistent semantic cache/cell values.
+The primary standards implementation note is linked in workbook-evidence.md.
+The affected 38-case gate, package lint, and selected build passed. The complete
+package gate is rerun after the final order correction below.

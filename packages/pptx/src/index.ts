@@ -41,3 +41,11 @@ export {
 } from "./command-engine.js";
 
 export { getXmlPart, replaceXmlPart, type XmlPartContext, type XmlPartData } from "./xml-parts.js";
+
+export {
+  createPresentation,
+  type CreatePresentationOptions,
+  type PresentationProperties,
+  type PresentationSlideInput,
+  type PresentationTextShape
+} from "./creation.js";

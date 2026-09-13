@@ -10,7 +10,7 @@ export interface PptxCommandEngine {
     readonly signal: AbortSignal;
     readonly readInput: (path: string, maxBytes: number) => Promise<Uint8Array>;
     readonly publishOutput?: (publication: {
-      readonly inputPath: string;
+      readonly inputPath?: string;
       readonly outputPath: string;
       readonly bytes: Uint8Array;
       readonly originalBytes: Uint8Array;
@@ -80,7 +80,7 @@ export function createPptxCommands(options: PptxCommandsOptions): readonly Comma
         try {
           const { fs, signal } = context;
           signal.throwIfAborted();
-          const input = publication.inputPath === "-" ? undefined : pathOf(context, publication.inputPath);
+          const input = publication.inputPath === undefined || publication.inputPath === "-" ? undefined : pathOf(context, publication.inputPath);
           const output = pathOf(context, publication.outputPath);
           if (publication.inPlace ? !input || input !== output : input === output) throw new FsError("EINVAL");
           const capabilities = await fs.capabilitiesFor?.(output, { signal }) ?? fs.capabilities;

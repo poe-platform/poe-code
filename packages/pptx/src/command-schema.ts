@@ -242,3 +242,152 @@ export const xmlSetSchema = {
   },
   result: xmlResult("xml.set", true)
 };
+
+const creationLength = {
+  type: "object",
+  additionalProperties: false,
+  required: ["value", "unit"],
+  properties: {
+    value: { type: "number", exclusiveMinimum: 0 },
+    unit: { enum: ["emu", "in", "cm", "mm", "pt"] }
+  }
+};
+export const createSchema = {
+  description:
+    "Original Transitional macro-free presentation, template or show. Empty slide list by default. Template inputs and Strict creation are explicitly unsupported.",
+  input: { type: "null" },
+  options: {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      width: creationLength,
+      height: creationLength,
+      kind: { enum: ["pptx", "potx", "ppsx"], default: "pptx" },
+      dialect: { enum: ["transitional", "strict"], default: "transitional" },
+      template: { type: "string", minLength: 1 },
+      author: { type: "string" },
+      timestamp: {
+        type: "string",
+        format: "date-time",
+        description: "Explicit UTC date with seconds and Z suffix."
+      },
+      properties: {
+        type: "object",
+        additionalProperties: false,
+        description: "CLI --properties-json; explicit metadata only.",
+        properties: {
+          title: { type: "string" },
+          subject: { type: "string" },
+          author: { type: "string" },
+          keywords: { type: "string" },
+          comments: { type: "string" },
+          lastModifiedBy: { type: "string" },
+          revision: { type: "integer", minimum: 0, maximum: 9007199254740991 },
+          created: { type: "string", format: "date-time" },
+          modified: { type: "string", format: "date-time" },
+          lastPrinted: { type: "string", format: "date-time" }
+        }
+      },
+      slides: {
+        type: "array",
+        description:
+          "CLI --slides-json; structured slide and text box coordinates are integer EMUs.",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            name: { type: "string" },
+            shapes: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["x", "y", "width", "height", "text"],
+                properties: {
+                  name: { type: "string" },
+                  text: { type: "string" },
+                  x: { type: "integer", minimum: -27273042316900, maximum: 27273042316900 },
+                  y: { type: "integer", minimum: -27273042316900, maximum: 27273042316900 },
+                  width: { type: "integer", minimum: 1, maximum: 27273042316900 },
+                  height: { type: "integer", minimum: 1, maximum: 27273042316900 }
+                }
+              }
+            }
+          }
+        }
+      },
+      json: { type: "boolean", default: false },
+      limit: xmlSelection.limit,
+      output: { type: "string", minLength: 1 },
+      force: { type: "boolean", default: false },
+      dryRun: { type: "boolean", default: false }
+    },
+    allOf: [
+      {
+        anyOf: [
+          { required: ["output"] },
+          { required: ["dryRun"], properties: { dryRun: { const: true } } }
+        ]
+      },
+      {
+        if: { required: ["force"], properties: { force: { const: true } } },
+        then: { required: ["output"] }
+      },
+      {
+        if: {
+          required: ["output", "json"],
+          properties: { output: { const: "-" }, json: { const: true } }
+        },
+        then: { required: ["dryRun"], properties: { dryRun: { const: true } } }
+      }
+    ]
+  },
+  result: {
+    ...inspectSchema.result,
+    properties: {
+      ...inspectSchema.result.properties,
+      operation: { const: "create" },
+      affected: { type: "integer", minimum: 0, maximum: 1 },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["effects", "outputs", "fingerprint"],
+            properties: {
+              effects: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["location", "action", "feature"],
+                  properties: {
+                    location: { $ref: "#/$defs/location" },
+                    action: { const: "add" },
+                    feature: { const: "F06" }
+                  }
+                }
+              },
+              outputs: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["path", "sha256", "bytes"],
+                  properties: {
+                    path: { type: "string" },
+                    sha256: { type: "string" },
+                    bytes: { type: "integer", minimum: 0, maximum: 9007199254740991 }
+                  }
+                }
+              },
+              fingerprint: { type: ["string", "null"] }
+            }
+          }
+        ]
+      }
+    }
+  }
+};

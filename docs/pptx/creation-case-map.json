@@ -1,0 +1,1037 @@
+{
+  "schema_version": 1,
+  "status": "Original creation SDK and command tests passed; scoped model gaps remain explicit",
+  "scope": "Original creation operation; no whole-model or whole-suite parity claim",
+  "authorities": ["../specs/pptx.md", "../specs/office-cli.md", "../specs/office-sdk.md"],
+  "inventory_sha256": {
+    "upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "upstream-api-inventory.json": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934"
+  },
+  "baseline": {
+    "unit_variants": 2700,
+    "bdd_examples": 973,
+    "api_records": 2407,
+    "complete_case_ledger": "test-case-map.json",
+    "complete_api_ledger": "public-api-map.json"
+  },
+  "selection": {
+    "unit_files": [
+      "tests/parts/test_coreprops.py",
+      "tests/parts/test_presentation.py",
+      "tests/test_api.py",
+      "tests/test_presentation.py"
+    ],
+    "bdd_file_prefix": "features/prs-",
+    "api_owners": ["Presentation", "CoreProperties", "CorePropertiesPart"],
+    "rationale": "Retain all adjacent presentation/core-property unit variants and presentation BDD examples; creation evidence does not confer live-model coverage."
+  },
+  "unit_candidates": [
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[author-python-pptx]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[category-]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[comments-]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[content_status-DRAFT]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[identifier-GXS 10.2.1ab]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[keywords-foo bar baz]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[language-US-EN]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[last_modified_by-Steve Canny]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[subject-Spam]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[title-Presentation]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[version-1.2.88]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[author-dc:creator-scanny]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[category-cp:category-silly stories]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[comments-dc:description-Bar foo to you]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[content_status-cp:contentStatus-FINAL]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[identifier-dc:identifier-GT 5.2.xab]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[keywords-cp:keywords-dog cat moo]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[language-dc:language-GB-EN]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[last_modified_by-cp:lastModifiedBy-Billy Bob]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[subject-dc:subject-Eggs]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[title-dc:title-Dissertation]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[version-cp:version-81.2.8]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_date_property_values[created-expected_value0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 64,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_date_property_values[last_printed-expected_value1]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 64,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_date_property_values[modified-None]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 64,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_date_property_values[created-dcterms:created-value0-2001-02-03T04:05:00Z- xsi:type=\"dcterms:W3CDTF\"]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 81,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_date_property_values[last_printed-cp:lastPrinted-value1-2014-06-04T04:00:00Z-]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 81,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_date_property_values[modified-dcterms:modified-value2-2005-04-03T02:01:00Z- xsi:type=\"dcterms:W3CDTF\"]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 81,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[42-42]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 117,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[None-0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 117,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[foobar-0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 117,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[-17-0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 117,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_revision_number[32.7-0]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 117,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_revision_number",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 128,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_construct_a_default_core_props",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 136,
+      "disposition": "creation-behavior-language-mapped",
+      "reason": "Original core part URI/type/root asserted; omit source default title, revision, project identity and clock. Explicit metadata replaces ambient values under J06/J08/J10."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_its_presentation",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 23,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_its_core_properties",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 36,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_an_existing_notes_master_part",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 43,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::but_it_adds_a_notes_master_part_when_needed",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 58,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_its_notes_master",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 76,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_a_related_slide",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 89,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_provides_access_to_a_related_master",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 99,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_can_rename_related_slide_parts",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 109,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_can_save_the_package_to_a_file",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 122,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_can_add_a_new_slide",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 126,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_finds_the_slide_id_of_a_slide_part",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 144,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_raises_on_slide_id_not_found",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 160,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_finds_a_slide_by_slide_id[True]",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 171,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_finds_a_slide_by_slide_id[False]",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 171,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/parts/test_presentation.py::DescribePresentationPart::it_knows_the_next_slide_partname_to_help",
+      "source_file": "tests/parts/test_presentation.py",
+      "line": 187,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_api.py::DescribePresentation::it_opens_default_template_on_no_path_provided",
+      "source_file": "tests/test_api.py",
+      "line": 18,
+      "disposition": "creation-behavior-covered-model-factory-pending",
+      "reason": "Async byte creation authors defaults directly; no bundled external template path or mock delegation. The named live-model factory is still pending."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_the_height_of_its_slides[sld_height_get_fixture0]",
+      "source_file": "tests/test_presentation.py",
+      "line": 18,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_the_height_of_its_slides[sld_height_get_fixture1]",
+      "source_file": "tests/test_presentation.py",
+      "line": 18,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_change_the_height_of_its_slides[sld_height_set_fixture0]",
+      "source_file": "tests/test_presentation.py",
+      "line": 22,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_change_the_height_of_its_slides[sld_height_set_fixture1]",
+      "source_file": "tests/test_presentation.py",
+      "line": 22,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_the_width_of_its_slides[sld_width_get_fixture0]",
+      "source_file": "tests/test_presentation.py",
+      "line": 27,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_the_width_of_its_slides[sld_width_get_fixture1]",
+      "source_file": "tests/test_presentation.py",
+      "line": 27,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_change_the_width_of_its_slides[sld_width_set_fixture0]",
+      "source_file": "tests/test_presentation.py",
+      "line": 31,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_change_the_width_of_its_slides[sld_width_set_fixture1]",
+      "source_file": "tests/test_presentation.py",
+      "line": 31,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_knows_its_part",
+      "source_file": "tests/test_presentation.py",
+      "line": 36,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_core_properties",
+      "source_file": "tests/test_presentation.py",
+      "line": 40,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_notes_master",
+      "source_file": "tests/test_presentation.py",
+      "line": 44,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slides[slides_fixture0]",
+      "source_file": "tests/test_presentation.py",
+      "line": 48,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slides[slides_fixture1]",
+      "source_file": "tests/test_presentation.py",
+      "line": 48,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slides[slides_fixture2]",
+      "source_file": "tests/test_presentation.py",
+      "line": 48,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slide_layouts",
+      "source_file": "tests/test_presentation.py",
+      "line": 57,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slide_master",
+      "source_file": "tests/test_presentation.py",
+      "line": 61,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slide_masters[masters_fixture0]",
+      "source_file": "tests/test_presentation.py",
+      "line": 67,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_provides_access_to_its_slide_masters[masters_fixture1]",
+      "source_file": "tests/test_presentation.py",
+      "line": 67,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    },
+    {
+      "source_id": "tests/test_presentation.py::DescribePresentation::it_can_save_the_presentation_to_a_file",
+      "source_file": "tests/test_presentation.py",
+      "line": 74,
+      "disposition": "related-model-obligation-not-implemented",
+      "reason": "Existing-model access, mutation, collection and save semantics remain in the complete ledger; constructing an equivalent package does not implement them."
+    }
+  ],
+  "bdd_candidates": [
+    {
+      "source_file": "features/prs-coreprops.feature",
+      "line": 6,
+      "source_id": "round-trip Dublin Core metadata describing a presentation",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-coreprops.feature",
+      "line": 12,
+      "source_id": "default core props part added if deck doesn't have one",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-coreprops.feature",
+      "line": 16,
+      "source_id": "added core props part is saved",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-default-template.feature",
+      "line": 6,
+      "source_id": "Create a minimal presentation from the default template",
+      "disposition": "creation-workflow-covered-model-factory-pending",
+      "reason": "Empty authored graph independently reopens; named Presentation live-model factory remains pending."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 6,
+      "source_id": "Round-trip a basic presentation",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 12,
+      "source_id": "Start presentation from package stream",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 18,
+      "source_id": "Start presentation from package extracted into directory",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 24,
+      "source_id": "Save presentation to package stream",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 31,
+      "source_id": "Round-trip external relationships",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-open-save.feature",
+      "line": 37,
+      "source_id": "Load presentation with invalid image/jpg MIME-type",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 7,
+      "source_id": "Get Presentation.slide_width, .slide_height",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 13,
+      "source_id": "Set Presentation.slide_width, .slide_height",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 27,
+      "source_id": "Presentation.notes_master -- @1.1 Notes master states",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 28,
+      "source_id": "Presentation.notes_master -- @1.2 Notes master states",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 31,
+      "source_id": "Presentation.slides",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    },
+    {
+      "source_file": "features/prs-presentation-props.feature",
+      "line": 36,
+      "source_id": "Presentation.slide_masters",
+      "disposition": "related-model-workflow-not-implemented",
+      "reason": "Byte creation and independent reopening supplement but do not implement this live-model workflow."
+    }
+  ],
+  "api_obligations": [
+    {
+      "source_id": "pptx.Presentation",
+      "target_signature": "Presentation(input?: BinaryInput | null, context?: OfficeContext): Promise<Presentation>",
+      "mappings": ["J01", "J06", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties",
+      "target_signature": "interface CoreProperties",
+      "mappings": ["J01", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.author",
+      "target_signature": "get author(): string; set author(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.category",
+      "target_signature": "get category(): string; set category(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.comments",
+      "target_signature": "get comments(): string; set comments(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.content_status",
+      "target_signature": "get content_status(): string; set content_status(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.created",
+      "target_signature": "get created(): Date | null; set created(value: Date)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.identifier",
+      "target_signature": "get identifier(): string; set identifier(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.keywords",
+      "target_signature": "get keywords(): string; set keywords(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.language",
+      "target_signature": "get language(): string; set language(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.last_modified_by",
+      "target_signature": "get last_modified_by(): string; set last_modified_by(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.last_printed",
+      "target_signature": "get last_printed(): Date | null; set last_printed(value: Date)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.modified",
+      "target_signature": "get modified(): Date | null; set modified(value: Date)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.revision",
+      "target_signature": "get revision(): number; set revision(value: number)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.subject",
+      "target_signature": "get subject(): string; set subject(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.title",
+      "target_signature": "get title(): string; set title(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.version",
+      "target_signature": "get version(): string; set version(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.author",
+      "target_signature": "get author(): string; set author(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.category",
+      "target_signature": "get category(): string; set category(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.comments",
+      "target_signature": "get comments(): string; set comments(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.content_status",
+      "target_signature": "get content_status(): string; set content_status(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.created",
+      "target_signature": "get created(): Date | null; set created(value: Date)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.identifier",
+      "target_signature": "get identifier(): string; set identifier(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.keywords",
+      "target_signature": "get keywords(): string; set keywords(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.language",
+      "target_signature": "get language(): string; set language(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.last_modified_by",
+      "target_signature": "get last_modified_by(): string; set last_modified_by(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.last_printed",
+      "target_signature": "get last_printed(): Date | null; set last_printed(value: Date)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.modified",
+      "target_signature": "get modified(): Date | null; set modified(value: Date)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.revision",
+      "target_signature": "get revision(): number; set revision(value: number)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.subject",
+      "target_signature": "get subject(): string; set subject(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.title",
+      "target_signature": "get title(): string; set title(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.version",
+      "target_signature": "get version(): string; set version(value: string)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation",
+      "target_signature": "interface Presentation",
+      "mappings": ["J01", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.__eq__",
+      "target_signature": "equals(other: ModelComparable): boolean",
+      "mappings": ["J01", "J03", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.__init__",
+      "target_signature": "type Acquired = Presentation",
+      "mappings": ["J01", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.core_properties",
+      "target_signature": "get core_properties(): CoreProperties",
+      "mappings": ["J01", "J02", "J07", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.element",
+      "target_signature": "get element(): XmlElementView",
+      "mappings": ["J01", "J02", "J09", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.notes_master",
+      "target_signature": "get notes_master(): NotesMaster",
+      "mappings": ["J01", "J02", "J07", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.part",
+      "target_signature": "get part(): PartView",
+      "mappings": ["J01", "J02", "J09", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.save",
+      "target_signature": "save(file: BinaryOutput): Promise<void>",
+      "mappings": ["J01", "J06", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.slide_height",
+      "target_signature": "get slide_height(): Length | null; set slide_height(value: Length)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.slide_layouts",
+      "target_signature": "get slide_layouts(): SlideLayouts",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.slide_master",
+      "target_signature": "get slide_master(): SlideMaster",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.slide_masters",
+      "target_signature": "get slide_masters(): SlideMasters",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.slide_width",
+      "target_signature": "get slide_width(): Length | null; set slide_width(value: Length)",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    },
+    {
+      "source_id": "pptx.presentation.Presentation.slides",
+      "target_signature": "get slides(): Slides",
+      "mappings": ["J01", "J02", "J08", "J10"],
+      "disposition": "not-implemented-as-model-api",
+      "reason": "Neutral named members, inherited members and returned public types remain visible obligations. The byte creation SDK is a separate operation, not a live model."
+    }
+  ],
+  "language_security": {
+    "construction": "createPresentation(options, context): Promise<Uint8Array>; Presentation live-model factory remains pending.",
+    "dates": "Valid explicit Date values for typed metadata; UTC Z text at CLI; whole seconds serialization; no ambient time.",
+    "defaults": "Original zero-slide graph, blank layout/master/theme, 12192000 by 6858000 EMUs; absent metadata stays absent.",
+    "io": "Explicit limits/cancellation and owned output bytes; publication only through supplied VFS capabilities."
+  },
+  "original_evidence": [
+    "../../packages/pptx/src/creation.test.ts",
+    "../../packages/pptx/src/command-create.test.ts",
+    "../../packages/safe-bash/tests/commands/pptx/create.test.ts"
+  ],
+  "qa": {
+    "corpus_manifest": "corpus-manifest.json",
+    "publisher_assets_used": false,
+    "reason": "Authored creation needs no supplied template. Corpus bytes remain unchanged; no download-dependent unit tests.",
+    "independent_tools": {
+      "schemas": "Pinned ECMA Transitional/OPC schema closure from standards-sources.json; xmllint/lxml QA only.",
+      "reader": "Pinned python-pptx 1.0.2 package reader for all kinds; Presentation reader for pptx only.",
+      "runtime": "Disposable QA tools only, never product dependencies."
+    },
+    "authored_outputs": [
+      {
+        "file": "potx-0.potx",
+        "parts_schema_validated": 10,
+        "all_valid": true,
+        "content_type": "application/vnd.openxmlformats-officedocument.presentationml.template.main+xml"
+      },
+      {
+        "file": "potx-1.potx",
+        "parts_schema_validated": 12,
+        "all_valid": true,
+        "content_type": "application/vnd.openxmlformats-officedocument.presentationml.template.main+xml"
+      },
+      {
+        "file": "ppsx-0.ppsx",
+        "parts_schema_validated": 10,
+        "all_valid": true,
+        "content_type": "application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml"
+      },
+      {
+        "file": "ppsx-1.ppsx",
+        "parts_schema_validated": 12,
+        "all_valid": true,
+        "content_type": "application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml"
+      },
+      {
+        "file": "pptx-0.pptx",
+        "parts_schema_validated": 10,
+        "all_valid": true,
+        "content_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml",
+        "model": {
+          "slides": 0,
+          "masters": 1,
+          "layouts": 1,
+          "width": 12192000,
+          "height": 6858000,
+          "texts": []
+        }
+      },
+      {
+        "file": "pptx-1.pptx",
+        "parts_schema_validated": 12,
+        "all_valid": true,
+        "content_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml",
+        "model": {
+          "slides": 1,
+          "masters": 1,
+          "layouts": 1,
+          "width": 12192000,
+          "height": 6858000,
+          "texts": ["River <survey>\n\nSoft\u000bbreak\tend\rreturn😀"]
+        }
+      }
+    ],
+    "core_properties": "All six core XML parts parsed; explicit created/modified/last_printed asserted independently. Full core XSD validation not claimed: Dublin Core closure unavailable (HTTP 403).",
+    "final_review": "All six outputs byte-identical after bounded generation fix. Original 100865-character allocation reproduction now rejects with largest encoded XML chunk 536 characters.",
+    "visual_fidelity": "Not evaluated; package/schema reopening is not rendering."
+  },
+  "legal": "Original implementation, assets and test expressions. No reference template, source or substantial derived material copied; existing standalone notices unchanged."
+}

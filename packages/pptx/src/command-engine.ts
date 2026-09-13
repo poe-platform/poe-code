@@ -8,7 +8,9 @@ import {
   type SelectionRecord
 } from "./selectors.js";
 import type { Diagnostic, OfficeResult, Scope } from "./contracts.js";
-import { inspectSchema, xmlGetSchema, xmlSetSchema } from "./command-schema.js";
+import { createSchema, inspectSchema, xmlGetSchema, xmlSetSchema } from "./command-schema.js";
+import { createPresentation, type CreatePresentationOptions } from "./creation.js";
+import { commandJson, commandLength, commandTimestamp } from "./command-engine-values.js";
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
 import type { ValidationLimits } from "./validation.js";
 
@@ -20,7 +22,7 @@ export interface PptxCommandEngineOptions {
   readonly maxOutputBytes: number;
 }
 export interface PptxPublicationRequest {
-  readonly inputPath: string;
+  readonly inputPath?: string;
   readonly outputPath: string;
   readonly bytes: Uint8Array;
   readonly originalBytes: Uint8Array;
@@ -54,13 +56,17 @@ const scopes: readonly Scope[] = [
   "shared"
 ];
 const help =
-  "Usage: pptx inspect INPUT [--slide N] [--shape NAME] [--all] [--json]\n" +
+  "Usage: pptx create --output PATH [--kind pptx|potx|ppsx] [--width LENGTH]\n" +
+  "                   [--height LENGTH] [--slides-json JSON] [--author TEXT]\n" +
+  "                   [--properties-json JSON] [--dialect transitional]\n" +
+  "                   [--timestamp UTC] [--force] [--dry-run] [--json]\n" +
+  "       pptx inspect INPUT [--slide N] [--shape NAME] [--all] [--json]\n" +
   "       pptx inspect INPUT --part URI [--scope SCOPE] [--json]\n" +
   "       pptx inspect INPUT --select TOKEN [--json]\n" +
   "       pptx xml get INPUT --part URI [--scope SCOPE] [--pretty] [--json]\n" +
   "       pptx xml set INPUT --part URI --file XML [--scope SCOPE]\n" +
   "                    [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-  "       pptx schema [inspect | xml get | xml set] [--json]\n" +
+  "       pptx schema [create | inspect | xml get | xml set] [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "Slide positions are one-based. Shape names are exact; numeric strings are names.\n" +
   "Duplicate names require --all. Default scope: slides.\n" +
@@ -74,10 +80,23 @@ const help =
   "Repeat --limit for distinct names; output requires at least 512 bytes.\n" +
   "XML get emits original bytes; --pretty labels formatted output.\n" +
   "XML set validates before publication; element structure and resource bindings\n" +
-  "must remain unchanged. Semantic checks are partial, not full schema validation.\n";
+  "must remain unchanged. Semantic checks are partial, not full schema validation.\n" +
+  "Create defaults: empty deck, 12192000 x 6858000 EMUs, blank layout and master.\n" +
+  "Lengths require emu, in, cm, mm or pt. Dates/authors are never synthesized.\n" +
+  "Create supports Transitional only; supplied templates are unavailable.\n";
 
 interface Arguments {
-  operation: "inspect" | "xml.get" | "xml.set" | "schema" | "capabilities" | "help" | "version";
+  operation:
+    | "create"
+    | "inspect"
+    | "xml.get"
+    | "xml.set"
+    | "schema"
+    | "capabilities"
+    | "help"
+    | "version";
+  creation?: CreatePresentationOptions;
+  template?: string;
   pretty?: boolean;
   file?: string;
   output?: string;
@@ -109,7 +128,16 @@ const scalarOptions = [
   "--file",
   "--output",
   "-o",
-  "--limit"
+  "--limit",
+  "--width",
+  "--height",
+  "--kind",
+  "--dialect",
+  "--template",
+  "--timestamp",
+  "--author",
+  "--slides-json",
+  "--properties-json"
 ];
 
 function parse(
@@ -145,7 +173,7 @@ function parse(
           : argument === "--version"
             ? "version"
             : argument;
-      if (["inspect", "schema", "capabilities", "help", "version"].includes(command))
+      if (["create", "inspect", "schema", "capabilities", "help", "version"].includes(command))
         output.operation = command;
     } else if (index === 1 && args[0] === "xml" && ["get", "set"].includes(argument)) {
       output.operation = `xml.${argument}`;
@@ -165,9 +193,16 @@ function parse(
         ? "version"
         : command;
   if (
-    !["inspect", "xml.get", "xml.set", "schema", "capabilities", "help", "version"].includes(
-      operation
-    )
+    ![
+      "create",
+      "inspect",
+      "xml.get",
+      "xml.set",
+      "schema",
+      "capabilities",
+      "help",
+      "version"
+    ].includes(operation)
   )
     usage("Unsupported operation.");
   const result: Arguments = { operation: operation as Arguments["operation"], json: false };
@@ -203,7 +238,84 @@ function parse(
     }
     if (!scalarOptions.includes(argument)) usage("Unsupported option.");
     const value = args[++index];
-    if (value === undefined || value.length === 0) usage("Missing option value.");
+    if (value === undefined || (value.length === 0 && argument !== "--author"))
+      usage("Missing option value.");
+    if (
+      [
+        "--width",
+        "--height",
+        "--kind",
+        "--dialect",
+        "--template",
+        "--timestamp",
+        "--author",
+        "--slides-json",
+        "--properties-json"
+      ].includes(argument)
+    ) {
+      if (operation !== "create") usage("Creation options require create.");
+      result.creation ??= {};
+      if (argument === "--template") result.template = value;
+      else if (argument === "--width" || argument === "--height")
+        result.creation = { ...result.creation, [argument.slice(2)]: commandLength(value) };
+      else if (argument === "--kind") {
+        if (!["pptx", "potx", "ppsx"].includes(value)) usage("Unknown presentation kind.");
+        result.creation = { ...result.creation, kind: value as "pptx" | "potx" | "ppsx" };
+      } else if (argument === "--dialect") {
+        if (!["strict", "transitional"].includes(value)) usage("Unknown presentation dialect.");
+        result.creation = { ...result.creation, dialect: value as "strict" | "transitional" };
+      } else if (argument === "--author") result.creation = { ...result.creation, author: value };
+      else if (argument === "--timestamp")
+        result.creation = { ...result.creation, timestamp: commandTimestamp(value) };
+      else if (argument === "--properties-json") {
+        const properties = commandJson(value);
+        if (!properties || typeof properties !== "object" || Array.isArray(properties))
+          usage("Properties require an object.");
+        if (
+          Object.keys(properties).some(
+            (key) =>
+              ![
+                "title",
+                "subject",
+                "author",
+                "keywords",
+                "comments",
+                "lastModifiedBy",
+                "revision",
+                "created",
+                "modified",
+                "lastPrinted"
+              ].includes(key)
+          )
+        )
+          usage("Unknown creation property.");
+        for (const key of ["created", "modified", "lastPrinted"]) {
+          if (Object.hasOwn(properties, key)) {
+            const dates = properties as Record<string, unknown>;
+            if (typeof dates[key] !== "string") usage("Property dates require UTC strings.");
+            dates[key] = commandTimestamp(dates[key]);
+          }
+        }
+        result.creation = {
+          ...result.creation,
+          properties: Object.fromEntries(
+            Object.entries(properties).map(([key, item]) => [
+              key === "lastPrinted"
+                ? "last_printed"
+                : key === "lastModifiedBy"
+                  ? "last_modified_by"
+                  : key,
+              item
+            ])
+          )
+        };
+      } else
+        result.creation = {
+          ...result.creation,
+          slides: commandJson(value) as NonNullable<CreatePresentationOptions["slides"]>
+        };
+      continue;
+    }
     if (argument === "--limit") {
       const pieces = value.split("=");
       const [name, digits] = pieces;
@@ -245,12 +357,38 @@ function parse(
     }
   }
   const xml = operation === "xml.get" || operation === "xml.set";
+  if (operation === "create") {
+    if (positionals.length) usage("Creation takes no input positional arguments.");
+    const allowed = [
+      "--width",
+      "--height",
+      "--kind",
+      "--dialect",
+      "--template",
+      "--timestamp",
+      "--author",
+      "--slides-json",
+      "--properties-json",
+      "--json",
+      "--limit",
+      "--output",
+      "--force",
+      "--dry-run"
+    ];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to creation.");
+    if (!result.output && !result.dryRun) usage("Creation requires an output destination.");
+    if (result.force && !result.output) usage("Force requires an explicit output destination.");
+    if (result.output === "-" && result.json && !result.dryRun)
+      usage("Binary stdout cannot be combined with JSON.");
+    return result;
+  }
   if (operation !== "inspect" && !xml) {
     if ([...seen].some((option) => option !== "--json"))
       usage("Selection options require inspect.");
     if (
-      operation === "schema" &&
-      ["inspect", "xml.get", "xml.set"].includes(positionals.join("."))
+      (operation === "schema" || operation === "help") &&
+      ["create", "inspect", "xml.get", "xml.set"].includes(positionals.join("."))
     ) {
       result.schemaPath = positionals.join(".");
       return result;
@@ -425,6 +563,7 @@ async function execute(
         version: 1,
         operations: Object.fromEntries(
           Object.entries({
+            create: createSchema,
             inspect: inspectSchema,
             "xml.get": xmlGetSchema,
             "xml.set": xmlSetSchema
@@ -434,6 +573,11 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          creation: {
+            level: "edit",
+            subset:
+              "Original macro-free Transitional pptx, potx and ppsx; explicit size and metadata; blank master/layout and structured text slides. Strict and supplied templates are rejected."
+          },
           selectors: { level: "read", subset: "slide, part and drawing object locations" },
           inventory: {
             level: "read",
@@ -452,7 +596,52 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else {
+    else if (args.operation === "create") {
+      if (args.template)
+        throw new OfficeError(
+          "unsupported-profile",
+          "Template-based creation is unavailable.",
+          "validate-intent"
+        );
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await createPresentation(args.creation ?? {}, context);
+      const index = await readSelectionIndex(bytes, context);
+      const dryRun = args.dryRun ?? false;
+      const location = {
+        fingerprint: index.fingerprint,
+        scope: "presentation" as const,
+        owner: "/ppt/presentation.xml",
+        objectId: "/ppt/presentation.xml",
+        coordinateSystem: "identity" as const
+      };
+      result = {
+        ...success(operation, {
+          effects: [{ location, action: "add", feature: "F06" }],
+          outputs: dryRun
+            ? []
+            : [{ path: args.output!, sha256: index.fingerprint, bytes: bytes.length }],
+          fingerprint: dryRun ? null : index.fingerprint
+        }),
+        affected: 1,
+        locations: [location]
+      };
+      human = `${dryRun ? "Validated" : "Created"} presentation (${index.slides.length} slides)\n`;
+      if (args.output === "-" && !dryRun) binary = bytes;
+      else if (args.output && args.output !== "-") {
+        if (!request.publishOutput)
+          throw Object.assign(new Error("Output publication capability is unavailable."), {
+            code: "publication-unsupported"
+          });
+        publication = {
+          outputPath: args.output,
+          bytes,
+          originalBytes: new Uint8Array(),
+          inPlace: false,
+          force: args.force ?? false,
+          dryRun
+        };
+      }
+    } else {
       if (args.token) decodeSelectionToken(args.token);
       let bytes: Uint8Array;
       try {
@@ -572,11 +761,13 @@ async function execute(
         ? 1
         : office?.code === "cancelled"
           ? 130
-          : office?.phase === "usage" || office?.code === "invalid-selection"
-            ? 2
-            : office?.code === "io-failure" || !office
-              ? 3
-              : 1;
+          : office?.code === "unsupported-profile"
+            ? 1
+            : office?.phase === "usage" || office?.code === "invalid-selection"
+              ? 2
+              : office?.code === "io-failure" || !office
+                ? 3
+                : 1;
     const diagnostic: Diagnostic = {
       code: limit
         ? "resource-limit"

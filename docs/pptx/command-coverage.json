@@ -1620,7 +1620,22 @@
       "path": ["create"],
       "sdkOperationId": "create",
       "version": 1,
-      "status": "proposed_not_implemented",
+      "status": "partial-direct-implementation",
+      "implementation": {
+        "surface": "direct-command-and-operation-sdk",
+        "usage": "docs/pptx/creation.md",
+        "schema": "packages/pptx/src/command-schema.ts",
+        "sdkTests": "packages/pptx/src/creation.test.ts",
+        "commandTests": "packages/pptx/src/command-create.test.ts",
+        "adapterTests": "packages/safe-bash/tests/commands/pptx/create.test.ts",
+        "verification": "docs/plans/pptx-creation.md",
+        "boundary": "Original Transitional macro-free pptx/potx/ppsx, blank master/layout/theme, explicit dimensions, structured text slides and explicit core metadata. Live Presentation model, supplied-template population, Strict creation and batch remain unimplemented.",
+        "designSchemaStatus": "The design schemas below retain the broader proposed routes. Executable command-schema.ts is authoritative for the implemented profile, including structured slides and properties additions.",
+        "creationExtensions": {
+          "slides": "--slides-json: closed slide/text-box array with integer EMU coordinates",
+          "properties": "--properties-json: closed core metadata object, camelCase lastModifiedBy/lastPrinted; explicit UTC date strings"
+        }
+      },
       "transport": "direct-and-batch",
       "arguments": {
         "type": "object",

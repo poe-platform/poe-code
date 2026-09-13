@@ -1,7 +1,8 @@
 # PPTX command coverage register
 
 Status: Proposed full command design. Implemented subsets are documented separately
-in [inventory usage](inventory-usage.md) and [XML operations](xml-operations.md);
+in [inventory usage](inventory-usage.md), [XML operations](xml-operations.md) and
+[creation](creation.md);
 the register's proposed batch/model routes are not available merely because a
 related direct operation exists. Executable `schema` and `capabilities` describe
 the current command profile.

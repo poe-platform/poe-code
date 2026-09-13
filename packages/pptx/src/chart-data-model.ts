@@ -59,8 +59,10 @@ export class ChartDataSequence<T> implements Iterable<T> {
     sequenceStorage.set(this, items);
     const proxy = new Proxy(this, {
       get(target, key, receiver) {
-        if (typeof key === "string" && key !== "" && String(Number(key)) === key)
+        if (typeof key === "string" && key !== "" && String(Number(key)) === key) {
+          if (Number(key) < 0) throw new IndexError();
           return target.at(Number(key));
+        }
         return Reflect.get(target, key, receiver);
       },
       set(target, key, value, receiver) {

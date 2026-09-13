@@ -306,3 +306,26 @@ describe("literal text replacement", () => {
     expect(read).not.toHaveBeenCalled();
   });
 });
+
+it("replaces combining and emoji sequences across mixed-script runs while preserving direction metadata", async () => {
+  const first =
+    '<a:rPr lang="ar-SA" altLang="ja-JP"><a:ea typeface="Grove East" charset="-128"/><a:cs typeface="Grove Arabic" pitchFamily="34"/><a:rtl val="1"/></a:rPr>';
+  const second =
+    '<a:rPr lang="ja-JP"><a:latin typeface="Grove Latin"/><a:sym typeface="Grove Symbols"/></a:rPr>';
+  const source = await fixture(
+    `<a:p><a:pPr rtl="1"/>${run("مَرْحَبًا e", first)}${run("́ 👩🏽", second)}${run("‍🚀 日本語", second)}</a:p>`
+  );
+  const result = await replacePresentationText(
+    source,
+    { find: "é 👩🏽‍🚀", with: "Å 🧑🏾‍🔬", all: true },
+    context
+  );
+  expect(result.affected).toBe(1);
+  expect(slide(result.bytes)).toContain(
+    run("مَرْحَبًا Å 🧑🏾‍🔬", first) + run("", second) + run(" 日本語", second)
+  );
+  expect(slide(result.bytes)).toContain('<a:pPr rtl="1"/>');
+  expect((await readPresentationText(result.bytes, {}, context)).text).toBe(
+    "مَرْحَبًا Å 🧑🏾‍🔬 日本語"
+  );
+});

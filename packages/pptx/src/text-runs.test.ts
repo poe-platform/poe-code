@@ -136,6 +136,14 @@ it("reads absent, explicit false and explicit values without materializing inher
     italic: true,
     size: 14.5,
     font: "Cedar",
+    eastAsiaFont: null,
+    complexScriptFont: null,
+    complexScriptCharset: null,
+    complexScriptPitchFamily: null,
+    complexScriptPanose: null,
+    symbolFont: null,
+    alternateLanguage: null,
+    rtl: null,
     language: "el-GR",
     underline: "dbl",
     baseline: -12.5,
@@ -154,6 +162,14 @@ it("reads absent, explicit false and explicit values without materializing inher
     italic: null,
     size: null,
     font: null,
+    eastAsiaFont: null,
+    complexScriptFont: null,
+    complexScriptCharset: null,
+    complexScriptPitchFamily: null,
+    complexScriptPanose: null,
+    symbolFont: null,
+    alternateLanguage: null,
+    rtl: null,
     language: null,
     underline: null,
     baseline: null,
@@ -225,7 +241,8 @@ it.each([
   ["", null],
   ["", "fr-FR"],
   ['lang="fr-FR"', "pl-PL"],
-  ['lang="pl-PL"', null]
+  ['lang="pl-PL"', null],
+  ['lang="fr-FR"', null]
 ] as const)("updates a language declaration %s to %s", (before, language) => {
   expect(attrs(edit({ language }, before))).toEqual(language === null ? {} : { lang: language });
 });

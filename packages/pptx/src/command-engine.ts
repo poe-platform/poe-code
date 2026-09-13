@@ -175,6 +175,10 @@ const runHelp =
   "           --select TOKEN, or --all for every run in scope\n" +
   "           --scope SCOPE --allow-empty (set only)\n" +
   "Formatting: --font NAME --size LENGTH --language TAG\n" +
+  "Script fonts: --east-asia-font NAME --complex-script-font NAME --symbol-font NAME\n" +
+  "              --complex-script-charset N --complex-script-pitch-family N\n" +
+  "              --complex-script-panose HEX (20 digits)\n" +
+  "              --alternate-language TAG --rtl true|false|null\n" +
   "            --bold true|false|null --italic true|false|null\n" +
   "            --underline STYLE --strike none|single|double\n" +
   "            --baseline PERCENT --capitalization none|small|all\n" +
@@ -429,6 +433,14 @@ function paragraphTabLength(length: Record<string, unknown>): number {
 }
 
 const runFlags = [
+  "--complex-script-charset",
+  "--complex-script-pitch-family",
+  "--complex-script-panose",
+  "--east-asia-font",
+  "--complex-script-font",
+  "--symbol-font",
+  "--alternate-language",
+  "--rtl",
   "--text",
   "--font",
   "--size",
@@ -924,12 +936,25 @@ function parse(
       continue;
     }
     if (operation.startsWith("text.runs.") && runFlags.includes(argument)) {
-      const key = argument.slice(2);
+      const key = argument
+        .slice(2)
+        .split("-")
+        .map((part, index) => (index ? part[0]!.toUpperCase() + part.slice(1) : part))
+        .join("");
       let parsed: unknown = value;
       if (value === "null" && !["text", "paragraph", "run"].includes(key)) parsed = null;
-      else if (["size", "spacing"].includes(key))
+      else if (["complexScriptCharset", "complexScriptPitchFamily"].includes(key)) {
+        const digits = value.startsWith("-") ? value.slice(1) : value;
+        if (
+          !digits ||
+          [...digits].some((c) => c < "0" || c > "9") ||
+          !Number.isSafeInteger(Number(value))
+        )
+          usage("Font classification requires an integer or null.");
+        parsed = Number(value);
+      } else if (["size", "spacing"].includes(key))
         parsed = commandLength(value, key === "spacing" ? -Number.MAX_SAFE_INTEGER : 1) / 12700;
-      else if (["bold", "italic"].includes(key)) {
+      else if (["bold", "italic", "rtl"].includes(key)) {
         if (!["true", "false"].includes(value)) usage("Emphasis requires true, false or null.");
         parsed = value === "true";
       } else if (["paragraph", "run"].includes(key)) {

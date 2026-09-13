@@ -1861,6 +1861,21 @@ const runColorOptionSchema = {
 };
 
 const runFormattingProperties = {
+  complexScriptCharset: { type: ["integer", "null"], minimum: -128, maximum: 127 },
+  complexScriptPitchFamily: {
+    enum: [null, 0, 1, 2, 16, 17, 18, 32, 33, 34, 48, 49, 50, 64, 65, 66, 80, 81, 82]
+  },
+  complexScriptPanose: {
+    type: ["string", "null"],
+    minLength: 20,
+    maxLength: 20,
+    description: "Exactly 20 hexadecimal digits."
+  },
+  eastAsiaFont: { type: ["string", "null"], minLength: 1 },
+  complexScriptFont: { type: ["string", "null"], minLength: 1 },
+  symbolFont: { type: ["string", "null"], minLength: 1 },
+  alternateLanguage: { type: ["string", "null"], minLength: 1 },
+  rtl: { type: ["boolean", "null"] },
   text: { type: "string" },
   font: { type: ["string", "null"], minLength: 1 },
   size: {

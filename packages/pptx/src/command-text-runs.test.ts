@@ -1,4 +1,6 @@
 import { Volume } from "memfs";
+import { SaxesParser } from "saxes";
+import { inspectZip } from "../tests/zip-reader.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { compileJsonSchema } from "toolcraft-schema";
 import { createPresentation } from "./creation.js";
@@ -243,5 +245,144 @@ it("shows scoped run help without input acquisition", async () => {
   expect(out.exitCode).toBe(0);
   expect(decode(out.stdout)).toContain("--highlight");
   expect(decode(out.stdout)).toContain("--paragraph");
+  expect(f.readInput).not.toHaveBeenCalled();
+});
+
+it("shares script metadata and Unicode edits between command and SDK", async () => {
+  const f = await fixture();
+  const changed = await f.run([
+    "text",
+    "runs",
+    "set",
+    "/deck.pptx",
+    "--all",
+    "--text",
+    "مَرْحَبًا 日本語 é 👩🏽‍🚀",
+    "--east-asia-font",
+    "Grove East",
+    "--complex-script-font",
+    "Grove Arabic",
+    "--complex-script-charset",
+    "-128",
+    "--complex-script-pitch-family",
+    "82",
+    "--complex-script-panose",
+    "020b0604020202020204",
+    "--symbol-font",
+    "Grove Symbols",
+    "--alternate-language",
+    "ja-JP",
+    "--rtl",
+    "true",
+    "--output",
+    "/script.pptx",
+    "--json"
+  ]);
+  expect(changed.exitCode, decode(changed.stdout) + decode(changed.stderr)).toBe(0);
+  const { readTextRuns, readPresentationText, mutateTextRuns, mutateTextFrames, readTextFrames } =
+    await import("./index.js");
+  const bytes = new Uint8Array(f.volume.readFileSync("/script.pptx") as Buffer);
+  expect((await readPresentationText(bytes, {}, context)).text).toBe("مَرْحَبًا 日本語 é 👩🏽‍🚀");
+  const nodes: { name: string; namespace: string; attributes: Record<string, string> }[] = [];
+  const parser = new SaxesParser({ xmlns: true });
+  parser.on("opentag", (tag) => {
+    if (["ea", "cs", "sym", "rtl"].includes(tag.local))
+      nodes.push({
+        name: tag.local,
+        namespace: tag.uri,
+        attributes: Object.fromEntries(
+          Object.values(tag.attributes)
+            .filter((a) => !a.uri)
+            .map((a) => [a.local, a.value])
+        )
+      });
+  });
+  parser
+    .write(
+      decode(inspectZip(bytes).find((entry) => entry.name === "ppt/slides/slide1.xml")!.payload)
+    )
+    .close();
+  expect(nodes).toEqual([
+    {
+      name: "ea",
+      namespace: "http://schemas.openxmlformats.org/drawingml/2006/main",
+      attributes: { typeface: "Grove East" }
+    },
+    {
+      name: "cs",
+      namespace: "http://schemas.openxmlformats.org/drawingml/2006/main",
+      attributes: {
+        typeface: "Grove Arabic",
+        charset: "-128",
+        pitchFamily: "82",
+        panose: "020B0604020202020204"
+      }
+    },
+    {
+      name: "sym",
+      namespace: "http://schemas.openxmlformats.org/drawingml/2006/main",
+      attributes: { typeface: "Grove Symbols" }
+    },
+    {
+      name: "rtl",
+      namespace: "http://schemas.openxmlformats.org/drawingml/2006/main",
+      attributes: { val: "1" }
+    }
+  ]);
+
+  expect((await readTextRuns(bytes, {}, context))[0]!.formatting).toMatchObject({
+    eastAsiaFont: "Grove East",
+    complexScriptFont: "Grove Arabic",
+    complexScriptCharset: -128,
+    complexScriptPitchFamily: 82,
+    complexScriptPanose: "020B0604020202020204",
+    symbolFont: "Grove Symbols",
+    alternateLanguage: "ja-JP",
+    rtl: true
+  });
+  const vertical = await mutateTextFrames(bytes, { all: true, verticalText: "eaVert" }, context);
+  expect((await readTextFrames(vertical.bytes, {}, context))[0]!.formatting.verticalText).toBe(
+    "eaVert"
+  );
+  const cleared = await mutateTextRuns(
+    vertical.bytes,
+    { all: true, eastAsiaFont: null, rtl: false },
+    context
+  );
+  expect((await readTextFrames(cleared.bytes, {}, context))[0]!.formatting.verticalText).toBe(
+    "eaVert"
+  );
+  f.volume.writeFileSync("/cleared.pptx", cleared.bytes);
+  const read = await f.run(["text", "runs", "get", "/cleared.pptx", "--json"]);
+  expect(read.exitCode).toBe(0);
+  const result = JSON.parse(decode(read.stdout));
+  expect(result.data.runs[0].formatting).toMatchObject({
+    eastAsiaFont: null,
+    complexScriptFont: "Grove Arabic",
+    rtl: false
+  });
+  const schemaOutput = await f.run(["schema", "text", "runs", "get", "--json"]);
+  const schema = JSON.parse(decode(schemaOutput.stdout)).data.operations["text.runs.get"];
+  expect(compileJsonSchema(schema.result).validate(result).ok).toBe(true);
+});
+it.each([
+  ["--rtl", "yes"],
+  ["--east-asia-font", ""],
+  ["--complex-script-font", "\u0002"],
+  ["--alternate-language", "\u0001"]
+])("rejects invalid script flag %s before reading", async (flag, value) => {
+  const f = await fixture();
+  const out = await f.run([
+    "text",
+    "runs",
+    "set",
+    "/deck.pptx",
+    flag!,
+    value!,
+    "--all",
+    "--dry-run",
+    "--json"
+  ]);
+  expect(out.exitCode).toBe(2);
   expect(f.readInput).not.toHaveBeenCalled();
 });

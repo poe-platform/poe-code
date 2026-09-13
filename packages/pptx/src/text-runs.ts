@@ -55,6 +55,14 @@ export const textStrikeStyles = ["none", "single", "double"] as const;
 export const textCapitalizationStyles = ["none", "small", "all"] as const;
 export interface TextRunFormatting {
   readonly font?: string | null;
+  readonly eastAsiaFont?: string | null;
+  readonly complexScriptFont?: string | null;
+  readonly complexScriptCharset?: number | null;
+  readonly complexScriptPitchFamily?: number | null;
+  readonly complexScriptPanose?: string | null;
+  readonly symbolFont?: string | null;
+  readonly alternateLanguage?: string | null;
+  readonly rtl?: boolean | null;
   readonly size?: number | null;
   readonly language?: string | null;
   readonly bold?: boolean | null;
@@ -81,6 +89,14 @@ export interface MutateTextRunsOptions extends ReadPresentationTextOptions, Text
 }
 const formatKeys = [
   "font",
+  "eastAsiaFont",
+  "complexScriptFont",
+  "complexScriptCharset",
+  "complexScriptPitchFamily",
+  "complexScriptPanose",
+  "symbolFont",
+  "alternateLanguage",
+  "rtl",
   "size",
   "language",
   "bold",
@@ -93,6 +109,7 @@ const formatKeys = [
   "color",
   "highlight"
 ];
+const pitchFamilies = [0, 1, 2, 16, 17, 18, 32, 33, 34, 48, 49, 50, 64, 65, 66, 80, 81, 82];
 function invalid(): never {
   throw new OfficeError("invalid-value", "Invalid run formatting options.", "usage");
 }
@@ -131,9 +148,45 @@ export function validateTextRunOptions(options: MutateTextRunsOptions): void {
   for (const key of ["paragraph", "run"] as const)
     if (options[key] !== undefined && (!Number.isSafeInteger(options[key]) || options[key]! < 0))
       invalid();
+  if (
+    options.complexScriptCharset != null &&
+    (!Number.isInteger(options.complexScriptCharset) ||
+      options.complexScriptCharset < -128 ||
+      options.complexScriptCharset > 127)
+  )
+    invalid();
+  if (
+    options.complexScriptPitchFamily != null &&
+    !pitchFamilies.includes(options.complexScriptPitchFamily)
+  )
+    invalid();
+  if (
+    options.complexScriptPanose != null &&
+    (typeof options.complexScriptPanose !== "string" ||
+      options.complexScriptPanose.length !== 20 ||
+      [...options.complexScriptPanose.toUpperCase()].some((c) => !"0123456789ABCDEF".includes(c)))
+  )
+    invalid();
+  if (
+    options.complexScriptFont === null &&
+    [
+      options.complexScriptCharset,
+      options.complexScriptPitchFamily,
+      options.complexScriptPanose
+    ].some((value) => value != null)
+  )
+    invalid();
   for (const key of ["all", "allowEmpty"] as const)
     if (options[key] !== undefined && typeof options[key] !== "boolean") invalid();
-  for (const key of ["font", "language", "text"] as const) {
+  for (const key of [
+    "font",
+    "eastAsiaFont",
+    "complexScriptFont",
+    "symbolFont",
+    "language",
+    "alternateLanguage",
+    "text"
+  ] as const) {
     const value = options[key];
     if (value === undefined || (value === null && key !== "text")) continue;
     if (typeof value !== "string" || (key !== "text" && !value)) invalid();
@@ -148,7 +201,7 @@ export function validateTextRunOptions(options: MutateTextRunsOptions): void {
         invalid();
     }
   }
-  for (const key of ["bold", "italic"] as const)
+  for (const key of ["bold", "italic", "rtl"] as const)
     if (options[key] != null && typeof options[key] !== "boolean") invalid();
   for (const [key, min, max] of [
     ["size", 1, 4000],
@@ -183,7 +236,11 @@ function underlineToken(value: string | number): string {
     ? ((textUnderlineStyles as readonly string[])[code] ?? "")
     : value;
 }
-export function runPropertiesMerge(options: TextRunFormatting, namespace: string): XmlMerge {
+export function runPropertiesMerge(
+  options: TextRunFormatting,
+  namespace: string,
+  properties?: XmlElement
+): XmlMerge {
   const name = (localName: string) => ({ namespace, localName });
   const attributes: NonNullable<XmlMerge["attributes"]>[number][] = [];
   const mapping = {
@@ -191,6 +248,7 @@ export function runPropertiesMerge(options: TextRunFormatting, namespace: string
     italic: "i",
     size: "sz",
     language: "lang",
+    alternateLanguage: "altLang",
     underline: "u",
     strike: "strike",
     baseline: "baseline",
@@ -245,12 +303,68 @@ export function runPropertiesMerge(options: TextRunFormatting, namespace: string
   ].map(name);
   const remove: ReturnType<typeof name>[] = [];
   const upsert: NonNullable<XmlMerge["children"]>["upsert"][number][] = [];
-  if (options.font !== undefined) {
-    if (options.font === null) remove.push(name("latin"));
+  for (const [key, local] of [
+    ["font", "latin"],
+    ["eastAsiaFont", "ea"],
+    ["complexScriptFont", "cs"],
+    ["symbolFont", "sym"]
+  ] as const) {
+    const value = options[key];
+    if (value === undefined) continue;
+    if (value === null) remove.push(name(local));
     else
       upsert.push({
-        name: name("latin"),
-        merge: { attributes: [{ namespace: "", localName: "typeface", value: options.font }] }
+        name: name(local),
+        merge: { attributes: [{ namespace: "", localName: "typeface", value }] }
+      });
+  }
+  const classification = [
+    ["complexScriptCharset", "charset"],
+    ["complexScriptPitchFamily", "pitchFamily"],
+    ["complexScriptPanose", "panose"]
+  ] as const;
+  const fontAttributes = classification.flatMap(([key, localName]) =>
+    options[key] === undefined
+      ? []
+      : [
+          {
+            namespace: "",
+            localName,
+            value: options[key] === null ? null : String(options[key]).toUpperCase()
+          }
+        ]
+  );
+  if (fontAttributes.length && options.complexScriptFont !== null) {
+    const existing = properties?.children.find(
+      (n) => n.name.namespace === namespace && n.name.localName === "cs"
+    );
+    if (
+      !existing?.attributes.some(
+        (attribute) => !attribute.name.namespace && attribute.name.localName === "typeface"
+      ) &&
+      options.complexScriptFont === undefined &&
+      fontAttributes.some((a) => a.value !== null)
+    )
+      throw new OfficeError(
+        "invalid-value",
+        "Complex-script font attributes require an existing or explicit typeface.",
+        "validate-intent"
+      );
+    if (existing || options.complexScriptFont !== undefined) {
+      const font = upsert.find((child) => child.name.localName === "cs");
+      if (font) upsert.splice(upsert.indexOf(font), 1);
+      upsert.push({
+        name: name("cs"),
+        merge: { attributes: [...(font?.merge.attributes ?? []), ...fontAttributes] }
+      });
+    }
+  }
+  if (options.rtl !== undefined) {
+    if (options.rtl === null) remove.push(name("rtl"));
+    else
+      upsert.push({
+        name: name("rtl"),
+        merge: { attributes: [{ namespace: "", localName: "val", value: options.rtl ? "1" : "0" }] }
       });
   }
   for (const key of ["color", "highlight"] as const) {
@@ -357,7 +471,18 @@ export async function mutateTextRuns(
         document = document.merge(node, {
           children: {
             sequence: [name, { namespace: state.a, localName: "t" }],
-            upsert: [{ name, merge: runPropertiesMerge(options, state.a) }]
+            upsert: [
+              {
+                name,
+                merge: runPropertiesMerge(
+                  options,
+                  state.a,
+                  node.children.find(
+                    (child) => child.name.namespace === state.a && child.name.localName === "rPr"
+                  )
+                )
+              }
+            ]
           }
         });
       }
@@ -393,7 +518,50 @@ export function readRunFormatting(run: XmlElement) {
       throw new OfficeError("invalid-xml", "Invalid run number.", "parse");
     return Number(value) / scale;
   };
+  const fontAttribute = (key: string) =>
+    child("cs")?.attributes.find((a) => !a.name.namespace && a.name.localName === key)?.value ??
+    null;
+  const fontNumber = (key: string) => {
+    const raw = fontAttribute(key);
+    if (raw === null) return null;
+    const value = raw.trim(),
+      digits = value.startsWith("-") || value.startsWith("+") ? value.slice(1) : value;
+    if (!digits || [...digits].some((c) => c < "0" || c > "9") || !Number.isInteger(Number(value)))
+      throw new OfficeError("invalid-xml", "Invalid complex-script font classification.", "parse");
+    return Number(value);
+  };
+  const classification = {
+    complexScriptCharset: fontNumber("charset"),
+    complexScriptPitchFamily: fontNumber("pitchFamily"),
+    complexScriptPanose: fontAttribute("panose")?.trim().toUpperCase() ?? null
+  };
+  try {
+    validateTextRunOptions(classification);
+  } catch {
+    throw new OfficeError("invalid-xml", "Invalid complex-script font classification.", "parse");
+  }
+  const rtlValue = child("rtl")?.attributes.find(
+    (a) => !a.name.namespace && a.name.localName === "val"
+  )?.value;
+  const directionTokens =
+    ns === "http://schemas.openxmlformats.org/drawingml/2006/main"
+      ? ["0", "1", "true", "false", "on", "off"]
+      : ["0", "1", "true", "false"];
+  if (rtlValue !== undefined && !directionTokens.includes(rtlValue))
+    throw new OfficeError("invalid-xml", "Invalid run direction.", "parse");
   return {
+    eastAsiaFont:
+      child("ea")?.attributes.find((a) => !a.name.namespace && a.name.localName === "typeface")
+        ?.value ?? null,
+    complexScriptFont:
+      child("cs")?.attributes.find((a) => !a.name.namespace && a.name.localName === "typeface")
+        ?.value ?? null,
+    symbolFont:
+      child("sym")?.attributes.find((a) => !a.name.namespace && a.name.localName === "typeface")
+        ?.value ?? null,
+    ...classification,
+    alternateLanguage: attribute("altLang"),
+    rtl: child("rtl") ? ["1", "true", "on"].includes(rtlValue ?? "0") : null,
     font:
       child("latin")?.attributes.find((a) => !a.name.namespace && a.name.localName === "typeface")
         ?.value ?? null,

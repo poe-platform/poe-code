@@ -281,3 +281,38 @@ it("resolves inherited underline while retaining explicit zero and false formatt
     highlight: { status: "absent", value: null }
   });
 });
+
+it("resolves mixed-script run fonts independently through paragraph, layout and master layers", () => {
+  const input = fixture();
+  input.slide.root = drawing(
+    "sld",
+    shape(
+      '<a:p><a:pPr><a:defRPr lang="ar-SA"><a:cs typeface="Paragraph Arabic"/></a:defRPr></a:pPr><a:r><a:rPr lang="ja-JP"><a:ea typeface="Run East"/></a:rPr><a:t>日本語 é</a:t></a:r><a:r><a:rPr><a:cs typeface="Run Arabic"/></a:rPr><a:t>مَرْحَبًا 👩🏽‍🚀</a:t></a:r></a:p>'
+    )
+  );
+  input.layout.root = drawing(
+    "sldLayout",
+    shape(
+      '<a:lstStyle><a:lvl1pPr><a:defRPr><a:latin typeface="Layout Latin"/></a:defRPr></a:lvl1pPr></a:lstStyle>'
+    )
+  );
+  const records = resolveTextStyles(input);
+  expect(records).toHaveLength(2);
+  expect(records[0]!.properties).toMatchObject({
+    language: { value: "ja-JP", source: { layer: "run" } },
+    latin: { value: "Layout Latin", source: { layer: "layout" } },
+    eastAsia: { value: "Run East", source: { layer: "run" } },
+    complex: { value: "Paragraph Arabic", source: { layer: "paragraph" } }
+  });
+  expect(records[1]!.properties).toMatchObject({
+    language: { value: "ar-SA", source: { layer: "paragraph" } },
+    latin: { value: "Layout Latin", source: { layer: "layout" } },
+    eastAsia: {
+      value: "East Body",
+      token: "+mn-ea",
+      source: { layer: "master" },
+      references: [{ part: "/theme.xml" }]
+    },
+    complex: { value: "Run Arabic", source: { layer: "run" } }
+  });
+});

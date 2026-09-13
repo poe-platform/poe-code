@@ -1798,3 +1798,10 @@ Hashbang/comments, Unicode identifiers/escapes/surrogates, line terminators/ASI,
 **Open:** confirmed ASI/regexp mismatches and exhaustive-fixture timeouts; Function wrapper positions, eval runtime/caller filenames, imported and restored executable-source origins, full supported-runtime/artifact qualification. Missing module/host authority is not relabeled as an ECMAScript defect. This diagnostic repair is not task completion.
 
 **Delivery at this checkpoint:** local code is the containing commit (`git log -1 --format=%H -- packages/safe-js/src/parse/eval-syntax-positions.test.ts`); remote delivery and publication remain pending. Later receipts must name their actual SHAs, workflows and registry versions. No issue was explicitly associated.
+
+
+### qualify-lexical-and-source-text — statement terminator repair, 2026-09-13
+
+Fetched-source corpus `eval-span-audit/corpus-summary.json` reproduces both Script modes of pinned `language/asi/do-while-same-line.js` failing with `Expected while`. The isolated regression reproduced **five failures / five valid controls** before adopting only the previously local statement-terminator hunks. After repair, **10/10 pass** via `npx vitest run packages/safe-js/src/parse/lexical-statement-terminators.test.ts`. Script execution, Agent Script execution and embedding lint are checked separately.
+
+Single-statement bodies now consume their own semicolon, and the enclosing statement does not demand another. The parser no longer silently discards extra empty statements before `else`; invalid `do {} ; while(0)`, `do ;; while(0)` and `if(true) 0;;else 1` remain rejected. Neighboring empty/block/nested-loop bodies are retained. No source text is rewritten, and no budget/timeout/authority changes. This atomic commit contains only the parser hunks, their ten regressions and this record. Broad validation and delivery receipts follow; lexical/source-origin acceptance remains open.

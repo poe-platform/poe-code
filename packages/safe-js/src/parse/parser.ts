@@ -1277,13 +1277,16 @@ class Parser {
     if (!allowDeclarations && (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration" ||
         (statement.type === "VariableDeclaration" && statement.kind !== "var")))
       throw new DisallowedSyntaxError("declaration in a statement body", statement.span.start);
-    if (this.lexicalContext.grammar !== undefined &&
+    if (this.lexicalContext.grammar !== undefined && this.previousToken().value !== ";" &&
       ["ExpressionStatement", "ReturnStatement", "ThrowStatement", "VariableDeclaration", "BreakStatement", "ContinueStatement"].includes(statement.type)) {
       const next = this.currentToken();
       if (next.type !== "eof" && next.value !== ";" && next.value !== "}" &&
         next.start.line === statement.span.end.line)
         throw unexpectedTokenError(next);
     }
+    if (!allowDeclarations && this.previousToken().value !== ";" &&
+      ["ExpressionStatement", "ReturnStatement", "ThrowStatement", "VariableDeclaration", "BreakStatement", "ContinueStatement", "DoWhileStatement"].includes(statement.type))
+      this.consumePunctuator(";");
     return statement;
   }
 
@@ -1527,16 +1530,6 @@ class Parser {
       const test = this.parseExpression({ allowSequence: true }).node;
       this.expectPunctuator(")");
       const consequent = this.parseIfClause();
-      if (consequent.type !== "BlockStatement") {
-        while (
-          this.currentToken().type === "punctuator" &&
-          this.currentToken().value === ";" &&
-          this.peekToken(1).type === "keyword" &&
-          this.peekToken(1).value === "else"
-        ) {
-          this.index += 1;
-        }
-      }
       const elseToken = this.consumeKeyword("else");
       const alternate = elseToken === undefined ? undefined : this.parseIfClause();
       return {

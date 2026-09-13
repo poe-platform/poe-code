@@ -31,6 +31,16 @@ export {
   type ChartLink,
   type ChartRecord
 } from "./charts.js";
+export {
+  addChart,
+  setCharts,
+  chartTypes,
+  type CreatableChartType,
+  type ChartInputSeries,
+  type ChartData,
+  type ChartUpdate,
+  type AddChartOptions
+} from "./chart-editing.js";
 export { selectionQuerySchema } from "./selector-schema.js";
 export type { PresentationInventory, SlideInventory, PartInventory } from "./inventory.js";
 

@@ -33,6 +33,15 @@ import { setImage, type SetImageOptions } from "./image-formatting.js";
 import { imageSchemas } from "./images-schema.js";
 import { readCharts } from "./charts.js";
 import { chartSchemas } from "./charts-schema.js";
+import {
+  addChart,
+  setCharts,
+  chartTypes,
+  validateChartData,
+  validateChartUpdate,
+  type AddChartOptions,
+  type ChartUpdate
+} from "./chart-editing.js";
 import { addShape, mutateShapes, readShapes, type ShapeSelection } from "./shape-operations.js";
 import { groupShapes, ungroupShape, validateGroupOptions } from "./shape-groups.js";
 import {
@@ -276,7 +285,7 @@ const help =
   "       pptx images add INPUT --slide N --file PATH [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
   "       pptx images extract INPUT --output-dir DIR [--unique] [--allow-partial-output]\n" +
   "       pptx images list INPUT [--slide N --image N] [--scope SCOPE] [--unique] [--json]\n" +
-  "       pptx charts list|get INPUT [--slide N --shape NAME | --select TOKEN] [--json]\n" +
+  "       pptx charts list|get|add|set|replace INPUT [--slide N --shape NAME | --select TOKEN] [options]\n" +
   "       pptx schema tables list|get|add|set [--json]\n" +
   "       pptx schema text get [--json]\n" +
   "       Text uses structural shape-tree order, including hidden slides, cached fields and empty paragraphs.\n" +
@@ -446,6 +455,9 @@ interface Arguments {
     | "images.list"
     | "charts.list"
     | "charts.get"
+    | "charts.add"
+    | "charts.set"
+    | "charts.replace"
     | "images.add"
     | "images.set"
     | "xml.get"
@@ -516,6 +528,8 @@ interface Arguments {
   image?: number;
   imageAdd?: Partial<AddImageOptions>;
   imageSet?: Partial<SetImageOptions>;
+  chartEdit?: Partial<AddChartOptions>;
+  chartWorkbookPolicy?: string;
   unique?: boolean;
   shape?: string;
   part?: string;
@@ -958,6 +972,46 @@ function parse(
       ["--help", "-h"].includes(argument)
     )
       return { operation: "help", json: output.json, schemaPath: operation };
+    if (
+      operation.startsWith("charts.") &&
+      [
+        "--type",
+        "--data",
+        "--style",
+        "--title",
+        "--legend",
+        "--left",
+        "--top",
+        "--width",
+        "--height",
+        "--workbook-policy"
+      ].includes(argument)
+    ) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Chart option requires a value.");
+      const key = argument.slice(2);
+      if (key === "workbook-policy") result.chartWorkbookPolicy = value;
+      else {
+        let parsed: unknown = value;
+        if (key === "data") parsed = commandJson(value);
+        else if (key === "style") {
+          if (!value.length || [...value].some((c) => c < "0" || c > "9"))
+            usage("Chart style requires an integer.");
+          parsed = Number(value);
+        } else if (key === "legend") {
+          if (!["true", "false"].includes(value)) usage("Legend requires true or false.");
+          parsed = value === "true";
+        } else if (["left", "top", "width", "height"].includes(key))
+          parsed = commandLength(
+            value,
+            ["left", "top"].includes(key) ? -Number.MAX_SAFE_INTEGER : 1
+          );
+        result.chartEdit = { ...result.chartEdit, [key]: parsed };
+      }
+      continue;
+    }
     if (
       operation.startsWith("tables.") &&
       (argument === "--table" ||
@@ -2266,6 +2320,52 @@ function parse(
       usage("Binary stdout cannot be combined with JSON.");
     return result;
   }
+  if (["charts.add", "charts.set", "charts.replace"].includes(operation)) {
+    const allowed = Object.keys(chartSchemas[operation]!.options.properties).map(
+      (key) =>
+        "--" + [...key].map((c) => (c >= "A" && c <= "Z" ? "-" + c.toLowerCase() : c)).join("")
+    );
+    if ([...seen].some((flag) => !allowed.includes(flag)))
+      usage("Option does not apply to chart mutation.");
+    if (positionals.length !== 1 || !positionals[0])
+      usage("Chart mutation requires exactly one input.");
+    result.input = positionals[0];
+    if (result.scope !== undefined && result.scope !== "slides")
+      usage("Chart mutation supports slides scope.");
+    if (result.token && ["--slide", "--shape", "--scope", "--all"].some((flag) => seen.has(flag)))
+      usage("Opaque and simple selectors cannot be combined.");
+    const edit = result.chartEdit ?? {};
+    const { type, ...update } = edit;
+    validateChartUpdate(update);
+    if (operation === "charts.add") {
+      if (!result.slide || result.token || result.shape || result.all || result.allowEmpty)
+        usage("Chart addition requires one slide.");
+      if (
+        !type ||
+        !chartTypes.includes(type) ||
+        !edit.data ||
+        [edit.left, edit.top, edit.width, edit.height].some((value) => value === undefined)
+      )
+        usage("Chart addition requires type, data and geometry.");
+      validateChartData(edit.data, type);
+    } else if (!Object.keys(edit).length) usage("Chart mutation requires an update.");
+    if (
+      operation === "charts.replace" &&
+      (!edit.data ||
+        !["synchronize-simple", "reject-complex"].includes(result.chartWorkbookPolicy!))
+    )
+      usage("Chart replacement requires data and an explicit workbook policy.");
+    if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+    if (result.output && result.inPlace) usage("Output and in-place are mutually exclusive.");
+    if (!result.dryRun && !result.inPlace && !result.output)
+      usage("Mutation requires a destination.");
+    if (result.force && !result.output) usage("Force requires an explicit output destination.");
+    if (result.output === result.input && result.output !== "-")
+      usage("Replacing input requires --in-place.");
+    if (result.output === "-" && result.json && !result.dryRun)
+      usage("Binary stdout cannot be combined with JSON.");
+    return result;
+  }
   if (operation === "charts.list" || operation === "charts.get") {
     const allowed = ["--json", "--limit", "--scope", "--slide", "--shape", "--select"];
     if ([...seen].some((option) => !allowed.includes(option)))
@@ -3473,6 +3573,37 @@ async function execute(
           "List returns all matches; get requires exactly one. Slide positions are one-based.\n" +
           "Inspect plots, axes, series, caches, formulas, styles and workbook links.\n" +
           "Cached values are not recalculated; external links are never fetched. Unknown XML is retained.\n";
+      if (["charts.add", "charts.set", "charts.replace"].includes(args.schemaPath ?? "")) {
+        const adding = args.schemaPath === "charts.add";
+        const replacing = args.schemaPath === "charts.replace";
+        resolvedUsage =
+          `Usage: pptx ${args.schemaPath!.split(".").join(" ")} INPUT${adding ? " --slide N" : " [selection]"} [options]\n` +
+          (adding
+            ? "Required: --type TYPE --data JSON\n" +
+              "Geometry: --left LENGTH --top LENGTH --width LENGTH --height LENGTH (all required)\n"
+            : "Selection: --slide N --shape NAME | --select TOKEN; --all --allow-empty\n") +
+          (replacing
+            ? "Required: --data JSON --workbook-policy synchronize-simple|reject-complex\n"
+            : "Style: --style 1..48 --title TEXT --legend true|false\n" +
+              (adding ? "" : "Set: --data JSON --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n")) +
+          "Output: --output PATH | --in-place | --dry-run; --force\n" +
+          "Common: --scope slides --json --limit NAME=VALUE\n" +
+          (adding
+            ? "Slide positions are one-based. Lengths require emu, in, cm, mm or pt.\n" +
+              "Types:\n" +
+              "  BAR_CLUSTERED, BAR_STACKED, BAR_STACKED_100\n" +
+              "  COLUMN_CLUSTERED, COLUMN_STACKED, COLUMN_STACKED_100\n" +
+              "  LINE, LINE_STACKED, LINE_STACKED_100\n" +
+              "  LINE_MARKERS, LINE_MARKERS_STACKED, LINE_MARKERS_STACKED_100\n" +
+              "  PIE, PIE_EXPLODED\n" +
+              "  XY_SCATTER, XY_SCATTER_LINES, XY_SCATTER_LINES_NO_MARKERS\n" +
+              "  XY_SCATTER_SMOOTH, XY_SCATTER_SMOOTH_NO_MARKERS\n"
+            : "Select one chart, or use --all for every match. --allow-empty permits zero matches.\n") +
+          'Category data: {"categories":["North","South"],"series":[{"name":"Count","values":[2,4]}]}\n' +
+          'Scatter data: {"series":[{"name":"Pairs","xValues":[1,3],"values":[2,4]}]}\n' +
+          "Null values retain missing point positions. Category and series lengths must agree.\n" +
+          "Data edits synchronize simple embedded workbooks; complex or external data is rejected.\n";
+      }
       if (args.schemaPath === "images.list")
         resolvedUsage =
           "Usage: pptx images list INPUT [--slide N --image N | --select TOKEN]\n" +
@@ -3531,10 +3662,10 @@ async function execute(
       result = success(operation, {
         features: {
           charts: {
-            level: "read",
+            level: "edit",
             operations: Object.keys(chartSchemas),
             subset:
-              "Slide chart inventory: plots, axes, series, categories, labels, styles, caches, formulas and workbook links. No formula evaluation, workbook refresh, external fetching or chart mutation. Unsupported extensions retain raw XML."
+              "Slide chart inventory and bar, column, line, pie and scatter creation/data/style editing. No formula evaluation or external fetching. Unsupported extensions retain raw XML."
           },
           images: {
             level: "edit",
@@ -3987,6 +4118,72 @@ async function execute(
         locations: imageManifest.flatMap((file) => file.occurrences.map((item) => item.location))
       };
       human = `${dryRun ? "Validated" : "Extracted"} ${files.length} image resource(s)\n${JSON.stringify(result.data, null, 2)}\n`;
+    } else if (["charts.add", "charts.set", "charts.replace"].includes(args.operation)) {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const selection = {
+        ...(args.slide === undefined ? {} : { slide: args.slide }),
+        ...(args.shape === undefined ? {} : { shape: args.shape }),
+        ...(args.token === undefined ? {} : { select: args.token }),
+        ...(args.all === undefined ? {} : { all: args.all }),
+        ...(args.allowEmpty === undefined ? {} : { allowEmpty: args.allowEmpty })
+      };
+      const { all: ignoredAll, allowEmpty: ignoredAllowEmpty, ...readSelection } = selection;
+      const before = await readCharts(bytes, readSelection, context);
+      const changed =
+        args.operation === "charts.add"
+          ? await addChart(
+              bytes,
+              { ...args.chartEdit!, slide: args.slide! } as AddChartOptions,
+              context
+            )
+          : await setCharts(bytes, selection, args.chartEdit! as ChartUpdate, context);
+      const after = await readCharts(
+        changed,
+        args.operation === "charts.add"
+          ? { slide: args.slide! }
+          : {
+              ...(args.slide === undefined ? {} : { slide: args.slide }),
+              ...(args.shape === undefined ? {} : { shape: args.shape })
+            },
+        context
+      );
+      const records =
+        args.operation === "charts.add"
+          ? after.filter(
+              (chart) =>
+                !before.some((old) => old.part === chart.part && old.shapeId === chart.shapeId)
+            )
+          : after.filter((chart) =>
+              before.some((old) => old.part === chart.part && old.shapeId === chart.shapeId)
+            );
+      const dryRun = args.dryRun ?? false;
+      result = {
+        ...success(operation, { dryRun }),
+        affected: records.length,
+        locations: records.map((chart) => chart.location)
+      };
+      human = `${dryRun ? "Validated" : "Updated"} ${records.length} chart(s)\n`;
+      const destination = args.inPlace ? args.input! : args.output;
+      if (destination === "-" && !dryRun) binary = changed;
+      else if (destination && destination !== "-") {
+        if (!request.publishOutput)
+          throw Object.assign(new Error("Output publication capability is unavailable."), {
+            code: "publication-unsupported"
+          });
+        publication = {
+          inputPath: args.input!,
+          outputPath: destination,
+          bytes: changed,
+          originalBytes: bytes,
+          inPlace: args.inPlace ?? false,
+          force: args.force ?? false,
+          dryRun
+        };
+      }
     } else if (args.operation === "charts.list" || args.operation === "charts.get") {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(

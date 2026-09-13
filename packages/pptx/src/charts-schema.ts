@@ -1,4 +1,5 @@
 import { textGetSchema } from "./command-schema.js";
+import { chartTypes } from "./chart-editing.js";
 
 const nullableString = { type: ["string", "null"] };
 const xmlNode = { $ref: "#/$defs/chartXmlNode" };
@@ -169,7 +170,7 @@ const chart = {
   }
 };
 
-export const chartSchemas = Object.fromEntries(
+const inspectionSchemas = Object.fromEntries(
   ["list", "get"].map((action) => {
     const operation = `charts.${action}`;
     return [
@@ -224,3 +225,151 @@ export const chartSchemas = Object.fromEntries(
     ];
   })
 );
+
+const chartData = {
+  type: "object",
+  additionalProperties: false,
+  required: ["series"],
+  properties: {
+    categories: { type: "array", minItems: 1, items: { type: ["string", "number", "null"] } },
+    series: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["name", "values"],
+        properties: {
+          name: { type: "string" },
+          values: { type: "array", minItems: 1, items: { type: ["number", "null"] } },
+          xValues: { type: "array", minItems: 1, items: { type: "number" } },
+          numberFormat: { type: "string" }
+        }
+      }
+    }
+  }
+};
+export const chartSchemas = {
+  ...inspectionSchemas,
+  ...Object.fromEntries(
+    ["add", "set", "replace"].map((action) => {
+      const operation = `charts.${action}`;
+      return [
+        operation,
+        {
+          description:
+            "Edit the supported bar, column, line, pie and scatter chart subset with synchronized data and deterministic identifiers.",
+          input: textGetSchema.input,
+          options: {
+            ...options,
+            required:
+              action === "add"
+                ? ["slide", "type", "data", "left", "top", "width", "height"]
+                : action === "replace"
+                  ? ["data", "workbookPolicy"]
+                  : [],
+            properties: {
+              ...options.properties,
+              ...(action === "add" ? { type: { enum: chartTypes } } : {}),
+              data: chartData,
+              ...(action === "replace"
+                ? { workbookPolicy: { enum: ["synchronize-simple", "reject-complex"] } }
+                : {
+                    style: { type: "integer", minimum: 1, maximum: 48 },
+                    title: { type: "string" },
+                    legend: { type: "boolean" },
+                    ...Object.fromEntries(
+                      ["left", "top", "width", "height"].map((key) => [
+                        key,
+                        {
+                          type: "object",
+                          additionalProperties: false,
+                          required: ["value", "unit"],
+                          properties: {
+                            value: {
+                              type: "number",
+                              ...(["width", "height"].includes(key) ? { exclusiveMinimum: 0 } : {})
+                            },
+                            unit: { enum: ["emu", "in", "cm", "mm", "pt"] }
+                          }
+                        }
+                      ])
+                    )
+                  }),
+              all: { type: "boolean" },
+              allowEmpty: { type: "boolean" },
+              output: { type: "string", minLength: 1 },
+              inPlace: { type: "boolean" },
+              force: { type: "boolean" },
+              dryRun: { type: "boolean" }
+            },
+            allOf: [
+              ...options.allOf,
+              ...(action === "add"
+                ? [
+                    {
+                      not: {
+                        anyOf: ["shape", "select", "all", "allowEmpty"].map((key) => ({
+                          required: [key]
+                        }))
+                      }
+                    }
+                  ]
+                : []),
+              ...(action === "set"
+                ? [
+                    {
+                      anyOf: [
+                        "data",
+                        "style",
+                        "title",
+                        "legend",
+                        "left",
+                        "top",
+                        "width",
+                        "height"
+                      ].map((key) => ({ required: [key] }))
+                    }
+                  ]
+                : []),
+              { if: { required: ["select"] }, then: { not: { required: ["all"] } } },
+              { not: { required: ["output", "inPlace"] } },
+              {
+                if: { required: ["force"], properties: { force: { const: true } } },
+                then: { required: ["output"] }
+              },
+              {
+                if: { not: { required: ["dryRun"], properties: { dryRun: { const: true } } } },
+                then: {
+                  oneOf: [
+                    { required: ["output"] },
+                    { required: ["inPlace"], properties: { inPlace: { const: true } } }
+                  ]
+                }
+              }
+            ]
+          },
+          result: {
+            ...textGetSchema.result,
+            properties: {
+              ...textGetSchema.result.properties,
+              operation: { const: operation },
+              affected: { type: "integer", minimum: 0 },
+              data: {
+                oneOf: [
+                  { type: "null" },
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["dryRun"],
+                    properties: { dryRun: { type: "boolean" } }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ];
+    })
+  )
+};

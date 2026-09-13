@@ -30,6 +30,54 @@ const run = async (args: string[]) => {
 };
 
 describe("chart command discovery and admission", () => {
+  it("shows chart creation selectors and the complete supported type list", async () => {
+    const help = await run(["charts", "add", "--help"]);
+    expect(help.exitCode).toBe(0);
+    expect(help.text).toContain("pptx charts add INPUT --slide N");
+    for (const flag of ["--shape", "--select", "--all", "--allow-empty", "--workbook-policy"])
+      expect(help.text).not.toContain(flag);
+    for (const type of [
+      "BAR_CLUSTERED",
+      "BAR_STACKED",
+      "BAR_STACKED_100",
+      "COLUMN_CLUSTERED",
+      "COLUMN_STACKED",
+      "COLUMN_STACKED_100",
+      "LINE",
+      "LINE_MARKERS",
+      "LINE_MARKERS_STACKED",
+      "LINE_MARKERS_STACKED_100",
+      "LINE_STACKED",
+      "LINE_STACKED_100",
+      "PIE",
+      "PIE_EXPLODED",
+      "XY_SCATTER",
+      "XY_SCATTER_LINES",
+      "XY_SCATTER_LINES_NO_MARKERS",
+      "XY_SCATTER_SMOOTH",
+      "XY_SCATTER_SMOOTH_NO_MARKERS"
+    ])
+      expect(help.text.replaceAll("\n", " ").replaceAll(",", " ").split(" ")).toContain(type);
+    expect(Math.max(...help.text.split("\n").map((line) => line.length))).toBeLessThanOrEqual(100);
+    expect(readInput).not.toHaveBeenCalled();
+  });
+  it.each(["set", "replace"])("shows only applicable %s mutation options", async (action) => {
+    const help = await run(["charts", action, "--help"]);
+    expect(help.text).toContain(`pptx charts ${action} INPUT`);
+    for (const flag of ["--shape", "--select", "--all", "--allow-empty", "--data"])
+      expect(help.text).toContain(flag);
+    expect(help.text).not.toContain("--type");
+    if (action === "replace") {
+      expect(help.text).toContain("--workbook-policy");
+      expect(help.text).not.toContain("--style");
+      expect(help.text).not.toContain("--width");
+    } else {
+      expect(help.text).toContain("--style");
+      expect(help.text).toContain("--width");
+      expect(help.text).not.toContain("--workbook-policy");
+    }
+    expect(Math.max(...help.text.split("\n").map((line) => line.length))).toBeLessThanOrEqual(100);
+  });
   it.each(["list", "get"])(
     "publishes the %s schema and help without reading input",
     async (action) => {
@@ -75,11 +123,11 @@ describe("chart command discovery and admission", () => {
     });
     expect(readInput).not.toHaveBeenCalled();
   });
-  it("advertises chart inspection separately from unsupported editing", async () => {
+  it("advertises chart inspection and supported editing", async () => {
     const result = await run(["capabilities", "--json"]);
     expect(JSON.parse(result.text).data.features.charts).toMatchObject({
-      level: "read",
-      operations: ["charts.list", "charts.get"]
+      level: "edit",
+      operations: ["charts.list", "charts.get", "charts.add", "charts.set", "charts.replace"]
     });
   });
 });

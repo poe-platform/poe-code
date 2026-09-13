@@ -383,7 +383,11 @@ export class Picture extends InheritedShape {
     if (!id || !this.#owner.resource)
       throw new PropertyAccessError("Picture has no embedded image.");
     const resource = this.#owner.resource(id);
-    return new Image(resource.blob, null, resource.content_type);
+    return new Image(
+      resource.blob,
+      null,
+      resource.content_type === "image/jpg" ? "image/jpeg" : resource.content_type
+    );
   }
   override get shape_type(): 14 | 13 | 16 {
     return this.is_placeholder ? 14 : 13;

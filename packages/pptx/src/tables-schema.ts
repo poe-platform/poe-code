@@ -4,7 +4,7 @@ const length = {
   additionalProperties: false,
   required: ["value", "unit"],
   properties: {
-    value: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER },
+    value: { type: "number", minimum: 0, maximum: 4294967295 },
     unit: { enum: ["emu", "in", "cm", "mm", "pt"] }
   }
 };
@@ -144,9 +144,27 @@ export const tableSchemas: typeof shapeSchemas = Object.fromEntries(
         maximum: Number.MAX_SAFE_INTEGER
       };
     if (mutation) Object.assign(schema.options.properties, tableValues);
-    schema.options.required =
-      action === "add" ? ["rows", "columns", "left", "top", "width", "height"] : [];
+    schema.options.required = action === "add" ? ["rows", "columns"] : [];
     schema.options.allOf = mutation ? base.options.allOf.slice(0, -1) : [...base.options.allOf];
+    if (action === "add") {
+      schema.options.properties.placeholder = { type: "integer", minimum: 0, maximum: 4294967295 };
+      schema.options.allOf.push({
+        if: { required: ["placeholder"] },
+        then: {
+          required: ["slide"],
+          not: {
+            anyOf: [
+              ...Object.keys(tableValues).filter((key) => !["rows", "columns"].includes(key)),
+              "select",
+              "cell"
+            ].map((key) => ({
+              required: [key]
+            }))
+          }
+        },
+        else: { required: ["left", "top", "width", "height"] }
+      });
+    }
     if (action === "set")
       schema.options.allOf.push({
         anyOf: Object.keys(tableValues).map((k) => ({ required: [k] }))

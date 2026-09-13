@@ -1,3 +1,4 @@
+import { insertPlaceholder } from "./command-placeholder.js";
 import { packageToolsSchemas, packageToolsUsage } from "./package-tools-schema.js";
 import { validatePackageCommand, executePackageCommand } from "./command-package-tools.js";
 import { executeDiffCommand } from "./command-diff.js";
@@ -325,10 +326,11 @@ const help =
   "                         [--style-json JSON] [--allow-empty] [--dry-run] [--output PATH | --in-place] [--force] [--json]\n" +
   "       pptx text INPUT | pptx text get INPUT --select TOKEN [--json]\n" +
   "       pptx tables list|get|add|set INPUT [--slide N --table N --cell row,column] [properties] [output]\n" +
-  "       pptx images add INPUT --slide N --file PATH [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
+  "       pptx images add INPUT --slide N --file PATH [--placeholder IDX | --width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
   "       pptx images extract INPUT --output-dir DIR [--unique] [--allow-partial-output]\n" +
   "       pptx images list INPUT [--slide N --image N] [--scope SCOPE] [--unique] [--json]\n" +
   "       pptx charts list|get|add|set|replace INPUT [--slide N --shape NAME | --select TOKEN] [options]\n" +
+  "       images/tables/charts add: --slide N --placeholder IDX uses the placeholder box.\n" +
   "       pptx schema tables list|get|add|set [--json]\n" +
   "       pptx schema text get [--json]\n" +
   "       Text uses structural shape-tree order, including hidden slides, cached fields and empty paragraphs.\n" +
@@ -612,6 +614,7 @@ interface Arguments {
   json: boolean;
   input?: string;
   slide?: number;
+  placeholder?: number;
   image?: number;
   imageAdd?: Partial<AddImageOptions>;
   mediaEdit?: NonNullable<MediaEditingArguments["mediaEdit"]>;
@@ -734,7 +737,8 @@ const imageSetFlags = [
   "--alt-text"
 ];
 const scalarOptions = [
-  "--adjustments",  "--data-json", "--data-file",
+  "--adjustments",
+  "--data-json", "--data-file",
   "--decorative",
   "--trigger", "--delay", "--target", "--ops-json", "--ops-file",
   "--duration",
@@ -827,6 +831,7 @@ const scalarOptions = [
   "--media-policy",
   "--selection-json",
   "--slide",
+  "--placeholder",
   "--shape",
   "--shapes",
   "--coordinate-system",
@@ -1987,7 +1992,8 @@ function parse(
     if (
       operation.startsWith("shapes.") &&
       [
-        "--adjustments",        "--kind",
+        "--adjustments",
+        "--kind",
         "--name",
         "--text",
         "--title",
@@ -2013,7 +2019,8 @@ function parse(
         .join("");
       let parsed: unknown = value;
       if (key === "adjustments") parsed = commandJson(value);
-      else if (key === "lineWidth" && value === "null") parsed = null;      else if (["left", "top", "width", "height", "lineWidth"].includes(key)) {
+      else if (key === "lineWidth" && value === "null") parsed = null;
+      else if (["left", "top", "width", "height", "lineWidth"].includes(key)) {
         const length = commandLength(
           value,
           ["left", "top"].includes(key) ? -27273042316900 : key === "lineWidth" ? 0 : 1
@@ -2498,6 +2505,9 @@ function parse(
       )
         usage("Unknown limit name.");
       result.limits[name] = Number(digits);
+    } else if (argument === "--placeholder") {
+      if (!value.length || ![...value].every(c => c >= "0" && c <= "9") || (!Number.isSafeInteger(Number(value)) || Number(value) > 4294967295)) usage("Placeholder idx must be a nonnegative integer.");
+      result.placeholder = Number(value);
     } else if (argument === "--slide") {
       if (
         ![...value].every((character) => character >= "0" && character <= "9") ||
@@ -2580,6 +2590,17 @@ function parse(
       usage("Binary stdout cannot be combined with JSON.");
     return result;
   }
+  if (result.placeholder !== undefined) {
+    if (!["images.add", "tables.add", "charts.add"].includes(operation) || result.slide === undefined)
+      usage("Placeholder insertion requires an add operation and --slide.");
+    if (["--left", "--top", "--width", "--height", "--fit"].some(flag => seen.has(flag)))
+      usage("Placeholder insertion uses inherited geometry.");
+    if (operation === "tables.add" && (!result.tableEdit?.rows || !result.tableEdit?.columns)) usage("Table placeholder insertion requires rows and columns.");
+    if (operation === "tables.add" && Object.keys(result.tableEdit ?? {}).some(key => !["rows", "columns"].includes(key)))
+      usage("Table placeholder insertion accepts rows and columns.");
+    if (operation === "charts.add" && Object.keys(result.chartEdit ?? {}).some(key => !["type", "data"].includes(key)))
+      usage("Chart placeholder insertion accepts type and data.");
+  }
   if (operation === "images.add") {
     const allowed = [
       "--json",
@@ -2587,6 +2608,7 @@ function parse(
       "--slide",
       "--file",
       "--content-type",
+      "--placeholder",
       "--left",
       "--top",
       "--width",
@@ -2695,7 +2717,7 @@ function parse(
         !type ||
         !chartTypes.includes(type) ||
         !edit.data ||
-        [edit.left, edit.top, edit.width, edit.height].some((value) => value === undefined)
+        (result.placeholder === undefined && [edit.left, edit.top, edit.width, edit.height].some((value) => value === undefined))
       )
         usage("Chart addition requires type, data and geometry.");
       validateChartData(edit.data, type);
@@ -3056,7 +3078,7 @@ function parse(
               ...result.tableEdit,
               ...(result.cell === undefined ? {} : { cell: tableCell(result.cell) })
             },
-            operation === "tables.add"
+            operation === "tables.add" && result.placeholder === undefined
           );
         }
       } else if (operation === "shapes.remove") {
@@ -3911,6 +3933,7 @@ async function execute(
               "Rows/columns: tables rows|columns add|remove INPUT --position N --span-policy expand|shrink|reject\n" +
               "Insertion accepts expand/reject; deletion accepts shrink/reject. Partial intersecting merges fail.\n" +
               "Add: --rows N --columns N --left LENGTH --top LENGTH --width LENGTH --height LENGTH [--data JSON]\n" +
+              "Placeholder add: --slide N --placeholder IDX --rows N --columns N. Inherits position/width; rows set height.\n" +
               "Set: --text TEXT (one cell), --data JSON, --row-height LENGTH, --column-width LENGTH, --style ID\n" +
               "Formatting: --fill RGB --border-color RGB --border-width LENGTH --margin-left|right|top|bottom LENGTH\n" +
               "Style flags: --first-row|last-row|first-col|last-col|horz-band|vert-band true|false; --vertical-anchor top|middle|bottom\n" +
@@ -3987,7 +4010,8 @@ async function execute(
                           "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
                           "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
                           "  --flip-horizontal true|false --flip-vertical true|false\n" +
-                          "  --adjustments JSON_ARRAY (normalized preset values in guide order)\n" +                          "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
+                          "  --adjustments JSON_ARRAY (normalized preset values in guide order)\n" +
+                          "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
                           "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
                           "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
                           "Omitted values stay unchanged.\n" +
@@ -4031,9 +4055,10 @@ async function execute(
           "Signed crop fractions retain positive visible area; stored extended crop is preserved.\n";
       if (args.schemaPath === "images.add")
         resolvedUsage =
-          "Usage: pptx images add INPUT --slide N --file PATH [--content-type image/png|image/jpeg|image/gif]\n" +
+          "Usage: pptx images add INPUT --slide N --file PATH [--placeholder IDX] [--content-type image/png|image/jpeg|image/gif]\n" +
           "  [--left LENGTH --top LENGTH] [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
           "  [--alt-text TEXT] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+          "Placeholder IDX is a nonnegative sparse key; PNG/JPEG only, inherited box with cover fit; no geometry/fit flags.\n" +
           "Lengths require emu, in, cm, mm or pt. Both dimensions default to stretch; one dimension preserves aspect.\n";
       if (args.schemaPath === "images.extract")
         resolvedUsage =
@@ -4057,7 +4082,9 @@ async function execute(
           `Usage: pptx ${args.schemaPath!.split(".").join(" ")} INPUT${adding ? " --slide N" : " [selection]"} [options]\n` +
           (adding
             ? "Required: --type TYPE --data JSON\n" +
-              "Geometry: --left LENGTH --top LENGTH --width LENGTH --height LENGTH (all required)\n"
+              "Geometry: --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
+              "  All four required unless --placeholder IDX selects inherited geometry.\n" +
+              "Placeholder: --placeholder IDX uses inherited geometry; no geometry/style/title/legend overrides.\n"
             : "Selection: --slide N --shape NAME | --select TOKEN; --all --allow-empty\n") +
           (replacing
             ? "Required: --data JSON --workbook-policy synchronize-simple|reject-complex\n"
@@ -4770,7 +4797,8 @@ async function execute(
         args.file!,
         Math.min(context.limits.maxBytes, context.archiveLimits.maxEntryBytes)
       );
-      const changed = await addImage(
+      const inserted = args.placeholder === undefined ? undefined : await insertPlaceholder(bytes, {slide:args.slide!, placeholder:args.placeholder, content:{kind:"picture", input:imageBytes, contentType:args.imageAdd!.contentType!, ...(args.imageAdd?.altText === undefined ? {} : {altText:args.imageAdd.altText})}}, context);
+      const changed = inserted ? inserted.bytes : await addImage(
         bytes,
         {
           ...args.imageAdd,
@@ -4782,7 +4810,7 @@ async function execute(
       );
       const dryRun = args.dryRun ?? false;
       const images = await readImages(changed, { slide: args.slide! }, context);
-      const added = images.occurrences.at(-1)!;
+      const added = inserted ? images.occurrences.find(image => image.shapeId === String(inserted.shapeId))! : images.occurrences.at(-1)!;
       result = {
         ...success(operation, { dryRun, images: 1 }),
         affected: 1,
@@ -4924,7 +4952,7 @@ async function execute(
       const before = await readCharts(bytes, readSelection, context);
       const changed =
         args.operation === "charts.add"
-          ? await addChart(
+          ? args.placeholder !== undefined ? (await insertPlaceholder(bytes, {slide:args.slide!, placeholder:args.placeholder, content:{kind:"chart", type:args.chartEdit!.type!, data:args.chartEdit!.data!}}, context)).bytes : await addChart(
               bytes,
               { ...args.chartEdit!, slide: args.slide! } as AddChartOptions,
               context
@@ -5244,7 +5272,7 @@ async function execute(
               context
             )
           : args.operation === "tables.add"
-            ? await addTable(bytes, { ...tableSelection, update: args.tableEdit! }, context)
+            ? args.placeholder !== undefined ? await insertPlaceholder(bytes, {slide:args.slide!, placeholder:args.placeholder, content:{kind:"table", rows:args.tableEdit!.rows!, columns:args.tableEdit!.columns!}}, context) : await addTable(bytes, { ...tableSelection, update: args.tableEdit! }, context)
             : args.operation === "tables.set"
               ? await mutateTables(bytes, { ...tableSelection, update: args.tableEdit! }, context)
               : args.drawingEdit

@@ -274,12 +274,15 @@ export const chartSchemas = {
             ...options,
             required:
               action === "add"
-                ? ["slide", "type", "data", "left", "top", "width", "height"]
+                ? ["slide", "type", "data"]
                 : action === "replace"
                   ? ["data", "workbookPolicy"]
                   : [],
             properties: {
               ...options.properties,
+              ...(action === "add"
+                ? { placeholder: { type: "integer", minimum: 0, maximum: 4294967295 } }
+                : {}),
               ...(action === "add" ? { type: { enum: chartTypes } } : {}),
               data: chartData,
               ...(action === "replace"
@@ -315,6 +318,21 @@ export const chartSchemas = {
             },
             allOf: [
               ...options.allOf,
+              ...(action === "add"
+                ? [
+                    {
+                      if: { required: ["placeholder"] },
+                      then: {
+                        not: {
+                          anyOf: ["left", "top", "width", "height", "style", "title", "legend"].map(
+                            (key) => ({ required: [key] })
+                          )
+                        }
+                      },
+                      else: { required: ["left", "top", "width", "height"] }
+                    }
+                  ]
+                : []),
               ...(action === "add"
                 ? [
                     {

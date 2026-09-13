@@ -14,3 +14,5 @@ Implemented shared Shape/Connector owners and generic GroupShape child collectio
 Follow-on CLI work adds explicit `--slide N --placeholder IDX` to images/tables/charts add. Use the model insertion methods through a typed domain helper, validate closed options before opening input, reject geometry overrides, preserve sparse idx and shape ID, and retain existing publication/JSON contracts. Original memfs tests cover all three insertions plus schema acceptance/rejection. Full suite and visual help QA remain parent-owned.
 
 Independent review reproduced live connector subtree identity rejection, table placeholder row-height drift, missing ancestor group bounds, and discarded group rotation. Added original synchronous regression tests. Connector fix uses an internal trusted owner-token map; slide model owner implements table/group fixes. Parent reruns maintained checks after these repairs.
+
+CLI delivery: plural images/tables/charts add now delegates sparse placeholder insertion to the format SDK helper, with schema and original command tests. Final maintained package checks and visual QA passed; committed locally only.

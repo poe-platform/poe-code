@@ -298,6 +298,7 @@ export const imageSchemas = {
       required: ["slide", "file"],
       properties: {
         slide: textGetSchema.options.properties.slide,
+        placeholder: { type: "integer", minimum: 0, maximum: 4294967295 },
         file: { type: "string", minLength: 1 },
         contentType: { enum: ["image/png", "image/jpeg", "image/gif"] },
         left: imageLength,
@@ -314,6 +315,15 @@ export const imageSchemas = {
         dryRun: { type: "boolean" }
       },
       allOf: [
+        {
+          if: { required: ["placeholder"] },
+          then: {
+            properties: { contentType: { enum: ["image/png", "image/jpeg"] } },
+            not: {
+              anyOf: ["left", "top", "width", "height", "fit"].map((key) => ({ required: [key] }))
+            }
+          }
+        },
         { if: { required: ["fit"] }, then: { required: ["width", "height"] } },
         { not: { required: ["output", "inPlace"] } },
         {

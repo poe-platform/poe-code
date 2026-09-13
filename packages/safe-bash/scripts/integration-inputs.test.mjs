@@ -2269,6 +2269,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/pptx/image-extraction.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/image-formatting.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/create.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/slide-lifecycle-invariants.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/tables.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/equations.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/links.test.ts"));

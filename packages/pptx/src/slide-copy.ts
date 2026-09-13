@@ -321,7 +321,10 @@ export async function duplicateSlides(
         ids.set(edge.id, `rId${next++}`);
       }
       const type = types.get(original);
-      if (type.endsWith("+xml") || type === "application/xml" || type === "text/xml") {
+      if (
+        !["image/", "audio/", "video/"].some((prefix) => type.startsWith(prefix)) &&
+        (type.endsWith("+xml") || type === "application/xml" || type === "text/xml")
+      ) {
         changes.set(
           copy,
           remapCopiedXml(bytes, edges, ids, { xmlLimits: context.xmlLimits, dialect: d })

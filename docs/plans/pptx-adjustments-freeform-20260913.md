@@ -32,3 +32,7 @@ Agent QA procedure:
 Research inputs are disposable text files under `/tmp`; extracted default facts
 have provenance in docs/pptx and the package's existing standalone MIT notice.
 No source runtime, templates, tests or binary assets enter canonical tests.
+
+Delivery: adjustment collections and freeform construction are separate atomic
+local improvements. Final maintained package tests (6096), lint, selected build,
+and a built-export group/freeform save/reopen check passed before delivery.

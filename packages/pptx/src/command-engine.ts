@@ -1,3 +1,5 @@
+import { commentSchemas, commentsUsage } from "./comments-schema.js";
+import { validateCommentsCommand, executeCommentsCommand, type CommentsArguments } from "./command-comments.js";
 import { noteSchemas, notesUsage } from "./notes-schema.js";
 import { validateNotesCommand, executeNotesCommand } from "./command-notes.js";
 import { linkSchemas, linksUsage } from "./links-schema.js";
@@ -292,6 +294,7 @@ const help =
   "       pptx text fit INPUT --metrics JSON [--min-size N --max-size N] [selection] [output]\n" +
   "       pptx text frames list|get|set INPUT [--vertical-anchor top|middle|bottom] [--autofit none|shape|text]\n" +
   "       pptx text paragraphs list|get|set INPUT [--paragraph N] [--alignment left|center|right] [--json]\n" +
+  "       pptx comments list|get|add|set|remove INPUT [--slide N] [--id AUTHOR:INDEX] [output]\n" +
   "       pptx notes list|get INPUT [--slide N | --select TOKEN] [--json]\n" +
   "       pptx notes add|set INPUT --text TEXT [--slide N | --select TOKEN | --all] [output]\n" +
   "       pptx notes remove INPUT [--slide N | --select TOKEN | --all] [output]\n" +
@@ -400,6 +403,7 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  commentEdit?: NonNullable<CommentsArguments["commentEdit"]>;
   noteText?: string;
   tableStructure?: TableStructureOperation;
   tableFrom?: string;
@@ -430,6 +434,7 @@ interface Arguments {
   opsFile?: string;
   linkEdit?: NonNullable<LinkArguments["linkEdit"]>;
   operation:
+    | `comments.${"list" | "get" | "add" | "set" | "remove"}`
     | `notes.${"list" | "get" | "add" | "set" | "remove"}`
     | `links.${"list" | "get" | "add" | "set" | "remove"}`
     | "batch"
@@ -796,6 +801,9 @@ const scalarOptions = [
   "--dialect",
   "--template",
   "--timestamp",
+  "--author-id",
+  "--initials",
+  "--id",
   "--author",
   "--slides-json",
   "--properties-json",
@@ -863,6 +871,7 @@ function parse(
         "equations",
         "links",
         "notes",
+        "comments",
         "charts",
         "media",
         "images",
@@ -938,6 +947,7 @@ function parse(
     "equations",
         "links",
         "notes",
+    "comments",
     "charts",
     "images",
     "tables",
@@ -973,6 +983,7 @@ function parse(
       ...Object.keys(equationSchemas),
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
+      ...Object.keys(commentSchemas),
       ...Object.keys(chartSchemas),
       ...Object.keys(fieldSchemas),
       ...Object.keys(connectorSchemas),
@@ -1034,6 +1045,7 @@ function parse(
         operation.startsWith("equations.") ||
         operation.startsWith("links.") ||
         operation.startsWith("notes.") ||
+        operation.startsWith("comments.") ||
         operation.startsWith("charts.") ||
         operation.startsWith("tables.") ||
         operation.startsWith("connectors.") ||
@@ -1312,6 +1324,16 @@ function parse(
       if (!value) usage("Batch option requires a value.");
       if (argument === "--ops-json") result.animationBatch = parseAnimationBatch(commandJson(value));
       else result.opsFile = value;
+      continue;
+    }
+    if (operation.startsWith("comments.") && ["--id", "--text", "--author", "--author-id", "--initials", "--timestamp", "--left", "--top"].includes(argument)) {
+      if (seen.has(argument)) usage("Repeated option.");
+      seen.add(argument);
+      const value = args[++index];
+      if (value === undefined) usage("Comment option requires a value.");
+      const key = argument === "--author-id" ? "authorId" : argument.slice(2);
+      const parsed = ["left", "top"].includes(key) ? commandLength(value, -Number.MAX_SAFE_INTEGER) : key === "timestamp" ? commandTimestamp(value).toISOString() : value;
+      result.commentEdit = {...result.commentEdit, [key]: parsed};
       continue;
     }
     if (operation.startsWith("notes.") && argument === "--text") {
@@ -2483,6 +2505,10 @@ function parse(
     validateMediaEditingCommand(result, positionals, seen);
     return result;
   }
+  if (Object.hasOwn(commentSchemas, operation)) {
+    validateCommentsCommand(result, positionals, seen);
+    return result;
+  }
   if (Object.hasOwn(noteSchemas, operation)) {
     validateNotesCommand(result, positionals, seen);
     return result;
@@ -3402,6 +3428,7 @@ function parse(
         ...Object.keys(equationSchemas),
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
+      ...Object.keys(commentSchemas),
         ...Object.keys(chartSchemas),
         ...Object.keys(fieldSchemas),
         ...Object.keys(connectorSchemas),
@@ -3817,6 +3844,7 @@ async function execute(
                             "No field evaluation, automatic numbering or inherited-content flattening.\n" +
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
+      if (args.schemaPath?.startsWith("comments.")) resolvedUsage = commentsUsage;
       if (args.schemaPath?.startsWith("notes.")) resolvedUsage = notesUsage;
       if (args.schemaPath?.startsWith("links.")) resolvedUsage = linksUsage;
       if (args.schemaPath?.startsWith("transitions.")) resolvedUsage = transitionsUsage;
@@ -3928,6 +3956,7 @@ async function execute(
             ...equationSchemas,
             ...linkSchemas,
             ...noteSchemas,
+            ...commentSchemas,
             ...fieldSchemas,
             ...membershipSchemas,
             ...settingsSchemas,
@@ -4026,6 +4055,10 @@ async function execute(
           batch: {
             supported: true, level: "edit", operations: ["batch"],
             subset: "Version 1 ordered animation add/set/remove operations only; validate every item before mutation and publish once. No model handles or arbitrary operation dispatch."
+          },
+          comments: {
+            supported: true, level: "edit", operations: Object.keys(commentSchemas),
+            subset: "Legacy slide comments with explicit authors, timestamps and positions; modern annotations are preserved."
           },
           notes: {
             supported: true, level: "edit", operations: Object.keys(noteSchemas),
@@ -4352,6 +4385,9 @@ async function execute(
           publication = { inputPath: args.input!, outputPath: destination, bytes: changed.bytes, originalBytes: bytes, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
         }
       }
+    } else if (Object.hasOwn(commentSchemas, args.operation)) {
+      const comments = await executeCommentsCommand(args, request, options);
+      result = comments.result; human = comments.human; binary = comments.binary; publication = comments.publication;
     } else if (Object.hasOwn(noteSchemas, args.operation)) {
       const notes = await executeNotesCommand(args, request, options);
       result = notes.result; human = notes.human; binary = notes.binary; publication = notes.publication;

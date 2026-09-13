@@ -459,3 +459,5 @@ export {
 } from "./media-editing.js";
 
 export { readNotes, mutateNotes, validateNotesOptions, type NotesRecord, type MutateNotesOptions } from "./notes.js";
+
+export { readComments, mutateComments, type CommentRecord, type MutateCommentsOptions } from "./comments.js";

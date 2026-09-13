@@ -1,0 +1,1329 @@
+{
+  "schema_version": 1,
+  "scope": "F50 legacy annotation operations with F07/F08 lifecycle interactions",
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "source_inventories": [
+    "upstream-test-inventory.json",
+    "upstream-api-inventory.json"
+  ],
+  "inventory_totals": {
+    "unit": 2700,
+    "bdd": 973,
+    "api": 2407
+  },
+  "direct_legacy_cases": {
+    "unit": 0,
+    "bdd": 0,
+    "api": 0
+  },
+  "selection_evidence": "Reviewed comment keyword matches, complete slide/slide-part unit families, slide collection BDD family and public comment-named records. The pinned source defines no legacy annotation model/editor. CoreProperties.comments is dc:description; COMMENT and INK_COMMENT are shape enum symbols, not annotation CRUD.",
+  "keyword_unit_rows": [
+    {
+      "node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_knows_the_string_property_values[comments-]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 19,
+      "markers": [
+        "parametrize"
+      ],
+      "adaptation_status": "unmapped_not_implemented",
+      "disposition": "outside-legacy-annotations",
+      "reason": "Core-properties description string behavior; retained in the metadata obligation, not counted as F50 parity."
+    },
+    {
+      "node_id": "tests/parts/test_coreprops.py::DescribeCorePropertiesPart::it_can_change_the_string_property_values[comments-dc:description-Bar foo to you]",
+      "source_file": "tests/parts/test_coreprops.py",
+      "line": 40,
+      "markers": [
+        "parametrize"
+      ],
+      "adaptation_status": "unmapped_not_implemented",
+      "disposition": "outside-legacy-annotations",
+      "reason": "Core-properties description string behavior; retained in the metadata obligation, not counted as F50 parity."
+    }
+  ],
+  "keyword_bdd_rows": [],
+  "keyword_api_rows": [
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE",
+      "python_kind": "EnumType",
+      "source_evidence": {
+        "file": "src/pptx/enum/shapes.py",
+        "line": 758,
+        "end_line": 850
+      },
+      "disposition": "outside-legacy-annotations",
+      "reason": "Shape classification enum obligation, not an annotation collection.",
+      "documentation_drift": null
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.COMMENT",
+      "python_kind": "enum-member",
+      "source_evidence": {
+        "file": "src/pptx/enum/shapes.py",
+        "line": 786,
+        "end_line": 786
+      },
+      "disposition": "outside-legacy-annotations",
+      "reason": "Shape classification enum obligation, not an annotation collection.",
+      "documentation_drift": null
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.INK_COMMENT",
+      "python_kind": "enum-member",
+      "source_evidence": {
+        "file": "src/pptx/enum/shapes.py",
+        "line": 810,
+        "end_line": 810
+      },
+      "disposition": "outside-legacy-annotations",
+      "reason": "Shape classification enum obligation, not an annotation collection.",
+      "documentation_drift": null
+    },
+    {
+      "source_id": "pptx.opc.coreprops.CoreProperties.comments",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 56,
+        "end_line": 61
+      },
+      "disposition": "outside-legacy-annotations",
+      "reason": "Core metadata description property, not slide legacy annotations.",
+      "documentation_drift": "documented class path is stale; public core_properties object resolves to CorePropertiesPart at pinned source"
+    },
+    {
+      "source_id": "pptx.parts.coreprops.CorePropertiesPart.comments",
+      "python_kind": "property",
+      "source_evidence": {
+        "file": "src/pptx/parts/coreprops.py",
+        "line": 56,
+        "end_line": 61
+      },
+      "disposition": "outside-legacy-annotations",
+      "reason": "Core metadata description property, not slide legacy annotations.",
+      "documentation_drift": null
+    }
+  ],
+  "adjacent_lifecycle_rows": [
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeBaseSlidePart::it_knows_its_name",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 47,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeBaseSlidePart::it_can_get_a_related_image_by_rId",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 51,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeBaseSlidePart::it_can_add_an_image_part",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 64,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_can_create_a_notes_master_part",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 87,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_provides_access_to_its_notes_master",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 109,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_creates_a_new_notes_master_part_to_help",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 122,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeNotesMasterPart::it_creates_a_new_theme_part_to_help",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 146,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_can_create_a_notes_slide_part",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 185,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_provides_access_to_the_notes_master",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 214,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_provides_access_to_its_notes_slide",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 226,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeNotesSlidePart::it_adds_a_notes_slide_part_to_help",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 236,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_its_slide_id",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 294,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_whether_it_has_a_notes_slide[True]",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 300,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_whether_it_has_a_notes_slide[False]",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 300,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_a_chart_part",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 306,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.DOCX-http://schemas.openxmlformats.org/officeDocument/2006/relationships/package]",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 320,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.PPTX-http://schemas.openxmlformats.org/officeDocument/2006/relationships/package]",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 320,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.XLSX-http://schemas.openxmlformats.org/officeDocument/2006/relationships/package]",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 320,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[Foo.Bar.18-http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject]",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 320,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_get_or_add_a_video_part",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 348,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_can_create_a_new_slide_part",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 363,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_provides_access_to_its_slide",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 378,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_provides_access_to_the_slide_layout",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 384,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_knows_the_minimal_element_xml_for_a_slide",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 390,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_gets_its_notes_slide_to_help[True]",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 397,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_gets_its_notes_slide_to_help[False]",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 397,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlidePart::it_adds_a_notes_slide_part_to_help",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 406,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlideLayoutPart::it_provides_access_to_its_slide_master",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 533,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlideLayoutPart::it_provides_access_to_its_slide_layout",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 546,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlideMasterPart::it_provides_access_to_its_slide_master",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 563,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/parts/test_slide.py::DescribeSlideMasterPart::it_provides_access_to_a_related_slide_layout",
+      "source_file": "tests/parts/test_slide.py",
+      "line": 576,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_knows_its_name[name_get_fixture0]",
+      "source_file": "tests/test_slide.py",
+      "line": 49,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_knows_its_name[name_get_fixture1]",
+      "source_file": "tests/test_slide.py",
+      "line": 49,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture0]",
+      "source_file": "tests/test_slide.py",
+      "line": 53,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture1]",
+      "source_file": "tests/test_slide.py",
+      "line": 53,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture2]",
+      "source_file": "tests/test_slide.py",
+      "line": 53,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture3]",
+      "source_file": "tests/test_slide.py",
+      "line": 53,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture4]",
+      "source_file": "tests/test_slide.py",
+      "line": 53,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_can_change_its_name[name_set_fixture5]",
+      "source_file": "tests/test_slide.py",
+      "line": 53,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseSlide::it_provides_access_to_its_background",
+      "source_file": "tests/test_slide.py",
+      "line": 58,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseMaster::it_is_a_BaseSlide_subclass",
+      "source_file": "tests/test_slide.py",
+      "line": 112,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseMaster::it_provides_access_to_its_placeholders",
+      "source_file": "tests/test_slide.py",
+      "line": 116,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_BaseMaster::it_provides_access_to_its_shapes",
+      "source_file": "tests/test_slide.py",
+      "line": 122,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_can_clone_the_notes_master_placeholders",
+      "source_file": "tests/test_slide.py",
+      "line": 170,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_shapes",
+      "source_file": "tests/test_slide.py",
+      "line": 182,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_placeholders",
+      "source_file": "tests/test_slide.py",
+      "line": 188,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_placeholder[notes_ph_fixture0]",
+      "source_file": "tests/test_slide.py",
+      "line": 199,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_placeholder[notes_ph_fixture1]",
+      "source_file": "tests/test_slide.py",
+      "line": 199,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_text_frame[True]",
+      "source_file": "tests/test_slide.py",
+      "line": 204,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_text_frame[False]",
+      "source_file": "tests/test_slide.py",
+      "line": 204,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_is_a_BaseSlide_subclass",
+      "source_file": "tests/test_slide.py",
+      "line": 300,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_background",
+      "source_file": "tests/test_slide.py",
+      "line": 304,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_knows_whether_it_follows_the_mstr_bkgd[follow_get_fixture0]",
+      "source_file": "tests/test_slide.py",
+      "line": 312,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_knows_whether_it_follows_the_mstr_bkgd[follow_get_fixture1]",
+      "source_file": "tests/test_slide.py",
+      "line": 312,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_knows_whether_it_has_a_notes_slide",
+      "source_file": "tests/test_slide.py",
+      "line": 317,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_knows_its_slide_id",
+      "source_file": "tests/test_slide.py",
+      "line": 321,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_shapes",
+      "source_file": "tests/test_slide.py",
+      "line": 325,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_placeholders",
+      "source_file": "tests/test_slide.py",
+      "line": 331,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_slide_layout",
+      "source_file": "tests/test_slide.py",
+      "line": 337,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_notes_slide",
+      "source_file": "tests/test_slide.py",
+      "line": 341,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_supports_indexed_access",
+      "source_file": "tests/test_slide.py",
+      "line": 449,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_raises_on_slide_index_out_of_range",
+      "source_file": "tests/test_slide.py",
+      "line": 455,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_knows_the_index_of_a_slide_it_contains[0]",
+      "source_file": "tests/test_slide.py",
+      "line": 460,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_knows_the_index_of_a_slide_it_contains[1]",
+      "source_file": "tests/test_slide.py",
+      "line": 460,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_raises_on_slide_not_in_collection",
+      "source_file": "tests/test_slide.py",
+      "line": 465,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_can_iterate_its_slides",
+      "source_file": "tests/test_slide.py",
+      "line": 470,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_supports_len[len_fixture0]",
+      "source_file": "tests/test_slide.py",
+      "line": 476,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_supports_len[len_fixture1]",
+      "source_file": "tests/test_slide.py",
+      "line": 476,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_supports_len[len_fixture2]",
+      "source_file": "tests/test_slide.py",
+      "line": 476,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_can_add_a_new_slide",
+      "source_file": "tests/test_slide.py",
+      "line": 480,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_finds_a_slide_by_slide_id[True]",
+      "source_file": "tests/test_slide.py",
+      "line": 491,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlides::it_finds_a_slide_by_slide_id[False]",
+      "source_file": "tests/test_slide.py",
+      "line": 491,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_is_a_BaseSlide_subclass",
+      "source_file": "tests/test_slide.py",
+      "line": 596,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture0]",
+      "source_file": "tests/test_slide.py",
+      "line": 600,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture1]",
+      "source_file": "tests/test_slide.py",
+      "line": 600,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture2]",
+      "source_file": "tests/test_slide.py",
+      "line": 600,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture3]",
+      "source_file": "tests/test_slide.py",
+      "line": 600,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_provides_access_to_its_placeholders",
+      "source_file": "tests/test_slide.py",
+      "line": 605,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_provides_access_to_its_shapes",
+      "source_file": "tests/test_slide.py",
+      "line": 615,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_provides_access_to_its_slide_master",
+      "source_file": "tests/test_slide.py",
+      "line": 625,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_knows_which_slides_are_based_on_it[used_by_fixture0]",
+      "source_file": "tests/test_slide.py",
+      "line": 633,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_knows_which_slides_are_based_on_it[used_by_fixture1]",
+      "source_file": "tests/test_slide.py",
+      "line": 633,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_knows_which_slides_are_based_on_it[used_by_fixture2]",
+      "source_file": "tests/test_slide.py",
+      "line": 633,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayout::it_knows_which_slides_are_based_on_it[used_by_fixture3]",
+      "source_file": "tests/test_slide.py",
+      "line": 633,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_supports_len[len_fixture0]",
+      "source_file": "tests/test_slide.py",
+      "line": 749,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_supports_len[len_fixture1]",
+      "source_file": "tests/test_slide.py",
+      "line": 749,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_supports_len[len_fixture2]",
+      "source_file": "tests/test_slide.py",
+      "line": 749,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_can_iterate_its_slide_layouts",
+      "source_file": "tests/test_slide.py",
+      "line": 753,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_supports_indexed_access",
+      "source_file": "tests/test_slide.py",
+      "line": 769,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::but_it_raises_on_index_out_of_range",
+      "source_file": "tests/test_slide.py",
+      "line": 779,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_can_find_a_slide_layout_by_name",
+      "source_file": "tests/test_slide.py",
+      "line": 784,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::but_it_returns_the_default_value_when_no_layout_has_that_name",
+      "source_file": "tests/test_slide.py",
+      "line": 793,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_knows_the_index_of_each_of_its_slide_layouts",
+      "source_file": "tests/test_slide.py",
+      "line": 808,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::but_it_raises_on_slide_layout_not_in_collection",
+      "source_file": "tests/test_slide.py",
+      "line": 818,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::it_can_remove_an_unused_slide_layout",
+      "source_file": "tests/test_slide.py",
+      "line": 828,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideLayouts::but_it_raises_on_attempt_to_remove_slide_layout_in_use",
+      "source_file": "tests/test_slide.py",
+      "line": 845,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideMaster::it_is_a_BaseMaster_subclass",
+      "source_file": "tests/test_slide.py",
+      "line": 904,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideMaster::it_provides_access_to_its_slide_layouts",
+      "source_file": "tests/test_slide.py",
+      "line": 908,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_knows_how_many_masters_it_contains[len_fixture0]",
+      "source_file": "tests/test_slide.py",
+      "line": 941,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_knows_how_many_masters_it_contains[len_fixture1]",
+      "source_file": "tests/test_slide.py",
+      "line": 941,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_knows_how_many_masters_it_contains[len_fixture2]",
+      "source_file": "tests/test_slide.py",
+      "line": 941,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_can_iterate_the_slide_masters",
+      "source_file": "tests/test_slide.py",
+      "line": 945,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_supports_indexed_access",
+      "source_file": "tests/test_slide.py",
+      "line": 951,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::DescribeSlideMasters::it_raises_on_index_out_of_range",
+      "source_file": "tests/test_slide.py",
+      "line": 957,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_Background::it_provides_access_to_its_fill[p:cSld{a:b=c}-p:cSld{a:b=c}/p:bg/p:bgPr/(a:noFill,a:effectLst)]",
+      "source_file": "tests/test_slide.py",
+      "line": 1017,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_Background::it_provides_access_to_its_fill[p:cSld{a:b=c}/p:bg/p:bgRef-p:cSld{a:b=c}/p:bg/p:bgPr/(a:noFill,a:effectLst)]",
+      "source_file": "tests/test_slide.py",
+      "line": 1017,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "unit",
+      "source_id": "tests/test_slide.py::Describe_Background::it_provides_access_to_its_fill[p:cSld/p:bg/p:bgPr/a:solidFill-p:cSld/p:bg/p:bgPr/a:solidFill]",
+      "source_file": "tests/test_slide.py",
+      "line": 1017,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:7:Slides.__getitem__()",
+      "source_file": "features/sld-slides.feature",
+      "line": 7,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:12:Slides.__iter__()",
+      "source_file": "features/sld-slides.feature",
+      "line": 12,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:17:Slides.__len__()",
+      "source_file": "features/sld-slides.feature",
+      "line": 17,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:22:Slides.add_slide()",
+      "source_file": "features/sld-slides.feature",
+      "line": 22,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:29:Slides.get()",
+      "source_file": "features/sld-slides.feature",
+      "line": 29,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:35:SlideLayouts.__getitem__()",
+      "source_file": "features/sld-slides.feature",
+      "line": 35,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:40:SlideLayouts.__iter__()",
+      "source_file": "features/sld-slides.feature",
+      "line": 40,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:45:SlideLayouts.__len__()",
+      "source_file": "features/sld-slides.feature",
+      "line": 45,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:50:SlideLayouts.get_by_name()",
+      "source_file": "features/sld-slides.feature",
+      "line": 50,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:55:SlideLayouts.index()",
+      "source_file": "features/sld-slides.feature",
+      "line": 55,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:60:SlideLayouts.remove()",
+      "source_file": "features/sld-slides.feature",
+      "line": 60,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:66:SlideMasters.__getitem__()",
+      "source_file": "features/sld-slides.feature",
+      "line": 66,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:71:SlideMasters.__iter__()",
+      "source_file": "features/sld-slides.feature",
+      "line": 71,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    },
+    {
+      "kind": "bdd",
+      "source_id": "features/sld-slides.feature:76:SlideMasters.__len__()",
+      "source_file": "features/sld-slides.feature",
+      "line": 76,
+      "disposition": "existing-independent-family-obligation",
+      "reason": "Slide/notes/layout/shape collection behavior has no author-table or legacy-comment assertion. Kept visible as dependency context; this receipt makes no fresh adaptation/pass claim for this row."
+    }
+  ],
+  "original_cases": [
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "creates explicit author identity, increasing indices, eighth-point positions and escaped text",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "declares the exact legacy comment content type and supports import then slide deletion",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "rejects edits to comment parts referenced by an unselected slide",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "edits only selected fields and removes an author only after its final reference",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "requires explicit timestamps and prevents ambiguous edits",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "uses fingerprinted comment tokens and rounds supplied geometry and timestamps",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "keeps duplicate display names distinct and preserves unrelated annotation parts",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "retains author entries referenced by detached comment parts",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "rejects malformed position values and duplicate comment identities",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments.test.ts",
+      "test_name": "preserves extension attributes when moving a comment",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments-lifecycle.test.ts",
+      "test_name": "imports distinct author identities despite equal names and colliding IDs",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments-lifecycle.test.ts",
+      "test_name": "creates author registration when importing into an unannotated deck",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments-lifecycle.test.ts",
+      "test_name": "removes only the author whose final comment was deleted",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments-lifecycle.test.ts",
+      "test_name": "rejects duplicate comment identities before importing a slide",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/comments-lifecycle.test.ts",
+      "test_name": "retains an author still referenced on another slide",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/command-comments.test.ts",
+      "test_name": "creates explicit annotations, reads their identity, updates and removes",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/command-comments.test.ts",
+      "test_name": "requires comment cardinality and rejects stale owner selectors without publication",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/command-comments.test.ts",
+      "test_name": "uses an opaque comment selector to address one annotation among siblings",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/command-comments.test.ts",
+      "test_name": "rounds explicit geometry to eighth-point positions",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/command-comments.test.ts",
+      "test_name": "declares schema and capabilities and supports preview without publication",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/safe-bash/tests/commands/pptx/comments.test.ts",
+      "test_name": "legacy comment shell script and SDK share author identity, positions and text",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/safe-bash/tests/commands/pptx/comments.test.ts",
+      "test_name": "comment publication failures and previews preserve virtual input",
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/command-comments.test.ts",
+      "test_name": "rejects invalid options before input %j",
+      "variant_count": 7,
+      "inputs": [
+        [
+          "add",
+          "caller-specified new comment id"
+        ],
+        [
+          "add",
+          "missing timestamp"
+        ],
+        [
+          "list",
+          "text edit field"
+        ],
+        [
+          "get",
+          "opaque token plus id"
+        ],
+        [
+          "set",
+          "no update field"
+        ],
+        [
+          "remove",
+          "notes scope"
+        ],
+        [
+          "add",
+          "invalid timestamp"
+        ]
+      ],
+      "origin": "original-typescript",
+      "verification": "coordinator-maintained-check-receipt"
+    },
+    {
+      "test_file": "packages/pptx/src/command-comments.test.ts",
+      "test_name": "unfiltered get counts comments across slides instead of counting slide owners",
+      "origin": "original-typescript",
+      "verification": "13-case focused command run passed after whole-package checkpoint; no product code changed"
+    }
+  ],
+  "public_api_mapping": [
+    {
+      "name": "readComments",
+      "signature": "readComments(input: BinaryInput, options: { selection?: SelectionQuery; id?: string }, context: SelectionContext): Promise<readonly CommentRecord[]>",
+      "default_behavior": "Empty read options enumerate all slide comments without creating parts; missing result is empty array.",
+      "cli": [
+        "comments.list",
+        "comments.get"
+      ],
+      "errors": [
+        "invalid-value",
+        "invalid-selection",
+        "stale-selection"
+      ],
+      "side_effects": "None; supplied input capabilities may read bytes."
+    },
+    {
+      "name": "mutateComments",
+      "signature": "mutateComments(input: BinaryInput, action: \"add\" | \"set\" | \"remove\", options: MutateCommentsOptions, context: SelectionContext): Promise<{ bytes: Uint8Array; affected: number; locations: readonly Location[] }>",
+      "default_behavior": "Add requires explicit author/text/timestamp and defaults position to origin. Set leaves omitted fields untouched. Mutations require one selected comment unless all is explicit; empty mutation fails unless allowEmpty.",
+      "cli": [
+        "comments.add",
+        "comments.set",
+        "comments.remove"
+      ],
+      "errors": [
+        "invalid-value",
+        "missing-selection",
+        "ambiguous-selection",
+        "stale-selection",
+        "empty-selection"
+      ],
+      "side_effects": "Returns edited bytes; does not publish or consult ambient host capabilities."
+    },
+    {
+      "name": "CommentRecord",
+      "signature": "Readonly record { id: string; selector: string; location: Location; slide: number; part: string; authorId: string; index: number; author: string; initials: string; text: string; timestamp: string; left: number; top: number }",
+      "ownership": "Detached values; slide ordinal one-based, location coordinateSystem identity; id authorId:index, location scopes it to comment part and fingerprint."
+    },
+    {
+      "name": "MutateCommentsOptions",
+      "signature": "{ selection: SelectionQuery; id?: string; text?: string; author?: string; authorId?: string; initials?: string; timestamp?: string; left?: number; top?: number; all?: boolean; allowEmpty?: boolean }",
+      "ownership": "Validated plain data options; explicit undefined omits a field, invalid/null fields rejected; no live owner transfer."
+    }
+  ],
+  "limitations": [
+    "Zero direct source cases does not mean F50 is complete. Original format/security and cross-slide graph evidence is required.",
+    "This receipt does not replace the whole-public-API inventory or privatize inherited/underscore-prefixed members.",
+    "Legacy threads are distinct from preserve-only modern comments, mentions, reactions and ink."
+  ],
+  "original_case_count_expanded": 30,
+  "verification_receipt": {
+    "whole_pptx": {
+      "files": 161,
+      "tests": 4152,
+      "status": "passed",
+      "timing": "Before the final additional command-only regression"
+    },
+    "focused_command": {
+      "tests": 13,
+      "status": "passed",
+      "timing": "Includes final unfiltered-get cardinality regression; no product change"
+    },
+    "safe_bash_pptx": {
+      "tests": 156,
+      "status": "passed"
+    },
+    "maintained_build": {
+      "status": "passed",
+      "timing": "Final rebuild after duplicate import hardening pending coordinator confirmation"
+    },
+    "final_lint": {
+      "status": "pending-coordinator-confirmation"
+    }
+  }
+}

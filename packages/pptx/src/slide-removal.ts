@@ -1,3 +1,4 @@
+import { cleanupCommentAuthors } from "./comments.js";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput } from "./contracts.js";
 import { OfficeError } from "./errors.js";
@@ -441,6 +442,31 @@ export async function removeSlides(
       )
     ).bytes()
   );
+  const removedAuthors = new Set<string>();
+  for (const part of deleted) {
+    if (
+      types.get(part) !==
+      "application/vnd.openxmlformats-officedocument.presentationml.comments+xml"
+    )
+      continue;
+    const document = parseXmlPart(reader.get(part), context.xmlLimits);
+    for (const node of document.root.children)
+      if (node.name.namespace === d.p && node.name.localName === "cm") {
+        const id = attr(node, "authorId");
+        if (id !== undefined) removedAuthors.add(id);
+      }
+  }
+  const authorEdges = graph.outgoing(main).filter((edge) => edge.type === `${d.r}/commentAuthors`);
+  if (authorEdges.length === 1 && !authorEdges[0]!.external)
+    cleanupCommentAuthors(
+      reader,
+      changes,
+      deleted,
+      removedAuthors,
+      d.p,
+      context.xmlLimits,
+      authorEdges[0]!.targetPart ?? undefined
+    );
   for (const part of [...deleted]) deleted.add(relPart(part));
   const output = await writePackageArchive(
     reader.names

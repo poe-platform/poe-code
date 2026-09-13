@@ -1,3 +1,4 @@
+import { prepareCommentImport } from "./comment-import.js";
 import { SaxesParser } from "saxes";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput } from "./contracts.js";
@@ -333,6 +334,7 @@ export async function importSelectedSlides(
     slide: "application/vnd.openxmlformats-officedocument.presentationml.slide+xml",
     slideLayout: "application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml",
     slideMaster: "application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml",
+    comments: "application/vnd.openxmlformats-officedocument.presentationml.comments+xml",
     notesSlide: "application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml",
     notesMaster: "application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml",
     theme: "application/vnd.openxmlformats-officedocument.theme+xml",
@@ -416,6 +418,20 @@ export async function importSelectedSlides(
       destinationGraph.outgoing(destinationMain).some((edge) => edge.type === `${d.r}/notesMaster`))
   )
     unsupported("Import cannot preserve competing notes masters in one presentation.");
+  const commentImport = prepareCommentImport({
+    source: sourceReader,
+    destination: destinationReader,
+    sourceGraph,
+    destinationGraph,
+    sourceMain,
+    destinationMain,
+    dialect: d,
+    xmlLimits: context.xmlLimits,
+    parts: closure.filter((name) => types.get(name) === expectedTypes.comments),
+    sourceType: (name) => types.get(name),
+    destinationType: (name) =>
+      parseContentTypes(destinationReader.get("/[Content_Types].xml"), limits).get(name)
+  });
   const usedNames = new Set(destinationReader.names.map(asciiKey));
   const copies = new Map<string, string>();
   for (const part of closure) {
@@ -466,7 +482,9 @@ export async function importSelectedSlides(
       while (oldIds.has(`rId${next}`)) next++;
       ids.set(edge.id, preserveChart || preserveDiagram ? edge.id : `rId${next++}`);
     }
-    if (preserveDiagram) {
+    if (commentImport?.comments.has(original)) {
+      save(copy, commentImport.comments.get(original)!);
+    } else if (preserveDiagram) {
       validatePreservedDiagram(parse(bytes), type, edges, d);
       save(copy, bytes);
     } else if (preserveChart) {
@@ -536,6 +554,21 @@ export async function importSelectedSlides(
     ]);
     return id;
   };
+  if (commentImport) {
+    let authorPart = commentImport.destinationPart;
+    if (!authorPart) {
+      let nextAuthorPart = 1;
+      do {
+        authorPart = `/ppt/commentAuthors-import${nextAuthorPart++}.xml`;
+      } while (usedNames.has(asciiKey(authorPart)) || usedNames.has(asciiKey(relPart(authorPart))));
+      copies.set(authorPart, authorPart);
+      register(authorPart, "commentAuthors");
+      manifest = manifest.spliceChildren(manifest.root, manifest.root.children.length, 0, [
+        `<Override xmlns="${contentNamespace}" PartName="${escape(authorPart)}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.commentAuthors+xml"/>`
+      ]);
+    }
+    save(authorPart, commentImport.authors);
+  }
   const updateList = (name: string, fragments: string[], insertion?: number) => {
     if (!fragments.length) return;
     const list = presentation.root.children.find(

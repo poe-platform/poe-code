@@ -1,0 +1,96 @@
+{
+  "filename": "/private/tmp/safejs-baseline-test262-419d3e0/test/language/identifiers/start-unicode-17.0.0.js",
+  "node": "v22.23.2",
+  "icu": "78.2",
+  "elapsedMs": 235.13224999999997,
+  "result": {
+    "status": "passed"
+  },
+  "top": [
+    [
+      " file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/object-model.js:361",
+      24
+    ],
+    [
+      "retainedValues file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/budget.js:170",
+      13
+    ],
+    [
+      "visit file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/values.js:536",
+      12
+    ],
+    [
+      "(garbage collector) :0",
+      10
+    ],
+    [
+      "assignIds file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/assign-ids.js:1",
+      5
+    ],
+    [
+      "visit file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/hash.js:21",
+      5
+    ],
+    [
+      "createBuiltinBindings file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/globals.js:38",
+      4
+    ],
+    [
+      "reconcileCompiledValues file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/values.js:1142",
+      4
+    ],
+    [
+      "skipTrivia file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/tokenizer.js:176",
+      3
+    ],
+    [
+      "tokenize file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/tokenizer.js:129",
+      3
+    ],
+    [
+      "parseStatementBody file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/parser.js:592",
+      3
+    ],
+    [
+      "findRegexLiteral file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/parser.js:3994",
+      3
+    ],
+    [
+      "registerBuiltinIdentities file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/intrinsics.js:15",
+      3
+    ],
+    [
+      "registerIntrinsicObject file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/object-model.js:272",
+      3
+    ],
+    [
+      "retainedDataRoots file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/scope.js:190",
+      3
+    ],
+    [
+      "evaluateNode file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/interpreter.js:337",
+      3
+    ],
+    [
+      "isIdentifierStart file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/tokenizer.js:955",
+      2
+    ],
+    [
+      "parseVariableDeclarator file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/parser.js:1463",
+      2
+    ],
+    [
+      "isAstNode file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/assign-ids.js:97",
+      2
+    ],
+    [
+      "collectChildren file:///private/tmp/poe-code-lexical-delivery/packages/safe-js/dist/parse/assign-ids.js:53",
+      2
+    ]
+  ],
+  "note": "Diagnostic profile with a 3000ms internal deadline; not a completed corpus variant or a changed conformance limit.",
+  "grammar": "public Agent Script embedding",
+  "sourceCommit": "f5805d989da0a212b934ea17ca4dad52c5cbed11",
+  "fixtureSha256": "8d095332b36f2900a1f0636e528594fb43757f5fb467306fa82d71bbeadfcb60",
+  "reproductionScript": "import {Session} from 'node:inspector/promises';\nimport {readFile,writeFile} from 'node:fs/promises';\nimport {run} from '/tmp/poe-code-lexical-delivery/packages/safe-js/dist/run.js';\nimport {Budget} from '/tmp/poe-code-lexical-delivery/packages/safe-js/dist/interp/budget.js';\nconst filename='/private/tmp/safejs-baseline-test262-419d3e0/test/language/identifiers/start-unicode-17.0.0.js';\nconst source=await readFile(filename,'utf8');\nconst session=new Session();session.connect();await session.post('Profiler.enable');await session.post('Profiler.start');\nconst started=performance.now();let result;\ntry{await run(source,{filename:'start-unicode-17.0.0.js',budget:new Budget({deadline:Date.now()+3000})});result={status:'passed'};}catch(e){result={status:'failed',name:e.name,message:e.message};}\nconst elapsedMs=performance.now()-started;\nconst {profile}=await session.post('Profiler.stop');session.disconnect();\nawait writeFile('/tmp/lexical-identifier.cpuprofile',JSON.stringify(profile));\nconst nodes=new Map(profile.nodes.map(x=>[x.id,x]));const counts=new Map();for(const id of profile.samples??[]){const f=nodes.get(id).callFrame;const key=f.functionName+' '+f.url+':'+(f.lineNumber+1);counts.set(key,(counts.get(key)??0)+1);}\nconsole.log(JSON.stringify({filename,node:process.version,icu:process.versions.icu,elapsedMs,result,top:[...counts].sort((a,b)=>b[1]-a[1]).slice(0,20),note:'Diagnostic profile with a 3000ms internal deadline; not a completed corpus variant or a changed conformance limit.'},null,2));\n"
+}

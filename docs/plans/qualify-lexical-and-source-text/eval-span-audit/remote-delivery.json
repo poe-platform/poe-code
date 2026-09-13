@@ -1,0 +1,34 @@
+{
+  "observedAt": "2026-09-13T07:24:01.182464+00:00",
+  "deliveredSha": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+  "sourceCommit": "f5805d989da0a212b934ea17ca4dad52c5cbed11",
+  "remoteMain": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+  "sourceIsAncestor": true,
+  "workflows": [
+    {
+      "conclusion": "",
+      "databaseId": 34745114622,
+      "headSha": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+      "status": "in_progress",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34745114622",
+      "workflowName": "Release scoped safe packages"
+    },
+    {
+      "conclusion": "",
+      "databaseId": 34745114630,
+      "headSha": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+      "status": "in_progress",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34745114630",
+      "workflowName": "Publish Schemas to GitHub Pages"
+    },
+    {
+      "conclusion": "",
+      "databaseId": 34745114831,
+      "headSha": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+      "status": "in_progress",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34745114831",
+      "workflowName": "Release"
+    }
+  ],
+  "publication": null
+}

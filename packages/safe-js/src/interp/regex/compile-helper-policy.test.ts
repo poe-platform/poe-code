@@ -126,6 +126,18 @@ describe("compile policy drafts", () => {
     expect(() => tokenize("/a\r\n/", { allowRegexLiterals: true })).toThrow(SandboxError);
   });
 
+  it.each([
+    ["/a\r\n/", 3],
+    ["/[\r\n]/", 3],
+    ["/a\\\r\n/", 4]
+  ] as const)("preflights line-terminator width before rejecting %j", (source, width) => {
+    limits.sourceLength = width - 1;
+    expect(() => tokenize(source, { allowRegexLiterals: true })).toThrow(SandboxError);
+    limits.sourceLength = width;
+    expect(() => tokenize(source, { allowRegexLiterals: true })).toThrow("Unterminated regular expression literal");
+    expect(() => tokenize("/a/", { allowRegexLiterals: true })).not.toThrow();
+  });
+
   it.each(["return RegExp('abcd')", "return new RegExp('abcd')"])(
     "applies the internal source ceiling to %s",
     async (source) => {

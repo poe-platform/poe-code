@@ -9,6 +9,7 @@ import {
 import { CompileScope } from "./compile-guard.js";
 import { parseRegex } from "./parse.js";
 import { run } from "../../run.js";
+import { lint } from "../../lint/index.js";
 import { tokenize } from "../../parse/tokenizer.js";
 import { callStringMethod } from "../methods/string.js";
 import { parseModule } from "../../parse/parser.js";
@@ -133,6 +134,7 @@ describe("compile policy drafts", () => {
   ] as const)("preflights line-terminator width before rejecting %j", (source, width) => {
     limits.sourceLength = width - 1;
     expect(() => tokenize(source, { allowRegexLiterals: true })).toThrow(SandboxError);
+    expect(() => lint(source, { filename: "guest.ajs" })).toThrow(SandboxError);
     limits.sourceLength = width;
     expect(() => tokenize(source, { allowRegexLiterals: true })).toThrow("Unterminated regular expression literal");
     expect(() => tokenize("/a/", { allowRegexLiterals: true })).not.toThrow();

@@ -32,3 +32,16 @@ it("keeps a guest-thrown SyntaxError a runtime error", async () => {
   expect(stderr.output()).toContain("guest failure");
   expect(stderr.output()).not.toContain("/guest/");
 });
+
+it.each([false, true])("renders lexer failures before lint suppression scanning (fix=%j)", async fix => {
+  const stderr = createSink();
+  const code = await runCli(["broken.ajs", ...(fix ? ["--fix"] : [])], {
+    cwd: "/guest", readFile: async () => "/a\r\n/",
+    stat: async () => ({ isFile: () => true }), stderr, stdout: createSink(),
+    writeFile: async () => { throw new Error("Invalid source must not be rewritten"); }
+  });
+  expect(code).toBe(2);
+  expect(stderr.output()).toContain("ParseError: broken.ajs:1:3");
+  expect(stderr.output()).toContain("1 | /a\n2 | /\n  |   ^");
+  expect(stderr.output()).not.toContain("/guest/");
+});

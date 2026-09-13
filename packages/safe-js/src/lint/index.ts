@@ -1,3 +1,5 @@
+import { SandboxError } from "../interp/budget.js";
+import { formatParseError } from "../parse/format-error.js";
 import { AS001 } from "./rules/AS001.js";
 import { AS003 } from "./rules/AS003.js";
 import { AS004 } from "./rules/AS004.js";
@@ -241,7 +243,14 @@ function isSuppressed(diagnostic: Diagnostic, suppressions: SuppressionState): b
 }
 
 function buildSuppressionState(source: string, options: LintOptions): SuppressionState {
-  const comments = collectComments(source);
+  let comments: Comment[];
+  try {
+    comments = collectComments(source);
+  } catch (error) {
+    if (error instanceof SandboxError) throw error;
+    if (error instanceof Error) throw formatParseError(source, options.filename ?? "<input>", error);
+    throw error;
+  }
   const lineCodes = new Set<string>();
   const fileCodes = new Set<string>();
   const diagnostics: Diagnostic[] = [];

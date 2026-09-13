@@ -2219,3 +2219,36 @@ probe. No production error policy, authority, budget, timeout or assertion was w
 runtime/artifact/task gates. Local class-modifier commit is `a43f01b8b`; this repair
 receives its own atomic commit. No task push, verified remote-main delivery or
 release/publication is claimed. Unrelated working/staged changes remain preserved.
+
+### qualify-language-semantics — parenthesized destructuring targets, 2026-09-13
+
+**Acceptance remains incomplete.** [Atomic audit and commands](qualify-language-semantics/parenthesized-pattern/audit.md)
+record **7 failing regressions / 8 passing controls** before repair. Parenthesized
+object/array literals no longer become destructuring assignment targets, including
+ordinary/async arrow bodies. Invalid eval source rejects before marker writes;
+grouped simple references and whole assignments remain valid.
+
+Parent source SHA `54c62cb3176dcfc0f6761321ba2ae8f2d011f4f6`, Node **22.23.2 /
+ICU78.2**. V4 manifest/aggregate/inventory hashes were independently verified;
+edition and extension pins are unchanged. Original six failures and six recorded
+controls pass in their pinned strict/sloppy upstream contexts: **12/12 variants**,
+zero nonpasses. [Exact reconciliation and source receipts](qualify-language-semantics/parenthesized-pattern/reconciliation.json)
+record working fingerprint `01b0e485d46d69b5a4f60828bf6ba1739aba46e0385eca3a57c614d23e92c425`
+and independent HEAD-plus-owned-change fingerprint
+`46d62690dbdb1771167352bc78bcce3a4a8449554f89980d5ae65be801be9671`.
+
+Both working and isolated commit candidates pass **195 tests / ten files**, zero
+failures/skips, and scoped lint. The working maintained build passes, including
+eight built-import checks. CLI screenshot was inspected and its ParseError/location
+agrees with SDK. Six Node SDK runtime cells and Bun pass syntax, finally, saved eval
+source, three pending/completed replay, host escape denial and step-budget controls.
+The overlapping-build corpus abort, isolated setup omissions and Bun lazy native
+compilation probe remain recorded failed attempts, followed by justified successful
+checks. No budget, deadline, assertion or support contract was weakened.
+
+**Remaining:** 165 historical primary nonpasses before edition/extension disposition,
+126 secondary resource nonpasses, other-owner reconciliation, missing runtime and
+installed-artifact/full-task gates, and the prior trailing-newline caret issue.
+These are residual counts, not a fresh whole-selection report. Unrelated local and
+staged changes remain preserved. This repair receives its own local commit;
+remote-main delivery **not performed**; release/publication **not performed**.

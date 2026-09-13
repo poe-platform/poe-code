@@ -3949,10 +3949,12 @@ class Parser {
     }
 
     if (node.type === "ArrayExpression") {
+      if (this.parenthesizedNodes.has(node)) throw invalidAssignmentTargetError(node.span.start);
       return this.arrayExpressionToPattern(node);
     }
 
     if (node.type === "ObjectExpression") {
+      if (this.parenthesizedNodes.has(node)) throw invalidAssignmentTargetError(node.span.start);
       return this.objectExpressionToPattern(node);
     }
 

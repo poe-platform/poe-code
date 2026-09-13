@@ -1878,6 +1878,18 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
 
 ### C. DiffData
 
+Comparison equality is scoped to the requested mode. Changes MUST carry a stable
+identity, category, before/after values and nullable fingerprinted locations.
+Slide identities MUST distinguish reordering from removal followed by insertion;
+positions are one-based values, not identities. Categories are ordered slides,
+text, properties, geometry, media, relationships, opaque, then raw. Media identity
+uses SHA-256 of original bytes, independent of media part names, without decoding.
+Raw mode compares uncompressed package members rather than ZIP container metadata.
+Conservative opaque byte changes MUST remain visible and MUST NOT imply a semantic
+interpretation of unsupported content. Results MUST declare raw versus effective
+formatting and their comparison limitations. An unavailable effective-formatting
+profile MUST fail explicitly; raw equality cannot establish effective equality.
+
 ```json
 {
   "type": "object",
@@ -1886,7 +1898,14 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
       "type": "boolean"
     },
     "mode": {
-      "enum": ["structural", "text", "media", "relationships", "effective-formatting", "raw"]
+      "enum": [
+        "structural",
+        "text",
+        "media",
+        "relationships",
+        "effective-formatting",
+        "raw"
+      ]
     },
     "changes": {
       "type": "array",
@@ -1894,7 +1913,11 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
         "type": "object",
         "properties": {
           "kind": {
-            "enum": ["added", "removed", "changed"]
+            "enum": [
+              "added",
+              "removed",
+              "changed"
+            ]
           },
           "left": {
             "anyOf": [
@@ -1915,16 +1938,60 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
                 "type": "null"
               }
             ]
-          }
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "enum": [
+              "slides",
+              "text",
+              "properties",
+              "geometry",
+              "media",
+              "relationships",
+              "opaque",
+              "raw"
+            ]
+          },
+          "before": {},
+          "after": {}
         },
-        "required": ["kind", "left", "right"],
+        "required": [
+          "kind",
+          "left",
+          "right",
+          "id",
+          "category",
+          "before",
+          "after"
+        ],
         "additionalProperties": false
       },
       "minItems": 0,
       "maxItems": 250000
+    },
+    "formatting": {
+      "enum": [
+        "raw",
+        "effective"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
-  "required": ["equal", "mode", "changes"],
+  "required": [
+    "equal",
+    "mode",
+    "changes",
+    "formatting",
+    "limitations"
+  ],
   "additionalProperties": false
 }
 ```

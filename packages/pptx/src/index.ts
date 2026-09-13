@@ -500,3 +500,5 @@ export {
   type EmbeddedFontDeclaration,
   type FontInventory
 } from "./opaque-objects.js";
+
+export { comparePresentations, type DiffOptions, type DiffMode, type DiffCategory, type DiffChange, type PresentationDiff } from "./diff.js";

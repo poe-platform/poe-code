@@ -3809,7 +3809,17 @@
       "path": ["diff"],
       "sdkOperationId": "diff",
       "version": 1,
-      "status": "proposed_not_implemented",
+      "status": "bounded_direct_implemented",
+      "implementation": {
+        "sdk": "packages/pptx/src/diff.ts",
+        "command": "packages/pptx/src/command-diff.ts",
+        "schema": "packages/pptx/src/diff-schema.ts",
+        "sdkTests": "packages/pptx/src/diff.test.ts",
+        "commandTests": "packages/pptx/src/command-diff.test.ts",
+        "adapterTests": "packages/safe-bash/tests/commands/pptx/diff.test.ts",
+        "verification": "docs/plans/pptx-diff.md",
+        "boundary": "Direct raw-formatting comparisons only; effective-formatting rejects explicitly. Structural mode includes conservative nonmedia member hashes. Text covers ordered slide text. Generic batch and whole live model parity remain proposed."
+      },
       "transport": "direct-and-batch",
       "arguments": {
         "type": "object",
@@ -229215,16 +229225,43 @@
                     "type": "null"
                   }
                 ]
-              }
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "category": {
+                "enum": [
+                  "slides",
+                  "text",
+                  "properties",
+                  "geometry",
+                  "media",
+                  "relationships",
+                  "opaque",
+                  "raw"
+                ]
+              },
+              "before": {},
+              "after": {}
             },
-            "required": ["kind", "left", "right"],
+            "required": ["kind", "left", "right", "id", "category", "before", "after"],
             "additionalProperties": false
           },
           "minItems": 0,
           "maxItems": 250000
+        },
+        "formatting": {
+          "enum": ["raw", "effective"]
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
-      "required": ["equal", "mode", "changes"],
+      "required": ["equal", "mode", "changes", "formatting", "limitations"],
       "additionalProperties": false
     },
     "XmlData": {

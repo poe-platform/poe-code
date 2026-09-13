@@ -1,3 +1,5 @@
+import { executeDiffCommand } from "./command-diff.js";
+import { diffSchema, diffUsage } from "./diff-schema.js";
 import { templateSchema, templateUsage } from "./template-schema.js";
 import { executeTemplateCommand, validateTemplateCommand, validateTemplateData, type TemplateArguments } from "./command-template.js";
 import { commentSchemas, commentsUsage } from "./comments-schema.js";
@@ -270,7 +272,8 @@ const runHelp =
   "Output: --output PATH | --in-place; --force --dry-run --json\n" +
   "Use pptx schema text runs set --json for complete option definitions.\n";
 const help =
-  "Usage: pptx create --output PATH [--kind pptx|potx|ppsx] [--width LENGTH]\n" +
+  "Usage: pptx diff LEFT RIGHT [--mode MODE] [--json] [--limit NAME=VALUE]\n" +
+  "       pptx create --output PATH [--kind pptx|potx|ppsx] [--width LENGTH]\n" +
   "                   [--height LENGTH] [--slides-json JSON] [--author TEXT]\n" +
   "                   [--properties-json JSON] [--dialect transitional]\n" +
   "                   [--timestamp UTC] [--force] [--dry-run] [--json]\n" +
@@ -3547,6 +3550,7 @@ function parse(
     if (
       (operation === "schema" || operation === "help") &&
       [
+        "diff",
         "template.apply",
         "batch",
         "accessibility",
@@ -3779,6 +3783,9 @@ async function execute(
   request: PptxCommandRequest,
   options: PptxCommandEngineOptions
 ): Promise<PptxCommandOutput> {
+  if (request.args?.[0] instanceof Uint8Array && request.args[0].length === 4 &&
+    request.args[0].every((byte, index) => byte === [100, 105, 102, 102][index]))
+    return executeDiffCommand(request, options);
   const output = { json: false, operation: "inspect" };
   let result: OfficeResult<unknown>;
   let exitCode = 0;
@@ -3979,6 +3986,7 @@ async function execute(
                             "No field evaluation, automatic numbering or inherited-content flattening.\n" +
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
+      if (args.schemaPath === "diff") resolvedUsage = diffUsage;
       if (args.schemaPath?.startsWith("comments.")) resolvedUsage = commentsUsage;
       if (args.schemaPath?.startsWith("notes.")) resolvedUsage = notesUsage;
       if (args.schemaPath && Object.hasOwn(metadataSchemas, args.schemaPath)) resolvedUsage = metadataUsage;
@@ -4085,6 +4093,7 @@ async function execute(
         version: 1,
         operations: Object.fromEntries(
           Object.entries({
+            diff: diffSchema,
             "template.apply": templateSchema,
             ...animationSchemas,
             batch: animationBatchSchema,
@@ -4136,6 +4145,8 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          diff: { level: "read", operations: ["diff"], subset: "Ordered slide, text, property, geometry, hashed media, relationship and opaque changes with stable IDs and explicit raw formatting; no visual comparison." },
+          effectiveFormattingDiff: { level: "reject", operations: ["diff"], subset: "Inherited effective formatting cannot yet be resolved; effective-formatting mode fails explicitly." },
           templates: { level: "edit", operations: ["template.apply"], subset: "Explicit slide-scoped literal text, fixed-grid tables and embedded image bindings. Repeat designated slides in record order with shared-media or isolated-instance policy; notes, charts and timings follow graph-aware duplication. Aggregate limits and atomic publication apply." },
           diagrams: {
             level: "preserve",

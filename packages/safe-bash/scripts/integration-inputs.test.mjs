@@ -2271,6 +2271,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/pptx/tables.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/equations.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/links.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/diff.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/accessibility.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/media-inventory.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/modern-comments.test.ts"));

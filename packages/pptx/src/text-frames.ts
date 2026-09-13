@@ -412,11 +412,34 @@ export async function mutateTextFrames(
   };
 }
 export class TextFrame {
-  #xml: XmlPart;
+  #storedXml: XmlPart;
+  #binding:
+    | {
+        readonly read: () => XmlPart;
+        readonly write: (xml: XmlPart) => void;
+        readonly extents?: () => { readonly width: number; readonly height: number } | undefined;
+      }
+    | undefined;
+  get #xml(): XmlPart {
+    return this.#binding?.read() ?? this.#storedXml;
+  }
+  set #xml(xml: XmlPart) {
+    if (this.#binding) this.#binding.write(xml);
+    else this.#storedXml = xml;
+  }
   #extents: { readonly width: number; readonly height: number } | undefined;
-  constructor(xml: XmlPart, extents?: { readonly width: number; readonly height: number }) {
+  constructor(
+    xml: XmlPart,
+    extents?: { readonly width: number; readonly height: number },
+    binding?: {
+      readonly read: () => XmlPart;
+      readonly write: (xml: XmlPart) => void;
+      readonly extents?: () => { readonly width: number; readonly height: number } | undefined;
+    }
+  ) {
     readFrameFormatting(xml.root);
-    this.#xml = xml;
+    this.#storedXml = xml;
+    this.#binding = binding;
     this.#extents = extents === undefined ? undefined : { ...extents };
   }
   fit_text(
@@ -427,11 +450,12 @@ export class TextFrame {
     font_file?: FontMetricsHandle | null,
     options: ModelTextFitOptions = {}
   ): void {
+    const extents = this.#binding?.extents ? this.#binding.extents() : this.#extents;
     const result = fitFrameXml(
       this.#xml,
       { ...options, fontFamily: font_family, maxSize: max_size, bold, italic, metrics: font_file! },
-      this.#extents?.width ?? NaN,
-      this.#extents?.height ?? NaN
+      extents?.width ?? NaN,
+      extents?.height ?? NaN
     );
     this.#xml = result.xml;
   }

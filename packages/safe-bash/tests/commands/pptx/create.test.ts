@@ -4,6 +4,8 @@ import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
 import {
+  addShape,
+  readShapes,
   addSlide,
   createPptxCommandEngine,
   createPresentation,
@@ -18,6 +20,26 @@ import {
   readPresentationSettings,
   readSelectionIndex
 } from "pptx";
+
+test("pptx shapes uses quoted names and explicit units with SDK-equivalent publication", async () => {
+  const f = fixture();
+  const input = await createPresentation({ slides: [{}] }, context);
+  f.volume.writeFileSync("/work/deck.pptx", input);
+  const expected = await addShape(input, { slide: 1, update: { kind: "RECTANGLE", name: "Blue card", left: { value: -2, unit: "pt" }, top: { value: 0, unit: "emu" }, width: { value: 2, unit: "in" }, height: { value: 1, unit: "in" }, fill: "234567", title: "A title", description: "A card" } }, context);
+  const result = await f.shell.exec("pptx shapes add deck.pptx --slide 1 --kind RECTANGLE --name 'Blue card' --left -2pt --top 0emu --width 2in --height 1in --fill 234567 --title 'A title' --description 'A card' --output changed.pptx --json");
+  assert.equal(result.exitCode, 0, result.stdout);
+  const output = new Uint8Array(f.volume.readFileSync("/work/changed.pptx") as Buffer);
+  assert.deepEqual(output, expected.bytes);
+  assert.deepEqual(new Uint8Array(f.volume.readFileSync("/work/deck.pptx") as Buffer), input);
+  const records = await readShapes(output, { slide: 1, shape: "Blue card" }, context);
+  assert.equal(records.length, 1);
+  assert.equal(records[0]!.left, -25400);
+  assert.equal(records[0]!.width, 1828800);
+  assert.equal(records[0]!.description, "A card");
+  const invalid = await f.shell.exec("pptx shapes set changed.pptx --slide 1 --shape 'Blue card' --width 2 --in-place --json");
+  assert.equal(invalid.exitCode, 2);
+  assert.deepEqual(new Uint8Array(f.volume.readFileSync("/work/changed.pptx") as Buffer), output);
+});
 import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
 import { readPackage } from "../../../../pptx/src/package-reader.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";

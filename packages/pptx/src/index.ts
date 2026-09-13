@@ -206,4 +206,32 @@ export {
   type FitTextFramesOptions
 } from "./text-fitting.js";
 
-export { readFields, mutateFields, type FieldKind, type FieldUpdate, type MutateFieldsOptions } from "./fields.js";
+export {
+  readFields,
+  mutateFields,
+  type FieldKind,
+  type FieldUpdate,
+  type MutateFieldsOptions
+} from "./fields.js";
+
+export {
+  FillFormat,
+  LineFormat,
+  ShapeColorFormat,
+  Shape,
+  readShape,
+  createShapeXml,
+  applyShapeUpdate,
+  validateShapeOptions,
+  MSO_AUTO_SHAPE_TYPE,
+  MSO_SHAPE,
+  shapePresets,
+  type ShapeKind,
+  type ShapeLength,
+  type ShapeUpdate,
+  type ShapeRecord
+} from "./shapes.js";
+export { readShapes, addShape, mutateShapes, type ShapeSelection } from "./shape-operations.js";
+export { PP_PLACEHOLDER_TYPE, PP_PLACEHOLDER } from "./shape-placeholder-types.js";
+
+export { MSO_SHAPE_TYPE } from "./shape-types.js";

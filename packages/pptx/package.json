@@ -18,7 +18,8 @@
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.txt"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",

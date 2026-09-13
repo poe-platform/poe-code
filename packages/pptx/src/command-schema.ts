@@ -2,6 +2,108 @@ import { paragraphNumberingSchemes } from "./text-paragraphs.js";
 import { MSO_TEXT_UNDERLINE_TYPE } from "./text-runs.js";
 import { selectionQuerySchema } from "./selector-schema.js";
 import { inventorySchema, inventoryPartSchema } from "./inventory-schema.js";
+import { MSO_AUTO_SHAPE_TYPE, shapePresets } from "./shape-presets.js";
+
+const shapeValues = {
+  kind: {
+    enum: [
+      "text-box",
+      ...Object.keys(shapePresets),
+      ...Object.values(MSO_AUTO_SHAPE_TYPE).filter((value) => typeof value === "number")
+    ]
+  },
+  name: { type: "string" },
+  text: { type: "string" },
+  title: { type: ["string", "null"] },
+  description: { type: ["string", "null"] },
+  altText: { type: ["string", "null"] },
+  locked: { type: ["boolean", "null"] },
+  rotation: { type: "number", minimum: -360000, maximum: 360000 },
+  fill: { anyOf: [{ enum: ["solid", null] }, { type: "string", pattern: "^[0-9A-Fa-f]{6}$" }] },
+  lineColor: {
+    anyOf: [{ enum: ["solid", null] }, { type: "string", pattern: "^[0-9A-Fa-f]{6}$" }]
+  },
+  ...Object.fromEntries(
+    ["left", "top", "width", "height", "lineWidth"].map((key) => [
+      key,
+      {
+        type: key === "lineWidth" ? ["object", "null"] : "object",
+        additionalProperties: false,
+        required: ["value", "unit"],
+        properties: {
+          value: {
+            type: "number",
+            ...(["width", "height"].includes(key)
+              ? { exclusiveMinimum: 0 }
+              : key === "lineWidth"
+                ? { minimum: 0 }
+                : {})
+          },
+          unit: { enum: ["emu", "in", "cm", "mm", "pt"] }
+        }
+      }
+    ])
+  )
+};
+const shapeSchemaDefinitions = Object.fromEntries(
+  ["list", "get", "add", "set"].map((action) => [
+    "shapes." + action,
+    {
+      description:
+        "Text boxes and documented preset shapes. Lengths use explicit units. Unknown geometry and formatting are preserve-only. Shape IDs are read-only and allocated per drawing tree.",
+      input: { type: "string", minLength: 1 },
+      options: {
+        type: "object",
+        additionalProperties: false,
+        ...(action === "add" ? { required: ["kind", "left", "top", "width", "height"] } : {}),
+        properties: {
+          json: { type: "boolean" },
+          limit: { type: "object" },
+          scope: { enum: ["slides", "layouts", "masters", "shared"] },
+          slide: { type: "integer", minimum: 1 },
+          part: { type: "string" },
+          select: { type: "string" },
+          shape: { type: "string" },
+          ...(["add", "set"].includes(action)
+            ? {
+                ...shapeValues,
+                output: { type: "string" },
+                inPlace: { type: "boolean" },
+                force: { type: "boolean" },
+                dryRun: { type: "boolean" },
+                ...(action === "set"
+                  ? { all: { type: "boolean" }, allowEmpty: { type: "boolean" } }
+                  : {})
+              }
+            : {})
+        }
+      },
+      result: {
+        type: "object",
+        required: [
+          "version",
+          "operation",
+          "ok",
+          "data",
+          "warnings",
+          "errors",
+          "affected",
+          "locations"
+        ],
+        properties: {
+          version: { const: 1 },
+          operation: { const: "shapes." + action },
+          ok: { type: "boolean" },
+          data: { type: ["object", "null"] },
+          warnings: { type: "array" },
+          errors: { type: "array" },
+          affected: { type: "integer", minimum: 0 },
+          locations: { type: "array" }
+        }
+      }
+    }
+  ])
+);
 
 export const inspectSchema = {
   input: { type: "string", minLength: 1, description: "Explicit VFS path, or - for stdin." },
@@ -1639,6 +1741,107 @@ export const masterSchemas = Object.fromEntries(
                         },
                         fingerprint: { type: "string" }
                       }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ];
+  })
+);
+
+const shapeRecordProperties = {
+  shapeId: { type: "integer", minimum: 0, maximum: 4294967295 },
+  name: { type: "string" },
+  title: { type: ["string", "null"] },
+  description: { type: ["string", "null"] },
+  kind: { type: ["string", "null"] },
+  ...Object.fromEntries(
+    ["left", "top", "width", "height", "lineWidth"].map((key) => [
+      key,
+      { type: ["integer", "null"] }
+    ])
+  ),
+  rotation: { type: "number" },
+  locked: { type: ["boolean", "null"] },
+  fill: { type: ["string", "null"] },
+  lineColor: { type: ["string", "null"] },
+  fillType: { type: ["string", "null"] },
+  lineFillType: { type: ["string", "null"] },
+  unsupported: { type: "array", items: { type: "string" } },
+  placeholder: {
+    oneOf: [
+      { type: "null" },
+      {
+        type: "object",
+        additionalProperties: false,
+        required: ["idx", "type", "orient", "sz"],
+        properties: {
+          idx: { type: "integer" },
+          type: { type: "string" },
+          orient: { type: "string" },
+          sz: { type: "string" }
+        }
+      }
+    ]
+  },
+  location: { $ref: "#/$defs/location" },
+  token: { type: "string" },
+  part: { type: "string" }
+};
+export const shapeSchemas = Object.fromEntries(
+  Object.entries(shapeSchemaDefinitions).map(([operation, schema]) => {
+    const mutation = operation.endsWith(".add") || operation.endsWith(".set");
+    const base = masterSchemas[mutation ? "shapes.set" : "masters.list"]!.result;
+    const data = base.properties.data.oneOf[1]!;
+    return [
+      operation,
+      {
+        ...schema,
+        options: {
+          ...schema.options,
+          allOf: [
+            { not: { required: ["part", "slide"] } },
+            { not: { required: ["description", "altText"] } },
+            {
+              if: { required: ["select"] },
+              then: {
+                not: {
+                  anyOf: ["part", "slide", "shape", "all"].map((key) => ({ required: [key] }))
+                }
+              }
+            },
+            ...(mutation ? xmlSetSchema.options.allOf.slice(xmlSelectionRules.length) : []),
+            ...(operation === "shapes.set"
+              ? [{ anyOf: Object.keys(shapeValues).map((key) => ({ required: [key] })) }]
+              : [])
+          ]
+        },
+        result: {
+          ...base,
+          properties: {
+            ...base.properties,
+            operation: { const: operation },
+            data: {
+              oneOf: [
+                { type: "null" },
+                {
+                  ...data,
+                  properties: mutation
+                    ? { ...data.properties, dryRun: { type: "boolean" } }
+                    : {
+                        records: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            additionalProperties: false,
+                            required: Object.keys(shapeRecordProperties),
+                            properties: shapeRecordProperties
+                          }
+                        }
+                      },
+                  required: mutation ? [...data.required!, "dryRun"] : ["records"]
                 }
               ]
             }

@@ -1,5 +1,7 @@
 import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
 import { fieldSchemas } from "./fields-schema.js";
+import { addShape, mutateShapes, readShapes, type ShapeSelection } from "./shape-operations.js";
+import { validateShapeOptions, type ShapeUpdate } from "./shapes.js";
 import { fitTextFrames, validateTextFitOptions, type TextFitOptions } from "./text-fitting.js";
 import { admitFontMetrics } from "./font-metrics.js";
 import {
@@ -44,6 +46,7 @@ import {
 import type { Diagnostic, OfficeResult, Scope } from "./contracts.js";
 import {
   masterSchemas,
+  shapeSchemas,
   membershipSchemas,
   settingsSchemas,
   createSchema,
@@ -257,9 +260,10 @@ const help =
   "       pptx layouts remove INPUT --scope layouts|shared [--part URI | --select TOKEN | --all]\n" +
   "       pptx layouts apply INPUT [--slide N | --select TOKEN | --all] --layout NAME_OR_URI\n" +
   "                          --placeholder-policy type-index|reject-unmatched\n" +
-  "       pptx shapes add INPUT --scope masters|shared --part URI --kind text-box\n" +
+  "       pptx shapes list|get INPUT [--slide N --shape NAME] [--scope SCOPE] [--json]\n" +
+  "       pptx shapes add INPUT --slide N --kind text-box|PRESET\n" +
   "                       --left LENGTH --top LENGTH --width LENGTH --height LENGTH [--name TEXT] [--text TEXT]\n" +
-  "       pptx shapes set INPUT --scope masters|shared --part URI --shape NAME\n" +
+  "       pptx shapes set INPUT --slide N --shape NAME [--scope SCOPE]\n" +
   "                       [--name TEXT] [--text TEXT] [--left LENGTH] [--top LENGTH] [--width LENGTH] [--height LENGTH]\n" +
   "       pptx themes list|get INPUT [--slide N | --part URI | --select TOKEN] [--json]\n" +
   "       pptx themes set INPUT --scope shared [--slide N | --part URI | --select TOKEN]\n" +
@@ -270,7 +274,7 @@ const help =
   "                       --kind picture --file PATH | --kind inherit\n" +
   "                       --kind style-reference --style-index N --style-color RRGGBB\n" +
   "       Shared mutations: [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-  "       pptx schema masters list|get|add|set | layouts list|get|add|set|remove|apply | shapes add|set | backgrounds set [--json]\n" +
+  "       pptx schema masters list|get|add|set | layouts list|get|add|set|remove|apply | shapes list|get|add|set | backgrounds set [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "       pptx settings list|get INPUT [--json]\n" +
   "       pptx settings set INPUT [--width LENGTH] [--height LENGTH]\n" +
@@ -312,6 +316,7 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  shapeEdit?: ShapeUpdate;
   fieldEdit?: FieldUpdate;
   operation:
     | `fields.${"list" | "get" | "set" | "add" | "remove"}`
@@ -319,6 +324,8 @@ interface Arguments {
     | `layouts.${"list" | "get" | "add" | "set" | "remove" | "apply"}`
     | "shapes.add"
     | "shapes.set"
+    | "shapes.list"
+    | "shapes.get"
     | `backgrounds.${"list" | "get" | "set"}`
     | `themes.${"list" | "get" | "set"}`
     | `settings.${"list" | "get" | "set"}`
@@ -509,6 +516,13 @@ const frameFlags = [
 ];
 
 const scalarOptions = [
+  "--title",
+  "--description",
+  "--alt-text",
+  "--locked",
+  "--fill",
+  "--line-color",
+  "--line-width",
   ...fitFlags,
   ...frameFlags,
   ...paragraphFlags,
@@ -682,6 +696,7 @@ function parse(
       ...Object.keys(membershipSchemas),
       ...Object.keys(settingsSchemas),
       ...Object.keys(masterSchemas),
+      ...Object.keys(shapeSchemas),
       "create",
       "slides.add",
       "slides.move",
@@ -729,6 +744,7 @@ function parse(
     }
     if (
       (operation.startsWith("fields.") ||
+        operation.startsWith("shapes.") ||
         operation.startsWith("text.runs.") ||
         operation.startsWith("text.paragraphs.") ||
         operation.startsWith("text.frames.") ||
@@ -1098,6 +1114,58 @@ function parse(
               ? commandJson(value)
               : value
       };
+      continue;
+    }
+    if (
+      operation.startsWith("shapes.") &&
+      [
+        "--kind",
+        "--name",
+        "--text",
+        "--title",
+        "--description",
+        "--alt-text",
+        "--locked",
+        "--fill",
+        "--line-color",
+        "--line-width",
+        "--left",
+        "--top",
+        "--width",
+        "--height",
+        "--rotation"
+      ].includes(argument)
+    ) {
+      const key = argument
+        .slice(2)
+        .split("-")
+        .map((part, index) => (index ? part[0]!.toUpperCase() + part.slice(1) : part))
+        .join("");
+      let parsed: unknown = value;
+      if (key === "lineWidth" && value === "null") parsed = null;
+      else if (["left", "top", "width", "height", "lineWidth"].includes(key)) {
+        const length = commandLength(
+          value,
+          ["left", "top"].includes(key) ? -27273042316900 : key === "lineWidth" ? 0 : 1
+        );
+        if (Math.abs(length) > 27273042316900) usage("Shape geometry exceeds DrawingML bounds.");
+        parsed = { value: length, unit: "emu" };
+      } else if (key === "locked") {
+        if (!["true", "false", "null"].includes(value))
+          usage("Locked requires true, false or null.");
+        parsed = value === "null" ? null : value === "true";
+      } else if (key === "rotation") {
+        if (!value.trim() || !Number.isFinite(Number(value)))
+          usage("Rotation requires finite degrees.");
+        parsed = Number(value);
+      } else if (key === "kind" && value.length && [...value].every((c) => c >= "0" && c <= "9"))
+        parsed = Number(value);
+      else if (
+        ["fill", "lineColor", "title", "description", "altText"].includes(key) &&
+        value === "null"
+      )
+        parsed = null;
+      result.shapeEdit = { ...result.shapeEdit, [key]: parsed };
       continue;
     }
     if (
@@ -1672,6 +1740,33 @@ function parse(
     }
     return result;
   }
+  if (Object.hasOwn(shapeSchemas, operation)) {
+    const mutation = operation.endsWith(".add") || operation.endsWith(".set");
+    const flags = Object.keys(shapeSchemas[operation]!.options.properties).map(
+      (key) =>
+        "--" + [...key].map((c) => (c >= "A" && c <= "Z" ? "-" + c.toLowerCase() : c)).join("")
+    );
+    if ([...seen].some((flag) => !flags.includes(flag)))
+      usage("Option does not apply to this shape operation.");
+    if (positionals.length !== 1 || !positionals[0]) usage("Shape operations require one input.");
+    result.input = positionals[0];
+    if (result.token && (result.slide !== undefined || result.part || result.shape || result.all))
+      usage("Opaque and simple selectors cannot be combined.");
+    if (mutation) {
+      if (!result.shapeEdit) usage("Shape mutation requires update fields.");
+      validateShapeOptions(result.shapeEdit, operation === "shapes.add");
+      if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+      if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+      if (!result.dryRun && !result.inPlace && !result.output)
+        usage("Mutation requires a destination.");
+      if (result.force && !result.output) usage("Force requires an explicit output destination.");
+      if (result.output === result.input && result.output !== "-")
+        usage("Replacing input requires --in-place.");
+      if (result.output === "-" && result.json && !result.dryRun)
+        usage("Binary stdout cannot be combined with JSON.");
+    }
+    return result;
+  }
   if (Object.hasOwn(masterSchemas, operation)) {
     const schema = masterSchemas[operation]!;
     const mutation = !operation.endsWith(".list") && !operation.endsWith(".get");
@@ -2057,6 +2152,7 @@ function parse(
         ...Object.keys(membershipSchemas),
         ...Object.keys(settingsSchemas),
         ...Object.keys(masterSchemas),
+        ...Object.keys(shapeSchemas),
         "create",
         "inspect",
         "slides.add",
@@ -2344,20 +2440,35 @@ async function execute(
               : args.schemaPath?.startsWith("text.runs.")
                 ? runHelp
                 : help;
-      const resolvedUsage = args.schemaPath?.startsWith("fields.")
-        ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
-          "Selection: --slide N --shape NAME | --select TOKEN\n" +
-          "           --scope SCOPE --json --limit NAME=VALUE\n" +
-          "Mutation:  --all --allow-empty\n" +
-          "Output:    --output PATH | --in-place | --dry-run; --force\n" +
-          "Set/add:   --kind slide-number|date|footer|header\n" +
-          "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
-          "Add requires --kind and one text body; appends to its last paragraph.\n" +
-          "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
-          "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
-          "No field evaluation, automatic numbering or inherited-content flattening.\n" +
-          "List/get are read-only; get requires one field. Remove accepts no policy.\n"
-        : usage;
+      const resolvedUsage = args.schemaPath?.startsWith("shapes.")
+        ? "Usage: pptx shapes list|get|add|set INPUT [selection] [properties] [output]\n" +
+          "Selection: --slide N --shape NAME | --select TOKEN; --part URI --scope SCOPE\n" +
+          "Scopes: slides (default), layouts, masters; shared requires a part.\n" +
+          "Add: --kind text-box|PRESET --left LENGTH --top LENGTH --width LENGTH --height LENGTH\n" +
+          "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
+          "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
+          "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
+          "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
+          "Omitted values stay unchanged.\n" +
+          "Null line width restores inherited width.\n" +
+          "Fill/line color solid selects solid fill; existing solid colors are retained.\n" +
+          "Shape IDs are read-only. Unsupported geometry and advanced formatting are preserve-only.\n" +
+          "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE\n" +
+          "Set: --all edits every match; --allow-empty accepts zero matches.\n"
+        : args.schemaPath?.startsWith("fields.")
+          ? "Usage: pptx fields list|get|set|add|remove INPUT [options]\n" +
+            "Selection: --slide N --shape NAME | --select TOKEN\n" +
+            "           --scope SCOPE --json --limit NAME=VALUE\n" +
+            "Mutation:  --all --allow-empty\n" +
+            "Output:    --output PATH | --in-place | --dry-run; --force\n" +
+            "Set/add:   --kind slide-number|date|footer|header\n" +
+            "           --update preserve|explicit --text TEXT --timestamp UTC\n" +
+            "Add requires --kind and one text body; appends to its last paragraph.\n" +
+            "Preserve is default: retains the cache (empty on add), rejects text/time.\n" +
+            "Explicit requires text; date fields also require a caller UTC timestamp.\n" +
+            "No field evaluation, automatic numbering or inherited-content flattening.\n" +
+            "List/get are read-only; get requires one field. Remove accepts no policy.\n"
+          : usage;
       result = success(operation, { usage: resolvedUsage });
       human = resolvedUsage;
     } else if (args.operation === "version") {
@@ -2372,6 +2483,7 @@ async function execute(
             ...membershipSchemas,
             ...settingsSchemas,
             ...masterSchemas,
+            ...shapeSchemas,
             create: createSchema,
             inspect: inspectSchema,
             "text.get": textGetSchema,
@@ -2453,7 +2565,7 @@ async function execute(
           masters: {
             level: "edit",
             subset:
-              "Inspect, create and rename masters, append text boxes, edit supported selected shape text/name/geometry and solid RGB backgrounds or reset to inheritance. Explicit masters/shared scope; report dependent slides while preserving local overrides. Layout associations require layouts/shared scope. Shared themes are retained, ambiguous theme selection requires an explicit URI. Other master shape kinds are rejected."
+              "Inspect, create and rename masters, append text boxes, edit supported selected shape properties and solid RGB backgrounds or reset to inheritance. Shapes also expose documented presets. Explicit masters/shared scope; report dependent slides while preserving local overrides. Layout associations require layouts/shared scope. Shared themes are retained, ambiguous theme selection requires an explicit URI."
           },
           themes: {
             level: "edit",
@@ -2507,6 +2619,11 @@ async function execute(
               "Merge ordered sources using import closure and combined budgets. Split selected slides into independent packages with deterministic manifests; outward slide navigation is rejected. Multiple outputs require an atomic adapter or explicit partial-output mode."
           },
           editing: { level: "reject", reason: "Other semantic model editing is not exposed." },
+          shapes: {
+            level: "edit",
+            subset:
+              "Text boxes and documented presets on slides, layouts and masters. Names, read-only allocated IDs, geometry in explicit units, title/description, locks and basic solid fill/line. Unknown geometry and advanced formatting remain preserve-only."
+          },
           xml: {
             level: options.context.validationLimits ? "edit" : "reject",
             subset:
@@ -2761,6 +2878,82 @@ async function execute(
                     ? data.paragraphs
                     : data.runs
             );
+    } else if (Object.hasOwn(shapeSchemas, args.operation)) {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const selection: ShapeSelection = {
+        ...(args.scope === undefined ? {} : { scope: args.scope }),
+        ...(args.slide === undefined ? {} : { slide: args.slide }),
+        ...(args.part === undefined ? {} : { part: args.part }),
+        ...(args.shape === undefined ? {} : { shape: args.shape }),
+        ...(args.token === undefined ? {} : { select: args.token }),
+        ...(args.all === undefined ? {} : { all: args.all }),
+        ...(args.allowEmpty === undefined ? {} : { allowEmpty: args.allowEmpty })
+      };
+      if (args.operation === "shapes.list" || args.operation === "shapes.get") {
+        const records = await readShapes(bytes, selection, context);
+        if (args.operation === "shapes.get" && records.length !== 1)
+          throw new SelectionError(
+            records.length ? "ambiguous-selection" : "missing-selection",
+            records.map((x) => x.location)
+          );
+        result = { ...success(operation, { records }), locations: records.map((x) => x.location) };
+        human = records
+          .map((x) => `${x.shapeId}\t${x.name}\t${x.kind ?? "unsupported"}\n`)
+          .join("");
+      } else {
+        const mutation =
+          args.operation === "shapes.add"
+            ? await addShape(bytes, { ...selection, update: args.shapeEdit! }, context)
+            : await mutateShapes(bytes, { ...selection, update: args.shapeEdit! }, context);
+        const after = await readSelectionIndex(mutation.bytes, context);
+        const dryRun = args.dryRun ?? false;
+        const destination = args.inPlace ? args.input! : args.output;
+        const changed = after.objects.filter((x) =>
+          mutation.records.some((r) => r.part === x.part && r.id === x.id)
+        );
+        result = {
+          ...success(
+            operation,
+            {
+              part: mutation.part,
+              dryRun,
+              affectedSlides: mutation.affectedSlides,
+              effects: changed.map((x) => ({
+                location: x.location,
+                action: args.operation === "shapes.add" ? "add" : "set",
+                feature: "F22"
+              })),
+              outputs: dryRun
+                ? []
+                : [{ path: destination!, sha256: after.fingerprint, bytes: mutation.bytes.length }],
+              fingerprint: dryRun ? null : after.fingerprint
+            },
+            changed
+          ),
+          affected: mutation.affected
+        };
+        human = `${dryRun ? "Validated" : "Updated"} ${mutation.affected} shape(s)\n`;
+        if (destination === "-" && !dryRun) binary = mutation.bytes;
+        else if (destination && destination !== "-") {
+          if (!request.publishOutput)
+            throw Object.assign(new Error("Output publication capability is unavailable."), {
+              code: "publication-unsupported"
+            });
+          publication = {
+            inputPath: args.input!,
+            outputPath: destination,
+            bytes: mutation.bytes,
+            originalBytes: bytes,
+            inPlace: args.inPlace ?? false,
+            force: args.force ?? false,
+            dryRun
+          };
+        }
+      }
     } else if (Object.hasOwn(masterSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(

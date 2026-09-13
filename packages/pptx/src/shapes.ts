@@ -1023,7 +1023,7 @@ export class FillFormat {
           const owner = this.owner(node)!,
             fill = this.fill(node);
           return doc.spliceChildren(owner, fillPosition(owner, fill, drawing(node)), fill ? 1 : 0, [
-            `<a:solidFill xmlns:a="${drawing(node)}"/>`
+            `<a:solidFill xmlns="${escaped(doc.resolveNamespace(owner, "") ?? "")}" xmlns:a="${drawing(node)}"/>`
           ]);
         });
       return;
@@ -1039,7 +1039,7 @@ export class FillFormat {
         const owner = this.owner(node)!,
           fill = this.fill(node);
         return doc.spliceChildren(owner, fillPosition(owner, fill, drawing(node)), fill ? 1 : 0, [
-          `<a:noFill xmlns:a="${drawing(node)}"/>`
+          `<a:noFill xmlns="${escaped(doc.resolveNamespace(owner, "") ?? "")}" xmlns:a="${drawing(node)}"/>`
         ]);
       });
       return;
@@ -1055,7 +1055,7 @@ export class FillFormat {
         fill = this.fill(node),
         a = drawing(node);
       return doc.spliceChildren(owner, fillPosition(owner, fill, drawing(node)), fill ? 1 : 0, [
-        `<a:gradFill xmlns:a="${a}" rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="accent1"><a:tint val="100000"/><a:shade val="100000"/><a:satMod val="130000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="accent1"><a:tint val="50000"/><a:shade val="100000"/><a:satMod val="350000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="16200000" scaled="1"/></a:gradFill>`
+        `<a:gradFill xmlns="${escaped(doc.resolveNamespace(owner, "") ?? "")}" xmlns:a="${a}" rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="accent1"><a:tint val="100000"/><a:shade val="100000"/><a:satMod val="130000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="accent1"><a:tint val="50000"/><a:shade val="100000"/><a:satMod val="350000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="16200000" scaled="1"/></a:gradFill>`
       ]);
     });
   }
@@ -1066,7 +1066,7 @@ export class FillFormat {
       const owner = this.owner(node)!,
         fill = this.fill(node);
       return doc.spliceChildren(owner, fillPosition(owner, fill, drawing(node)), fill ? 1 : 0, [
-        `<a:pattFill xmlns:a="${drawing(node)}"/>`
+        `<a:pattFill xmlns="${escaped(doc.resolveNamespace(owner, "") ?? "")}" xmlns:a="${drawing(node)}"/>`
       ]);
     });
   }

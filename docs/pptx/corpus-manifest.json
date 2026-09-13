@@ -2832,12 +2832,693 @@
       "rights_status": "Public download; publisher terms and document-specific credits must be checked before sharing outputs. No blanket redistribution grant is asserted. Logos and third-party imagery may have separate terms. Local disposable QA only.",
       "retention": "Retained pending product QA; delete listed binary after meaningful findings become small original unit tests and no active campaign needs it.",
       "expected_product_profile": "default-profile rejection expected: compressed input and/or media exceed 256 MiB; explicit 512 MiB input/media QA profile required, product not run"
+    },
+    {
+      "title": "global-outlook-2026.pptx",
+      "landing_url": "https://www.worldbank.org/en/publication/global-economic-prospects",
+      "source_url": "https://thedocs.worldbank.org/en/doc/2b672b3b0415d6b66c45b66579db4ef5-0050012026/related/GEP-Jun-2026-Presentation.pptx",
+      "cache_path": ".cache/pptx-corpus/global-outlook-2026.pptx",
+      "retrieved_at": "2026-09-13T03:06:44.717952+00:00",
+      "status": "downloaded",
+      "curl_exit": 0,
+      "final_url": "https://thedocs.worldbank.org/en/doc/2b672b3b0415d6b66c45b66579db4ef5-0050012026/related/GEP-Jun-2026-Presentation.pptx",
+      "content_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "http_status": 200,
+      "error": "",
+      "bytes": 5191954,
+      "sha256": "f05d30f82013e31ecf3d6705d34c83e26a1d6b44e5f3e9f608b98b6c8e4ee582",
+      "census": {
+        "xml_nodes": 7411,
+        "expanded_bytes": 17920083,
+        "relationships": 171,
+        "external_relationships": 14,
+        "shapes": 142,
+        "paragraphs": 174,
+        "runs": 106,
+        "notes_roots": 11,
+        "layout_roots": 17,
+        "picture_occurrences": 39,
+        "master_roots": 1,
+        "slide_roots": 14,
+        "click_links": 24,
+        "zip_entries": 141,
+        "media_parts": 26,
+        "media_bytes": 17620223
+      },
+      "namespaces": [
+        "",
+        "http://purl.org/dc/elements/1.1/",
+        "http://purl.org/dc/terms/",
+        "http://schemas.microsoft.com/office/2006/metadata/contentType",
+        "http://schemas.microsoft.com/office/2006/metadata/properties",
+        "http://schemas.microsoft.com/office/drawing/2010/main",
+        "http://schemas.microsoft.com/office/drawing/2014/main",
+        "http://schemas.microsoft.com/office/powerpoint/2010/main",
+        "http://schemas.microsoft.com/office/powerpoint/2012/main",
+        "http://schemas.microsoft.com/office/powerpoint/2018/8/main",
+        "http://schemas.microsoft.com/office/thememl/2012/main",
+        "http://schemas.microsoft.com/sharepoint/v3/contenttype/forms",
+        "http://schemas.openxmlformats.org/drawingml/2006/main",
+        "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties",
+        "http://schemas.openxmlformats.org/officeDocument/2006/customXml",
+        "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+        "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
+        "http://schemas.openxmlformats.org/package/2006/content-types",
+        "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+        "http://schemas.openxmlformats.org/package/2006/relationships",
+        "http://schemas.openxmlformats.org/presentationml/2006/main",
+        "http://www.w3.org/2001/XMLSchema"
+      ],
+      "languages": ["en-US"],
+      "media": [
+        {
+          "part": "ppt/media/image1.jpeg",
+          "bytes": 15506,
+          "sha256": "a277fc0aba4725b6ff4cbd1f0a608d2ec6cdfcabc3478f29b8e5dd3dba79ac77",
+          "extension": ".jpeg"
+        },
+        {
+          "part": "ppt/media/image10.emf",
+          "bytes": 133444,
+          "sha256": "854616ffc3ab7fc73d5fced2ed957ae1ab6c0eaa6f8a88e35c82a7ff4aa6747e",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image11.emf",
+          "bytes": 114404,
+          "sha256": "d0ce34180337b07f8d46649cdc5df75fa7da9d88efc0f225aa1d10f80c40dfb9",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image12.emf",
+          "bytes": 165252,
+          "sha256": "bb27e6132aae0f20b574393f7af3a921f9c580a1aa758b08be4f7ca128e362d8",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image13.emf",
+          "bytes": 82316,
+          "sha256": "c8c68d6b3834f697a0bbb8f180712f033c829b08f499a817f84d6221fab9344c",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image14.emf",
+          "bytes": 232444,
+          "sha256": "487b26d961bf95eb0cf317bd2d9530d63a23cd068b362a6bc5cdaba0e764f508",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image15.emf",
+          "bytes": 59940,
+          "sha256": "eced98259edaef2eb546304aafca131075df6eca5435cd88e0d08c2e22febc60",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image16.emf",
+          "bytes": 112736,
+          "sha256": "25639985a92078279676970d122b22f47cee3f54b43c2954398c2cf6a637f05c",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image17.emf",
+          "bytes": 50924,
+          "sha256": "913678f56d62a0e146d482dec22847a129bfe2b32147425379841133b05b23c9",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image18.emf",
+          "bytes": 157972,
+          "sha256": "016d3d06947dacbd1e6f47809c9c304f14ac2459103c0b7b5dbaa17bb6236fc0",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image19.emf",
+          "bytes": 71356,
+          "sha256": "f2116905c2a3d6548b3a71ec36738bfa899ad71841b03dbab275b9b333fbc316",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image2.png",
+          "bytes": 40694,
+          "sha256": "1bbf0a58fa85a1710f760621d73bcb0b771faf413efc7bc5f4e68f269ce4c6e3",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image20.emf",
+          "bytes": 126148,
+          "sha256": "50aae7fc8710c4f4608bceb1416c2ec80221bbc85e2831fb9411d6187c7a1b31",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image21.emf",
+          "bytes": 64204,
+          "sha256": "bae777a53bb49c2871a0203af95b0c75bc7aee8a4ff9b9f7d7efb7f9c0bf890b",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image22.emf",
+          "bytes": 103740,
+          "sha256": "a16073f0af8fabef7765420183edf1a16f5cf5393862dcdcea8168e08fbefd74",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image23.emf",
+          "bytes": 82280,
+          "sha256": "ccf6edac56e93ce5ab4e0590e83719d3a1bbd0c2e884e8a918eae82fcdf3125a",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image24.emf",
+          "bytes": 118984,
+          "sha256": "2ed40f3d030dfc2a25dcc837ad5052cb42cdce57ecb4888acbf1fc45169af563",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image25.emf",
+          "bytes": 74532,
+          "sha256": "cfd519a6512d81a0d8ef8f6f822e8e27e3453288bfaa37ee4bdb63a11c23accb",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image26.emf",
+          "bytes": 13747304,
+          "sha256": "359812eef35616657c2823c4f39dd8afd80e114828303936225328f9b20f538f",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image3.png",
+          "bytes": 34594,
+          "sha256": "03400190fbe8c39037d6e48976918c10b8c548fd97947506af05a11a9e24eaec",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image4.png",
+          "bytes": 149818,
+          "sha256": "4e3589217e6c2662cd5bceed8fbb5a977faefc1e946a67acf63988af48e4ec16",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image5.emf",
+          "bytes": 12252,
+          "sha256": "302d288a717ccc7d10c68323fea80d27f2fb69bfa29609d6b3297b5cadfa6080",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image6.png",
+          "bytes": 269551,
+          "sha256": "fd090312e47eae7a8ec9c1d60ab9bb1c1a2a77a7d57b3b3afcbc8283755698fe",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image7.emf",
+          "bytes": 45376,
+          "sha256": "bc7f1371a5bee99b546ab02a6a6a3fefc89bac194783aa5a43cf9e813a2de416",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image8.emf",
+          "bytes": 43392,
+          "sha256": "d3931d62c95e537659ab530ff0ad1a46550a2cf35fff074d716ec835835845ce",
+          "extension": ".emf"
+        },
+        {
+          "part": "ppt/media/image9.emf",
+          "bytes": 1511060,
+          "sha256": "3013e0944c880324be6d659a567c45f415ebbd99d4cb3fff4fa32d81c76771f5",
+          "extension": ".emf"
+        }
+      ],
+      "large_members": [],
+      "strict_namespace_present": false,
+      "integrity": "Every entry streamed with ZIP CRC validation; XML well-formed with DTD/entities prohibited; not OOXML schema/semantic validation",
+      "visual_qa_status": "not_run",
+      "product_qa_status": "not_run_product_not_implemented",
+      "gap_indicators": {
+        "chart_roots": 0,
+        "diagram_elements": 0,
+        "signature_elements": 0,
+        "strict_elements": 0,
+        "slide_cjk_characters": 0,
+        "slide_rtl_characters": 0,
+        "modern_comment_elements": 0
+      },
+      "chart_parts": [],
+      "role": "disposable-qa-fixture",
+      "acquisition_profile": "gap-acquisition-64MiB",
+      "publisher": "World Bank",
+      "rights_caveat": "Public download is not blanket redistribution clearance; retain deck credits and review third-party assets individually. No redistribution approved.",
+      "rights_url": "https://www.worldbank.org/en/publication/global-economic-prospects"
+    },
+    {
+      "title": "data-visualization-course.pptx",
+      "landing_url": "https://www.comm.tcu.ac.jp/mds-center/",
+      "source_url": "https://www.comm.tcu.ac.jp/mds-center/Resources/06-1_DataVisualization.pptx",
+      "cache_path": ".cache/pptx-corpus/data-visualization-course.pptx",
+      "retrieved_at": "2026-09-13T03:06:50.417915+00:00",
+      "status": "downloaded",
+      "curl_exit": 0,
+      "final_url": "https://www.comm.tcu.ac.jp/mds-center/Resources/06-1_DataVisualization.pptx",
+      "content_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "http_status": 200,
+      "error": "",
+      "bytes": 52907926,
+      "sha256": "ce874bc9782258175b84f5e438123552b78c993e0add9015f35d8ca2dd5c45d2",
+      "census": {
+        "xml_nodes": 46292,
+        "expanded_bytes": 54329210,
+        "relationships": 220,
+        "external_relationships": 4,
+        "slide_roots": 39,
+        "shapes": 535,
+        "paragraphs": 1519,
+        "runs": 1276,
+        "groups": 37,
+        "picture_occurrences": 47,
+        "tables": 12,
+        "table_rows": 94,
+        "table_cells": 725,
+        "connectors": 58,
+        "click_links": 4,
+        "timing_trees": 9,
+        "timing_nodes": 120,
+        "alternate_content": 24,
+        "math_objects": 20,
+        "custom_geometry": 1,
+        "master_roots": 1,
+        "layout_roots": 11,
+        "notes_roots": 1,
+        "chart_xml_parts": 24,
+        "embedded_objects": 8,
+        "zip_entries": 215,
+        "media_parts": 53,
+        "media_bytes": 52581807
+      },
+      "namespaces": [
+        "http://purl.org/dc/elements/1.1/",
+        "http://purl.org/dc/terms/",
+        "http://schemas.microsoft.com/office/drawing/2007/8/2/chart",
+        "http://schemas.microsoft.com/office/drawing/2010/main",
+        "http://schemas.microsoft.com/office/drawing/2012/chart",
+        "http://schemas.microsoft.com/office/drawing/2012/chartStyle",
+        "http://schemas.microsoft.com/office/drawing/2014/chart",
+        "http://schemas.microsoft.com/office/drawing/2014/chartex",
+        "http://schemas.microsoft.com/office/drawing/2014/main",
+        "http://schemas.microsoft.com/office/drawing/2016/SVG/main",
+        "http://schemas.microsoft.com/office/drawing/2017/03/chart",
+        "http://schemas.microsoft.com/office/drawing/2018/sketchyshapes",
+        "http://schemas.microsoft.com/office/powerpoint/2010/main",
+        "http://schemas.microsoft.com/office/powerpoint/2012/main",
+        "http://schemas.microsoft.com/office/thememl/2012/main",
+        "http://schemas.openxmlformats.org/drawingml/2006/chart",
+        "http://schemas.openxmlformats.org/drawingml/2006/main",
+        "http://schemas.openxmlformats.org/markup-compatibility/2006",
+        "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+        "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
+        "http://schemas.openxmlformats.org/officeDocument/2006/math",
+        "http://schemas.openxmlformats.org/package/2006/content-types",
+        "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+        "http://schemas.openxmlformats.org/package/2006/relationships",
+        "http://schemas.openxmlformats.org/presentationml/2006/main"
+      ],
+      "languages": ["az-Cyrl-AZ", "en", "en-US", "ja-JP", "ko-KR", "th-TH", "vi-VN"],
+      "media": [
+        {
+          "part": "ppt/media/image26.tiff",
+          "bytes": 3026950,
+          "sha256": "e24fcd79bf6005777089b8cec65caf3f3cb16b98bc3670d869b4397f3feaecfd",
+          "extension": ".tiff"
+        },
+        {
+          "part": "ppt/media/image40.png",
+          "bytes": 334424,
+          "sha256": "6ad85e786368b789ebe777ee50921f11723f856644fd2387b47a6534a97cd626",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image41.svg",
+          "bytes": 1788028,
+          "sha256": "d008c546e0ed037511f99f5c930591adfd5e0d829684cf3dcfae16243e1c101d",
+          "extension": ".svg"
+        },
+        {
+          "part": "ppt/media/image42.png",
+          "bytes": 11754,
+          "sha256": "df304e14a55c16bbd0063fbb3b9a3681daf59a6058fde35596a1d5e5ca3b54aa",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image43.png",
+          "bytes": 5898,
+          "sha256": "7581f8b2916f3a72bbe7974e7e313993617f90fc31bf278b0ed01fd4b2e531bd",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image44.png",
+          "bytes": 211431,
+          "sha256": "852012472b0cda8309f3eca4782631078b799b96ff35d65708316c19893159d3",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image45.svg",
+          "bytes": 20477,
+          "sha256": "3f9fbca5e9e47113c973556ee75206dcac0a03585828a4ae86586674bad6e6b4",
+          "extension": ".svg"
+        },
+        {
+          "part": "ppt/media/image46.png",
+          "bytes": 379246,
+          "sha256": "1a808f1d86e0532f5a81cfc40d04c9d183df3c30489ac1958a2b61e260bba014",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image47.svg",
+          "bytes": 44792,
+          "sha256": "c9735a84d45487100da263ed446a08148418f81145cc09d1cf3bc11aaee5fde0",
+          "extension": ".svg"
+        },
+        {
+          "part": "ppt/media/image48.png",
+          "bytes": 117765,
+          "sha256": "630697f347cfdddb59fb083d6e0e7ba0bb11ab460fa8f4509a144a5f5ad2b20f",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image49.svg",
+          "bytes": 22381,
+          "sha256": "6435faac23c92c9589372eb6947f89553b6a0ec413243bf77b6b635f04ab73f3",
+          "extension": ".svg"
+        },
+        {
+          "part": "ppt/media/image25.tiff",
+          "bytes": 1171390,
+          "sha256": "f2e739db50cdd3665655c325dbc69a406ab39cc9ecbf25e6abcff3d388830f52",
+          "extension": ".tiff"
+        },
+        {
+          "part": "ppt/media/image17.png",
+          "bytes": 3341,
+          "sha256": "88320a44c365d3a497a5e55096cf62503bb8476ad8af4491016fe774537f5651",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image16.png",
+          "bytes": 2552,
+          "sha256": "947c587bdf8c0c04b116e087ff5cf2a812d2ac93a79d3a1733213aa2075dc3f2",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image15.png",
+          "bytes": 193177,
+          "sha256": "32f3372c3f0f76371f73c9ac45b3109a53d4eeea572475111a97460bf49ccf4d",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image14.png",
+          "bytes": 113418,
+          "sha256": "b8e43544bca9fda5aa9ae200416b8cd091e90c034f112f2703186f68e947512c",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image13.png",
+          "bytes": 383675,
+          "sha256": "dece11f5175c7202f3b6c47bd919cc120797d4e9fc56377b15fe3520448b6f7a",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image12.png",
+          "bytes": 312785,
+          "sha256": "8360e228742675414fba7384353fc617f08875aa0c7487b891abaf216e7541aa",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image11.png",
+          "bytes": 721788,
+          "sha256": "622c40ba904fd8ac9a9cad60f27384e25eda1b26f60258dd22f16e19a45738f5",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image10.tiff",
+          "bytes": 2145066,
+          "sha256": "404f765ba7cfb832717d9679217eff4e83b869ffc5c834beec1fdf70ea690b30",
+          "extension": ".tiff"
+        },
+        {
+          "part": "ppt/media/image9.png",
+          "bytes": 160286,
+          "sha256": "8236a2e5b1cadb8ac3c5e84af5b91ebe23bc392f9797dd01cb3020a3577be610",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image8.png",
+          "bytes": 315458,
+          "sha256": "6f23745bf68092e6846905b6ea64927f529951ea591c999bca11daacd5572660",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image7.png",
+          "bytes": 286950,
+          "sha256": "7f7edc1c7159c7c3be6bacc106f88e44c568991013d2880766a5ac572de7fd08",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image6.png",
+          "bytes": 286671,
+          "sha256": "6876b66b27c9d708fa01828308be57b41d3a548dce83b0b1fbe81aca90e3bf10",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image5.png",
+          "bytes": 275010,
+          "sha256": "4cc9e8e9824e39cf9f2b7850dc6ef1ff2e2421c37fed2c1d95887a49a26b08bb",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image4.png",
+          "bytes": 36693,
+          "sha256": "7ad32318a7d01333534bf49678399795de4d84ce62b34ff182f632842cc8faca",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image3.png",
+          "bytes": 80440,
+          "sha256": "d33fabd61a3b2145e235e3751a671d9fd68ca511ddcd1d8cf23e5efd4522a22f",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image2.jpg",
+          "bytes": 4478,
+          "sha256": "e164f6ad1209d23dcbba3004e960e22bcdcc5243b21ccf71b34fbd821d22447b",
+          "extension": ".jpg"
+        },
+        {
+          "part": "ppt/media/image1.png",
+          "bytes": 19976,
+          "sha256": "5c7b2b2660236f99b7d119a750d281b118891cc5211ee470985d0a3185bb8879",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image24.jpg",
+          "bytes": 165577,
+          "sha256": "aabf802a83e65ee4fafbdcbaa648e8bcb449262550e1dd8d0fb021cd79151741",
+          "extension": ".jpg"
+        },
+        {
+          "part": "ppt/media/image23.tiff",
+          "bytes": 198070,
+          "sha256": "c7ebd441847bf776c877e26b96d743b657ae23cec67c412dbf2bcf8920d6daa3",
+          "extension": ".tiff"
+        },
+        {
+          "part": "ppt/media/image22.jpeg",
+          "bytes": 3539966,
+          "sha256": "64782380dec854aa2d4ee55ff864fc61873ede70152018e01999999323e02d9f",
+          "extension": ".jpeg"
+        },
+        {
+          "part": "ppt/media/image21.tiff",
+          "bytes": 230756,
+          "sha256": "9608c91a282d6b9fafe8a21a0554493ca3a2182ac060bc431259738d7bb4c1dd",
+          "extension": ".tiff"
+        },
+        {
+          "part": "ppt/media/image20.tiff",
+          "bytes": 504962,
+          "sha256": "1ae2fda71f8ab3a703127dd5bdd6546044e3ab28a4f1505c260440668df6b62f",
+          "extension": ".tiff"
+        },
+        {
+          "part": "ppt/media/image19.tiff",
+          "bytes": 34600658,
+          "sha256": "7ccbfb520b4cf8cef23d2996583baffb32d03ae471a1186e8e6a5c00ab2ca27c",
+          "extension": ".tiff"
+        },
+        {
+          "part": "ppt/media/image18.tiff",
+          "bytes": 195656,
+          "sha256": "8ab3b6e31cab43f5d07ab62fd497a204ca1958a17d72a1b7ad33ee253e502050",
+          "extension": ".tiff"
+        },
+        {
+          "part": "ppt/media/image36.png",
+          "bytes": 34226,
+          "sha256": "6b07466f6f5f06c96edb411be2f55073d2788f563e15141542170c1cc738e52d",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image35.png",
+          "bytes": 31547,
+          "sha256": "77d4efd9f4539318d2d2f8d194f0a43e27729976b60db06a2770a291a437992c",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image34.png",
+          "bytes": 40978,
+          "sha256": "e54410d36af6d9d8e550f30fbb5b304ef7aeb41c13db14cb781885987eaac397",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image33.png",
+          "bytes": 30405,
+          "sha256": "0b3b174e3470fa0df4550f7183b87c72ebc592d61a521b0386a17a771c4bd198",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image32.png",
+          "bytes": 25998,
+          "sha256": "696bbdea6a32bcfd61c138252af8ba2fc1b2862d8ddc9cb5cf972b11de506fc0",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image31.png",
+          "bytes": 7720,
+          "sha256": "23a0df36757354580d2520f5ec5b31fa9b07d7dbab2bc851217e2d775b846d03",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image30.png",
+          "bytes": 22453,
+          "sha256": "8a66af0416d869aa80d188d43093196d77c0f2fb991e024afc2a7823984b7cc8",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image29.png",
+          "bytes": 2613,
+          "sha256": "bad5ffe9efa67a23173734fdbe784ea33c27c88fc416ef17ac7f95a480205c9f",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image28.png",
+          "bytes": 4236,
+          "sha256": "d3d8c47cb11bef23a49e953d2d63bb95aa5b94b0519f47d3c63dbfa470b07d66",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image27.png",
+          "bytes": 4079,
+          "sha256": "72f28edb32844a4e175dec9af3ef9ca1170d19f21c422d51dbc7478199399d30",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image260.png",
+          "bytes": 45036,
+          "sha256": "400241b568a7bea4891dcc7ef2e4e5637b883e840adaddb9e416cb8e44a5fd6d",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image26.png",
+          "bytes": 37765,
+          "sha256": "3e64753259fec4a7dc710ef3fdebb245c7e460c54e1f610fafac9676a5d90208",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image170.png",
+          "bytes": 288061,
+          "sha256": "c82767eeffbca95346c5f506353f3485a39d7fc4629bcc28d02a62b6f8c1330c",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image24.png",
+          "bytes": 17370,
+          "sha256": "bab1ed5b6ef431e7d2506c1abc7e635d181c6215e2bd83870c909092f48da306",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image37.png",
+          "bytes": 42542,
+          "sha256": "c6dd9b6d257b4ad8f5872bf7475ae720100b96668c706021ff61a5bf8df05885",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image39.png",
+          "bytes": 1174,
+          "sha256": "de9547635fe4150a41495fd91078be2208b97ccea151949ea12cb574d9adace2",
+          "extension": ".png"
+        },
+        {
+          "part": "ppt/media/image38.png",
+          "bytes": 33659,
+          "sha256": "6a5bfccaa77adf55a6d8262c2ddab88014ee04f3bfe19e8603c304e69918483d",
+          "extension": ".png"
+        }
+      ],
+      "large_members": [],
+      "strict_namespace_present": false,
+      "integrity": "Every entry streamed with ZIP CRC validation; XML well-formed with DTD/entities prohibited; not OOXML schema/semantic validation",
+      "visual_qa_status": "not_run",
+      "product_qa_status": "not_run_product_not_implemented",
+      "gap_indicators": {
+        "chart_roots": 7,
+        "diagram_elements": 0,
+        "signature_elements": 0,
+        "strict_elements": 0,
+        "slide_cjk_characters": 3970,
+        "slide_rtl_characters": 0,
+        "modern_comment_elements": 0
+      },
+      "chart_parts": [
+        "ppt/charts/chart6.xml",
+        "ppt/charts/chart7.xml",
+        "ppt/charts/chart5.xml",
+        "ppt/charts/chart4.xml",
+        "ppt/charts/chart1.xml",
+        "ppt/charts/chart3.xml",
+        "ppt/charts/chart2.xml"
+      ],
+      "role": "disposable-qa-fixture",
+      "acquisition_profile": "gap-acquisition-64MiB",
+      "publisher": "Tokyo City University",
+      "rights_caveat": "Course No.6 is offered under CC BY 4.0 by the publisher; explicitly credited third-party material requires separate rights review. Original credits retained in disposable input; no assets redistributed.",
+      "rights_url": "https://www.comm.tcu.ac.jp/mds-center/etc/TermsOfUse.html"
     }
   ],
   "reverification": {
     "evidence": "corpus-reverification.json",
     "status": "all_cached_bytes_and_media_hashes_match",
     "fresh_download": false,
+    "product_qa": "not_run",
+    "scope": "The original 12 downloads only; the two added downloads have independent acquisition/census evidence in corpus-gap-acquisition.json."
+  },
+  "acquisition_profiles": {
+    "gap-acquisition-64MiB": {
+      "per_file_bytes": 67108864,
+      "total_cache_bytes": 805306368,
+      "max_simultaneous_transfers": 2,
+      "observed_simultaneous_transfers": 1,
+      "connect_timeout_seconds": 20,
+      "total_timeout_seconds": 120,
+      "max_redirects": 5,
+      "protocols": ["https"],
+      "linked_resource_fetching": false
+    },
+    "large-media-acquisition-512MiB": {
+      "per_file_bytes": 536870912,
+      "scope": "historical large media download only; not used in this campaign; distinct from product defaults"
+    }
+  },
+  "gap_acquisition": {
+    "evidence": "corpus-gap-acquisition.json",
+    "downloaded_count": 2,
+    "downloaded_bytes": 58099880,
     "product_qa": "not_run"
   }
 }

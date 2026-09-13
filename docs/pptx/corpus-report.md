@@ -2,7 +2,7 @@
 
 Status: Acquired and structurally inspected; product not implemented.
 
-Downloaded 12 decks totaling 557.94 MiB, with 337 stored media parts. These are disposable QA fixtures only. No product create/read/edit test, schema validation, rendering or playback has run.
+The initial acquisition downloaded 12 decks totaling 557.94 MiB, with 337 stored media parts. These are disposable QA fixtures only. No product create/read/edit test, schema validation, rendering or playback has run.
 
 The later [reverification](corpus-reverification.md) confirms cached hashes, adds
 per-part measurements and separates metadata indicators from actual comment/CJK
@@ -45,7 +45,12 @@ The large Earth-system deck has one slide and a large embedded video: media size
 
 [NASA media guidance](https://www.nasa.gov/nasa-brand-center/images-and-media/) and [CERN media terms](https://copyright.web.cern.ch/) are provenance leads, not blanket clearance for every embedded image, logo or third-party slide. The official interactive-deck page credits NASA/JPL-Caltech. Retain credits in QA sources; do not ship these binaries or copy their assets into canonical tests. Document-specific review is required before distributing derived outputs.
 
-## Remaining coverage gaps
+The subsequent [gap acquisition](corpus-gap-acquisition.md) adds two fresh downloads
+from independent publishers, including seven chart roots and actual Japanese
+slide text. The table above and gaps below describe the original 12-deck seed,
+not the expanded manifest.
+
+## Remaining coverage gaps (initial seed)
 
 The seeded corpus covers templates, multiple masters, notes, tables, pictures, grouped shapes, connectors, custom geometry, OLE, hyperlinks, transitions, timing trees and embedded video. It does not establish exhaustive format coverage. Chart/SmartArt/modern-comment/Strict/RTL/CJK coverage is absent or unverified; seek actual examples and author small original fixtures where unavailable. There is no hundreds-of-slides real deck in this seed set. Original generated many-slide stress fixtures must be labeled separately.
 

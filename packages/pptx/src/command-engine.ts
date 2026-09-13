@@ -26,6 +26,8 @@ import { connectorSchemas } from "./connectors-schema.js";
 import { validateShapePath, pathFromVertices, type ShapePath } from "./shape-paths.js";
 import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
 import { fieldSchemas } from "./fields-schema.js";
+import { equationSchemas, equationsUsage } from "./equations-schema.js";
+import { validateEquationCommand, executeEquationCommand } from "./command-equations.js";
 import { readImages } from "./images.js";
 import { extractImages, type ExtractedImage } from "./image-extraction.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
@@ -401,6 +403,7 @@ interface Arguments {
   shadowColor?: DrawingColor;
   fieldEdit?: FieldUpdate;
   operation:
+    | `equations.${"list" | "get" | "add"}`
     | `tables.${"list" | "get" | "add" | "set" | "merge" | "split" | "rows.add" | "rows.remove" | "columns.add" | "columns.remove"}`
     | `connectors.${"list" | "get" | "add" | "set" | "remove"}`
     | `fields.${"list" | "get" | "set" | "add" | "remove"}`
@@ -809,6 +812,7 @@ function parse(
     } else if (
       index === 1 &&
       [
+        "equations",
         "charts",
         "images",
         "tables",
@@ -877,6 +881,7 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "equations",
     "charts",
     "images",
     "tables",
@@ -905,6 +910,7 @@ function parse(
   if (
     ![
       ...Object.keys(imageSchemas),
+      ...Object.keys(equationSchemas),
       ...Object.keys(chartSchemas),
       ...Object.keys(fieldSchemas),
       ...Object.keys(connectorSchemas),
@@ -960,6 +966,7 @@ function parse(
     }
     if (
       (operation.startsWith("images.") ||
+        operation.startsWith("equations.") ||
         operation.startsWith("charts.") ||
         operation.startsWith("tables.") ||
         operation.startsWith("connectors.") ||
@@ -2320,6 +2327,10 @@ function parse(
       usage("Binary stdout cannot be combined with JSON.");
     return result;
   }
+  if (Object.hasOwn(equationSchemas, operation)) {
+    validateEquationCommand(result, positionals, seen);
+    return result;
+  }
   if (["charts.add", "charts.set", "charts.replace"].includes(operation)) {
     const allowed = Object.keys(chartSchemas[operation]!.options.properties).map(
       (key) =>
@@ -3132,6 +3143,7 @@ function parse(
       (operation === "schema" || operation === "help") &&
       [
         ...Object.keys(imageSchemas),
+        ...Object.keys(equationSchemas),
         ...Object.keys(chartSchemas),
         ...Object.keys(fieldSchemas),
         ...Object.keys(connectorSchemas),
@@ -3414,7 +3426,9 @@ async function execute(
     const operation = args.operation;
     if (args.operation === "help") {
       const usage =
-        args.schemaPath === "text.fit"
+        args.schemaPath?.startsWith("equations.")
+          ? equationsUsage
+          : args.schemaPath === "text.fit"
           ? "Usage: pptx text fit INPUT --metrics JSON [selection] [output]\n" +
             "Selection: --slide N --shape NAME | --select TOKEN | --all\n" +
             "Output: --output PATH | --in-place | --dry-run\n" +
@@ -3631,6 +3645,7 @@ async function execute(
           Object.entries({
             ...imageSchemas,
             ...chartSchemas,
+            ...equationSchemas,
             ...fieldSchemas,
             ...membershipSchemas,
             ...settingsSchemas,
@@ -3836,6 +3851,11 @@ async function execute(
             subset:
               "Explicit slide or group coordinates; distinct siblings; hidden objects participate and locked selections reject. Stable drawing order resolves ties. Alignment uses selection bounds, distribution preserves endpoints with equal edge gaps, and duplication requires signed offsets with fresh IDs and supported reference remapping. Unsupported geometry or references reject without publication."
           },
+          equations: {
+            level: "edit",
+            operations: Object.keys(equationSchemas),
+            subset: "F41: inspect and extract OMML; insert one validated caller-authored equation into a selected text body. Existing equations and fallbacks remain preserved. Set/remove, rendering and evaluation are unavailable."
+          },
           shapes: {
             level: "edit",
             subset:
@@ -3852,7 +3872,13 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (
+    else if (Object.hasOwn(equationSchemas, args.operation)) {
+      const equation = await executeEquationCommand(args, request, options);
+      result = equation.result;
+      human = equation.human;
+      binary = equation.binary;
+      publication = equation.publication;
+    } else if (
       ["fields.set", "fields.add", "fields.remove"].includes(args.operation) ||
       args.operation === "text.replace" ||
       args.operation === "text.runs.set" ||

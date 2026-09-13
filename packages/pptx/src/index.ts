@@ -393,3 +393,13 @@ export {
 } from "./image-formatting.js";
 export { extractImages } from "./image-extraction.js";
 export type { ExtractImagesOptions, ExtractedImage } from "./image-extraction.js";
+
+export {
+  readEquations,
+  mutateEquations,
+  inventoryEquations,
+  validateAuthoredEquation,
+  type EquationContent,
+  type EquationRecord,
+  type AddEquationOptions
+} from "./equations.js";

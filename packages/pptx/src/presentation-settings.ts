@@ -8,7 +8,7 @@ import { writePackageArchive } from "./package-writer.js";
 import { relativePartReference } from "./package-uri.js";
 import { readRelationshipGraph } from "./relationships.js";
 import type { SelectionContext } from "./selectors.js";
-import { parseXmlPart, type XmlElement, type XmlMerge } from "./xml.js";
+import { parseXmlPart, type XmlElement, type XmlMerge, type XmlPart } from "./xml.js";
 import { validatePresentation } from "./validation.js";
 
 export interface PresentationSettings {
@@ -192,95 +192,33 @@ export async function readPresentationSettings(
     viewProperties
   };
 }
-export async function mutatePresentationSettings(
-  input: BinaryInput,
-  options: MutatePresentationSettingsOptions,
-  context: SelectionContext
-): Promise<Uint8Array> {
-  const keys = [
-    "width",
-    "height",
-    "orientation",
-    "notesWidth",
-    "notesHeight",
-    "notesOrientation",
-    "slideNumberStart",
-    "loop",
-    "showType",
-    "scaleContent"
-  ];
-  if (
-    !options ||
-    typeof options !== "object" ||
-    ![Object.prototype, null].includes(Object.getPrototypeOf(options)) ||
-    Object.keys(options).some((k) => !keys.includes(k))
-  )
-    invalid("Invalid presentation settings object.");
-  if (
-    !Object.entries(options).some(([key, value]) => key !== "scaleContent" && value !== undefined)
-  )
-    invalid("At least one setting is required.");
-  for (const key of ["orientation", "notesOrientation"] as const)
-    if (options[key] !== undefined && !["portrait", "landscape"].includes(options[key]))
-      invalid("Invalid orientation.");
-  for (const key of ["width", "height", "notesWidth", "notesHeight"] as const) {
-    const value = options[key];
-    const slide = key === "width" || key === "height";
-    if (
-      value !== undefined &&
-      (!Number.isSafeInteger(value) ||
-        value < (slide ? 914400 : 0) ||
-        value > (slide ? 51206400 : 27273042316900))
-    )
-      invalid("Invalid EMU dimensions.");
-  }
-  if (
-    options.slideNumberStart !== undefined &&
-    (!Number.isSafeInteger(options.slideNumberStart) ||
-      options.slideNumberStart < -2147483648 ||
-      options.slideNumberStart > 2147483647)
-  )
-    invalid("Slide numbering requires a signed 32-bit integer.");
-  for (const value of [options.loop, options.scaleContent])
-    if (value !== undefined && typeof value !== "boolean") invalid("Expected a boolean setting.");
-  if (options.showType !== undefined && !["speaker", "window", "kiosk"].includes(options.showType))
-    invalid("Invalid slideshow type.");
-  const loaded = await load(input, context);
-  const { reader, graph, main, dialect, limits, source } = loaded;
-  const types = parseContentTypes(reader.get("/[Content_Types].xml"), limits);
-  for (const name of reader.names) {
-    if (name === "/[Content_Types].xml") continue;
-    const type = types.get(name).toLowerCase();
-    if (
-      type.includes("digital-signature") ||
-      type.includes("macroenabled") ||
-      type.includes("vbaproject")
-    )
-      unsupported("Signed and macro-enabled packages cannot be changed.");
-  }
-  for (const owner of ["/", ...graph.parts])
-    if (
-      graph
-        .outgoing(owner)
-        .some((e) => e.type.includes("/digital-signature/") || e.type.endsWith("/vbaProject"))
-    )
-      unsupported("Signed and macro-enabled packages cannot be changed.");
-  const pending = [
-    loaded.document.root,
-    ...(loaded.propertyDocument ? [loaded.propertyDocument.root] : [])
-  ];
+export function applyPresentationCanvasSettings(
+  document: XmlPart,
+  options: Pick<
+    MutatePresentationSettingsOptions,
+    | "width"
+    | "height"
+    | "orientation"
+    | "notesWidth"
+    | "notesHeight"
+    | "notesOrientation"
+    | "slideNumberStart"
+  >,
+  propertyDocument?: XmlPart | null
+): XmlPart {
+  const pending = [document.root, ...(propertyDocument ? [propertyDocument.root] : [])];
   while (pending.length) {
     const node = pending.pop()!;
     if (
       node.name.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" ||
-      (node.name.namespace === dialect.p && node.name.localName === "modifyVerifier")
+      (node.name.namespace === document.root.name.namespace &&
+        node.name.localName === "modifyVerifier")
     )
       unsupported("Protected or conditional presentation settings cannot be changed.");
     pending.push(...node.children);
   }
-  let document = loaded.document;
-  const previous = settings(document.root, loaded.propertyDocument?.root);
-  const pn = (localName: string) => ({ namespace: dialect.p, localName });
+  const previous = settings(document.root, propertyDocument?.root);
+  const pn = (localName: string) => ({ namespace: document.root.name.namespace, localName });
   const dimensions: { name: ReturnType<typeof pn>; merge: XmlMerge }[] = [];
   for (const [name, w, h, o, pw, ph] of [
     ["sldSz", options.width, options.height, options.orientation, previous.width, previous.height],
@@ -354,6 +292,89 @@ export async function mutatePresentationSettings(
         upsert: dimensions
       }
     });
+  return document;
+}
+
+export async function mutatePresentationSettings(
+  input: BinaryInput,
+  options: MutatePresentationSettingsOptions,
+  context: SelectionContext
+): Promise<Uint8Array> {
+  const keys = [
+    "width",
+    "height",
+    "orientation",
+    "notesWidth",
+    "notesHeight",
+    "notesOrientation",
+    "slideNumberStart",
+    "loop",
+    "showType",
+    "scaleContent"
+  ];
+  if (
+    !options ||
+    typeof options !== "object" ||
+    ![Object.prototype, null].includes(Object.getPrototypeOf(options)) ||
+    Object.keys(options).some((k) => !keys.includes(k))
+  )
+    invalid("Invalid presentation settings object.");
+  if (
+    !Object.entries(options).some(([key, value]) => key !== "scaleContent" && value !== undefined)
+  )
+    invalid("At least one setting is required.");
+  for (const key of ["orientation", "notesOrientation"] as const)
+    if (options[key] !== undefined && !["portrait", "landscape"].includes(options[key]))
+      invalid("Invalid orientation.");
+  for (const key of ["width", "height", "notesWidth", "notesHeight"] as const) {
+    const value = options[key];
+    const slide = key === "width" || key === "height";
+    if (
+      value !== undefined &&
+      (!Number.isSafeInteger(value) ||
+        value < (slide ? 914400 : 0) ||
+        value > (slide ? 51206400 : 27273042316900))
+    )
+      invalid("Invalid EMU dimensions.");
+  }
+  if (
+    options.slideNumberStart !== undefined &&
+    (!Number.isSafeInteger(options.slideNumberStart) ||
+      options.slideNumberStart < -2147483648 ||
+      options.slideNumberStart > 2147483647)
+  )
+    invalid("Slide numbering requires a signed 32-bit integer.");
+  for (const value of [options.loop, options.scaleContent])
+    if (value !== undefined && typeof value !== "boolean") invalid("Expected a boolean setting.");
+  if (options.showType !== undefined && !["speaker", "window", "kiosk"].includes(options.showType))
+    invalid("Invalid slideshow type.");
+  const loaded = await load(input, context);
+  const { reader, graph, main, dialect, limits, source } = loaded;
+  const pn = (localName: string) => ({ namespace: dialect.p, localName });
+  const types = parseContentTypes(reader.get("/[Content_Types].xml"), limits);
+  for (const name of reader.names) {
+    if (name === "/[Content_Types].xml") continue;
+    const type = types.get(name).toLowerCase();
+    if (
+      type.includes("digital-signature") ||
+      type.includes("macroenabled") ||
+      type.includes("vbaproject")
+    )
+      unsupported("Signed and macro-enabled packages cannot be changed.");
+  }
+  for (const owner of ["/", ...graph.parts])
+    if (
+      graph
+        .outgoing(owner)
+        .some((e) => e.type.includes("/digital-signature/") || e.type.endsWith("/vbaProject"))
+    )
+      unsupported("Signed and macro-enabled packages cannot be changed.");
+  const previous = settings(loaded.document.root, loaded.propertyDocument?.root);
+  const document = applyPresentationCanvasSettings(
+    loaded.document,
+    options,
+    loaded.propertyDocument
+  );
   const changes = new Map<string, Uint8Array>([[main, document.bytes()]]);
   if (options.scaleContent) {
     if (

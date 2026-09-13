@@ -103,6 +103,13 @@ export {
 export { getXmlPart, replaceXmlPart, type XmlPartContext, type XmlPartData } from "./xml-parts.js";
 
 export {
+  Presentation,
+  type PresentationModel,
+  type PresentationContext,
+  type PresentationPublication
+} from "./presentation-model.js";
+
+export {
   createPresentation,
   type CreatePresentationOptions,
   type PresentationProperties,

@@ -1,6 +1,8 @@
 # PPTX API language and security reconciliation
 
-Status: Proposed research decisions; no SDK implementation or passing product tests.
+Status: Reconciled mapping contract with partial implementation. Historical design
+statements below are not current package-wide implementation claims; bounded
+receipts in the [API audit](upstream-api-audit.md) identify passing original tests.
 
 Authority: [shared SDK](../specs/office-sdk.md), [shared CLI](../specs/office-cli.md)
 and [format contract](../specs/pptx.md). J01–J10 are referenced by individual
@@ -8,8 +10,9 @@ and [format contract](../specs/pptx.md). J01–J10 are referenced by individual
 not declarations to copy verbatim into TypeScript. The completed
 [target API design](public-api-map.json) elaborates these mappings, and the later
 [command register](command-coverage.json) records route/schema corrections.
-Both remain proposed documentation; compiled exports, executable schemas and
-passing original tests are still required. An unannotated source return is not
+The registers retain their historical design dispositions; only member-specific
+compiled exports, executable schemas and passing original tests establish current
+coverage. An unannotated source return is not
 permission to publish `any`.
 
 ## J01 — Names, arguments and construction

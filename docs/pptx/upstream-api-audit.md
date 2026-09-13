@@ -2,6 +2,19 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Current public surface additions: [typed input failures](public-input-errors-evidence.md),
+[inherited connector formatting](connector-public-surface.md), and
+[remaining owner/graph obligations](public-surface-current-gaps.md).
+These receipts distinguish passing members from historical inventory labels;
+they do not establish complete object-model coverage.
+
+Current text-fitting arguments: [exact null/default and stored-option mappings](text-fit-public-arguments.md)
+supplement the existing fitting receipt with original synchronous rejection tests.
+
+Current presentation boundary: [async factory/save and synchronous metadata/canvas](presentation-public-surface-evidence.md)
+reuse the existing package, property and canvas engines. Slide and drawing owner
+graphs remain outstanding; this is not a completed presentation object model.
+
 Current links: [bounded F47 evidence and language/security mappings](links-evidence.md),
 [144-case accounting](links-case-map.json), [50-member API receipt](links-api-map.json)
 and [draft usage](links-usage.md). This is a later bounded implementation receipt;

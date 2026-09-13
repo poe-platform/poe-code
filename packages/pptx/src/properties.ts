@@ -241,7 +241,7 @@ export async function readProperties(
     .map((x) => x.record)
     .filter((x) => query.name === undefined || x.name === query.name);
 }
-function createPart(s: State, kind: "core" | "custom", context: SelectionContext) {
+export function createPropertyPart(s: State, kind: "core" | "custom", context: SelectionContext) {
   let part = `/docProps/${kind}.xml`;
   let suffix = 1;
   while (s.reader.has(part)) part = `/docProps/${kind}${suffix++}.xml`;
@@ -317,7 +317,7 @@ export async function mutateProperty(
   const candidates = parts(s).filter((p) => p.kind === kind);
   if (candidates.length > 1)
     throw new OfficeError("ambiguous-selection", "Multiple property parts.", "select");
-  const part = found?.record.part ?? candidates[0]?.part ?? createPart(s, kind, context);
+  const part = found?.record.part ?? candidates[0]?.part ?? createPropertyPart(s, kind, context);
   let doc = s.doc(part);
   if (found && kind === "core")
     doc = setCoreText(
@@ -510,7 +510,7 @@ export async function openPropertySession(
   let model: CoreProperties | undefined;
   return {
     get core_properties() {
-      part ??= createPart(s, "core", context);
+      part ??= createPropertyPart(s, "core", context);
       return (model ??= new CoreProperties(
         () => s.doc(part!),
         (doc) => s.save(part!, doc)

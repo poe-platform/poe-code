@@ -166,6 +166,15 @@ type GroupingContext = {
   isControlCondition?: boolean;
   statementList?: boolean;
   closesStatement?: boolean;
+  classBody?: boolean;
+  functionParameters?: boolean;
+};
+
+type GroupingState = {
+  stack: GroupingContext[];
+  classHeads: Array<{depth: number; declaration: boolean}>;
+  tokenCount: number;
+  functionBody?: boolean;
 };
 
 class Lexer {
@@ -173,7 +182,7 @@ class Lexer {
   private line = 1;
   private column = 1;
   private readonly tokens: Token[] = [];
-  private readonly groupingStack: GroupingContext[] = [];
+  private readonly groupingState: GroupingState = {stack: [], classHeads: [], tokenCount: 0};
   private lastClosedStatementBoundary = false;
   private legacyStringEscape = false;
   private lineHasToken = false;
@@ -396,7 +405,7 @@ class Lexer {
   private skipTemplateExpression(start: Position): void {
     let depth = 1;
     const tokens: Array<Pick<Token, "type" | "value">> = [];
-    const groupingStack: GroupingContext[] = [];
+    const groupingState: GroupingState = {stack: [], classHeads: [], tokenCount: 0};
     let lastClosedStatementBoundary = false;
 
     while (!this.isAtEnd() && depth > 0) {
@@ -487,8 +496,9 @@ class Lexer {
       if (char === "{") {
         depth += 1;
         this.advance();
-        updateGroupingState(groupingStack, tokens[tokens.length - 1], "{", lastClosedStatementBoundary);
+        const previousToken = tokens[tokens.length - 1];
         tokens.push({ type: "punctuator", value: "{" });
+        updateGroupingState(groupingState, previousToken, "{", lastClosedStatementBoundary, false, tokens);
         lastClosedStatementBoundary = false;
         continue;
       }
@@ -501,8 +511,9 @@ class Lexer {
           return;
         }
 
-        lastClosedStatementBoundary = updateGroupingState(groupingStack, tokens[tokens.length - 1], "}", lastClosedStatementBoundary);
+        const previousToken = tokens[tokens.length - 1];
         tokens.push({ type: "punctuator", value: "}" });
+        lastClosedStatementBoundary = updateGroupingState(groupingState, previousToken, "}", lastClosedStatementBoundary, false, tokens);
         continue;
       }
 
@@ -527,12 +538,12 @@ class Lexer {
         this.advanceBy(punctuator.length);
         tokens.push({ type: "punctuator", value: punctuator });
         lastClosedStatementBoundary = updateGroupingState(
-          groupingStack,
+          groupingState,
           previousToken,
           punctuator,
           lastClosedStatementBoundary,
           false,
-          tokens[tokens.length - 3]
+          tokens
         );
         continue;
       }
@@ -958,12 +969,12 @@ class Lexer {
 
     if (type === "punctuator") {
       this.lastClosedStatementBoundary = updateGroupingState(
-        this.groupingStack,
+        this.groupingState,
         previousToken,
         value,
         this.lastClosedStatementBoundary,
         this.options.statementList === true,
-        this.tokens[this.tokens.length - 3]
+        this.tokens
       );
       return;
     }
@@ -1293,21 +1304,47 @@ function endsWithForOfSeparator(tokens: ReadonlyArray<Pick<Token, "type" | "valu
 }
 
 function updateGroupingState(
-  groupingStack: GroupingContext[],
+  state: GroupingState,
   previousToken: Pick<Token, "type" | "value"> | undefined,
   punctuator: string,
   previousStatementBoundary: boolean,
-  initialStatementList = false,
-  beforePreviousToken?: Pick<Token, "type" | "value">
+  initialStatementList: boolean,
+  tokens: ReadonlyArray<Pick<Token, "type" | "value">>
 ): boolean {
+  const groupingStack = state.stack;
+  const functionBody = state.functionBody;
+  state.functionBody = false;
+  for (let index = state.tokenCount; index < tokens.length; index++) {
+    const token = tokens[index];
+    if (token.type !== "keyword" || token.value !== "class") continue;
+    const before = tokens[index - 1];
+    if (before?.value === "." || before?.value === "?.") continue;
+    const next = tokens[index + 1]?.value;
+    const afterName = tokens[index + 2]?.value;
+    if (next !== "{" && next !== "extends" && afterName !== "{" && afterName !== "extends") continue;
+    const parent = groupingStack[groupingStack.length - 1];
+    if (parent?.classBody && (before === undefined || ["{", "}", ";", "static"].includes(before.value) ||
+        ["identifier", "numeric", "string", "template", "regex"].includes(before.type))) continue;
+    state.classHeads.push({depth: groupingStack.length,
+      declaration: isDeclarationPosition(tokens, index, groupingStack, initialStatementList)});
+  }
+  state.tokenCount = tokens.length;
+  const beforePreviousToken = tokens[tokens.length - 3];
   if (punctuator === "(") {
+    let functionIndex = tokens.length - 2;
+    if (tokens[functionIndex]?.value !== "function") {
+      if (tokens[functionIndex]?.value !== "*") functionIndex--;
+      if (tokens[functionIndex]?.value === "*") functionIndex--;
+    }
+    const functionParameters = tokens[functionIndex]?.type === "keyword" && tokens[functionIndex].value === "function";
+    const functionDeclaration = functionParameters && isDeclarationPosition(tokens, functionIndex, groupingStack, initialStatementList);
     groupingStack.push({
-      value: "(",
-      isControlCondition:
+      value: "(", functionParameters,
+      isControlCondition: functionDeclaration || (
         (previousToken?.type === "keyword" || previousToken?.type === "identifier") &&
         (CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value) ||
           (previousToken.value === "await" && beforePreviousToken?.type === "keyword" && beforePreviousToken.value === "for")) &&
-        beforePreviousToken?.value !== "." && beforePreviousToken?.value !== "?."
+        beforePreviousToken?.value !== "." && beforePreviousToken?.value !== "?.")
     });
     return false;
   }
@@ -1318,6 +1355,12 @@ function updateGroupingState(
   }
 
   if (punctuator === "{") {
+    const classHead = state.classHeads[state.classHeads.length - 1];
+    if (!functionBody && previousToken?.value !== "=>" && classHead?.depth === groupingStack.length) {
+      state.classHeads.pop();
+      groupingStack.push({value: "{", classBody: true, closesStatement: classHead.declaration});
+      return false;
+    }
     const parent = groupingStack[groupingStack.length - 1];
     const closesStatement = previousToken === undefined ? initialStatementList
       : previousStatementBoundary ||
@@ -1329,7 +1372,9 @@ function updateGroupingState(
   }
 
   if (punctuator === ")") {
-    return popGroupingContext(groupingStack, "(")?.isControlCondition === true;
+    const group = popGroupingContext(groupingStack, "(");
+    state.functionBody = group?.functionParameters === true;
+    return group?.isControlCondition === true;
   }
 
   if (punctuator === "]") {
@@ -1342,6 +1387,21 @@ function updateGroupingState(
   }
 
   return false;
+}
+
+function isDeclarationPosition(
+  tokens: ReadonlyArray<Pick<Token, "type" | "value">>,
+  index: number,
+  groupingStack: GroupingContext[],
+  initialStatementList: boolean
+): boolean {
+  const parent = groupingStack[groupingStack.length - 1];
+  if (parent === undefined ? !initialStatementList : parent.statementList !== true) return false;
+  if (tokens[index - 1]?.value === "async") index--;
+  const previous = tokens[index - 1];
+  return previous === undefined || ["{", "}", ";", ")", "]", "export", "default"].includes(previous.value) ||
+    ["identifier", "numeric", "string", "template", "regex"].includes(previous.type) ||
+    (previous.type === "keyword" && EXPRESSION_ENDING_KEYWORDS.has(previous.value));
 }
 
 function popGroupingContext(

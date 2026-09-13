@@ -1,0 +1,562 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts (29 tests | 16 failed) 263ms
+   × recognizes regexp statements after declarations: function f(){} 6ms
+   × recognizes regexp statements after declarations: function* f(){} 1ms
+   × recognizes regexp statements after declarations: async function f(){} 1ms
+   × recognizes regexp statements after declarations: async function* f(){} 0ms
+   × recognizes regexp statements after declarations: class C{} 0ms
+   × recognizes regexp statements after declarations: class C extends Object{} 0ms
+   × recognizes regexp statements after declarations: class C extends class{}{} 0ms
+   × recognizes regexp statements after declarations: {function f(){} /x/.test("x");} 0ms
+   × recognizes regexp statements after declarations: {class C{} /x/.test("x");} 1ms
+   × recognizes regexp statements after declarations: function f(a={}){} 0ms
+   × recognizes regexp statements after declarations: class C{method(){}} 0ms
+   × recognizes regexp statements after declarations: class C{class(){} function(){}} 0ms
+   ✓ preserves expression and nested declaration contexts: const f=function(){} /2;return Number.isNaN(f); 40ms
+   ✓ preserves expression and nested declaration contexts: const f=function named(){} /2;return Number.isNaN(f); 16ms
+   ✓ preserves expression and nested declaration contexts: const f=async function(){} /2;return Number.isNaN(f); 18ms
+   ✓ preserves expression and nested declaration contexts: const f=function*(){} /2;return Number.isNaN(f); 17ms
+   ✓ preserves expression and nested declaration contexts: const f=async function*(){} /2;return Number.isNaN(f); 15ms
+   ✓ preserves expression and nested declaration contexts: const C=class{} /2;return Number.isNaN(C); 16ms
+   ✓ preserves expression and nested declaration contexts: const C=class Named{} /2;return Number.isNaN(C); 17ms
+   ✓ preserves expression and nested declaration contexts: const C=class extends Object{} /2;return Number.isNaN(C); 14ms
+   ✓ preserves expression and nested declaration contexts: const C=class extends class{}{} /2;return Number.isNaN(C); 20ms
+   ✓ preserves expression and nested declaration contexts: const x={class:1,function:2};return x.class+x.function; 17ms
+   ✓ preserves expression and nested declaration contexts: class C{class;method(){{}/x/.test("x");return 7}}return new C().method(); 20ms
+   ✓ preserves expression and nested declaration contexts: class C{field=class {method(){return 7}}}return new (new C().field)().method(); 19ms
+   ✓ preserves expression and nested declaration contexts: return `${class{}/2}`; 19ms
+   × preserves expression and nested declaration contexts: return `${(()=>{function f(){} /[}]/.test("}");class C{} /[}]/;return 7})()}`; 1ms
+   × accepts a regexp following an export declaration: export default function(){} /x/; 0ms
+   × accepts a regexp following an export declaration: export default class{} /x/; 0ms
+   × retains declaration source and host boundaries through replay 0ms
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: function f(){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 15."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: function* f(){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 16."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: async function f(){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 21."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: async function* f(){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 22."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C{}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 10."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C extends Object{}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 25."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C extends class{}{}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 26."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: {function f(){} /x/.test("x");}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 17."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: {class C{} /x/.test("x");}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 12."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: function f(a={}){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 19."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C{method(){}}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 20."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C{class(){} function(){}}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 32."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > preserves expression and nested declaration contexts: return `${(()=>{function f(){} /[}]/.test("}");class C{} /[}]/;return 7})()}`;
+ParseError: Unexpected token '/' at line 1, column 32.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>', kind: 'ParseError', excerpt: '1 | return `${(()=>{function f(){} /[}]/.test("}");class C{} /[}]/;return 7})()}`;', caret: '  |                                ^', span: { start: { column: 32, line: 1, offset: 31 }, end: { column: 33, line: 1, offset: 32 } } }
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > accepts a regexp following an export declaration: export default function(){} /x/;
+AssertionError: expected [Function] to not throw an error but 'ParseError: Unexpected token \'/\' at…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"ParseError: Unexpected token '/' at line 1, column 29."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:39:39
+     37|
+     38| it.each(['export default function(){} /x/;', 'export default class{} /…
+     39|   expect(()=>parseModule(source)).not.toThrow();
+       |                                       ^
+     40| });
+     41|
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > accepts a regexp following an export declaration: export default class{} /x/;
+AssertionError: expected [Function] to not throw an error but 'ParseError: Unexpected token \'/\' at…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"ParseError: Unexpected token '/' at line 1, column 24."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:39:39
+     37|
+     38| it.each(['export default function(){} /x/;', 'export default class{} /…
+     39|   expect(()=>parseModule(source)).not.toThrow();
+       |                                       ^
+     40| });
+     41|
+
+FAIL packages/safe-js/src/parse/declaration-regexp-goal.test.ts > retains declaration source and host boundaries through replay
+ParseError: Unexpected token '/' at line 1, column 23.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>', kind: 'ParseError', excerpt: '1 | function f(){return 7}/x/;class C{value(){return 8}}/x/;await 0;return [f(),new C().value(),f.toString(),C.toStrin...', caret: '  |                       ^', span: { start: { column: 23, line: 1, offset: 22 }, end: { column: 24, line: 1, offset: 23 } } }
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 16 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: function f(){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 15."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: function* f(){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 16."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: async function f(){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 21."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: async function* f(){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 22."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C{}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 10."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C extends Object{}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 25."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C extends class{}{}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 26."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: {function f(){} /x/.test("x");}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 17."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: {class C{} /x/.test("x");}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 12."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: function f(a={}){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 19."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C{method(){}}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 20."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > recognizes regexp statements after declarations: class C{class(){} function(){}}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 32."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:14:43
+     12| ])("recognizes regexp statements after declarations: %s",async prefix=…
+     13|   const source=prefix+'/x/.test("x");';
+     14|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     15|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     16|   expect(await run(source+'return true;')).toMatchObject({ok:true,retu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > preserves expression and nested declaration contexts: return `${(()=>{function f(){} /[}]/.test("}");class C{} /[}]/;return 7})()}`;
+ParseError: Unexpected token '/' at line 1, column 32.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > accepts a regexp following an export declaration: export default function(){} /x/;
+AssertionError: expected [Function] to not throw an error but 'ParseError: Unexpected token \'/\' at…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"ParseError: Unexpected token '/' at line 1, column 29."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:39:39
+     37|
+     38| it.each(['export default function(){} /x/;', 'export default class{} /…
+     39|   expect(()=>parseModule(source)).not.toThrow();
+       |                                       ^
+     40| });
+     41|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > accepts a regexp following an export declaration: export default class{} /x/;
+AssertionError: expected [Function] to not throw an error but 'ParseError: Unexpected token \'/\' at…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"ParseError: Unexpected token '/' at line 1, column 24."
+
+ ❯ packages/safe-js/src/parse/declaration-regexp-goal.test.ts:39:39
+     37|
+     38| it.each(['export default function(){} /x/;', 'export default class{} /…
+     39|   expect(()=>parseModule(source)).not.toThrow();
+       |                                       ^
+     40| });
+     41|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/16]⎯
+
+ FAIL  packages/safe-js/src/parse/declaration-regexp-goal.test.ts > retains declaration source and host boundaries through replay
+ParseError: Unexpected token '/' at line 1, column 23.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/16]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  16 failed | 13 passed (29)
+   Start at  11:58:32
+   Duration  1.96s (transform 1.27s, setup 32ms, import 1.59s, tests 263ms, environment 0ms)
+

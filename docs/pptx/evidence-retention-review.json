@@ -1,0 +1,384 @@
+{
+  "schema_version": 1,
+  "scope": "Documentation/evidence only; accounting is not behavioral parity",
+  "inspected_head": "56dd02c69a02a92842e4b62e9bd1caab1781f828",
+  "source_inputs_sha256": {
+    "upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "test-case-map.json": "64a66c9adb50530945d94bc1f3ec9d5c79e7220b48afe46950e3dfc5ca9fa3d0",
+    "upstream-api-inventory.json": "119a4ba61a96c88f487fb769fa268bc3a5d520b58315b8aa08606540fc92b421",
+    "public-api-map.json": "e1af75d442ec97a100834db34433d2dbdd3a2bcf7d2a5779789dcd28d08e147c",
+    "large-media-campaign-20260913.json": "89501aac60e53a230bc5f739952131d71071bf17d659b0c03c2e28a9f60f97a4",
+    "corpus-gap-regressions.json": "3a9d81067e4ac0dd377f3af23b8cee1a689b54609dfef28fce4e8b3d9f646f96",
+    "api-language-mappings.md": "ab20d566f5a1ff2e4ec4726017cd4cd206f0cca621e5cdfb6db18e75bfdd1541",
+    "corpus-manifest.json": "9a496556696893ad3f9d988636822d8129b3b3b2e7f6ba2c42e0e6cde04cea23"
+  },
+  "test_accounting": {
+    "unit": 2700,
+    "bdd": 973,
+    "exact_pointer_identity_location_revision_joins": 3673,
+    "unique_original_target_ids": 3673,
+    "statuses": {
+      "semantic_review_required": 2585,
+      "original_ts_passed": 43,
+      "specified_not_implemented": 167,
+      "proposed_design_not_implemented": 877,
+      "deferred_public_behavior": 1
+    },
+    "complete_parity": false
+  },
+  "api_accounting": {
+    "inventory_records": 2409,
+    "target_rows": 2426,
+    "all_source_ids_have_targets": true,
+    "underscore_path_records": 425,
+    "whole_public_api_coverage": false
+  },
+  "regression_review": {
+    "case_id": "label-switch-independence",
+    "status": "specified_not_implemented",
+    "inspected_test": "packages/pptx/src/chart-model-objects.test.ts",
+    "sha256": "0ff0b31e70f18f9dd48f18cff2b89930cf9026e31166a23a4fca2403ce72137d",
+    "finding": "The common plot test assigns the same false/true value to all five label flags. The earlier separate case opposes value and category, not value and series. Neither is evidence for both crossed value/series arrangements with reopen required by the supplemental design. No promotion or product defect claim."
+  },
+  "retention": {
+    "deletion_performed": false,
+    "closure_verified": false,
+    "reason": "Large campaign retains two reproduced-not-fixed findings and one instrumentation finding; no passing regression or campaign closure is established by this review.",
+    "open_campaign_findings": [
+      {
+        "id": "slide-count-admission",
+        "status": "reproduced_not_fixed",
+        "expected": "resource-limit at 5001 slides under specified defaults",
+        "actual": "exit 0 with 5001 slides",
+        "originalRegression": "Two original slides with future explicit maxSlides=1 reject; at 2 pass. Current 5001-slide recipe remains evidence until configurable budget exists."
+      },
+      {
+        "id": "cancelled-json-envelope",
+        "status": "reproduced_not_fixed",
+        "expected": "Version-1 cancelled error envelope and exit 130",
+        "actual": "Empty stdout/stderr and exit 130",
+        "originalRegression": "Original 4078-byte empty deck; abort in supplied read callback; no publication."
+      },
+      {
+        "id": "abort-timer-delivery",
+        "status": "observed_needs_instrumentation",
+        "expected": "Bounded yielding during long CPU work",
+        "actual": "20ms timer delivered at 1704.233ms; completion 1.303ms after delivery"
+      }
+    ],
+    "downloads": [
+      {
+        "path": ".cache/pptx-corpus/IXPE-Presentation-Template.pptx",
+        "expected_bytes": 1202514,
+        "expected_sha256": "885e923f148cdf4680372abe54496c824ab3a2a2d8a59fd9703d66e0aeb1164c",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/CERN-intro-2025-v2.pptx",
+        "expected_bytes": 28011433,
+        "expected_sha256": "62ab3f5c42e7a967af1f4cfc07cede3909a88b6c75f8432231e83a6e8d17e134",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/CERN-job-opp-250925.pptx",
+        "expected_bytes": 43231,
+        "expected_sha256": "85cc7b338a11b9d1a9dfcaaaa504bf21ab643e4c30004a478152f390ee9f5f1d",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/ISOLDE-drawings.pptx",
+        "expected_bytes": 4223514,
+        "expected_sha256": "d684281d2f8731787951a0c568a1f6acb8bdbc6cf5de2a64c97c358af1fa92c7",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/SEWP_Training_Slides_May 2026.pptx",
+        "expected_bytes": 8141046,
+        "expected_sha256": "83a63c49e09d89f7804a6dcad64fb9d61bc3401dc10d3351cc5222821c85bcf7",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/SEWP_Provider_Training_Slides_05_12_25.pptx",
+        "expected_bytes": 6824998,
+        "expected_sha256": "3695972c410e1a8862f72962d706bdfde1e680a144b48bf2bb9bb8095ecca3b5",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/SEWP_CH_Training_Presentation_05_12_25.pptx",
+        "expected_bytes": 10490534,
+        "expected_sha256": "c0655717508915de86efcfb1d027d9b60ce382331d66c3d6f22b7dcbfc6f6614",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/WWL-template-1slide.pptx",
+        "expected_bytes": 213136,
+        "expected_sha256": "0c728ea3fd2ab76906247931fcb5c966074d21e804187893d954cc913cc89689",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/slides-public-engagement-DEC-2021.pptx",
+        "expected_bytes": 34701614,
+        "expected_sha256": "0377c715798aa4462b826670dd0bb2bcf1b3fca98cdf546b1f326cdd6ffd397e",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/CluestotheCosmos.pptx",
+        "expected_bytes": 19006142,
+        "expected_sha256": "74e3f1b48b7ea6892a8c0400e02eb8f6b5d939212e83216118d3958757f06a2d",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/20120418_Jedlovec_SuomiNPP.pptx",
+        "expected_bytes": 14660024,
+        "expected_sha256": "884611296fe0c5f36b2e4e3abf0ae7b16124879434834c45dadb457bdf8d9a01",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/earth-system-media-large.pptx",
+        "expected_bytes": 457525505,
+        "expected_sha256": "f1129e557eed26e1b84aaf3f1f422449ecb7b4e60c8f99dad42fceefeb1097a1",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/global-outlook-2026.pptx",
+        "expected_bytes": 5191954,
+        "expected_sha256": "f05d30f82013e31ecf3d6705d34c83e26a1d6b44e5f3e9f608b98b6c8e4ee582",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/data-visualization-course.pptx",
+        "expected_bytes": 52907926,
+        "expected_sha256": "ce874bc9782258175b84f5e438123552b78c993e0add9015f35d8ca2dd5c45d2",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      }
+    ],
+    "enumerated_large_campaign_outputs": [
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/.gitignore",
+        "expected_bytes": 2,
+        "expected_sha256": "cdbcae15105d6b781e620813c79c7e868740d4e9cc53ce6f5fcbbc12387adf4b",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/baseline.json",
+        "expected_bytes": 7658,
+        "expected_sha256": "f28bf903bc7e060154d93745c7323eeb10226403136c2aac16775c745604b3a1",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/capabilities.json",
+        "expected_bytes": 17810,
+        "expected_sha256": "d393587854b348fd69c32c6bc146b39f20246a50f1c1d1782ed26ea23b6a662a",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/context.json",
+        "expected_bytes": 584,
+        "expected_sha256": "24ed81c1a6cbd93553b01bb4553e4a63696195ad95f3016ba7d5aa18bfd1d76b",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/default.json",
+        "expected_bytes": 726,
+        "expected_sha256": "fe7bc93b65e6a85027fbbea54279b6af677284e0fc3a551a24c3e1063147df7b",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/notes-integrity.json",
+        "expected_bytes": 504,
+        "expected_sha256": "b8cf3a7d4ee3dadf13c8d79a180fee44db6b64a016ad213e41b4896c5825c7d5",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/original-cancel-envelope.json",
+        "expected_bytes": 99,
+        "expected_sha256": "117df4353d581e05eb12b09dd1564d0c0d577c2234c4f0dafe8fb1521cfbb2ad",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/original-compression.zip",
+        "expected_bytes": 1153,
+        "expected_sha256": "2ebc29779d02bc05173714dccfbb06e30dc2a976bef1320350ee8facdee2ec99",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/original-many-slides.pptx",
+        "expected_bytes": 1126626,
+        "expected_sha256": "ba35531ade2aee6de4532e4c98699a6d1fd727908bf38e85d6a9b099348d055f",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/original-serialization-cancel.json",
+        "expected_bytes": 153,
+        "expected_sha256": "fdc9c637a6f049e828edf53b5e5194b28611b8ed65eb5c8bfbe0de669f99f1a5",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/raised-cancel.json",
+        "expected_bytes": 213,
+        "expected_sha256": "11c5b42c14ad9e1328aa0c09c90803963e190c0e16faf49428a07671beb4a74d",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/raised-notes.json",
+        "expected_bytes": 932,
+        "expected_sha256": "341462cd6b91822583c095b63967a6e7fd43e355580a7f99df6133355f079e95",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/raised-notes.pptx",
+        "expected_bytes": 457524382,
+        "expected_sha256": "7f32f1e56c46c0a232b656a6670c5d7333c3cea2f9c562d116afd1d36de118f9",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/raised-read.json",
+        "expected_bytes": 29654,
+        "expected_sha256": "1ee35fe80e1600ace65fd61473c1043757c0d268642c387bfb7760f38878e40c",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/raised-title.json",
+        "expected_bytes": 695,
+        "expected_sha256": "7e5b1f127d6960dd4e2feccb8ef30b86e4f2f155dc12cb5769fc409d804f5461",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/raised-title.pptx",
+        "expected_bytes": 457525244,
+        "expected_sha256": "cf1c304ccb821079e229f624de1a90e84cd6b2d505666970e52d56568a73a037",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/schema-notes-set.json",
+        "expected_bytes": 4859,
+        "expected_sha256": "f4edf08dec2babd01d6b7f274cfcb2b8ca4e918f6fdd84ef3ca03e77fb028bdf",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/schema-properties-set.json",
+        "expected_bytes": 4886,
+        "expected_sha256": "5b856301275316cda232bf63b307cd3f9daa16b4506581c600d6e5d1d195395a",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/sdk-title-repeat.json",
+        "expected_bytes": 326,
+        "expected_sha256": "3022a81b96a228cbe5a9165d2b19585218c6ea2001b431b32b15ea595acc706a",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/source-hashes-observed.json",
+        "expected_bytes": 49074,
+        "expected_sha256": "169326c32402fda99039b9e92395c3bb8bebfec268b1a8187f31470a0ef92ef6",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/stress.json",
+        "expected_bytes": 466,
+        "expected_sha256": "6b1333560b5af4d53795d7e1f90ce6cac7ba6affeb158123556f3a9e05e321be",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      },
+      {
+        "path": ".cache/pptx-corpus/qa-large-20260913/title-integrity.json",
+        "expected_bytes": 474,
+        "expected_sha256": "81862a37f990133268f695eff9d4fb71a412706c267a0b2f01244f3d1b2cda18",
+        "present": true,
+        "hash_matches": true,
+        "deletion_status": "retained_pending_campaign_and_regression_closure"
+      }
+    ],
+    "other_outputs": "Not inspected; no authority to delete inferred",
+    "reference_checkout": "Untouched; exact adaptation remains pending",
+    "tests_with_downloads_absent": "not_run; cleanup gate not satisfied"
+  },
+  "verification": {
+    "status": "passed",
+    "node": "22.23.2",
+    "vitest": "4.1.11",
+    "unit_command": "npm run test:unit --workspace=pptx -- packages/pptx/src/chart-model-objects.test.ts packages/pptx/src/freeform-builder.test.ts packages/pptx/src/security-admission.test.ts",
+    "effective_scope": "Entire pptx package, because maintained script includes packages/pptx",
+    "test_files": 269,
+    "tests": 6874,
+    "failed": 0,
+    "duration_seconds": 60.02,
+    "lint_command": "npm run lint --workspace=pptx",
+    "lint_exit": 0,
+    "limitations": "Existing working tree includes concurrent uncommitted product changes; this documentation commit alone does not reproduce that tree. No absent-download, safe-bash, rendering or whole-pipeline run. Package passes do not promote source adaptation rows."
+  },
+  "notices": [
+    "upstream-license-notice.txt",
+    "test-case-map-notice.txt",
+    "public-api-map-notice.txt"
+  ]
+}

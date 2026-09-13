@@ -2,6 +2,22 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Latest [evidence and retention review](evidence-retention-review.json) verifies
+every test identity/location/revision join and every public API destination.
+The 3,673 original TypeScript case obligations include only 43 centrally recorded
+passes; 3,630 remain review/design/deferral obligations. Later family receipts
+require exact assertion review before promotion. In particular, assigning equal
+values to all chart label flags does not close the crossed value/series regression.
+All 425 underscore-prefixed public path records remain in scope.
+
+Implementation descriptions in the chronological receipts below apply only to
+their checkpoints. Later graph, builder and media receipts supersede earlier
+absence claims for specifically tested members; neither the historical source
+inventory statuses nor exported-symbol counts establish current whole-API parity.
+The original test audit's “adaptation not started” label is also historical.
+The manifest now records retained downloads pending regression/campaign closure;
+no absent-download test pass or cleanup completion is claimed.
+
 Current register reconciliation: [complete identity and obligation check](register-reconciliation-20260913.md)
 accounts for 2,409 inventory records and 2,426 target rows, including the two
 later public builder offsets. All 3,673 collected test identities retain separate
@@ -106,14 +122,14 @@ whole-public-API coverage remains incomplete.
 
 - [Published API and user guides](https://python-pptx.readthedocs.io/en/latest/).
 - Pinned source documentation at commit `278b47b1dedd5b46ee84c286e77cdfb0bf4594be` in `/tmp/pptx-upstream-review/docs`.
-- [Reconciled API inventory](upstream-api-inventory.json): all 719 original candidate IDs retained, expanded to 2,407 type/member/constructor/protocol/enum records from 54 pinned API/user-guide files, with documentation and source hashes. The total mixes record kinds and is not a coverage certificate.
+- [Reconciled API inventory](upstream-api-inventory.json): all 719 original candidate IDs retained, initially expanded to 2,407 type/member/constructor/protocol/enum records from 54 pinned API/user-guide files, then to 2,409 with the two public builder offsets. Documentation and source hashes remain retained. The total mixes record kinds and is not a coverage certificate.
 - [Reconciliation findings](api-reconciliation.md): source locations and resolutions for documentation drift, inherited/returned graph closure and guide contributions.
 - [Language/security mappings](api-language-mappings.md): J01–J10 decisions referenced by inventory rows.
 - [Published-page review receipt](published-docs-review.json): all 54 corresponding pages opened through the web reader; direct raw HTTP acquisition denied.
 - [Executed test baseline](upstream-test-audit.md) and [full case inventory](upstream-test-inventory.json).
 - [Counterpart API audit](../docx/upstream-api-audit.md).
 
-The inventory now expands inherited domain members, returned interfaces, constructors, separate getter/setter signatures, sequence/scalar protocols and enum aliases. Static AST analysis did not execute the reference runtime. It is not an exact Sphinx build or proof of implemented API coverage. Source annotations that are missing remain explicitly absent; incorrect annotations and prose-only promises have evidence-backed dispositions. The subsequent [target API register](public-api-map.json) specifies TypeScript declarations and bounded views; the [command register](command-coverage.json) specifies proposed operation schemas and later route corrections. Compiled exports, executable schemas and passing original tests remain implementation work. Published objects.inv and direct HTML downloads returned HTTP 403; no bypass was attempted. Web-reader access does not establish raw-byte identity with the pinned RST.
+The inventory now expands inherited domain members, returned interfaces, constructors, separate getter/setter signatures, sequence/scalar protocols and enum aliases. Static AST analysis did not execute the reference runtime. It is not an exact Sphinx build or proof of implemented API coverage. Source annotations that are missing remain explicitly absent; incorrect annotations and prose-only promises have evidence-backed dispositions. The subsequent [target API register](public-api-map.json) specifies TypeScript declarations and bounded views; the [command register](command-coverage.json) specifies proposed operation schemas and later route corrections. Compiled exports, executable schemas and passing original tests exist for bounded members linked above; remaining obligations still require that evidence. Published objects.inv and direct HTML downloads returned HTTP 403; no bypass was attempted. Web-reader access does not establish raw-byte identity with the pinned RST.
 
 ## Findings that change the requirements
 

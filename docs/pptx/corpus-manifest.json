@@ -3520,5 +3520,11 @@
     "downloaded_count": 2,
     "downloaded_bytes": 58099880,
     "product_qa": "not_run"
+  },
+  "retention_review": {
+    "evidence": "evidence-retention-review.json",
+    "deletion_status": "retained_pending_campaign_and_regression_closure",
+    "deleted_by_this_review": 0,
+    "tests_with_downloads_absent": "not_run; cleanup gate not satisfied"
   }
 }

@@ -2,7 +2,7 @@
 
 Status: Proposed
 
-Implemented Through: Not applicable
+Implemented Through: `a7fbba9c421decb4ba710db2c6c16543eba10c34`
 
 Purpose: Define an original TypeScript `pptx` utility for creating, reading and
 editing presentations through a typed SDK and an explicit safe-bash command.
@@ -11,7 +11,11 @@ editing presentations through a typed SDK and an explicit safe-bash command.
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong
 recommendation whose exceptions need evidence. MAY identifies optional behavior.
-All product behavior below is proposed, not a statement of implemented support.
+The full contract remains proposed. Implemented Through identifies the committed
+source inspected for the bounded [implementation checkpoint](../pptx/implementation-checkpoint-20260913.md),
+not completion of every requirement. That checkpoint records all F01–F60 support
+levels, evidence limits and unresolved shared-contract gaps. Uncommitted product
+changes are excluded from its implementation claims.
 
 ## 1. Problem Statement
 
@@ -1220,20 +1224,20 @@ schemas, not extra undocumented direct flags.
 
 ### A. text
 
-| Path / SDK ID                                   | Inputs | Arguments (exact flags and types)                                                                                                                                                                                                                                                                                                                                      | Applicable options                                                                                                                                                                        | Scope; cardinality; publication                                    |
-| ----------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `text get` / `text.get`                         | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
-| `text replace` / `text.replace`                 | 1      | `--find: string`; `--with: string`; `--first?: boolean`; `--occurrence?: Position`                                                                                                                                                                                                                                                                                     | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `text runs list` / `text.runs.list`             | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
-| `text runs get` / `text.runs.get`               | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; one; ambiguity fails; none                                 |
+| Path / SDK ID                                   | Inputs | Arguments (exact flags and types)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Applicable options                                                                                                                                                                        | Scope; cardinality; publication                                    |
+| ----------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `text get` / `text.get`                         | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
+| `text replace` / `text.replace`                 | 1      | `--find: string`; `--with: string`; `--first?: boolean`; `--occurrence?: Position`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `text runs list` / `text.runs.list`             | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
+| `text runs get` / `text.runs.get`               | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; one; ambiguity fails; none                                 |
 | `text runs set` / `text.runs.set`               | 1      | `--text?: string`; `--font?: string / null`; `--east-asia-font?: string / null`; `--complex-script-font?: string / null`; `--complex-script-charset?: integer≥-128≤127 / null`; `--complex-script-pitch-family?: integer / null`; `--complex-script-panose?: string / null`; `--symbol-font?: string / null`; `--alternate-language?: string / null`; `--rtl?: boolean / null`; `--size?: Length`; `--language?: string / null`; `--bold?: boolean / null`; `--italic?: boolean / null`; `--underline?: "none" / MSO_TEXT_UNDERLINE_TYPE`; `--strike?: none / single / double`; `--baseline?: number≥-100≤100`; `--capitalization?: none / small / all`; `--spacing?: Length`; `--color?: Color`; `--highlight?: Color` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `text paragraphs list` / `text.paragraphs.list` | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
-| `text paragraphs get` / `text.paragraphs.get`   | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; one; ambiguity fails; none                                 |
-| `text paragraphs set` / `text.paragraphs.set`   | 1      | `--text?: string` (planned whole-text assignment); `--alignment?: left / center / right / justify / distributed / justifyLow / thaiDistributed / null`; `--margin-left?`, `--margin-right?`, `--default-tab-size?`, `--space-before?`, `--space-after?`, `--indent?: Length / null`; `--line-spacing?: Length / line multiple / null`; `--level?: integer≥0≤8 / null`; `--bullet?: character / structured bullet / null`; `--numbering?: decimal / lower-alpha / upper-alpha / lower-roman / upper-roman / none / null`; `--tabs?: Length[] / aligned tabs / null`; `--direction?: ltr / rtl / null`; `--rtl?: boolean / null` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `text frames list` / `text.frames.list`         | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
-| `text frames get` / `text.frames.get`           | 1      | none                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; one; ambiguity fails; none                                 |
-| `text frames set` / `text.frames.set`           | 1      | `--text?: string`; `--margin-left?: Length / null`; `--margin-right?: Length / null`; `--margin-top?: Length / null`; `--margin-bottom?: Length / null`; `--vertical-anchor?: top / middle / bottom / null`; `--columns?: integer≥1≤16 / null`; `--wrap?: boolean / null`; `--autofit?: none / shape / text / null`; `--vertical-text?: horz / vert / vert270 / wordArtVert / eaVert / mongolianVert / wordArtVertRtl / null`; `--rotation?: signed text-frame degrees / null`                                                                             | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `text fit` / `text.fit`                         | 1      | `--font-family?: string`; `--max-size?: number`; `--bold?: boolean`; `--italic?: boolean`; `--metrics: FontMetrics`                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `text paragraphs list` / `text.paragraphs.list` | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
+| `text paragraphs get` / `text.paragraphs.get`   | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; one; ambiguity fails; none                                 |
+| `text paragraphs set` / `text.paragraphs.set`   | 1      | `--text?: string` (planned whole-text assignment); `--alignment?: left / center / right / justify / distributed / justifyLow / thaiDistributed / null`; `--margin-left?`, `--margin-right?`, `--default-tab-size?`, `--space-before?`, `--space-after?`, `--indent?: Length / null`; `--line-spacing?: Length / line multiple / null`; `--level?: integer≥0≤8 / null`; `--bullet?: character / structured bullet / null`; `--numbering?: decimal / lower-alpha / upper-alpha / lower-roman / upper-roman / none / null`; `--tabs?: Length[] / aligned tabs / null`; `--direction?: ltr / rtl / null`; `--rtl?: boolean / null`                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `text frames list` / `text.frames.list`         | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; collection; omitted filter means all in scope; none        |
+| `text frames get` / `text.frames.get`           | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`                                                                             | slides; one; ambiguity fails; none                                 |
+| `text frames set` / `text.frames.set`           | 1      | `--text?: string`; `--margin-left?: Length / null`; `--margin-right?: Length / null`; `--margin-top?: Length / null`; `--margin-bottom?: Length / null`; `--vertical-anchor?: top / middle / bottom / null`; `--columns?: integer≥1≤16 / null`; `--wrap?: boolean / null`; `--autofit?: none / shape / text / null`; `--vertical-text?: horz / vert / vert270 / wordArtVert / eaVert / mongolianVert / wordArtVertRtl / null`; `--rotation?: signed text-frame degrees / null`                                                                                                                                                                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `text fit` / `text.fit`                         | 1      | `--font-family?: string`; `--max-size?: number`; `--bold?: boolean`; `--italic?: boolean`; `--metrics: FontMetrics`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--table`, `--cell`, `--paragraph`, `--run`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 
 ### A. images
 
@@ -1328,18 +1332,18 @@ schemas, not extra undocumented direct flags.
 
 ### A. slides
 
-| Path / SDK ID                           | Inputs | Arguments (exact flags and types)                                                                                             | Applicable options                                                                                                                | Scope; cardinality; publication                                    |
-| --------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `slides list` / `slides.list`           | 1      | none                                                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; collection; omitted filter means all in scope; none        |
-| `slides get` / `slides.get`             | 1      | none                                                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; one; ambiguity fails; none                                 |
-| `slides set` / `slides.set`             | 1      | `--layout?: string`; `--name?: string`; `--position?: Position`; `--hidden?: boolean`; `--follow-master-background?: boolean` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `slides add` / `slides.add`             | 1      | `--layout: string`; `--name?: string`; `--position?: Position`; `--hidden?: boolean`; `--follow-master-background?: boolean`; `--title?: string`; `--body?: string`; `--placeholders-json?: PlaceholderText[]`  | `--json`, `--limit`, `--output`, `--in-place`, `--force`, `--dry-run` | slides; operation-specific in format contract; package             |
-| `slides remove` / `slides.remove`       | 1      | none                                                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `slides duplicate` / `slides.duplicate` | 1      | `--position: Position`; `--media-policy?: shared-media / isolated-instance` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `slides move` / `slides.move`           | 1      | `--position: Position`                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `slides merge` / `slides.merge`         | 1      | `--sources: Input[]`; `--source-slides?: Position[]`; `--theme-policy: source / destination`                                  | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `slides split` / `slides.split`         | 1      | `--slides: Position[]`                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output-dir`, `--force`, `--allow-partial-output`                        | slides; operation-specific in format contract; output-directory    |
-| `slides import` / `slides.import`       | 1      | `--source: Input`; `--source-slides: Position[]`; `--theme-policy: source / destination`                                      | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| Path / SDK ID                           | Inputs | Arguments (exact flags and types)                                                                                                                                                                              | Applicable options                                                                                                                | Scope; cardinality; publication                                    |
+| --------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `slides list` / `slides.list`           | 1      | none                                                                                                                                                                                                           | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; collection; omitted filter means all in scope; none        |
+| `slides get` / `slides.get`             | 1      | none                                                                                                                                                                                                           | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; one; ambiguity fails; none                                 |
+| `slides set` / `slides.set`             | 1      | `--layout?: string`; `--name?: string`; `--position?: Position`; `--hidden?: boolean`; `--follow-master-background?: boolean`                                                                                  | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `slides add` / `slides.add`             | 1      | `--layout: string`; `--name?: string`; `--position?: Position`; `--hidden?: boolean`; `--follow-master-background?: boolean`; `--title?: string`; `--body?: string`; `--placeholders-json?: PlaceholderText[]` | `--json`, `--limit`, `--output`, `--in-place`, `--force`, `--dry-run`                                                             | slides; operation-specific in format contract; package             |
+| `slides remove` / `slides.remove`       | 1      | none                                                                                                                                                                                                           | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `slides duplicate` / `slides.duplicate` | 1      | `--position: Position`; `--media-policy?: shared-media / isolated-instance`                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `slides move` / `slides.move`           | 1      | `--position: Position`                                                                                                                                                                                         | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `slides merge` / `slides.merge`         | 1      | `--sources: Input[]`; `--source-slides?: Position[]`; `--theme-policy: source / destination`                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `slides split` / `slides.split`         | 1      | `--slides: Position[]`                                                                                                                                                                                         | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output-dir`, `--force`, `--allow-partial-output`                        | slides; operation-specific in format contract; output-directory    |
+| `slides import` / `slides.import`       | 1      | `--source: Input`; `--source-slides: Position[]`; `--theme-policy: source / destination`                                                                                                                       | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 
 ### A. sections
 
@@ -1353,13 +1357,13 @@ schemas, not extra undocumented direct flags.
 
 ### A. shows
 
-| Path / SDK ID                   | Inputs | Arguments (exact flags and types)          | Applicable options                                                                                                                | Scope; cardinality; publication                                          |
-| ------------------------------- | ------ | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `shows list` / `shows.list`     | 1      | none                                       | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | presentation; collection; omitted filter means all in scope; none        |
-| `shows get` / `shows.get`       | 1      | none                                       | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | presentation; one; ambiguity fails; none                                 |
+| Path / SDK ID                   | Inputs | Arguments (exact flags and types)                                   | Applicable options                                                                                                                | Scope; cardinality; publication                                          |
+| ------------------------------- | ------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `shows list` / `shows.list`     | 1      | none                                                                | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | presentation; collection; omitted filter means all in scope; none        |
+| `shows get` / `shows.get`       | 1      | none                                                                | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | presentation; one; ambiguity fails; none                                 |
 | `shows set` / `shows.set`       | 1      | `--name?: string`; `--slides?: Position[]`; `--position?: Position` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | presentation; one unless explicit all; zero requires allowEmpty; package |
 | `shows add` / `shows.add`       | 1      | `--name: string`; `--slides: Position[]`; `--position?: Position`   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | presentation; operation-specific in format contract; package             |
-| `shows remove` / `shows.remove` | 1      | none                                       | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | presentation; one unless explicit all; zero requires allowEmpty; package |
+| `shows remove` / `shows.remove` | 1      | none                                                                | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | presentation; one unless explicit all; zero requires allowEmpty; package |
 
 ### A. settings
 
@@ -1371,24 +1375,24 @@ schemas, not extra undocumented direct flags.
 
 ### A. masters
 
-| Path / SDK ID                       | Inputs | Arguments (exact flags and types)    | Applicable options                                                                                                                | Scope; cardinality; publication                                     |
-| ----------------------------------- | ------ | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `masters list` / `masters.list`     | 1      | none                                 | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`                                                                             | masters; collection; omitted filter means all in scope; none        |
-| `masters get` / `masters.get`       | 1      | none                                 | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`                                                                             | masters; one; ambiguity fails; none                                 |
-| `masters set` / `masters.set`       | 1      | `--name?: string`; `--text?: string` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | masters; one unless explicit all; zero requires allowEmpty; package |
-| `masters add` / `masters.add`       | 1      | `--name: string`; `--text?: string`; `--theme?: string`  | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | masters; operation-specific in format contract; package             |
-| `masters remove` / `masters.remove` | 1      | none                                 | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | masters; one unless explicit all; zero requires allowEmpty; package |
+| Path / SDK ID                       | Inputs | Arguments (exact flags and types)                       | Applicable options                                                                                                                                     | Scope; cardinality; publication                                     |
+| ----------------------------------- | ------ | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| `masters list` / `masters.list`     | 1      | none                                                    | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`                                                                                        | masters; collection; omitted filter means all in scope; none        |
+| `masters get` / `masters.get`       | 1      | none                                                    | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`                                                                                        | masters; one; ambiguity fails; none                                 |
+| `masters set` / `masters.set`       | 1      | `--name?: string`; `--text?: string`                    | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | masters; one unless explicit all; zero requires allowEmpty; package |
+| `masters add` / `masters.add`       | 1      | `--name: string`; `--text?: string`; `--theme?: string` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`                      | masters; operation-specific in format contract; package             |
+| `masters remove` / `masters.remove` | 1      | none                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`                      | masters; one unless explicit all; zero requires allowEmpty; package |
 
 ### A. layouts
 
-| Path / SDK ID                       | Inputs | Arguments (exact flags and types)                                         | Applicable options                                                                                                                | Scope; cardinality; publication                                     |
-| ----------------------------------- | ------ | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `layouts list` / `layouts.list`     | 1      | none | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide` | layouts; collection; omitted filter means all in scope; none |
-| `layouts get` / `layouts.get`       | 1      | none | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide` | layouts; one; ambiguity fails; none |
-| `layouts set` / `layouts.set`       | 1      | `--name?: string`; `--master?: string`; `--text?: string`; `--shape?: string`; `--type?: string`; `--preserve?: boolean`; `--show-master-shapes?: boolean`; `--matching-name?: string` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; one unless explicit all; zero requires allowEmpty; package |
-| `layouts add` / `layouts.add`       | 1      | `--name: string`; `--master: string`; `--text?: string`; `--type?: string`; `--preserve?: boolean`; `--show-master-shapes?: boolean`; `--matching-name?: string`; `--placeholders-json?: LayoutPlaceholder[]` | `--json`, `--limit`, `--scope`, `--output`, `--in-place`, `--force`, `--dry-run` | layouts; one new layout; package |
-| `layouts remove` / `layouts.remove` | 1      | none | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; one unless explicit all; zero requires allowEmpty; package |
-| `layouts apply` / `layouts.apply`   | 1      | `--layout: string`; `--placeholder-policy: type-index / reject-unmatched` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; operation-specific in format contract; package             |
+| Path / SDK ID                       | Inputs | Arguments (exact flags and types)                                                                                                                                                                             | Applicable options                                                                                                                          | Scope; cardinality; publication                                     |
+| ----------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `layouts list` / `layouts.list`     | 1      | none                                                                                                                                                                                                          | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`                                                                             | layouts; collection; omitted filter means all in scope; none        |
+| `layouts get` / `layouts.get`       | 1      | none                                                                                                                                                                                                          | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`                                                                             | layouts; one; ambiguity fails; none                                 |
+| `layouts set` / `layouts.set`       | 1      | `--name?: string`; `--master?: string`; `--text?: string`; `--shape?: string`; `--type?: string`; `--preserve?: boolean`; `--show-master-shapes?: boolean`; `--matching-name?: string`                        | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; one unless explicit all; zero requires allowEmpty; package |
+| `layouts add` / `layouts.add`       | 1      | `--name: string`; `--master: string`; `--text?: string`; `--type?: string`; `--preserve?: boolean`; `--show-master-shapes?: boolean`; `--matching-name?: string`; `--placeholders-json?: LayoutPlaceholder[]` | `--json`, `--limit`, `--scope`, `--output`, `--in-place`, `--force`, `--dry-run`                                                            | layouts; one new layout; package                                    |
+| `layouts remove` / `layouts.remove` | 1      | none                                                                                                                                                                                                          | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | layouts; one unless explicit all; zero requires allowEmpty; package |
+| `layouts apply` / `layouts.apply`   | 1      | `--layout: string`; `--placeholder-policy: type-index / reject-unmatched`                                                                                                                                     | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`           | layouts; operation-specific in format contract; package             |
 
 ### A. themes
 
@@ -1402,32 +1406,32 @@ schemas, not extra undocumented direct flags.
 
 ### A. backgrounds
 
-| Path / SDK ID                           | Inputs | Arguments (exact flags and types)                                                                                           | Applicable options                                                                                                                | Scope; cardinality; publication                                    |
-| --------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `backgrounds list` / `backgrounds.list` | 1      | none                                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; collection; omitted filter means all in scope; none        |
-| `backgrounds get` / `backgrounds.get`   | 1      | none                                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; one; ambiguity fails; none                                 |
+| Path / SDK ID                           | Inputs | Arguments (exact flags and types)                                                                                                                                                                           | Applicable options                                                                                                                          | Scope; cardinality; publication                                    |
+| --------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `backgrounds list` / `backgrounds.list` | 1      | none                                                                                                                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                                       | slides; collection; omitted filter means all in scope; none        |
+| `backgrounds get` / `backgrounds.get`   | 1      | none                                                                                                                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                                       | slides; one; ambiguity fails; none                                 |
 | `backgrounds set` / `backgrounds.set`   | 1      | `--kind?: solid / gradient / picture / inherit / style-reference`; `--color?: Color`; `--stops?: GradientStop[]`; `--angle?: Degrees`; `--file?: Input`; `--style-index?: integer`; `--style-color?: Color` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 
 ### A. shapes
 
-| Path / SDK ID                               | Inputs | Arguments (exact flags and types)                                                                                                                                                                                                                                                                       | Applicable options                                                                                                                           | Scope; cardinality; publication                                    |
-| ------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `shapes list` / `shapes.list`               | 1      | none                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; collection; omitted filter means all in scope; none        |
-| `shapes get` / `shapes.get`                 | 1      | none                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; one; ambiguity fails; none                                 |
+| Path / SDK ID                               | Inputs | Arguments (exact flags and types)                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Applicable options                                                                                                                                     | Scope; cardinality; publication                                    |
+| ------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `shapes list` / `shapes.list`               | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                                       | slides; collection; omitted filter means all in scope; none        |
+| `shapes get` / `shapes.get`                 | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                                       | slides; one; ambiguity fails; none                                 |
 | `shapes set` / `shapes.set`                 | 1      | `--kind?: "text-box" / MSO_AUTO_SHAPE_TYPE`; `--name?: string`; `--text?: string`; `--left?: Length`; `--top?: Length`; `--width?: Length`; `--height?: Length`; `--rotation?: Degrees`; `--flip-horizontal?: boolean`; `--flip-vertical?: boolean`; `--fill?: "solid" / Color / null`; `--line-color?: "solid" / Color / null`; `--line-width?: Length / null`; `--title?: string / null`; `--description?: string / null`; `--alt-text?: string / null`; `--locked?: boolean / null` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `shapes add` / `shapes.add`                 | 1      | `--kind: "text-box" / MSO_AUTO_SHAPE_TYPE`; `--name?: string`; `--text?: string`; `--left: Length`; `--top: Length`; `--width: Length`; `--height: Length`; `--rotation?: Degrees`; `--flip-horizontal?: boolean`; `--flip-vertical?: boolean`; `--fill?: "solid" / Color / null`; `--line-color?: "solid" / Color / null`; `--line-width?: Length / null`; `--title?: string / null`; `--description?: string / null`; `--alt-text?: string / null`; `--locked?: boolean / null`      | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes remove` / `shapes.remove`           | 1      | none                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `shapes paths list` / `shapes.paths.list` | 1 | no path arguments | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part` | slides; selected shape records; read-only |
-| `shapes paths get` / `shapes.paths.get` | 1 | no path arguments | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part` | slides; exactly one shape; read-only |
-| `shapes paths add` / `shapes.paths.add` | 1 | `--path: ShapePath` OR `--vertices: PathVertices` plus `--close: boolean`; `--left: Length`; `--top: Length`; `--width: Length`; `--height: Length`; optional shape metadata/paint | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--part`, `--output`, `--in-place`, `--force`, `--dry-run` | slides; exactly one owning part; package |
-| `shapes paths set` / `shapes.paths.set` | 1 | `--path: ShapePath` OR `--vertices: PathVertices` plus `--close: boolean` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `shapes group` / `shapes.group`             | 1      | `--shapes: Location[]`; `--tolerance: Length`                                                                                                                                                                                                                                                           | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes ungroup` / `shapes.ungroup`         | 1      | `--tolerance: Length`                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes move` / `shapes.move`               | 1      | exactly one of `--position: Position` / `--order: front / back / forward / backward`; `--coordinate-system: slide / group`; `--shapes?: Location[]` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes align` / `shapes.align`             | 1      | `--alignment: left / center / right / top / middle / bottom`; `--coordinate-system: slide / group`; `--shapes?: Location[]` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes distribute` / `shapes.distribute`   | 1      | `--axis: horizontal / vertical`; `--coordinate-system: slide / group`; `--shapes?: Location[]` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes duplicate` / `shapes.duplicate`     | 1      | `--offset-x: Length`; `--offset-y: Length`; `--coordinate-system: slide / group`; `--shapes?: Location[]` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
-| `shapes effects set` / `shapes.effects.set` | 1      | `--shadow: boolean`; `--opacity: Ratio`; `--shadow-blur: Length`; `--shadow-color: Color`                                                                                                                                                                                                               | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `shapes remove` / `shapes.remove`           | 1      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`           | slides; one unless explicit all; zero requires allowEmpty; package |
+| `shapes paths list` / `shapes.paths.list`   | 1      | no path arguments                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part`                                                                             | slides; selected shape records; read-only                          |
+| `shapes paths get` / `shapes.paths.get`     | 1      | no path arguments                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part`                                                                             | slides; exactly one shape; read-only                               |
+| `shapes paths add` / `shapes.paths.add`     | 1      | `--path: ShapePath` OR `--vertices: PathVertices` plus `--close: boolean`; `--left: Length`; `--top: Length`; `--width: Length`; `--height: Length`; optional shape metadata/paint                                                                                                                                                                                                                                                                                                     | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--part`, `--output`, `--in-place`, `--force`, `--dry-run`                                      | slides; exactly one owning part; package                           |
+| `shapes paths set` / `shapes.paths.set`     | 1      | `--path: ShapePath` OR `--vertices: PathVertices` plus `--close: boolean`                                                                                                                                                                                                                                                                                                                                                                                                              | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--part`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `shapes group` / `shapes.group`             | 1      | `--shapes: Location[]`; `--tolerance: Length`                                                                                                                                                                                                                                                                                                                                                                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`           | slides; operation-specific in format contract; package             |
+| `shapes ungroup` / `shapes.ungroup`         | 1      | `--tolerance: Length`                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`           | slides; operation-specific in format contract; package             |
+| `shapes move` / `shapes.move`               | 1      | exactly one of `--position: Position` / `--order: front / back / forward / backward`; `--coordinate-system: slide / group`; `--shapes?: Location[]`                                                                                                                                                                                                                                                                                                                                    | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`           | slides; operation-specific in format contract; package             |
+| `shapes align` / `shapes.align`             | 1      | `--alignment: left / center / right / top / middle / bottom`; `--coordinate-system: slide / group`; `--shapes?: Location[]`                                                                                                                                                                                                                                                                                                                                                            | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`           | slides; operation-specific in format contract; package             |
+| `shapes distribute` / `shapes.distribute`   | 1      | `--axis: horizontal / vertical`; `--coordinate-system: slide / group`; `--shapes?: Location[]`                                                                                                                                                                                                                                                                                                                                                                                         | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`           | slides; operation-specific in format contract; package             |
+| `shapes duplicate` / `shapes.duplicate`     | 1      | `--offset-x: Length`; `--offset-y: Length`; `--coordinate-system: slide / group`; `--shapes?: Location[]`                                                                                                                                                                                                                                                                                                                                                                              | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`           | slides; operation-specific in format contract; package             |
+| `shapes effects set` / `shapes.effects.set` | 1      | `--shadow: boolean`; `--opacity: Ratio`; `--shadow-blur: Length`; `--shadow-color: Color`                                                                                                                                                                                                                                                                                                                                                                                              | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty`           | slides; one unless explicit all; zero requires allowEmpty; package |
 
 ### A. fields
 
@@ -1568,14 +1572,14 @@ schemas, not extra undocumented direct flags.
 
 ### A. objects
 
-| Path / SDK ID                         | Inputs | Arguments (exact flags and types)                                                                    | Applicable options                                                                                                                           | Scope; cardinality; publication                                    |
-| ------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `objects list` / `objects.list`       | 1      | none                                                                                                 | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; collection; omitted filter means all in scope; none        |
-| `objects get` / `objects.get`         | 1      | none                                                                                                 | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; one; ambiguity fails; none                                 |
-| `objects set` / `objects.set`         | 1      | `--file?: Input`; `--icon?: Input`; `--program-id?: string`; `--width?: Length`; `--height?: Length` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `objects add` / `objects.add`         | 1      | `--file: Input`; `--icon: Input`; one of `--program-id: string` / `--program: DOCX\|PPTX\|XLSX`; `--width?: Length`; `--height?: Length`   | `--json`, `--limit`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run` | slides; operation-specific in format contract; package             |
-| `objects remove` / `objects.remove`   | 1      | none                                                                                                 | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `objects extract` / `objects.extract` | 1      | none                                                                                                 | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output-dir`, `--force`, `--allow-partial-output`                        | slides; operation-specific in format contract; output-directory    |
+| Path / SDK ID                         | Inputs | Arguments (exact flags and types)                                                                                                        | Applicable options                                                                                                                           | Scope; cardinality; publication                                    |
+| ------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `objects list` / `objects.list`       | 1      | none                                                                                                                                     | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; collection; omitted filter means all in scope; none        |
+| `objects get` / `objects.get`         | 1      | none                                                                                                                                     | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`                                                                             | slides; one; ambiguity fails; none                                 |
+| `objects set` / `objects.set`         | 1      | `--file?: Input`; `--icon?: Input`; `--program-id?: string`; `--width?: Length`; `--height?: Length`                                     | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `objects add` / `objects.add`         | 1      | `--file: Input`; `--icon: Input`; one of `--program-id: string` / `--program: DOCX\|PPTX\|XLSX`; `--width?: Length`; `--height?: Length` | `--json`, `--limit`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`                                                             | slides; operation-specific in format contract; package             |
+| `objects remove` / `objects.remove`   | 1      | none                                                                                                                                     | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `objects extract` / `objects.extract` | 1      | none                                                                                                                                     | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--shape`, `--output-dir`, `--force`, `--allow-partial-output`                        | slides; operation-specific in format contract; output-directory    |
 
 ### A. relationships
 
@@ -1738,10 +1742,7 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
         "minItems": 1,
         "maxItems": 250000,
         "items": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
@@ -1755,9 +1756,7 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
       "type": "boolean"
     }
   },
-  "required": [
-    "series"
-  ],
+  "required": ["series"],
   "additionalProperties": false
 }
 ```
@@ -1906,14 +1905,7 @@ profile MUST fail explicitly; raw equality cannot establish effective equality.
       "type": "boolean"
     },
     "mode": {
-      "enum": [
-        "structural",
-        "text",
-        "media",
-        "relationships",
-        "effective-formatting",
-        "raw"
-      ]
+      "enum": ["structural", "text", "media", "relationships", "effective-formatting", "raw"]
     },
     "changes": {
       "type": "array",
@@ -1921,11 +1913,7 @@ profile MUST fail explicitly; raw equality cannot establish effective equality.
         "type": "object",
         "properties": {
           "kind": {
-            "enum": [
-              "added",
-              "removed",
-              "changed"
-            ]
+            "enum": ["added", "removed", "changed"]
           },
           "left": {
             "anyOf": [
@@ -1966,25 +1954,14 @@ profile MUST fail explicitly; raw equality cannot establish effective equality.
           "before": {},
           "after": {}
         },
-        "required": [
-          "kind",
-          "left",
-          "right",
-          "id",
-          "category",
-          "before",
-          "after"
-        ],
+        "required": ["kind", "left", "right", "id", "category", "before", "after"],
         "additionalProperties": false
       },
       "minItems": 0,
       "maxItems": 250000
     },
     "formatting": {
-      "enum": [
-        "raw",
-        "effective"
-      ]
+      "enum": ["raw", "effective"]
     },
     "limitations": {
       "type": "array",
@@ -1993,13 +1970,7 @@ profile MUST fail explicitly; raw equality cannot establish effective equality.
       }
     }
   },
-  "required": [
-    "equal",
-    "mode",
-    "changes",
-    "formatting",
-    "limitations"
-  ],
+  "required": ["equal", "mode", "changes", "formatting", "limitations"],
   "additionalProperties": false
 }
 ```
@@ -2636,11 +2607,7 @@ as U+000B. A field contributes its cached string to this projection but remains 
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "location",
-          "text",
-          "paragraphs"
-        ],
+        "required": ["location", "text", "paragraphs"],
         "properties": {
           "location": {
             "$ref": "#/$defs/Location"
@@ -2652,11 +2619,7 @@ as U+000B. A field contributes its cached string to this projection but remains 
           "cell": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "coordinateSystem",
-              "row",
-              "column"
-            ],
+            "required": ["coordinateSystem", "row", "column"],
             "properties": {
               "coordinateSystem": {
                 "const": "zero-based"
@@ -2676,12 +2639,7 @@ as U+000B. A field contributes its cached string to this projection but remains 
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "index",
-                "coordinateSystem",
-                "text",
-                "inlines"
-              ],
+              "required": ["index", "coordinateSystem", "text", "inlines"],
               "properties": {
                 "index": {
                   "type": "integer",
@@ -2700,10 +2658,7 @@ as U+000B. A field contributes its cached string to this projection but remains 
                       {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": [
-                          "kind",
-                          "text"
-                        ],
+                        "required": ["kind", "text"],
                         "properties": {
                           "kind": {
                             "const": "run"
@@ -2716,10 +2671,7 @@ as U+000B. A field contributes its cached string to this projection but remains 
                       {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": [
-                          "kind",
-                          "text"
-                        ],
+                        "required": ["kind", "text"],
                         "properties": {
                           "kind": {
                             "const": "break"
@@ -2732,12 +2684,7 @@ as U+000B. A field contributes its cached string to this projection but remains 
                       {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": [
-                          "kind",
-                          "cachedText",
-                          "fieldId",
-                          "fieldType"
-                        ],
+                        "required": ["kind", "cachedText", "fieldId", "fieldType"],
                         "properties": {
                           "kind": {
                             "const": "field"
@@ -2746,16 +2693,10 @@ as U+000B. A field contributes its cached string to this projection but remains 
                             "type": "string"
                           },
                           "fieldId": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
+                            "type": ["string", "null"]
                           },
                           "fieldType": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
+                            "type": ["string", "null"]
                           }
                         }
                       }
@@ -2774,11 +2715,7 @@ as U+000B. A field contributes its cached string to this projection but remains 
       "const": "structural"
     }
   },
-  "required": [
-    "text",
-    "order",
-    "segments"
-  ],
+  "required": ["text", "order", "segments"],
   "additionalProperties": false
 }
 ```
@@ -3145,12 +3082,7 @@ by preserving command order, without geometric evaluation.
 {
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "unit",
-    "width",
-    "height",
-    "commands"
-  ],
+  "required": ["unit", "width", "height", "commands"],
   "properties": {
     "unit": {
       "const": "emu"
@@ -3174,11 +3106,7 @@ by preserving command order, without geometric evaluation.
           {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "type",
-              "x",
-              "y"
-            ],
+            "required": ["type", "x", "y"],
             "properties": {
               "type": {
                 "const": "move"
@@ -3198,11 +3126,7 @@ by preserving command order, without geometric evaluation.
           {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "type",
-              "x",
-              "y"
-            ],
+            "required": ["type", "x", "y"],
             "properties": {
               "type": {
                 "const": "line"
@@ -3222,13 +3146,7 @@ by preserving command order, without geometric evaluation.
           {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "type",
-              "cx",
-              "cy",
-              "x",
-              "y"
-            ],
+            "required": ["type", "cx", "cy", "x", "y"],
             "properties": {
               "type": {
                 "const": "quadratic"
@@ -3258,15 +3176,7 @@ by preserving command order, without geometric evaluation.
           {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "type",
-              "cx1",
-              "cy1",
-              "cx2",
-              "cy2",
-              "x",
-              "y"
-            ],
+            "required": ["type", "cx1", "cy1", "cx2", "cy2", "x", "y"],
             "properties": {
               "type": {
                 "const": "cubic"
@@ -3306,9 +3216,7 @@ by preserving command order, without geometric evaluation.
           {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "type"
-            ],
+            "required": ["type"],
             "properties": {
               "type": {
                 "const": "close"
@@ -3336,10 +3244,7 @@ bounded-path contract.
   "items": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "x",
-      "y"
-    ],
+    "required": ["x", "y"],
     "properties": {
       "x": {
         "type": "integer",
@@ -3362,10 +3267,7 @@ bounded-path contract.
 {
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "type",
-    "text"
-  ],
+  "required": ["type", "text"],
   "properties": {
     "type": {
       "type": "string",

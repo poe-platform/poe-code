@@ -11,6 +11,7 @@ export type OfficeErrorCode =
   | ByteErrorCode
   | "invalid-archive"
   | "invalid-opc"
+  | "invalid-xml"
   | "unsafe-path"
   | "missing-binding";
 

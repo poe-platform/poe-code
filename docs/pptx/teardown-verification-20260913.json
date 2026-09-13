@@ -1,0 +1,986 @@
+{
+  "head": "766f98c7fe3c30cc1d0fc33d1718e81c1703657d",
+  "case_accounting": {
+    "unit": 2700,
+    "bdd": 973,
+    "rows": 3673,
+    "unique_pointers": 3673,
+    "unique_targets": 3673,
+    "join_errors": [],
+    "statuses": {
+      "semantic_review_required": 2585,
+      "original_ts_passed": 43,
+      "specified_not_implemented": 167,
+      "proposed_design_not_implemented": 877,
+      "deferred_public_behavior": 1
+    },
+    "architecture_only": 0
+  },
+  "registers": {
+    "features": 60,
+    "unique_features": 60,
+    "feature_operation_errors": ["F23"],
+    "api_inventory": 2409,
+    "public_rows": 2426,
+    "missing_api_ids": [],
+    "command_sdk_rows": 2426,
+    "command_sdk_pointer_errors": [],
+    "unbound_public_ids": [
+      "pptx.shapes.freeform.FreeformBuilder.shape_offset_x",
+      "pptx.shapes.freeform.FreeformBuilder.shape_offset_y"
+    ],
+    "bounded_sdk_receipts": 749,
+    "unsupported": 8,
+    "unreconciled": 1669,
+    "undeclared_feature_operations": ["shapes.paths.list", "shapes.paths.get"]
+  },
+  "identity_scan": {
+    "roots": [
+      "packages/pptx",
+      "packages/safe-bash/src/commands/pptx",
+      "packages/safe-bash/tests/commands/pptx"
+    ],
+    "terms": [
+      "python-pptx",
+      "python-docx",
+      "scanny",
+      "steve canny",
+      "python-pptx.readthedocs.io",
+      "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+    ],
+    "files": 841,
+    "excluded_legal": ["packages/pptx/LICENSE", "packages/pptx/THIRD_PARTY_NOTICES.txt"],
+    "hits": [],
+    "limitation": "Exact known identity strings and filenames only; not a proof of original authorship or exhaustive provenance."
+  },
+  "downloads": [
+    {
+      "path": ".cache/pptx-corpus/IXPE-Presentation-Template.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/CERN-intro-2025-v2.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/CERN-job-opp-250925.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/ISOLDE-drawings.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/SEWP_Training_Slides_May 2026.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/SEWP_Provider_Training_Slides_05_12_25.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/SEWP_CH_Training_Presentation_05_12_25.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/WWL-template-1slide.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/slides-public-engagement-DEC-2021.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/CluestotheCosmos.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/20120418_Jedlovec_SuomiNPP.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/earth-system-media-large.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/global-outlook-2026.pptx",
+      "present": true,
+      "hash_matches": true
+    },
+    {
+      "path": ".cache/pptx-corpus/data-visualization-course.pptx",
+      "present": true,
+      "hash_matches": true
+    }
+  ],
+  "scope": "PPTX teardown audit; no product completion, conformance, clean-commit execution or release claim",
+  "checks": {
+    "pptx": {
+      "command": "npm run test:unit --workspace=pptx",
+      "files": 269,
+      "tests": 6874,
+      "seconds": 64.3,
+      "exit": 0
+    },
+    "lint": {
+      "command": "npm run lint --workspace=pptx",
+      "exit": 0
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=pptx",
+      "exit": 0
+    },
+    "command_family": {
+      "command": "node --import tsx --test packages/safe-bash/tests/commands/pptx/*.test.ts",
+      "tests": 239,
+      "failures": 0,
+      "skips": 0,
+      "cancellations": 0,
+      "seconds": 7.457961625,
+      "exit": 0
+    },
+    "built_public_consumer": {
+      "import": "pptx",
+      "runtime_exports": 274,
+      "slides": 1,
+      "title": "Tidal survey",
+      "bytes": 4816,
+      "reopened": true
+    },
+    "root_checks": "not_run",
+    "rendering": "not_run",
+    "playback": "not_run",
+    "absent_downloads": "not_run"
+  },
+  "input_sha256": {
+    "docs/pptx/upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "docs/pptx/test-case-map.json": "64a66c9adb50530945d94bc1f3ec9d5c79e7220b48afe46950e3dfc5ca9fa3d0",
+    "docs/pptx/upstream-api-inventory.json": "119a4ba61a96c88f487fb769fa268bc3a5d520b58315b8aa08606540fc92b421",
+    "docs/pptx/public-api-map.json": "e1af75d442ec97a100834db34433d2dbdd3a2bcf7d2a5779789dcd28d08e147c",
+    "docs/pptx/command-coverage.json": "d9346dd9bf50a012613c19135523789e0055014ec44af1c92ef2081c946a2e92",
+    "docs/pptx/corpus-manifest.json": "9a496556696893ad3f9d988636822d8129b3b3b2e7f6ba2c42e0e6cde04cea23",
+    "docs/pptx/corpus-gap-regressions.json": "3a9d81067e4ac0dd377f3af23b8cee1a689b54609dfef28fce4e8b3d9f646f96",
+    "docs/pptx/office-cli-execution-20260913.json": "e19ab99e932aab3cc7ff6be05562ce4baf0a8f102004fceec98c608733ceaa66",
+    "docs/plans/pptx-typescript-safe-bash.md": "93203e045debae9dc046b1664f5cfdcb1186310dba1fb71b871f4ce30d6b701b",
+    "packages/pptx/src/index.ts": "d1c3f300569d520536db0a53916f345fc495df5fe6033a3b185b3b4352a1ce5b",
+    "packages/pptx/src/command-engine.ts": "fda809ac1a9ef3ff8aa6b7da02681098c267b2d34e2bc9b5e43beef350a85092",
+    "packages/pptx/src/presentation-model.ts": "9a651b92ae3e2769d5703b78f1d75028831edc897bfb74b4915705cc078ca1f7"
+  },
+  "local_commits": [
+    {
+      "hash": "766f98c7fe3c30cc1d0fc33d1718e81c1703657d",
+      "subject": "docs(pptx): record verified support checkpoint",
+      "body": "",
+      "paths": [
+        "docs/plans/pptx-implementation-checkpoint-20260913.md",
+        "docs/pptx/implementation-checkpoint-20260913.json",
+        "docs/pptx/implementation-checkpoint-20260913.md",
+        "docs/specs/pptx.md"
+      ]
+    },
+    {
+      "hash": "a7fbba9c421decb4ba710db2c6c16543eba10c34",
+      "subject": "docs(pptx): reconcile evidence and retention gates",
+      "body": "",
+      "paths": [
+        "docs/plans/pptx-evidence-retention-review.md",
+        "docs/pptx/corpus-manifest.json",
+        "docs/pptx/evidence-retention-review.json",
+        "docs/pptx/upstream-api-audit.md"
+      ]
+    },
+    {
+      "hash": "56dd02c69a02a92842e4b62e9bd1caab1781f828",
+      "subject": "docs(pptx): document usage and verified exports",
+      "body": "",
+      "paths": [
+        "docs/plans/pptx-usage-documentation-review.md",
+        "docs/pptx/package-readme-draft.md",
+        "docs/pptx/sdk-exports.md",
+        "docs/pptx/usage-review-evidence.md",
+        "docs/pptx/usage.md"
+      ]
+    },
+    {
+      "hash": "2e1e171212db7d615a2e08638d14e98a62a9965c",
+      "subject": "fix(pptx): reject negative live collection brackets",
+      "body": "",
+      "paths": [
+        "docs/plans/pptx-live-collection-indexing.md",
+        "docs/pptx/live-collection-indexing-map.json",
+        "docs/pptx/live-collection-indexing.md",
+        "packages/pptx/src/chart-model-core.ts",
+        "packages/pptx/src/live-collection-indexing.test.ts",
+        "packages/pptx/src/shapes.ts"
+      ]
+    },
+    {
+      "hash": "cea22ff680f29feb07c36d1ab78c6f862c81bfec",
+      "subject": "docs(pptx): record built CLI QA contract gaps",
+      "body": "",
+      "paths": [
+        "docs/plans/office-cli-qa.md",
+        "docs/pptx/office-cli-execution-20260913.json",
+        "docs/pptx/office-cli-execution-20260913.md",
+        "docs/pptx/office-cli-qa-review.md"
+      ]
+    },
+    {
+      "hash": "a2597a3e80b0a737e04ddc3e507adbe032654105",
+      "subject": "test(pptx): exercise original guide workflows",
+      "body": "",
+      "paths": [
+        "docs/plans/pptx-guide-workflows-current.md",
+        "docs/plans/pptx-public-closure-verification.md",
+        "docs/pptx/guide-workflow-closure-current.json",
+        "docs/pptx/guide-workflows-current.md",
+        "docs/pptx/public-closure-verification.md",
+        "packages/pptx/src/guide-workflows-original.test.ts"
+      ]
+    },
+    {
+      "hash": "3209b780596b4799ccc686b7006cfc8913954dcd",
+      "subject": "test(pptx): reconcile exported API evidence",
+      "body": "",
+      "paths": [
+        "docs/plans/pptx-enum-public-register-reconciliation.md",
+        "docs/plans/pptx-model-owner-api-reconciliation.md",
+        "docs/plans/pptx-owner-chart-api-reconciliation.md",
+        "docs/pptx/api-closure-current.md",
+        "docs/pptx/enum-public-register-case-map.json",
+        "docs/pptx/enum-public-register-reconciliation.md",
+        "docs/pptx/model-owner-api-reconciliation.md",
+        "docs/pptx/owner-chart-api-reconciliation.md",
+        "docs/pptx/public-api-map.json",
+        "docs/pptx/shape-part-contract-evidence.md",
+        "docs/pptx/slide-chart-insertion-evidence.md",
+        "packages/pptx/src/public-enum-values.test.ts",
+        "packages/pptx/src/public-enums.test.ts"
+      ]
+    },
+    {
+      "hash": "9f72009344a2e6be412843d8defe0e77dd59e8d1",
+      "subject": "feat(pptx): bind live run hyperlinks to owners",
+      "body": "",
+      "paths": [
+        "docs/plans/pptx-run-hyperlink-owner.md",
+        "docs/pptx/run-hyperlink-owner-evidence.md",
+        "packages/pptx/src/links-model.ts",
+        "packages/pptx/src/links.ts",
+        "packages/pptx/src/presentation-model.ts",
+        "packages/pptx/src/run-hyperlink-owner.test.ts",
+        "packages/pptx/src/shapes.ts",
+        "packages/pptx/src/slide-model.ts",
+        "packages/pptx/src/text-frames.ts",
+        "packages/pptx/src/text-link-capability.ts",
+        "packages/pptx/src/text-paragraphs.ts"
+      ]
+    }
+  ],
+  "task_states": {
+    "observed": [
+      {
+        "id": "pin-standards",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "reconcile-documented-public-api",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "define-mirrored-js-api",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "map-all-features-to-commands",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "paired-cli-acceptance",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "audit-upstream-baseline",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "map-every-upstream-case",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "resolve-cli-contract",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "audit-corpus",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "fill-corpus-gaps",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "qa-procedure",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "package-boundaries",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "original-fixture-primitives",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "independent-assertions",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "regression-reduction",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "package-sdk-shell",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "zip-reader",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "zip-writer",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "opc-identity",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "opc-relationships",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "xml-preservation",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "strict-mce",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "semantic-validator",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "budgets-cancellation",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "publication",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "selectors",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "command-plugin",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "cli-json-help",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "inspect-parts",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "raw-xml",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "new-deck",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "slides-add",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "slides-reorder",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "slides-delete",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "slides-clone",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "slides-import",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "merge-split",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sections-shows",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "presentation-settings",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "master-editing",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "layout-editing",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "theme-resolution",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "theme-editing",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "text-extraction",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "text-replacement",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "run-formatting",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "paragraph-lists",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "text-frame",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "portable-font-metrics",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "text-fit-parity",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "unicode-layout-metadata",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "shape-create",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "custom-paths",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "transforms",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "groups",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "align-order",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "connectors",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "drawing-effects",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "tables-basic",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "tables-merges",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "images-inventory",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "images-insert",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "images-replace",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "images-geometry",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "images-vector",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "images-extract",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "charts-read",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "charts-create",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "charts-edit",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "chart-family-parity",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "chart-workbook-data",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "charts-workbooks",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "charts-advanced",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "smartart",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "equations",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "media-read",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "media-edit",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "media-captions",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "transitions",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "animations-read",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "animations-edit",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "links-actions",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "notes",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "handouts",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "comments-legacy",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "comments-modern",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "properties-tags",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "accessibility",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "embedded-fonts-objects",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "protection-signatures",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sanitize",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "templates-bindings",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "templates-repeat",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "batch-dry-run",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "diff",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "pack-extract",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sdk-live-object-model",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sdk-collections-values",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sdk-async-capabilities",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sdk-xml-package-views",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sdk-placeholders-shapes-api",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sdk-chart-drawing-api",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sdk-media-ole-api",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "upstream-package-parity",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "upstream-drawing-parity",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "upstream-chart-parity",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "bdd-adaptation",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "security-adversarial",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "preservation-metamorphic",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "sdk-command-parity",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "large-profile-qa",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "corpus-structural-qa",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "corpus-render-qa",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "application-playback-qa",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "close-test-accounting",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "public-consumers",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "simple-selector-ergonomics",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "schema-capability-discovery",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "cross-format-cli-conformance",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "whole-api-acceptance",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "ergonomic-cli-qa",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "maintained-checks",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "usage-and-visual-cli",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "cleanup-disposable-fixtures",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      },
+      {
+        "id": "completion-report",
+        "status": "done",
+        "audit": "not_promoted_or_certified_by_this_audit"
+      }
+    ],
+    "finalization": "pending",
+    "action": "preserved preexisting task edits; no promotion",
+    "implemented_through": "a7fbba9c421decb4ba710db2c6c16543eba10c34",
+    "blocking_gates": [
+      "whole-api-acceptance",
+      "close-test-accounting",
+      "cross-format-cli-conformance",
+      "corpus-render-qa",
+      "application-playback-qa",
+      "maintained-checks",
+      "cleanup-disposable-fixtures"
+    ]
+  },
+  "notices": [
+    {
+      "path": "docs/pptx/test-case-map-notice.txt",
+      "sha256": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+      "tracked": true
+    },
+    {
+      "path": "docs/pptx/public-api-map-notice.txt",
+      "sha256": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+      "tracked": true
+    },
+    {
+      "path": "docs/pptx/upstream-license-notice.txt",
+      "sha256": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+      "tracked": false
+    },
+    {
+      "path": "packages/pptx/THIRD_PARTY_NOTICES.txt",
+      "sha256": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+      "tracked": true
+    }
+  ],
+  "cli_identity_probes": [
+    {
+      "args": ["--help"],
+      "exit": 0,
+      "output_bytes": 12336,
+      "hits": []
+    },
+    {
+      "args": ["capabilities", "--json"],
+      "exit": 0,
+      "output_bytes": 19375,
+      "hits": []
+    },
+    {
+      "args": ["validate", "/deck", "--json"],
+      "exit": 2,
+      "output_bytes": 200,
+      "hits": [],
+      "message": "Unsupported operation."
+    }
+  ],
+  "delivery": {
+    "push": false,
+    "publish": false,
+    "remote_main_verified": false,
+    "owned_paths": [
+      "docs/plans/pptx-teardown-verification-20260913.md",
+      "docs/pptx/teardown-verification-20260913.md",
+      "docs/pptx/teardown-verification-20260913.json"
+    ]
+  }
+}

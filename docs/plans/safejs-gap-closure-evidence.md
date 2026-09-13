@@ -2302,3 +2302,19 @@ Residual historical accounting: **161 primary nonpasses /126 secondary resource
 nonpasses**; proposal/exclusion rows remain visible, never counted as passes.
 Local commit, remote-main delivery and publication remain separate; no publication
 is claimed by this pre-delivery observation. Concurrent local/staged work is preserved.
+
+### qualify-language-semantics — reconciled generator reentry delivery, 2026-09-13
+
+The clean delivered aa132423ae954e705c7396e2e5dfcea9092f5fa8 reproduces six original
+generator-reentry failures that earlier dirty-source evidence had marked passing.
+Reused the error-completion task's exact recorded patch/regression; original source
+and staged changes remain untouched. [Revalidation and commands](qualify-language-semantics/reentry-delivery/audit.md):
+**four failing independent regressions →136 focused passes**, scoped lint and maintained
+build pass; original fixture contexts **12/12 pass**. Guest TypeError precedes the
+unchanged host reentry guard. Node18/20/22/24/26 and Bun pending/completed replay and
+built CLI/SDK controls pass. Exact source/runtime/hash receipts remain per case.
+Whole-task acceptance is open: the fresh delivered-source full focused selection is
+**326 passes /205 failures /zero unsupported**, with44 additional nonpasses relative
+to the earlier dirty-source audit. This narrow reentry repair removes six of those;
+**199 residual nonpasses** remain before edition/proposal dispositions. No whole-suite
+or publication success is inferred. Remote and registry receipts follow separately.

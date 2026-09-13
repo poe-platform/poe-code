@@ -1,8 +1,9 @@
 # pptx agent-executed fidelity QA
 
-Status: Procedure drafted; product QA, rendering, playback and regression execution
-not run. This document is a procedure for an agent, never a QA runner script.
-The documentation task that creates it must not execute the whole pipeline.
+Status: The scoped [large-media campaign](pptx-large-media-campaign-20260913.md)
+has command/SDK execution evidence. The complete pipeline, rendering and playback
+remain not run. This document is a procedure for an agent, never a QA runner
+script. Documentation tasks must not execute the whole pipeline.
 
 ## Authority and entry gate
 
@@ -47,12 +48,15 @@ Use exactly `pptx` for the utility name.
 
 ## Coverage accounting before closure
 
-At the inspected baseline the inventory contains 2,700 unit variants and 973
-expanded BDD scenarios/examples. The ledger has 3,673 corresponding rows, plus
-391 shared-package obligations; its 167 reviewed designs and 894 provisional
-original designs are not executed tests. Another 2,611 rows require semantic
-review and one public behavior is deferred. The API inventory has 2,407 records;
-the target register has 2,424 rows, including 17 added bounded-view members.
+At the September 13 campaign entry gate the inventory contains 2,700 unit variants
+and 973 expanded BDD scenarios/examples, each with exactly one ledger source row.
+The ledger has 3,673 corresponding rows, plus 391 shared-package obligations;
+its 167 specified designs and 877 provisional original designs are not executed
+tests. Another 2,585 rows require semantic review, 43 record passing original
+tests and one public behavior is deferred. Later family receipts must be reviewed
+separately; this census does not rerun them. The API inventory has 2,409 records;
+the reconciled target register has 2,426 rows, including 17 added bounded-view
+members. See the [exact reconciliation](pptx-large-campaign-api-reconciliation.md).
 These counts describe mixed research records, not an API completeness percentage.
 Recompute them from the current inputs and record hashes on each campaign.
 

@@ -29,6 +29,7 @@ export interface PresentationInventory {
   readonly textStyles: readonly TextStyleRecord[];
   readonly slides: readonly SlideInventory[];
   readonly masters: readonly string[];
+  readonly handoutMasters: readonly string[];
   readonly layouts: readonly string[];
   readonly themes: readonly string[];
   readonly parts: readonly PartInventory[];
@@ -133,6 +134,33 @@ export function inspectInventory(
   );
   const stylePart = (part: string | null) => (part ? { part, root: root(part) } : undefined);
   const presentation = stylePart(target("/", "officeDocument"));
+  const handoutMasters = Object.freeze(
+    (presentation?.root.children ?? [])
+      .filter(
+        (node) =>
+          node.name.namespace === presentation!.root.name.namespace &&
+          node.name.localName === "handoutMasterIdLst"
+      )
+      .flatMap((list) =>
+        list.children.filter(
+          (node) =>
+            node.name.namespace === list.name.namespace && node.name.localName === "handoutMasterId"
+        )
+      )
+      .map((node) => {
+        const id = node.attributes.find(
+          (attribute) =>
+            relationshipNamespaces.includes(attribute.name.namespace) &&
+            attribute.name.localName === "id"
+        )?.value;
+        const edges = graph
+          .outgoing(presentation!.part)
+          .filter((edge) => edge.id === id && hasType(edge, "handoutMaster") && !edge.external);
+        if (edges.length !== 1 || !edges[0]!.targetPart || !reader.has(edges[0]!.targetPart))
+          throw new OfficeError("invalid-opc", "Invalid handout master reference.", "index");
+        return edges[0]!.targetPart!;
+      })
+  );
   const textStyles = slides.flatMap((slide) =>
     resolveTextStyles({
       slide: { part: slide.part, root: root(slide.part) },
@@ -204,6 +232,7 @@ export function inspectInventory(
     diagrams: inspectDiagrams(parts, graph),
     textStyles: Object.freeze(textStyles),
     masters,
+    handoutMasters,
     layouts,
     themes,
     parts,

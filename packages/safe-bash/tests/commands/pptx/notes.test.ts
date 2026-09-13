@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
+import { SaxesParser } from "saxes";
 import { compileJsonSchema } from "toolcraft-schema";
-import { createPptxCommandEngine, createPresentation, readNotes } from "pptx";
+import {
+  createPptxCommandEngine,
+  createPresentation,
+  readNotes,
+  readPresentationSettings,
+  replacePresentationText
+} from "pptx";
 import { parseXmlPart } from "../../../../pptx/src/xml.js";
 import { inspectZip } from "../../../../pptx/tests/zip-reader.js";
 import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
@@ -195,6 +202,240 @@ async function authoredNotes(opaque = true) {
   }
   return storedArchive([...parts].map(([name, bytes]) => ({ name, bytes })));
 }
+
+async function authoredHandout(opaque = true) {
+  const p = "http://schemas.openxmlformats.org/presentationml/2006/main";
+  const a = "http://schemas.openxmlformats.org/drawingml/2006/main";
+  const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  const rel = "http://schemas.openxmlformats.org/package/2006/relationships";
+  const encoder = new TextEncoder();
+  const parts = new Map(
+    inspectZip(
+      await createPresentation(
+        {
+          slides: ["Harbor briefing", "Forest briefing"].map((text) => ({
+            shapes: [{ x: 0, y: 0, width: 1000000, height: 500000, text }]
+          }))
+        },
+        context
+      )
+    ).map((entry) => [entry.name, entry.payload])
+  );
+  const append = (part: string, fragment: string) => {
+    const xml = parseXmlPart(parts.get(part)!, context.xmlLimits);
+    parts.set(part, xml.spliceChildren(xml.root, xml.root.children.length, 0, [fragment]).bytes());
+  };
+  const shape = (id: number, kind: string, text: string) =>
+    `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="Panel ${id}"/><p:cNvSpPr/><p:nvPr><p:ph type="${kind}" idx="${id}"/></p:nvPr></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>${text}</a:t></a:r></a:p></p:txBody></p:sp>`;
+  parts.set(
+    "ppt/handoutMasters/handout.xml",
+    encoder.encode(
+      `<p:handoutMaster xmlns:p="${p}" xmlns:a="${a}" xmlns:r="${r}"><p:cSld name="Printed overview"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>${shape(2, "ftr", "Harbor imprint")}${shape(3, "sldImg", "Preview retained")}</p:spTree></p:cSld><p:clrMap/><p:hf hdr="0" ftr="1" dt="0" sldNum="1"/></p:handoutMaster>`
+    )
+  );
+  parts.set(
+    "ppt/print-settings.xml",
+    encoder.encode(
+      `<p:presentationPr xmlns:p="${p}"><p:prnPr prnWhat="handouts4" clrMode="gray" hiddenSlides="1" frameSlides="0" scaleToFitPaper="1"/></p:presentationPr>`
+    )
+  );
+  parts.set(
+    "ppt/window-settings.xml",
+    encoder.encode(
+      `<p:viewPr xmlns:p="${p}" lastView="handoutView" showComments="0"><p:gridSpacing cx="72000" cy="144000"/>${opaque ? '<p:extLst><p:ext uri="urn:original:window"><v:retained xmlns:v="urn:original:window" value="opaque"/></p:ext></p:extLst>' : ""}</p:viewPr>`
+    )
+  );
+  for (const [id, type, target] of [
+    ["handout", "handoutMaster", "handoutMasters/handout.xml"],
+    ["print", "presProps", "print-settings.xml"],
+    ["window", "viewProps", "window-settings.xml"]
+  ])
+    append(
+      "ppt/_rels/presentation.xml.rels",
+      `<Relationship xmlns="${rel}" Id="${id}" Type="${r}/${type}" Target="${target}"/>`
+    );
+  const initial = parseXmlPart(parts.get("ppt/presentation.xml")!, context.xmlLimits);
+  parts.set(
+    "ppt/presentation.xml",
+    initial
+      .spliceChildren(
+        initial.root,
+        initial.root.children.findIndex((node) => node.name.localName === "sldIdLst"),
+        0,
+        [
+          `<p:handoutMasterIdLst xmlns:p="${p}" xmlns:r="${r}"><p:handoutMasterId r:id="handout"/></p:handoutMasterIdLst>`
+        ]
+      )
+      .bytes()
+  );
+  const document = parseXmlPart(parts.get("ppt/presentation.xml")!, context.xmlLimits);
+  const notes = document.root.children.find((node) => node.name.localName === "notesSz")!;
+  parts.set(
+    "ppt/presentation.xml",
+    document
+      .merge(notes, {
+        attributes: [
+          { namespace: "", localName: "cx", value: "6000000" },
+          { namespace: "", localName: "cy", value: "9000000" }
+        ]
+      })
+      .bytes()
+  );
+  for (const [part, type] of [
+    ["handoutMasters/handout.xml", "handoutMaster"],
+    ["print-settings.xml", "presProps"],
+    ["window-settings.xml", "viewProps"]
+  ])
+    append(
+      "[Content_Types].xml",
+      `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/ppt/${part}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.${type}+xml"/>`
+    );
+  return { bytes: storedArchive([...parts].map(([name, bytes]) => ({ name, bytes }))), parts };
+}
+
+test("handout inventory and print settings agree through the public SDK and virtual CLI", async () => {
+  const { shell, volume } = fixture();
+  const { bytes: original } = await authoredHandout();
+  volume.writeFileSync("/work/deck.pptx", original);
+  try {
+    const inspect = await shell.exec("pptx inspect deck.pptx --json");
+    assert.equal(inspect.exitCode, 0, inspect.stdout + inspect.stderr);
+    assert.deepEqual(JSON.parse(inspect.stdout).data.inventory.handoutMasters, [
+      "/ppt/handoutMasters/handout.xml"
+    ]);
+    const inspectSchema = await shell.exec("pptx schema inspect --json");
+    assert.equal(inspectSchema.exitCode, 0, inspectSchema.stdout + inspectSchema.stderr);
+    assert.equal(
+      compileJsonSchema(JSON.parse(inspectSchema.stdout).data.operations.inspect.result).validate(
+        JSON.parse(inspect.stdout)
+      ).ok,
+      true
+    );
+    const result = await shell.exec("pptx settings get deck.pptx --json");
+    assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+    const record = JSON.parse(result.stdout);
+    assert.equal(record.affected, 0);
+    const settings = record.data.settings;
+    assert.deepEqual(settings, await readPresentationSettings(original, context));
+    assert.deepEqual(
+      [settings.notesWidth, settings.notesHeight, settings.notesOrientation],
+      [6000000, 9000000, "portrait"]
+    );
+    assert.equal(settings.printProperties.part, "/ppt/print-settings.xml");
+    assert.ok(settings.printProperties.xml.includes('prnWhat="handouts4"'));
+    assert.equal(settings.viewProperties.part, "/ppt/window-settings.xml");
+    assert.ok(settings.viewProperties.xml.includes('lastView="handoutView"'));
+    assert.ok(settings.viewProperties.xml.includes('value="opaque"'));
+    const capability = await shell.exec("pptx capabilities --json");
+    assert.equal(capability.exitCode, 0, capability.stdout + capability.stderr);
+    assert.ok(
+      JSON.parse(capability.stdout).data.features.settings.subset.includes(
+        "Print and view properties are inventoried"
+      )
+    );
+    const schema = await shell.exec("pptx schema settings get --json");
+    assert.equal(schema.exitCode, 0, schema.stdout + schema.stderr);
+    assert.equal(
+      compileJsonSchema(JSON.parse(schema.stdout).data.operations["settings.get"].result).validate(
+        record
+      ).ok,
+      true
+    );
+    assert.deepEqual(volume.readFileSync("/work/deck.pptx"), Buffer.from(original));
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("slide edits and default text replacement retain handout print and view resources", async () => {
+  const { shell, volume } = fixture();
+  const { bytes: original, parts: originalParts } = await authoredHandout();
+  volume.writeFileSync("/work/deck.pptx", original);
+  try {
+    for (const command of [
+      "pptx text replace deck.pptx --find Harbor --with Coastal --all --in-place --json",
+      "pptx slides duplicate deck.pptx --slide 1 --position 2 --in-place --json",
+      "pptx slides move deck.pptx --slide 2 --position 3 --in-place --json"
+    ]) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+      const parts = new Map(
+        inspectZip(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer)).map(
+          (entry) => [entry.name, entry.payload]
+        )
+      );
+      for (const name of [
+        "ppt/handoutMasters/handout.xml",
+        "ppt/print-settings.xml",
+        "ppt/window-settings.xml"
+      ])
+        assert.deepEqual(parts.get(name), originalParts.get(name), name);
+      const parser = new SaxesParser({ xmlns: true });
+      const notes: string[][] = [];
+      parser.on("opentag", (node) => {
+        if (
+          node.uri === "http://schemas.openxmlformats.org/presentationml/2006/main" &&
+          node.local === "notesSz"
+        )
+          notes.push([node.attributes.cx!.value, node.attributes.cy!.value]);
+      });
+      parser.write(new TextDecoder().decode(parts.get("ppt/presentation.xml"))).close();
+      assert.deepEqual(notes, [["6000000", "9000000"]]);
+    }
+    const sdkReplacement = await replacePresentationText(
+      new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer),
+      { scope: "handout-master", find: "Harbor imprint", with: "Coastal imprint", all: true },
+      context
+    );
+    const scoped = await shell.exec(
+      "pptx text replace deck.pptx --scope handout-master --find 'Harbor imprint' --with 'Coastal imprint' --all --in-place --json"
+    );
+    assert.equal(scoped.exitCode, 0, scoped.stdout + scoped.stderr);
+    assert.equal(JSON.parse(scoped.stdout).affected, 1);
+    assert.equal(sdkReplacement.affected, 1);
+    assert.deepEqual(volume.readFileSync("/work/deck.pptx"), Buffer.from(sdkReplacement.bytes));
+    const parts = new Map(
+      inspectZip(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer)).map((entry) => [
+        entry.name,
+        entry.payload
+      ])
+    );
+    const handout = new TextDecoder().decode(parts.get("ppt/handoutMasters/handout.xml"));
+    assert.ok(handout.includes("Coastal imprint"));
+    assert.ok(handout.includes("Preview retained"));
+    assert.ok(handout.includes('<p:hf hdr="0" ftr="1" dt="0" sldNum="1"/>'));
+    for (const name of ["ppt/print-settings.xml", "ppt/window-settings.xml"])
+      assert.deepEqual(parts.get(name), originalParts.get(name));
+    const beforeRejected = volume.readFileSync("/work/deck.pptx");
+    const rejected = await shell.exec(
+      "pptx text replace deck.pptx --scope handout-master --slide 1 --find Coastal --with Lost --all --in-place --json"
+    );
+    assert.equal(rejected.exitCode, 2, rejected.stdout + rejected.stderr);
+    assert.deepEqual(volume.readFileSync("/work/deck.pptx"), beforeRejected);
+    const removal = await shell.exec("pptx slides remove deck.pptx --slide 2 --in-place --json");
+    assert.equal(removal.exitCode, 1, removal.stdout + removal.stderr);
+    assert.equal(JSON.parse(removal.stdout).errors[0].code, "dangling-reference");
+    assert.deepEqual(volume.readFileSync("/work/deck.pptx"), beforeRejected);
+    const plain = await authoredHandout(false);
+    volume.writeFileSync("/work/plain.pptx", plain.bytes);
+    const removed = await shell.exec("pptx slides remove plain.pptx --slide 2 --in-place --json");
+    assert.equal(removed.exitCode, 0, removed.stdout + removed.stderr);
+    const retained = new Map(
+      inspectZip(new Uint8Array(volume.readFileSync("/work/plain.pptx") as Buffer)).map((entry) => [
+        entry.name,
+        entry.payload
+      ])
+    );
+    for (const name of [
+      "ppt/handoutMasters/handout.xml",
+      "ppt/print-settings.xml",
+      "ppt/window-settings.xml"
+    ])
+      assert.deepEqual(retained.get(name), plain.parts.get(name));
+  } finally {
+    await shell.dispose();
+  }
+});
 
 test("speaker edits preserve placeholders, free note shapes and opaque note content", async () => {
   const { shell, volume } = fixture();

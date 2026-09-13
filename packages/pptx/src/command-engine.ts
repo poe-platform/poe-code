@@ -4091,7 +4091,7 @@ async function execute(
           settings: {
             level: "edit",
             subset:
-              "Presentation and notes canvas dimensions/orientation, slide-number start, slideshow loop and speaker/window/kiosk mode. Canvas-only resize is the default. Explicit scaling supports unrotated explicit shape and group geometry on slides, layouts and masters without resizing fonts; inherited transforms, animations, conditional drawings and charts are rejected. Grid, view, print and unrequested vendor settings are preserved."
+              "Presentation and notes canvas dimensions/orientation, slide-number start, slideshow loop and speaker/window/kiosk mode. Canvas-only resize is the default. Explicit scaling supports unrotated explicit shape and group geometry on slides, layouts and masters without resizing fonts; inherited transforms, animations, conditional drawings and charts are rejected. Print and view properties are inventoried as stored XML without pagination or rendering. Handout masters are listed by inspect; supported handout text replacement requires explicit handout-master scope. Grid, view, print and unrequested vendor settings are preserved."
           },
           creation: {
             level: "edit",

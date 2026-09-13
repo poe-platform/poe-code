@@ -461,6 +461,15 @@ const creationLength = {
   }
 };
 
+const retainedSettingsPart = {
+  type: ["object", "null"],
+  additionalProperties: false,
+  required: ["part", "xml"],
+  properties: {
+    part: { type: "string", minLength: 1 },
+    xml: { type: "string", minLength: 1 }
+  }
+};
 const settingsValues = {
   type: "object",
   additionalProperties: false,
@@ -473,7 +482,9 @@ const settingsValues = {
     "notesOrientation",
     "slideNumberStart",
     "loop",
-    "showType"
+    "showType",
+    "printProperties",
+    "viewProperties"
   ],
   properties: {
     width: { type: ["integer", "null"], minimum: -9007199254740991, maximum: 9007199254740991 },
@@ -492,7 +503,9 @@ const settingsValues = {
     notesOrientation: { enum: ["portrait", "landscape", null] },
     slideNumberStart: { type: "integer", minimum: -2147483648, maximum: 2147483647 },
     loop: { type: "boolean" },
-    showType: { enum: ["speaker", "window", "kiosk"] }
+    showType: { enum: ["speaker", "window", "kiosk"] },
+    printProperties: retainedSettingsPart,
+    viewProperties: retainedSettingsPart
   }
 };
 const settingsOptions = {
@@ -665,7 +678,7 @@ export const settingsSchemas = Object.fromEntries(
       `settings.${action}`,
       {
         description:
-          "Presentation settings. Dimensions are canvas-only by default; notes dimensions are independent. Unrequested grid, view, print and vendor settings are preserved.",
+          "Presentation settings. Dimensions are canvas-only by default; notes dimensions are independent. Print and view properties are inventoried as bounded XML with owning parts. Unrequested grid, view, print and vendor settings are preserved.",
         input: inspectSchema.input,
         options: {
           $schema: "https://json-schema.org/draft/2020-12/schema",

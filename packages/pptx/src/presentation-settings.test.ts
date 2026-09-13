@@ -62,6 +62,8 @@ describe("presentation canvas and slideshow settings", () => {
     async (dialect) => {
       const input = await createPresentation({ dialect }, context);
       expect(await readPresentationSettings(input, context)).toEqual({
+        printProperties: null,
+        viewProperties: null,
         width: 12192000,
         height: 6858000,
         orientation: "landscape",

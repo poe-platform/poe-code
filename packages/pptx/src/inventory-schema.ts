@@ -26,6 +26,7 @@ export const inventorySchema = {
     "diagrams",
     "textStyles",
     "masters",
+    "handoutMasters",
     "layouts",
     "themes",
     "parts",
@@ -128,6 +129,7 @@ export const inventorySchema = {
       }
     },
     masters: { type: "array", items: { type: "string" } },
+    handoutMasters: { type: "array", items: { type: "string" } },
     layouts: { type: "array", items: { type: "string" } },
     themes: { type: "array", items: { type: "string" } },
     parts: { type: "array", items: { $ref: "#/$defs/inventoryPart" } },

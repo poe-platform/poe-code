@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "scope": "F49 handout masters, notes page dimensions and print/view property inventory, with explicit text scope and unrelated-slide retention",
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "notice": "upstream-license-notice.txt",
+  "directInventoryFinding": {
+    "unit": 0,
+    "bdd": 0,
+    "api": 0,
+    "method": "Review all source identities for handout, notes_size/notes_width/notes_height and print/view properties. last_printed is core metadata; chart top-view and last-slide-viewed enums are unrelated. No direct F49 public member or test is present in the pinned inventories."
+  },
+  "adjacentOpcCase": {
+    "inventory": "upstream-test-inventory.json#/unit_cases/1226",
+    "sourceIdentity": "tests/opc/test_package.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[/ppt/viewprops.xml-application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml]",
+    "disposition": "Observable operation behavior covered by original content type tests; handout inventory adds relationship identity evidence, not live-model parity.",
+    "originalTests": {
+      "file": "packages/pptx/src/content-types.test.ts",
+      "name": "selects an override before a default for %s",
+      "variants": [
+        "/deck/view.xml",
+        "/DECK/Main.XML"
+      ],
+      "equivalence": "The view-properties MIME value is independently expected for an override, while the mixed-case main-part variant independently asserts canonical case-insensitive lookup; the resolver is MIME-agnostic. Together these preserve the source observable variant without source assets."
+    }
+  },
+  "additiveObligations": [
+    "Read linked handout masters without creating missing parts; resolve canonical targets and Strict/Transitional namespaces.",
+    "Inventory notes page size and raw print/view attributes; absent values remain absent.",
+    "Retain unsupported placeholders, shape/layout XML, extensions and resource relationships.",
+    "Default slide text replacement excludes handout master text; explicit handout-master scope edits only supported text and validates identity.",
+    "Slide add/duplicate/remove/reorder/import/split operations retain unrelated handout resources according to operation semantics.",
+    "Inspect/schema/capabilities and SDK agree; no printer, renderer, native process, network or automatic pagination."
+  ],
+  "verification": {
+    "domain": {
+      "file": "packages/pptx/src/handouts.test.ts",
+      "passed": 9,
+      "cases": [
+        {
+          "name": "lists presentation handouts without promoting detached resources (strict=%s)",
+          "variants": 2
+        },
+        {
+          "name": "exposes stored print and view markup without inferring pagination (strict=%s)",
+          "variants": 2
+        },
+        {
+          "name": "rejects external view properties without accessing their target",
+          "variants": 1
+        },
+        {
+          "name": "rejects a listed handout whose relationship identity is absent",
+          "variants": 1
+        },
+        {
+          "name": "rejects malformed view properties %s %s %s",
+          "variants": 3
+        }
+      ],
+      "reportedBy": "domain worker; focused tests and package lint passed"
+    },
+    "corpus": {
+      "fixtureManifest": "corpus-manifest.json",
+      "fixtureCachePath": ".cache/pptx-corpus/global-outlook-2026.pptx",
+      "sha256Verified": true,
+      "sdkRead": "passed",
+      "commandReads": [
+        "inspect --json exit 0",
+        "settings get --json exit 0"
+      ],
+      "readPublications": 0,
+      "notesSize": [
+        7315200,
+        9601200
+      ],
+      "handoutMasters": [
+        "/ppt/handoutMasters/handoutMaster1.xml"
+      ],
+      "printProperties": null,
+      "viewPropertiesPart": "/ppt/viewProps.xml",
+      "mutation": "SDK rename slide position 1",
+      "independentZipPayloadComparison": {
+        "totalParts": 141,
+        "changed": [
+          "ppt/slides/slide1.xml"
+        ],
+        "unchanged": 140
+      },
+      "productFindings": [],
+      "limits": "Bounded read/mutation preservation QA; no render, pagination, complete print profile or full public API claim."
+    }
+  },
+  "adjacentReceipts": [
+    {
+      "receipt": "notes-case-map.json",
+      "selection": "All 35 notes unit variants and 11 expanded notes BDD scenarios; related through notes master associations and noncreating reads.",
+      "api": "notes-api-map.json",
+      "remaining": "Notes live-model members, inherited shape/text views and creating getter behavior remain pending as recorded; not reclassified as F49 parity."
+    },
+    {
+      "receipt": "master-case-accounting.json",
+      "selection": "Canonical complete master ledger retained by reference. Only shared scope, master text ownership, placeholder and relationship retention are adjacent; unrelated fill/shape/text cases are not claimed as direct F49 cases.",
+      "remaining": "All original statuses and public API rows remain authoritative, including inherited members and underscore-prefixed public types."
+    },
+    {
+      "receipt": "settings-case-accounting.json",
+      "selection": "All dimension variants and expanded dimension BDD examples remain in their existing exact rows; notes-size and unrequested print/view preservation are adjacent.",
+      "remaining": "Operation notes dimensions do not implement live model member parity or print layout."
+    }
+  ]
+}

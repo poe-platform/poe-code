@@ -12,6 +12,8 @@ import { parseXmlPart, type XmlElement, type XmlMerge } from "./xml.js";
 import { validatePresentation } from "./validation.js";
 
 export interface PresentationSettings {
+  readonly printProperties: { readonly part: string; readonly xml: string } | null;
+  readonly viewProperties: { readonly part: string; readonly xml: string } | null;
   readonly width: number | null;
   readonly height: number | null;
   readonly orientation: "portrait" | "landscape" | null;
@@ -121,7 +123,10 @@ async function load(input: BinaryInput, context: SelectionContext) {
     throw new OfficeError("invalid-opc", "Invalid presentation properties root.", "index");
   return { source, reader, limits, graph, main, document, dialect, propertyPart, propertyDocument };
 }
-function settings(document: XmlElement, properties: XmlElement | undefined): PresentationSettings {
+function settings(
+  document: XmlElement,
+  properties: XmlElement | undefined
+): Omit<PresentationSettings, "printProperties" | "viewProperties"> {
   const slide = child(document, "sldSz"),
     notes = child(document, "notesSz");
   const width = slide ? numeric(attr(slide, "cx")) : null,
@@ -160,7 +165,32 @@ export async function readPresentationSettings(
   context: SelectionContext
 ): Promise<PresentationSettings> {
   const loaded = await load(input, context);
-  return settings(loaded.document.root, loaded.propertyDocument?.root);
+  const { graph, main, dialect, reader, limits, propertyDocument, propertyPart } = loaded;
+  const views = graph.outgoing(main).filter((edge) => edge.type === `${dialect.r}/viewProps`);
+  if (views.length > 1 || views.some((edge) => edge.external))
+    throw new OfficeError("invalid-opc", "Ambiguous view properties.", "index");
+  const viewPart = views[0]?.targetPart;
+  let viewProperties: PresentationSettings["viewProperties"] = null;
+  if (viewPart) {
+    const types = parseContentTypes(reader.get("/[Content_Types].xml"), limits);
+    if (
+      types.get(viewPart) !==
+      "application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml"
+    )
+      throw new OfficeError("invalid-opc", "Invalid view properties content type.", "index");
+    const view = parseXmlPart(reader.get(viewPart), context.xmlLimits);
+    if (view.root.name.namespace !== dialect.p || view.root.name.localName !== "viewPr")
+      throw new OfficeError("invalid-opc", "Invalid view properties root.", "index");
+    viewProperties = { part: viewPart, xml: view.markup(view.root, true) };
+  }
+  const print = propertyDocument && child(propertyDocument.root, "prnPr");
+  return {
+    ...settings(loaded.document.root, propertyDocument?.root),
+    printProperties: print
+      ? { part: propertyPart!, xml: propertyDocument!.markup(print, true) }
+      : null,
+    viewProperties
+  };
 }
 export async function mutatePresentationSettings(
   input: BinaryInput,

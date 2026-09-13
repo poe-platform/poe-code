@@ -188,8 +188,27 @@ export class ColorPropertyAccessError extends Error {
 
 /** A synchronous color view over an explicitly supplied bounded XML part. */
 export class ColorFormat {
-  #xml: import("./xml.js").XmlPart;
-  constructor(xml: import("./xml.js").XmlPart) {
+  #storedXml: import("./xml.js").XmlPart;
+  readonly #binding:
+    | {
+        readonly read: () => import("./xml.js").XmlPart;
+        readonly write: (xml: import("./xml.js").XmlPart) => void;
+      }
+    | undefined;
+  get #xml(): import("./xml.js").XmlPart {
+    return this.#binding?.read() ?? this.#storedXml;
+  }
+  set #xml(xml: import("./xml.js").XmlPart) {
+    if (this.#binding) this.#binding.write(xml);
+    else this.#storedXml = xml;
+  }
+  constructor(
+    xml: import("./xml.js").XmlPart,
+    binding?: {
+      readonly read: () => import("./xml.js").XmlPart;
+      readonly write: (xml: import("./xml.js").XmlPart) => void;
+    }
+  ) {
     if (
       !["solidFill", "highlight"].includes(xml.root.name.localName) ||
       ![
@@ -199,7 +218,8 @@ export class ColorFormat {
     )
       invalid("Color view requires a DrawingML color container.");
     readRunColor(xml.root);
-    this.#xml = xml;
+    this.#storedXml = xml;
+    this.#binding = binding;
   }
   get xml(): import("./xml.js").XmlPart {
     return this.#xml;
@@ -214,10 +234,8 @@ export class ColorFormat {
   }
   set rgb(value: RGBColor) {
     if (!(value instanceof RGBColor)) invalid("RGB assignment requires an RGBColor value.");
-    this.#xml = this.#xml.merge(
-      this.#xml.root,
-      colorMerge(value.toString(), this.#xml.root.name.namespace)
-    );
+    const xml = this.#xml;
+    this.#xml = xml.merge(xml.root, colorMerge(value.toString(), xml.root.name.namespace));
   }
   get theme_color(): string {
     const value = readRunColor(this.#xml.root);
@@ -225,21 +243,19 @@ export class ColorFormat {
     return value.theme ?? "NOT_THEME_COLOR";
   }
   set theme_color(value: string) {
-    this.#xml = this.#xml.merge(
-      this.#xml.root,
-      colorMerge({ theme: value }, this.#xml.root.name.namespace)
-    );
+    const xml = this.#xml;
+    this.#xml = xml.merge(xml.root, colorMerge({ theme: value }, xml.root.name.namespace));
   }
   get brightness(): number {
     return readRunColor(this.#xml.root)?.brightness ?? 0;
   }
   set brightness(value: number) {
     brightness(value);
-    const color = this.#xml.root.children.find(
-      (n) =>
-        n.name.namespace === this.#xml.root.name.namespace && Object.hasOwn(kinds, n.name.localName)
+    const xml = this.#xml;
+    const color = xml.root.children.find(
+      (n) => n.name.namespace === xml.root.name.namespace && Object.hasOwn(kinds, n.name.localName)
     );
     if (!color) invalid("Brightness requires an explicit color.");
-    this.#xml = this.#xml.merge(color, colorBrightnessMerge(value, color.name.namespace));
+    this.#xml = xml.merge(color, colorBrightnessMerge(value, color.name.namespace));
   }
 }

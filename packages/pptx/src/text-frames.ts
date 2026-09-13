@@ -4,7 +4,8 @@ import { fitFrameXml, type ModelTextFitOptions } from "./text-fitting.js";
 import { SaxesParser } from "saxes";
 import { Length, Pt } from "./length.js";
 import type { BinaryInput, Location } from "./contracts.js";
-import { OfficeError } from "./errors.js";
+import { InvalidHandleError, OfficeError } from "./errors.js";
+import { Paragraph } from "./text-paragraphs.js";
 import { loadShared } from "./masters.js";
 import { SelectionError, type SelectionContext } from "./selectors.js";
 import {
@@ -431,11 +432,13 @@ export async function mutateTextFrames(
   };
 }
 export class TextFrame {
+  #paragraphs: Paragraph[] = [];
   #storedXml: XmlPart;
   #binding:
     | {
         readonly read: () => XmlPart;
         readonly write: (xml: XmlPart) => void;
+        readonly parent?: unknown;
         readonly extents?: () => { readonly width: number; readonly height: number } | undefined;
       }
     | undefined;
@@ -453,6 +456,7 @@ export class TextFrame {
     binding?: {
       readonly read: () => XmlPart;
       readonly write: (xml: XmlPart) => void;
+      readonly parent?: unknown;
       readonly extents?: () => { readonly width: number; readonly height: number } | undefined;
     }
   ) {
@@ -480,6 +484,89 @@ export class TextFrame {
   }
   get xml(): XmlPart {
     return this.#xml;
+  }
+  get parent(): unknown {
+    return this.#binding?.parent;
+  }
+  get paragraphs(): readonly Paragraph[] {
+    const nodes = this.#xml.root.children.filter(
+      (node) => node.name.localName === "p" && drawingNamespaces.includes(node.name.namespace)
+    );
+    return Object.freeze(
+      nodes.map((_, index) => {
+        if (this.#paragraphs[index]) return this.#paragraphs[index]!;
+        let owner: XmlPart | undefined;
+        let cached: XmlPart | undefined;
+        const locate = () => {
+          if (this.#paragraphs[index] !== handle) throw new InvalidHandleError();
+          const xml = this.#xml;
+          const node = xml.root.children.filter(
+            (child) =>
+              child.name.localName === "p" && drawingNamespaces.includes(child.name.namespace)
+          )[index];
+          if (!node) throw new InvalidHandleError();
+          return { xml, node };
+        };
+        const read = () => {
+          const { xml, node } = locate();
+          if (owner !== xml) {
+            cached = xml.subtree(node);
+            owner = xml;
+          }
+          return cached!;
+        };
+        const initial = this.#xml.subtree(nodes[index]!);
+        const handle: Paragraph = new Paragraph(initial, {
+          parent: this,
+          read,
+          write: (value) => {
+            const { xml, node } = locate();
+            this.#xml = xml.spliceChildren(xml.root, xml.root.children.indexOf(node), 1, [
+              value.markup(value.root, true)
+            ]);
+          }
+        });
+        this.#paragraphs[index] = handle;
+        return handle;
+      })
+    );
+  }
+  add_paragraph(): Paragraph {
+    const xml = this.#xml;
+    const ns = xml.root.name.namespace.includes("purl.oclc.org")
+      ? drawingNamespaces[1]!
+      : drawingNamespaces[0]!;
+    const extension = xml.root.children.findIndex((node) => node.name.localName === "extLst");
+    this.#xml = xml.spliceChildren(
+      xml.root,
+      extension < 0 ? xml.root.children.length : extension,
+      0,
+      [`<p xmlns="${ns}"/>`]
+    );
+    return this.paragraphs.at(-1)!;
+  }
+  clear(): void {
+    const xml = this.#xml;
+    if (protectedEquationNodes(xml.root).size > 0)
+      throw new OfficeError(
+        "unsupported-edit",
+        "Whole text replacement cannot remove equations or their fallbacks.",
+        "validate-intent"
+      );
+    const first = this.paragraphs[0];
+    if (!first) {
+      this.add_paragraph();
+      return;
+    }
+    first.clear();
+    let current = this.#xml;
+    const indexes = current.root.children.flatMap((node, index) =>
+      node.name.localName === "p" && drawingNamespaces.includes(node.name.namespace) ? [index] : []
+    );
+    for (const index of indexes.slice(1).reverse())
+      current = current.spliceChildren(current.root, index, 1, []);
+    this.#xml = current;
+    this.#paragraphs = [first];
   }
   get margin_left(): Length {
     return new Pt(readFrameFormatting(this.#xml.root).marginLeft ?? 7.2);
@@ -581,6 +668,7 @@ export class TextFrame {
   }
   set text(value: string) {
     this.#xml = applyFrameFormatting(this.#xml, this.#xml.root, { text: value });
+    this.#paragraphs = [];
   }
 }
 

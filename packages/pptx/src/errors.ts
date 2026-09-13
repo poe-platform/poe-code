@@ -18,12 +18,13 @@ export type OfficeErrorCode =
   | "missing-binding"
   | "dangling-reference"
   | "invalid-selection"
+  | "invalid-handle"
   | "missing-selection"
   | "ambiguous-selection"
   | "stale-selection";
 
 export class OfficeError extends Error {
-  override readonly name = "OfficeError";
+  override readonly name: string = "OfficeError";
 
   constructor(
     readonly code: OfficeErrorCode,
@@ -31,5 +32,12 @@ export class OfficeError extends Error {
     readonly phase: Phase
   ) {
     super(message);
+  }
+}
+
+export class InvalidHandleError extends OfficeError {
+  override readonly name = "InvalidHandleError";
+  constructor() {
+    super("invalid-handle", "Model handle was invalidated.", "select");
   }
 }

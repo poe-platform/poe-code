@@ -44,6 +44,8 @@ export interface ShapeUpdate {
 const pns = "http://schemas.openxmlformats.org/presentationml/2006/main";
 const ans = "http://schemas.openxmlformats.org/drawingml/2006/main";
 function drawing(node: XmlElement) {
+  if ([ans, "http://purl.oclc.org/ooxml/drawingml/main"].includes(node.name.namespace))
+    return node.name.namespace;
   if (![pns, "http://purl.oclc.org/ooxml/presentationml/main"].includes(node.name.namespace))
     invalid("Unsupported shape namespace.");
   return node.name.namespace === "http://purl.oclc.org/ooxml/presentationml/main"
@@ -580,6 +582,7 @@ export function createShapeXml(
 }
 export class Shape {
   #xml: XmlPart;
+  #textFrame: TextFrame | undefined;
   constructor(xml: XmlPart) {
     if (!["sp", "grpSp"].includes(xml.root.name.localName)) invalid();
     drawing(xml.root);
@@ -682,9 +685,11 @@ export class Shape {
     return MSO_AUTO_SHAPE_TYPE[kind as keyof typeof shapePresets];
   }
   get has_text_frame() {
-    return true;
+    return this.element.name.localName === "sp";
   }
   get text_frame(): TextFrame {
+    if (!this.has_text_frame) unsupported("This shape has no text frame.");
+    if (this.#textFrame) return this.#textFrame;
     if (!child(this.element, "txBody"))
       this.#xml = applyShapeUpdate(this.#xml, this.element, { text: "" });
     let owner: XmlPart | undefined;
@@ -693,11 +698,7 @@ export class Shape {
       if (owner === this.#xml && cached) return cached;
       const body = child(this.element, "txBody");
       if (!body) unsupported("Text frame no longer exists.");
-      cached = parseXmlPart(new TextEncoder().encode(this.#xml.markup(body, true)), {
-        maxBytes: 1000000,
-        maxNodes: 100000,
-        maxDepth: 64
-      });
+      cached = this.#xml.subtree(body);
       owner = this.#xml;
       return cached;
     };
@@ -714,7 +715,8 @@ export class Shape {
         ? undefined
         : { width: shape.width / 12700, height: shape.height / 12700 };
     };
-    return new TextFrame(read(), extents(), { read, write, extents });
+    this.#textFrame = new TextFrame(read(), extents(), { read, write, extents, parent: this });
+    return this.#textFrame;
   }
   get fill(): FillFormat {
     return new FillFormat(
@@ -763,18 +765,10 @@ export class Shape {
     return false;
   }
   get text() {
-    const body = child(this.element, "txBody");
-    if (!body) return "";
-    return new TextFrame(
-      parseXmlPart(new TextEncoder().encode(this.#xml.markup(body, true)), {
-        maxBytes: 1000000,
-        maxNodes: 100000,
-        maxDepth: 64
-      })
-    ).text;
+    return this.text_frame.text;
   }
   set text(v: string) {
-    this.#xml = applyShapeUpdate(this.#xml, this.element, { text: v });
+    this.text_frame.text = v;
   }
 }
 type DrawingEdit = (transform: (xml: XmlPart, shape: XmlElement) => XmlPart) => void;
@@ -896,11 +890,13 @@ function gradientNodes(owner: XmlElement) {
 export class FillFormat {
   constructor(
     private readonly read: () => XmlPart,
-    private readonly update: (value: ShapeUpdate) => void,
+    private readonly update: ((value: ShapeUpdate) => void) | undefined,
     private readonly line: boolean,
-    private readonly edit?: DrawingEdit
+    private readonly edit?: DrawingEdit,
+    private readonly fillOwner?: (node: XmlElement) => XmlElement | undefined
   ) {}
   private owner(node: XmlElement) {
+    if (this.fillOwner) return this.fillOwner(node);
     const pr = props(node);
     const result = this.line ? pr && child(pr, "ln", drawing(node)) : pr;
     return result;
@@ -928,9 +924,34 @@ export class FillFormat {
       : null;
   }
   solid() {
-    if (this.type !== 1) this.update(this.line ? { lineColor: "solid" } : { fill: "solid" });
+    if (this.fillOwner) {
+      if (this.type !== 1)
+        this.change((doc, node) => {
+          const owner = this.owner(node)!,
+            fill = this.fill(node);
+          return doc.spliceChildren(owner, fillPosition(owner, fill, drawing(node)), fill ? 1 : 0, [
+            `<a:solidFill xmlns:a="${drawing(node)}"/>`
+          ]);
+        });
+      return;
+    }
+    if (this.type !== 1) {
+      if (!this.update) unsupported("This view does not support drawing edits.");
+      this.update(this.line ? { lineColor: "solid" } : { fill: "solid" });
+    }
   }
   background() {
+    if (this.fillOwner) {
+      this.change((doc, node) => {
+        const owner = this.owner(node)!,
+          fill = this.fill(node);
+        return doc.spliceChildren(owner, fillPosition(owner, fill, drawing(node)), fill ? 1 : 0, [
+          `<a:noFill xmlns:a="${drawing(node)}"/>`
+        ]);
+      });
+      return;
+    }
+    if (!this.update) unsupported("This view does not support drawing edits.");
     this.update(this.line ? { lineColor: null } : { fill: null });
   }
   gradient() {

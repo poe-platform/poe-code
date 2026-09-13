@@ -1,6 +1,18 @@
+import { FillFormat } from "./shapes.js";
+import { ColorFormat } from "./text-run-color.js";
 import { Length, Pt } from "./length.js";
 import type { BinaryInput, Location } from "./contracts.js";
-import { OfficeError } from "./errors.js";
+import { OfficeError, InvalidHandleError } from "./errors.js";
+import { SaxesParser } from "saxes";
+import { protectedEquationNodes } from "./equations-compatibility.js";
+import {
+  readRunFormatting,
+  runPropertiesMerge,
+  validateTextRunOptions,
+  textUnderlineStyles,
+  type TextRunFormatting,
+  type MSO_TEXT_UNDERLINE_TYPE
+} from "./text-runs.js";
 import { loadShared } from "./masters.js";
 import { SelectionError, type SelectionContext } from "./selectors.js";
 import {
@@ -603,8 +615,32 @@ export async function mutateTextParagraphs(
 }
 
 export class Paragraph {
-  #xml: XmlPart;
-  constructor(xml: XmlPart) {
+  #storedXml: XmlPart;
+  #binding:
+    | {
+        readonly read: () => XmlPart;
+        readonly write: (xml: XmlPart) => void;
+        readonly parent?: unknown;
+      }
+    | undefined;
+  #generation = 0;
+  #runs: Run[] = [];
+  #font: Font | undefined;
+  get #xml(): XmlPart {
+    return this.#binding?.read() ?? this.#storedXml;
+  }
+  set #xml(xml: XmlPart) {
+    if (this.#binding) this.#binding.write(xml);
+    else this.#storedXml = xml;
+  }
+  constructor(
+    xml: XmlPart,
+    binding?: {
+      readonly read: () => XmlPart;
+      readonly write: (xml: XmlPart) => void;
+      readonly parent?: unknown;
+    }
+  ) {
     if (
       xml.root.name.localName !== "p" ||
       ![
@@ -614,10 +650,133 @@ export class Paragraph {
     )
       invalid();
     readParagraphFormatting(xml.root);
-    this.#xml = xml;
+    this.#storedXml = xml;
+    this.#binding = binding;
   }
   get xml(): XmlPart {
     return this.#xml;
+  }
+  get parent(): unknown {
+    this.#binding?.read();
+    return this.#binding?.parent;
+  }
+  get runs(): readonly Run[] {
+    const xml = this.#xml;
+    const count = xml.root.children.filter(
+      (n) => n.name.namespace === xml.root.name.namespace && n.name.localName === "r"
+    ).length;
+    const generation = this.#generation;
+    for (let i = this.#runs.length; i < count; i++) {
+      this.#runs.push(
+        new Run({
+          parent: this,
+          read: () => {
+            if (generation !== this.#generation) throw new InvalidHandleError();
+            const document = this.#xml;
+            const node = document.root.children.filter(
+              (n) => n.name.namespace === document.root.name.namespace && n.name.localName === "r"
+            )[i];
+            if (!node) throw new InvalidHandleError();
+            return { document, node };
+          },
+          write: (xml) => {
+            this.#xml = xml;
+          }
+        })
+      );
+    }
+    return Object.freeze(this.#runs.slice(0, count));
+  }
+  add_run(): Run {
+    const xml = this.#xml;
+    const end = xml.root.children.findIndex(
+      (n) => n.name.namespace === xml.root.name.namespace && n.name.localName === "endParaRPr"
+    );
+    this.#xml = xml.spliceChildren(xml.root, end < 0 ? xml.root.children.length : end, 0, [
+      `<r xmlns="${xml.root.name.namespace}"><t/></r>`
+    ]);
+    return this.runs.at(-1)!;
+  }
+  add_line_break(): void {
+    const xml = this.#xml;
+    const end = xml.root.children.findIndex(
+      (n) => n.name.namespace === xml.root.name.namespace && n.name.localName === "endParaRPr"
+    );
+    this.#xml = xml.spliceChildren(xml.root, end < 0 ? xml.root.children.length : end, 0, [
+      `<br xmlns="${xml.root.name.namespace}"/>`
+    ]);
+  }
+  clear(): this {
+    this.#xml = replaceParagraphContent(this.#xml, []);
+    this.#generation++;
+    this.#runs = [];
+    return this;
+  }
+  get text(): string {
+    const xml = this.#xml;
+    return xml.root.children
+      .filter(
+        (n) =>
+          n.name.namespace === xml.root.name.namespace &&
+          ["r", "br", "fld"].includes(n.name.localName)
+      )
+      .map((n) => (n.name.localName === "br" ? "\v" : nodeText(xml, n)))
+      .join("");
+  }
+  set text(value: string) {
+    if (typeof value !== "string") invalid();
+    const ns = this.#xml.root.name.namespace;
+    const fragments = value
+      .split("\n")
+      .join("\v")
+      .split("\v")
+      .flatMap((piece, index) => [
+        ...(index ? [`<br xmlns="${ns}"/>`] : []),
+        ...(piece ? [`<r xmlns="${ns}"><t>${escapeModelText(piece)}</t></r>`] : [])
+      ]);
+    this.#xml = replaceParagraphContent(this.#xml, fragments);
+    this.#generation++;
+    this.#runs = [];
+  }
+  get font(): Font {
+    let xml = this.#xml;
+    const ns = xml.root.name.namespace;
+    let properties = xml.root.children.find(
+      (n) => n.name.namespace === ns && n.name.localName === "pPr"
+    );
+    if (!properties) {
+      xml = xml.spliceChildren(xml.root, 0, 0, [`<pPr xmlns="${ns}"/>`]);
+      properties = xml.root.children[0]!;
+    }
+    if (
+      !properties.children.some((n) => n.name.namespace === ns && n.name.localName === "defRPr")
+    ) {
+      xml = xml.merge(properties, {
+        children: {
+          sequence: sequence.map((localName) => ({ namespace: ns, localName })),
+          upsert: [{ name: { namespace: ns, localName: "defRPr" }, merge: {} }]
+        }
+      });
+    }
+    this.#xml = xml;
+    return (this.#font ??= new Font({
+      read: () => {
+        const document = this.#xml;
+        const node = document.root.children
+          .find(
+            (n) => n.name.namespace === document.root.name.namespace && n.name.localName === "pPr"
+          )
+          ?.children.find(
+            (n) =>
+              n.name.namespace === document.root.name.namespace && n.name.localName === "defRPr"
+          );
+        if (!node) throw new InvalidHandleError();
+        return { document, node };
+      },
+      write: (xml) => {
+        this.#xml = xml;
+      }
+    }));
   }
   get alignment(): PP_PARAGRAPH_ALIGNMENT | null {
     const value = readParagraphFormatting(this.#xml.root).alignment;
@@ -669,5 +828,228 @@ export class Paragraph {
     this.#xml = applyParagraphFormatting(this.#xml, this.#xml.root, {
       spaceAfter: value === null ? null : value.pt
     });
+  }
+}
+
+interface TextNodeBinding {
+  readonly read: () => { readonly document: XmlPart; readonly node: XmlElement };
+  readonly write: (xml: XmlPart) => void;
+}
+function nodeText(document: XmlPart, node: XmlElement): string {
+  let text = "";
+  for (const child of node.children.filter(
+    (n) => n.name.namespace === node.name.namespace && n.name.localName === "t"
+  )) {
+    const parser = new SaxesParser({ xmlns: false });
+    parser.on("text", (value) => {
+      text += value;
+    });
+    parser.on("cdata", (value) => {
+      text += value;
+    });
+    parser.write(document.markup(child)).close();
+  }
+  return text;
+}
+function escapeModelText(value: string): string {
+  return Array.from(value)
+    .map((c) => {
+      const code = c.codePointAt(0)!;
+      if (
+        (code < 32 && ![9, 10, 13].includes(code)) ||
+        (code >= 0xd800 && code <= 0xdfff) ||
+        [0xfffe, 0xffff].includes(code)
+      )
+        return `_x${code.toString(16).toUpperCase().padStart(4, "0")}_`;
+      return c === "&"
+        ? "&amp;"
+        : c === "<"
+          ? "&lt;"
+          : c === ">"
+            ? "&gt;"
+            : c === "\r"
+              ? "&#13;"
+              : c;
+    })
+    .join("");
+}
+function replaceParagraphContent(xml: XmlPart, fragments: readonly string[]): XmlPart {
+  if (protectedEquationNodes(xml.root).size)
+    throw new OfficeError(
+      "unsupported-edit",
+      "Whole text replacement cannot remove equations or their fallbacks.",
+      "validate-intent"
+    );
+  const ns = xml.root.name.namespace;
+  const indexes = xml.root.children.flatMap((n, i) =>
+    n.name.namespace === ns && ["r", "br", "fld"].includes(n.name.localName) ? [i] : []
+  );
+  let result = xml;
+  for (const i of indexes.reverse()) result = result.spliceChildren(result.root, i, 1, []);
+  if (fragments.length) {
+    const end = result.root.children.findIndex(
+      (n) => n.name.namespace === ns && n.name.localName === "endParaRPr"
+    );
+    result = result.spliceChildren(
+      result.root,
+      end < 0 ? result.root.children.length : end,
+      0,
+      fragments
+    );
+  }
+  return result;
+}
+export class Run {
+  readonly #binding: TextNodeBinding & { readonly parent: Paragraph };
+  #font: Font | undefined;
+  constructor(binding: TextNodeBinding & { readonly parent: Paragraph }) {
+    this.#binding = binding;
+  }
+  get parent(): Paragraph {
+    this.#binding.read();
+    return this.#binding.parent;
+  }
+  get text(): string {
+    const { document, node } = this.#binding.read();
+    return nodeText(document, node);
+  }
+  set text(value: string) {
+    if (typeof value !== "string") invalid();
+    const { document, node } = this.#binding.read();
+    if (protectedEquationNodes(node).size)
+      throw new OfficeError(
+        "unsupported-edit",
+        "Text replacement cannot remove equations.",
+        "validate-intent"
+      );
+    const texts = node.children.flatMap((n, i) =>
+      n.name.namespace === node.name.namespace && n.name.localName === "t" ? [i] : []
+    );
+    if (texts.length !== 1)
+      throw new OfficeError("invalid-xml", "A text run requires one text element.", "parse");
+    this.#binding.write(
+      document.spliceChildren(node, texts[0]!, 1, [
+        `<t xmlns="${node.name.namespace}">${escapeModelText(value)}</t>`
+      ])
+    );
+  }
+  get font(): Font {
+    const { document, node } = this.#binding.read();
+    if (
+      !node.children.some(
+        (n) => n.name.namespace === node.name.namespace && n.name.localName === "rPr"
+      )
+    )
+      this.#binding.write(
+        document.spliceChildren(node, 0, 0, [`<rPr xmlns="${node.name.namespace}"/>`])
+      );
+    return (this.#font ??= new Font({
+      read: () => {
+        const { document, node } = this.#binding.read();
+        const properties = node.children.find(
+          (n) => n.name.namespace === node.name.namespace && n.name.localName === "rPr"
+        );
+        if (!properties) throw new InvalidHandleError();
+        return { document, node: properties };
+      },
+      write: this.#binding.write
+    }));
+  }
+}
+export class Font {
+  readonly #binding: TextNodeBinding;
+  #color: ColorFormat | undefined;
+  #fill: FillFormat | undefined;
+  constructor(binding: TextNodeBinding) {
+    this.#binding = binding;
+  }
+  get #format() {
+    const { node } = this.#binding.read();
+    return readRunFormatting({
+      name: { namespace: node.name.namespace, localName: "r" },
+      attributes: [],
+      children: [{ ...node, name: { namespace: node.name.namespace, localName: "rPr" } }]
+    });
+  }
+  #set(options: TextRunFormatting): void {
+    validateTextRunOptions(options);
+    const { document, node } = this.#binding.read();
+    this.#binding.write(document.merge(node, runPropertiesMerge(options, node.name.namespace)));
+  }
+  get fill(): FillFormat {
+    this.#binding.read();
+    return (this.#fill ??= new FillFormat(
+      () => {
+        const { document, node } = this.#binding.read();
+        return document.subtree(node);
+      },
+      undefined,
+      false,
+      (transform) => {
+        const { document, node } = this.#binding.read();
+        this.#binding.write(transform(document, node));
+      },
+      (node) => node
+    ));
+  }
+  get color(): ColorFormat {
+    this.fill.solid();
+    const read = () => {
+      const { document, node } = this.#binding.read();
+      const selected = node.children.find(
+        (n) => n.name.namespace === node.name.namespace && n.name.localName === "solidFill"
+      );
+      if (!selected) throw new InvalidHandleError();
+      return document.subtree(selected);
+    };
+    return (this.#color ??= new ColorFormat(read(), {
+      read,
+      write: (xml) => {
+        const { document, node } = this.#binding.read();
+        const index = node.children.findIndex(
+          (n) => n.name.namespace === node.name.namespace && n.name.localName === "solidFill"
+        );
+        if (index < 0) throw new InvalidHandleError();
+        this.#binding.write(document.spliceChildren(node, index, 1, [xml.markup(xml.root, true)]));
+      }
+    }));
+  }
+  get bold(): boolean | null {
+    return this.#format.bold;
+  }
+  set bold(value: boolean | null) {
+    this.#set({ bold: value });
+  }
+  get italic(): boolean | null {
+    return this.#format.italic;
+  }
+  set italic(value: boolean | null) {
+    this.#set({ italic: value });
+  }
+  get name(): string | null {
+    return this.#format.font;
+  }
+  set name(value: string | null) {
+    this.#set({ font: value });
+  }
+  get size(): Length | null {
+    const value = this.#format.size;
+    return value === null ? null : new Pt(value);
+  }
+  set size(value: Length | null) {
+    if (value !== null && !(value instanceof Length)) invalid();
+    this.#set({ size: value === null ? null : value.pt });
+  }
+  get underline(): boolean | MSO_TEXT_UNDERLINE_TYPE | null {
+    const value = this.#format.underline;
+    if (value === null) return null;
+    if (value === "none") return false;
+    if (value === "sng") return true;
+    const index = textUnderlineStyles.indexOf(value as (typeof textUnderlineStyles)[number]);
+    if (index < 0) throw new OfficeError("invalid-xml", "Unknown text underline.", "parse");
+    return index;
+  }
+  set underline(value: boolean | MSO_TEXT_UNDERLINE_TYPE | null) {
+    this.#set({ underline: value });
   }
 }

@@ -1,12 +1,13 @@
 import { applyTableStructure, type TableStructureOperation } from "./table-spans.js";
-import { OfficeError } from "./errors.js";
+import { InvalidHandleError, OfficeError } from "./errors.js";
 import { Length } from "./length.js";
-import { required } from "./masters.js";
+import { child, required } from "./masters.js";
+import { FillFormat } from "./shapes.js";
 import { nodeFor } from "./shape-operations.js";
 import { TextFrame } from "./text-frames.js";
 import { MSO_VERTICAL_ANCHOR } from "./text-frame-enums.js";
 import { applyTableUpdate, readTable, type TableUpdate } from "./tables.js";
-import { parseXmlPart, type XmlElement, type XmlPart } from "./xml.js";
+import type { XmlElement, XmlPart } from "./xml.js";
 function position(index: number, length: number): void {
   if (!Number.isSafeInteger(index) || index < 0 || index >= length)
     throw new OfficeError(
@@ -37,6 +38,7 @@ function indexed<T extends { get(index: number): unknown }>(collection: T): T {
 export class Table {
   #xml: XmlPart;
   readonly #id: number;
+  readonly #cells = new Map<string, TableCell>();
   #generation = 0;
   get generation(): number {
     return this.#generation;
@@ -61,7 +63,13 @@ export class Table {
   cell(row: number, column: number): TableCell {
     position(row, this.rows.length);
     position(column, this.columns.length);
-    return new TableCell(this, row, column);
+    const key = `${row}:${column}`;
+    let cell = this.#cells.get(key);
+    if (!cell) {
+      cell = new TableCell(this, row, column);
+      this.#cells.set(key, cell);
+    }
+    return cell;
   }
   *iter_cells(): IterableIterator<TableCell> {
     for (let row = 0; row < this.rows.length; row++)
@@ -109,17 +117,44 @@ export class Table {
   }
   structure(operation: TableStructureOperation): void {
     this.#xml = applyTableStructure(this.#xml, this.element, operation);
-    if (operation.kind !== "merge" && operation.kind !== "split") this.#generation++;
+    if (operation.kind !== "merge" && operation.kind !== "split") {
+      this.#generation++;
+      this.#cells.clear();
+    }
   }
-  bindTextFrame(row: number, column: number): TextFrame {
+  bindFill(row: number, column: number): FillFormat {
+    const cell = this.cell(row, column);
+    const target = () => {
+      void cell.table;
+      const graphic = this.element.children.find((node) => node.name.localName === "graphic")!;
+      const table = required(required(graphic, "graphicData"), "tbl");
+      const owner = table.children.filter((n) => n.name.localName === "tr")[row]!;
+      return owner.children.filter((n) => n.name.localName === "tc")[column]!;
+    };
+    const edit = (transform: (xml: XmlPart, node: XmlElement) => XmlPart) => {
+      void cell.table;
+      applyTableUpdate(this.#xml, this.element, { cell: { row, column } });
+      this.#xml = transform(this.#xml, target());
+    };
+    if (!child(target(), "tcPr"))
+      edit((xml, node) =>
+        xml.merge(node, {
+          children: {
+            sequence: ["txBody", "tcPr", "extLst"].map((localName) => ({
+              namespace: node.name.namespace,
+              localName
+            })),
+            upsert: [{ name: { namespace: node.name.namespace, localName: "tcPr" }, merge: {} }]
+          }
+        })
+      );
+    const read = () => this.#xml.subtree(target());
+    return new FillFormat(read, undefined, false, edit, (node) => child(node, "tcPr"));
+  }
+  bindTextFrame(row: number, column: number, parent?: TableCell): TextFrame {
     const generation = this.#generation;
     const validate = () => {
-      if (generation !== this.#generation)
-        throw new OfficeError(
-          "invalid-selection",
-          "Table coordinate handle was invalidated by a structural edit.",
-          "select"
-        );
+      if (generation !== this.#generation) throw new InvalidHandleError();
     };
     const body = () => {
       validate();
@@ -133,15 +168,12 @@ export class Table {
       validate();
       if (source !== this.#xml) {
         source = this.#xml;
-        cached = parseXmlPart(new TextEncoder().encode(this.#xml.markup(body(), true)), {
-          maxBytes: 64000000,
-          maxNodes: 4000000,
-          maxDepth: 64
-        });
+        cached = this.#xml.subtree(body());
       }
       return cached;
     };
     return new TextFrame(read(), undefined, {
+      parent,
       read,
       write: (xml) => {
         applyTableUpdate(this.#xml, this.element, {
@@ -162,13 +194,10 @@ export class Table {
 export class TableCell {
   readonly #table: Table;
   readonly #generation: number;
+  #frame: TextFrame | undefined;
+  #fill: FillFormat | undefined;
   get table(): Table {
-    if (this.#generation !== this.#table.generation)
-      throw new OfficeError(
-        "invalid-selection",
-        "Table coordinate handle was invalidated by a structural edit.",
-        "select"
-      );
+    if (this.#generation !== this.#table.generation) throw new InvalidHandleError();
     return this.#table;
   }
   constructor(
@@ -180,6 +209,19 @@ export class TableCell {
     this.#generation = table.generation;
     position(row, table.rows.length);
     position(column, table.columns.length);
+  }
+  equals(other: unknown): boolean {
+    const table = this.table;
+    return (
+      other instanceof TableCell &&
+      other.table === table &&
+      other.row === this.row &&
+      other.column === this.column
+    );
+  }
+  get fill(): FillFormat {
+    const table = this.table;
+    return (this.#fill ??= table.bindFill(this.row, this.column));
   }
   merge(other: TableCell): void {
     if (!(other instanceof TableCell) || other.table !== this.table)
@@ -199,10 +241,11 @@ export class TableCell {
     ]!.text;
   }
   set text(value: string) {
-    this.table.update({ cell: { row: this.row, column: this.column }, text: value });
+    this.text_frame.text = value;
   }
   get text_frame(): TextFrame {
-    return this.table.bindTextFrame(this.row, this.column);
+    const table = this.table;
+    return (this.#frame ??= table.bindTextFrame(this.row, this.column, this));
   }
   get is_spanned(): boolean {
     return readTable(this.table.element, this.table.xml).cells[
@@ -326,12 +369,7 @@ export class TableRow {
   readonly #table: Table;
   readonly #generation: number;
   get table(): Table {
-    if (this.#generation !== this.#table.generation)
-      throw new OfficeError(
-        "invalid-selection",
-        "Table coordinate handle was invalidated by a structural edit.",
-        "select"
-      );
+    if (this.#generation !== this.#table.generation) throw new InvalidHandleError();
     return this.#table;
   }
   constructor(
@@ -356,12 +394,7 @@ export class TableColumn {
   readonly #table: Table;
   readonly #generation: number;
   get table(): Table {
-    if (this.#generation !== this.#table.generation)
-      throw new OfficeError(
-        "invalid-selection",
-        "Table coordinate handle was invalidated by a structural edit.",
-        "select"
-      );
+    if (this.#generation !== this.#table.generation) throw new InvalidHandleError();
     return this.#table;
   }
   constructor(
@@ -384,12 +417,7 @@ export class TableCells implements Iterable<TableCell> {
   readonly #table: Table;
   readonly #generation: number;
   get table(): Table {
-    if (this.#generation !== this.#table.generation)
-      throw new OfficeError(
-        "invalid-selection",
-        "Table coordinate handle was invalidated by a structural edit.",
-        "select"
-      );
+    if (this.#generation !== this.#table.generation) throw new InvalidHandleError();
     return this.#table;
   }
   constructor(

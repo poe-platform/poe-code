@@ -16,7 +16,13 @@ export type {
   VfsPath,
   WriteOptions
 } from "./contracts.js";
-export { OfficeError, type ByteErrorCode, type OfficeErrorCode } from "./errors.js";
+export {
+  OfficeError,
+  InvalidHandleError,
+  type ByteErrorCode,
+  type OfficeErrorCode
+} from "./errors.js";
+export { parseXmlPart, type XmlPart, type XmlElement, type XmlLimits } from "./xml.js";
 export { applyTemplateRepeat, validateTemplateRepeat, type TemplateRepeat } from "./template-repeat.js";
 export {
   applyTemplateBindings,
@@ -241,6 +247,8 @@ export {
 
 export {
   Paragraph,
+  Run,
+  Font,
   PP_PARAGRAPH_ALIGNMENT,
   PP_ALIGN,
   paragraphAlignments,

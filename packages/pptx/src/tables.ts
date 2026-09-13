@@ -429,6 +429,11 @@ export function applyTableUpdate(
     before.cells[update.cell!.row * before.columns + update.cell!.column]!.isSpanned
   )
     unsupported("Text assignment requires a merge origin.");
+  if (
+    update.data &&
+    before.cells.some((cell) => cell.isSpanned && update.data![cell.row]![cell.column] !== "")
+  )
+    unsupported("Continuation cells must not own text.");
   let result = document;
   const frame = () => nodeFor(result.root, String(before.shapeId)),
     tbl = () => table(frame()),

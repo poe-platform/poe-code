@@ -1033,7 +1033,7 @@
       "featureId": "F29",
       "family": "Merged cells",
       "requiredSubset": "Horizontal/vertical merges and split cells, insertion/deletion through spans with explicit conflict rules",
-      "status": "proposed_not_implemented",
+      "status": "implemented_bounded_direct",
       "operationIds": [
         "tables.merge",
         "tables.split",
@@ -1049,11 +1049,19 @@
           "feature": "F29"
         }
       },
-      "tests": ["feature.F29.behavior", "feature.F29.retention"],
+      "tests": [
+        "packages/pptx/src/table-spans.test.ts",
+        "packages/pptx/src/table-span-behavior-cases.test.ts",
+        "packages/pptx/src/command-tables.test.ts"
+      ],
       "evidence": {
         "existingProductTests": [],
         "formatSpec": "docs/specs/pptx.md#5-feature-coverage-contract"
-      }
+      },
+      "implementationEvidence": "docs/plans/pptx-table-spans-accounting.md",
+      "limitations": [
+        "Bounded structurally valid rectangular grids only; malformed/inconsistent spans reject atomically. Whole table public API remains partial."
+      ]
     },
     {
       "featureId": "F30",
@@ -23165,8 +23173,8 @@
       "path": ["tables", "merge"],
       "sdkOperationId": "tables.merge",
       "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
+      "status": "implemented_bounded_direct",
+      "transport": "direct",
       "arguments": {
         "type": "object",
         "properties": {
@@ -23189,7 +23197,6 @@
         "scope",
         "slide",
         "table",
-        "cell",
         "output",
         "inPlace",
         "force",
@@ -23204,13 +23211,18 @@
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
       "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
-      "tests": ["command.tables.merge"],
+      "tests": [
+        "packages/pptx/src/command-tables.test.ts :: merges, expands, shrinks and splits table spans with explicit policies",
+        "packages/pptx/src/command-tables.test.ts :: publishes structural option and result schemas with explicit conflict policies"
+      ],
       "cli": ["pptx", "tables", "merge", "INPUT"],
       "flags": {
         "from": "--from",
         "to": "--to"
       },
-      "constraints": [],
+      "constraints": [
+        "Ordered one-based from/to rectangle; whole prior spans may be absorbed; partial intersections fail. No cell selector."
+      ],
       "batchOptions": {
         "type": "object",
         "properties": {
@@ -23236,10 +23248,6 @@
           "table": {
             "$ref": "#/$defs/Position"
           },
-          "cell": {
-            "type": "string",
-            "maxLength": 1048576
-          },
           "all": {
             "type": "boolean"
           },
@@ -23255,7 +23263,7 @@
       "absence": "Optional set fields preserve existing values; omitted optional read filters select the declared collection. Null only where the schema admits null; empty strings remain explicit values.",
       "defaults": {},
       "publication": "package",
-      "cardinality": "operation-specific in format contract",
+      "cardinality": "one unless explicit all; zero requires allowEmpty",
       "defaultScope": "slides",
       "resultSchema": {
         "$ref": "#/$defs/MutationData"
@@ -23281,9 +23289,6 @@
           "table": {
             "$ref": "#/commonOptions/table/schema"
           },
-          "cell": {
-            "$ref": "#/commonOptions/cell/schema"
-          },
           "output": {
             "$ref": "#/commonOptions/output/schema"
           },
@@ -23306,14 +23311,16 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "schemaStatus": "Executable direct schemas in packages/pptx/src/command-schema.ts are authoritative; historical typed-batch fragments are not executable routes.",
+      "implementationEvidence": "docs/plans/pptx-table-spans-accounting.md"
     },
     "tables.split": {
       "path": ["tables", "split"],
       "sdkOperationId": "tables.split",
       "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
+      "status": "implemented_bounded_direct",
+      "transport": "direct",
       "arguments": {
         "type": "object",
         "properties": {},
@@ -23323,7 +23330,6 @@
       "commonOptions": [
         "json",
         "limit",
-        "select",
         "scope",
         "slide",
         "table",
@@ -23342,16 +23348,18 @@
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
       "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
-      "tests": ["command.tables.split"],
+      "tests": [
+        "packages/pptx/src/command-tables.test.ts :: merges, expands, shrinks and splits table spans with explicit policies",
+        "packages/pptx/src/command-tables.test.ts :: publishes structural option and result schemas with explicit conflict policies"
+      ],
       "cli": ["pptx", "tables", "split", "INPUT"],
       "flags": {},
-      "constraints": [],
+      "constraints": [
+        "Requires explicit one-based cell coordinate and simple table/slide selection; select plus cell is rejected. Only merge origin may be split."
+      ],
       "batchOptions": {
         "type": "object",
         "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
-          },
           "scope": {
             "type": "string",
             "enum": [
@@ -23390,7 +23398,7 @@
       "absence": "Optional set fields preserve existing values; omitted optional read filters select the declared collection. Null only where the schema admits null; empty strings remain explicit values.",
       "defaults": {},
       "publication": "package",
-      "cardinality": "operation-specific in format contract",
+      "cardinality": "one unless explicit all; zero requires allowEmpty",
       "defaultScope": "slides",
       "resultSchema": {
         "$ref": "#/$defs/MutationData"
@@ -23403,9 +23411,6 @@
           },
           "limit": {
             "$ref": "#/commonOptions/limit/schema"
-          },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
           },
           "scope": {
             "$ref": "#/commonOptions/scope/schema"
@@ -23438,17 +23443,19 @@
             "$ref": "#/commonOptions/allowEmpty/schema"
           }
         },
-        "required": [],
+        "required": ["cell"],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "schemaStatus": "Executable direct schemas in packages/pptx/src/command-schema.ts are authoritative; historical typed-batch fragments are not executable routes.",
+      "implementationEvidence": "docs/plans/pptx-table-spans-accounting.md"
     },
     "tables.rows.add": {
       "path": ["tables", "rows", "add"],
       "sdkOperationId": "tables.rows.add",
       "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
+      "status": "implemented_bounded_direct",
+      "transport": "direct",
       "arguments": {
         "type": "object",
         "properties": {
@@ -23470,7 +23477,6 @@
         "scope",
         "slide",
         "table",
-        "cell",
         "output",
         "inPlace",
         "force",
@@ -23485,159 +23491,19 @@
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
       "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
-      "tests": ["command.tables.rows.add"],
+      "tests": [
+        "packages/pptx/src/command-tables.test.ts :: merges, expands, shrinks and splits table spans with explicit policies",
+        "packages/pptx/src/command-tables.test.ts :: publishes structural option and result schemas with explicit conflict policies"
+      ],
       "cli": ["pptx", "tables", "rows", "add", "INPUT"],
       "flags": {
         "position": "--position",
         "spanPolicy": "--span-policy"
       },
-      "constraints": [],
-      "batchOptions": {
-        "type": "object",
-        "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
-          },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "slides",
-              "notes",
-              "layouts",
-              "masters",
-              "notes-master",
-              "handout-master",
-              "presentation",
-              "shared"
-            ]
-          },
-          "slide": {
-            "$ref": "#/$defs/Position"
-          },
-          "table": {
-            "$ref": "#/$defs/Position"
-          },
-          "cell": {
-            "type": "string",
-            "maxLength": 1048576
-          },
-          "all": {
-            "type": "boolean"
-          },
-          "allowEmpty": {
-            "type": "boolean"
-          }
-        },
-        "required": [],
-        "additionalProperties": false
-      },
-      "formatContract": "docs/specs/pptx.md#61-format-operation-grammar",
-      "stdin": "At most one document, auxiliary Input or inline nested VFS descriptor may name -. Reserve stdin before reads; a second claimant is a usage error.",
-      "absence": "Optional set fields preserve existing values; omitted optional read filters select the declared collection. Null only where the schema admits null; empty strings remain explicit values.",
-      "defaults": {},
-      "publication": "package",
-      "cardinality": "operation-specific in format contract",
-      "defaultScope": "slides",
-      "resultSchema": {
-        "$ref": "#/$defs/MutationData"
-      },
-      "optionsSchema": {
-        "type": "object",
-        "properties": {
-          "json": {
-            "$ref": "#/commonOptions/json/schema"
-          },
-          "limit": {
-            "$ref": "#/commonOptions/limit/schema"
-          },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
-          },
-          "scope": {
-            "$ref": "#/commonOptions/scope/schema"
-          },
-          "slide": {
-            "$ref": "#/commonOptions/slide/schema"
-          },
-          "table": {
-            "$ref": "#/commonOptions/table/schema"
-          },
-          "cell": {
-            "$ref": "#/commonOptions/cell/schema"
-          },
-          "output": {
-            "$ref": "#/commonOptions/output/schema"
-          },
-          "inPlace": {
-            "$ref": "#/commonOptions/inPlace/schema"
-          },
-          "force": {
-            "$ref": "#/commonOptions/force/schema"
-          },
-          "dryRun": {
-            "$ref": "#/commonOptions/dryRun/schema"
-          },
-          "all": {
-            "$ref": "#/commonOptions/all/schema"
-          },
-          "allowEmpty": {
-            "$ref": "#/commonOptions/allowEmpty/schema"
-          }
-        },
-        "required": [],
-        "additionalProperties": false
-      },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
-    },
-    "tables.rows.remove": {
-      "path": ["tables", "rows", "remove"],
-      "sdkOperationId": "tables.rows.remove",
-      "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
-      "arguments": {
-        "type": "object",
-        "properties": {
-          "position": {
-            "$ref": "#/$defs/Position"
-          },
-          "spanPolicy": {
-            "type": "string",
-            "enum": ["shrink", "reject"]
-          }
-        },
-        "required": ["position", "spanPolicy"],
-        "additionalProperties": false
-      },
-      "commonOptions": [
-        "json",
-        "limit",
-        "select",
-        "scope",
-        "slide",
-        "table",
-        "cell",
-        "output",
-        "inPlace",
-        "force",
-        "dryRun",
-        "all",
-        "allowEmpty"
+      "constraints": [
+        "One-based position; explicit spanPolicy required. No cell selector.",
+        "Insert before position or append at length+1; copy following dimension, preceding when appended. Expand an intersected span or reject."
       ],
-      "commonProfile": "edit",
-      "inputArity": 1,
-      "help": ["pptx", "help", "tables", "rows", "remove"],
-      "schema": ["pptx", "schema", "tables", "rows", "remove"],
-      "result": "OfficeResultV1",
-      "exitProfile": "ordinary",
-      "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
-      "tests": ["command.tables.rows.remove"],
-      "cli": ["pptx", "tables", "rows", "remove", "INPUT"],
-      "flags": {
-        "position": "--position",
-        "spanPolicy": "--span-policy"
-      },
-      "constraints": [],
       "batchOptions": {
         "type": "object",
         "properties": {
@@ -23662,10 +23528,6 @@
           },
           "table": {
             "$ref": "#/$defs/Position"
-          },
-          "cell": {
-            "type": "string",
-            "maxLength": 1048576
           },
           "all": {
             "type": "boolean"
@@ -23708,8 +23570,151 @@
           "table": {
             "$ref": "#/commonOptions/table/schema"
           },
-          "cell": {
-            "$ref": "#/commonOptions/cell/schema"
+          "output": {
+            "$ref": "#/commonOptions/output/schema"
+          },
+          "inPlace": {
+            "$ref": "#/commonOptions/inPlace/schema"
+          },
+          "force": {
+            "$ref": "#/commonOptions/force/schema"
+          },
+          "dryRun": {
+            "$ref": "#/commonOptions/dryRun/schema"
+          },
+          "all": {
+            "$ref": "#/commonOptions/all/schema"
+          },
+          "allowEmpty": {
+            "$ref": "#/commonOptions/allowEmpty/schema"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "schemaStatus": "Executable direct schemas in packages/pptx/src/command-schema.ts are authoritative; historical typed-batch fragments are not executable routes.",
+      "implementationEvidence": "docs/plans/pptx-table-spans-accounting.md"
+    },
+    "tables.rows.remove": {
+      "path": ["tables", "rows", "remove"],
+      "sdkOperationId": "tables.rows.remove",
+      "version": 1,
+      "status": "implemented_bounded_direct",
+      "transport": "direct",
+      "arguments": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "$ref": "#/$defs/Position"
+          },
+          "spanPolicy": {
+            "type": "string",
+            "enum": ["shrink", "reject"]
+          }
+        },
+        "required": ["position", "spanPolicy"],
+        "additionalProperties": false
+      },
+      "commonOptions": [
+        "json",
+        "limit",
+        "select",
+        "scope",
+        "slide",
+        "table",
+        "output",
+        "inPlace",
+        "force",
+        "dryRun",
+        "all",
+        "allowEmpty"
+      ],
+      "commonProfile": "edit",
+      "inputArity": 1,
+      "help": ["pptx", "help", "tables", "rows", "remove"],
+      "schema": ["pptx", "schema", "tables", "rows", "remove"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
+      "tests": [
+        "packages/pptx/src/command-tables.test.ts :: merges, expands, shrinks and splits table spans with explicit policies",
+        "packages/pptx/src/command-tables.test.ts :: publishes structural option and result schemas with explicit conflict policies"
+      ],
+      "cli": ["pptx", "tables", "rows", "remove", "INPUT"],
+      "flags": {
+        "position": "--position",
+        "spanPolicy": "--span-policy"
+      },
+      "constraints": [
+        "One-based position; explicit spanPolicy required. No cell selector.",
+        "Shrink an intersected span or reject; deleting its origin transfers text to first survivor. No zero-row/column result."
+      ],
+      "batchOptions": {
+        "type": "object",
+        "properties": {
+          "select": {
+            "$ref": "#/$defs/Location"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "slides",
+              "notes",
+              "layouts",
+              "masters",
+              "notes-master",
+              "handout-master",
+              "presentation",
+              "shared"
+            ]
+          },
+          "slide": {
+            "$ref": "#/$defs/Position"
+          },
+          "table": {
+            "$ref": "#/$defs/Position"
+          },
+          "all": {
+            "type": "boolean"
+          },
+          "allowEmpty": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "formatContract": "docs/specs/pptx.md#61-format-operation-grammar",
+      "stdin": "At most one document, auxiliary Input or inline nested VFS descriptor may name -. Reserve stdin before reads; a second claimant is a usage error.",
+      "absence": "Optional set fields preserve existing values; omitted optional read filters select the declared collection. Null only where the schema admits null; empty strings remain explicit values.",
+      "defaults": {},
+      "publication": "package",
+      "cardinality": "one unless explicit all; zero requires allowEmpty",
+      "defaultScope": "slides",
+      "resultSchema": {
+        "$ref": "#/$defs/MutationData"
+      },
+      "optionsSchema": {
+        "type": "object",
+        "properties": {
+          "json": {
+            "$ref": "#/commonOptions/json/schema"
+          },
+          "limit": {
+            "$ref": "#/commonOptions/limit/schema"
+          },
+          "select": {
+            "$ref": "#/commonOptions/select/schema"
+          },
+          "scope": {
+            "$ref": "#/commonOptions/scope/schema"
+          },
+          "slide": {
+            "$ref": "#/commonOptions/slide/schema"
+          },
+          "table": {
+            "$ref": "#/commonOptions/table/schema"
           },
           "output": {
             "$ref": "#/commonOptions/output/schema"
@@ -23733,14 +23738,16 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "schemaStatus": "Executable direct schemas in packages/pptx/src/command-schema.ts are authoritative; historical typed-batch fragments are not executable routes.",
+      "implementationEvidence": "docs/plans/pptx-table-spans-accounting.md"
     },
     "tables.columns.add": {
       "path": ["tables", "columns", "add"],
       "sdkOperationId": "tables.columns.add",
       "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
+      "status": "implemented_bounded_direct",
+      "transport": "direct",
       "arguments": {
         "type": "object",
         "properties": {
@@ -23762,7 +23769,6 @@
         "scope",
         "slide",
         "table",
-        "cell",
         "output",
         "inPlace",
         "force",
@@ -23777,159 +23783,19 @@
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
       "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
-      "tests": ["command.tables.columns.add"],
+      "tests": [
+        "packages/pptx/src/command-tables.test.ts :: merges, expands, shrinks and splits table spans with explicit policies",
+        "packages/pptx/src/command-tables.test.ts :: publishes structural option and result schemas with explicit conflict policies"
+      ],
       "cli": ["pptx", "tables", "columns", "add", "INPUT"],
       "flags": {
         "position": "--position",
         "spanPolicy": "--span-policy"
       },
-      "constraints": [],
-      "batchOptions": {
-        "type": "object",
-        "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
-          },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "slides",
-              "notes",
-              "layouts",
-              "masters",
-              "notes-master",
-              "handout-master",
-              "presentation",
-              "shared"
-            ]
-          },
-          "slide": {
-            "$ref": "#/$defs/Position"
-          },
-          "table": {
-            "$ref": "#/$defs/Position"
-          },
-          "cell": {
-            "type": "string",
-            "maxLength": 1048576
-          },
-          "all": {
-            "type": "boolean"
-          },
-          "allowEmpty": {
-            "type": "boolean"
-          }
-        },
-        "required": [],
-        "additionalProperties": false
-      },
-      "formatContract": "docs/specs/pptx.md#61-format-operation-grammar",
-      "stdin": "At most one document, auxiliary Input or inline nested VFS descriptor may name -. Reserve stdin before reads; a second claimant is a usage error.",
-      "absence": "Optional set fields preserve existing values; omitted optional read filters select the declared collection. Null only where the schema admits null; empty strings remain explicit values.",
-      "defaults": {},
-      "publication": "package",
-      "cardinality": "operation-specific in format contract",
-      "defaultScope": "slides",
-      "resultSchema": {
-        "$ref": "#/$defs/MutationData"
-      },
-      "optionsSchema": {
-        "type": "object",
-        "properties": {
-          "json": {
-            "$ref": "#/commonOptions/json/schema"
-          },
-          "limit": {
-            "$ref": "#/commonOptions/limit/schema"
-          },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
-          },
-          "scope": {
-            "$ref": "#/commonOptions/scope/schema"
-          },
-          "slide": {
-            "$ref": "#/commonOptions/slide/schema"
-          },
-          "table": {
-            "$ref": "#/commonOptions/table/schema"
-          },
-          "cell": {
-            "$ref": "#/commonOptions/cell/schema"
-          },
-          "output": {
-            "$ref": "#/commonOptions/output/schema"
-          },
-          "inPlace": {
-            "$ref": "#/commonOptions/inPlace/schema"
-          },
-          "force": {
-            "$ref": "#/commonOptions/force/schema"
-          },
-          "dryRun": {
-            "$ref": "#/commonOptions/dryRun/schema"
-          },
-          "all": {
-            "$ref": "#/commonOptions/all/schema"
-          },
-          "allowEmpty": {
-            "$ref": "#/commonOptions/allowEmpty/schema"
-          }
-        },
-        "required": [],
-        "additionalProperties": false
-      },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
-    },
-    "tables.columns.remove": {
-      "path": ["tables", "columns", "remove"],
-      "sdkOperationId": "tables.columns.remove",
-      "version": 1,
-      "status": "proposed_not_implemented",
-      "transport": "direct-and-batch",
-      "arguments": {
-        "type": "object",
-        "properties": {
-          "position": {
-            "$ref": "#/$defs/Position"
-          },
-          "spanPolicy": {
-            "type": "string",
-            "enum": ["shrink", "reject"]
-          }
-        },
-        "required": ["position", "spanPolicy"],
-        "additionalProperties": false
-      },
-      "commonOptions": [
-        "json",
-        "limit",
-        "select",
-        "scope",
-        "slide",
-        "table",
-        "cell",
-        "output",
-        "inPlace",
-        "force",
-        "dryRun",
-        "all",
-        "allowEmpty"
+      "constraints": [
+        "One-based position; explicit spanPolicy required. No cell selector.",
+        "Insert before position or append at length+1; copy following dimension, preceding when appended. Expand an intersected span or reject."
       ],
-      "commonProfile": "edit",
-      "inputArity": 1,
-      "help": ["pptx", "help", "tables", "columns", "remove"],
-      "schema": ["pptx", "schema", "tables", "columns", "remove"],
-      "result": "OfficeResultV1",
-      "exitProfile": "ordinary",
-      "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
-      "tests": ["command.tables.columns.remove"],
-      "cli": ["pptx", "tables", "columns", "remove", "INPUT"],
-      "flags": {
-        "position": "--position",
-        "spanPolicy": "--span-policy"
-      },
-      "constraints": [],
       "batchOptions": {
         "type": "object",
         "properties": {
@@ -23954,10 +23820,6 @@
           },
           "table": {
             "$ref": "#/$defs/Position"
-          },
-          "cell": {
-            "type": "string",
-            "maxLength": 1048576
           },
           "all": {
             "type": "boolean"
@@ -24000,8 +23862,151 @@
           "table": {
             "$ref": "#/commonOptions/table/schema"
           },
-          "cell": {
-            "$ref": "#/commonOptions/cell/schema"
+          "output": {
+            "$ref": "#/commonOptions/output/schema"
+          },
+          "inPlace": {
+            "$ref": "#/commonOptions/inPlace/schema"
+          },
+          "force": {
+            "$ref": "#/commonOptions/force/schema"
+          },
+          "dryRun": {
+            "$ref": "#/commonOptions/dryRun/schema"
+          },
+          "all": {
+            "$ref": "#/commonOptions/all/schema"
+          },
+          "allowEmpty": {
+            "$ref": "#/commonOptions/allowEmpty/schema"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "schemaStatus": "Executable direct schemas in packages/pptx/src/command-schema.ts are authoritative; historical typed-batch fragments are not executable routes.",
+      "implementationEvidence": "docs/plans/pptx-table-spans-accounting.md"
+    },
+    "tables.columns.remove": {
+      "path": ["tables", "columns", "remove"],
+      "sdkOperationId": "tables.columns.remove",
+      "version": 1,
+      "status": "implemented_bounded_direct",
+      "transport": "direct",
+      "arguments": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "$ref": "#/$defs/Position"
+          },
+          "spanPolicy": {
+            "type": "string",
+            "enum": ["shrink", "reject"]
+          }
+        },
+        "required": ["position", "spanPolicy"],
+        "additionalProperties": false
+      },
+      "commonOptions": [
+        "json",
+        "limit",
+        "select",
+        "scope",
+        "slide",
+        "table",
+        "output",
+        "inPlace",
+        "force",
+        "dryRun",
+        "all",
+        "allowEmpty"
+      ],
+      "commonProfile": "edit",
+      "inputArity": 1,
+      "help": ["pptx", "help", "tables", "columns", "remove"],
+      "schema": ["pptx", "schema", "tables", "columns", "remove"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "description": "Explicit typed graph operation; retain unrelated nodes/relationships and validate before publication.",
+      "tests": [
+        "packages/pptx/src/command-tables.test.ts :: merges, expands, shrinks and splits table spans with explicit policies",
+        "packages/pptx/src/command-tables.test.ts :: publishes structural option and result schemas with explicit conflict policies"
+      ],
+      "cli": ["pptx", "tables", "columns", "remove", "INPUT"],
+      "flags": {
+        "position": "--position",
+        "spanPolicy": "--span-policy"
+      },
+      "constraints": [
+        "One-based position; explicit spanPolicy required. No cell selector.",
+        "Shrink an intersected span or reject; deleting its origin transfers text to first survivor. No zero-row/column result."
+      ],
+      "batchOptions": {
+        "type": "object",
+        "properties": {
+          "select": {
+            "$ref": "#/$defs/Location"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "slides",
+              "notes",
+              "layouts",
+              "masters",
+              "notes-master",
+              "handout-master",
+              "presentation",
+              "shared"
+            ]
+          },
+          "slide": {
+            "$ref": "#/$defs/Position"
+          },
+          "table": {
+            "$ref": "#/$defs/Position"
+          },
+          "all": {
+            "type": "boolean"
+          },
+          "allowEmpty": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "formatContract": "docs/specs/pptx.md#61-format-operation-grammar",
+      "stdin": "At most one document, auxiliary Input or inline nested VFS descriptor may name -. Reserve stdin before reads; a second claimant is a usage error.",
+      "absence": "Optional set fields preserve existing values; omitted optional read filters select the declared collection. Null only where the schema admits null; empty strings remain explicit values.",
+      "defaults": {},
+      "publication": "package",
+      "cardinality": "one unless explicit all; zero requires allowEmpty",
+      "defaultScope": "slides",
+      "resultSchema": {
+        "$ref": "#/$defs/MutationData"
+      },
+      "optionsSchema": {
+        "type": "object",
+        "properties": {
+          "json": {
+            "$ref": "#/commonOptions/json/schema"
+          },
+          "limit": {
+            "$ref": "#/commonOptions/limit/schema"
+          },
+          "select": {
+            "$ref": "#/commonOptions/select/schema"
+          },
+          "scope": {
+            "$ref": "#/commonOptions/scope/schema"
+          },
+          "slide": {
+            "$ref": "#/commonOptions/slide/schema"
+          },
+          "table": {
+            "$ref": "#/commonOptions/table/schema"
           },
           "output": {
             "$ref": "#/commonOptions/output/schema"
@@ -24025,7 +24030,9 @@
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "schemaStatus": "Executable direct schemas in packages/pptx/src/command-schema.ts are authoritative; historical typed-batch fragments are not executable routes.",
+      "implementationEvidence": "docs/plans/pptx-table-spans-accounting.md"
     },
     "text.fit": {
       "path": ["text", "fit"],
@@ -262852,7 +262859,8 @@
       "id": "C05",
       "evidence": "Shared master editing requires explicit part ownership, selected text shapes and an operation for clearing explicit background values.",
       "resolution": "Register --part for shared master, shape, background and layout routes, --shape for masters set text, --theme for master creation and backgrounds set --kind inherit. Full model/batch coverage remains proposed; compiled supported-subset evidence is linked on individual operations."
-    }
+    },
+    "F29 six structural table routes are implemented as direct commands and restructureTables SDK operations. Historical typed-batch tables.table.* schemas remain proposed; merge/split neutral model methods are separately retained. Structural direct flags use one-based coordinates; typed operation coordinates are zero-based. Split requires cell coordinates, not a cell token."
   ],
   "sdkBehaviors": [
     {

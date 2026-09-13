@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
-  "scope": "Table grid and formatting accounting; every direct table unit parameter and all table/cell/column BDD examples plus adjacent insertion, classification, and hyperlink scenarios. Font binary tables and RelatableMixin are unrelated and excluded.",
+  "scope": "Table grid and formatting accounting; every direct table unit parameter and all table/cell/column BDD examples plus adjacent insertion, classification, and hyperlink scenarios. Font binary tables and RelatableMixin are unrelated and excluded. F29 reconciliation adds original merge/split/range cases and explicitly distinguishes contained-span policy from the reference baseline; placeholder insertion remains deferred.",
   "notice": "Research/provenance only. Retained upstream-license-notice.txt and test-case-map-notice.txt apply to source evidence. No source fixture assets copied into product.",
   "inventoryPolicy": "The historical inventory remains intact. Each exact selected parameter and expanded BDD identity is retained. Deferred or partial cases never count as parity.",
   "counts": {
@@ -11,9 +11,9 @@
     "byStatus": {
       "partial-observable-behavior": 14,
       "deferred-wider-model-api": 20,
-      "original-behavior-covered": 125,
-      "deferred-structural-operation": 45,
-      "language-security-mapped": 8
+      "original-behavior-covered": 166,
+      "deferred-structural-operation": 3,
+      "language-security-mapped": 9
     }
   },
   "rows": [
@@ -233,9 +233,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Absent attributes and explicit span=1/continuation=false variants are observed as unmerged and admitted for merging.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "accepts unmerged range with %s",
+          "parameter": "horizontal defaults"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-8df872aed77d",
@@ -281,9 +288,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Absent attributes and explicit span=1/continuation=false variants are observed as unmerged and admitted for merging.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "accepts unmerged range with %s",
+          "parameter": "horizontal explicit defaults"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-ac6658171ece",
@@ -329,9 +343,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Existing true horizontal/vertical continuation attributes are detected through partial-intersection rejection with byte-identical input on failure. Fully-contained spans are separately accepted by explicit product policy.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "rejects intersecting %s spans atomically",
+          "parameter": "horizontal"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-28912c1c2018",
@@ -377,9 +398,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Absent attributes and explicit span=1/continuation=false variants are observed as unmerged and admitted for merging.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "accepts unmerged range with %s",
+          "parameter": "vertical defaults"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-2a694852fcd8",
@@ -425,9 +453,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Absent attributes and explicit span=1/continuation=false variants are observed as unmerged and admitted for merging.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "accepts unmerged range with %s",
+          "parameter": "vertical explicit defaults"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-a7e87e7c3008",
@@ -473,9 +508,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Existing true horizontal/vertical continuation attributes are detected through partial-intersection rejection with byte-identical input on failure. Fully-contained spans are separately accepted by explicit product policy.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "rejects intersecting %s spans atomically",
+          "parameter": "vertical"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-2076ae878dd5",
@@ -521,9 +563,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "horizontal"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-95083a7dc74b",
@@ -569,9 +622,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "vertical"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-9f4d6d7324be",
@@ -617,9 +681,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "reverse corners"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-8dbd3f0b43c7",
@@ -665,9 +740,15 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Owned model endpoints in one table merge; endpoints in distinct owned tables fail before mutation. No source proxy class identity is required.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-dbcf564f3e41",
@@ -713,9 +794,15 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Owned model endpoints in one table merge; endpoints in distinct owned tables fail before mutation. No source proxy class identity is required.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "rejects foreign endpoints and non-origin splits without mutation"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-36204849aff4",
@@ -761,9 +848,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "horizontal"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-ec1ad55f6fa8",
@@ -809,9 +907,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "vertical"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-1c88046f07b3",
@@ -857,9 +966,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "reverse corners"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-201085b741a6",
@@ -905,9 +1025,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "nine positions"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-2e61c822bf3d",
@@ -953,9 +1084,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "horizontal"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-0433d31c1846",
@@ -1001,9 +1143,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "vertical"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-7bedc5ce1506",
@@ -1049,9 +1202,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "reverse corners"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-d5f9413274f3",
@@ -1097,9 +1261,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "nine positions"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-523f97fb6ee2",
@@ -1145,9 +1320,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "horizontal"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-5e524826b654",
@@ -1193,9 +1379,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "vertical"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-f06bea37e581",
@@ -1241,9 +1438,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "reverse corners"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-afe26c8612b2",
@@ -1289,9 +1497,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "offset square"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-8c26baf7872f",
@@ -1337,9 +1556,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "horizontal"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-a654e95130da",
@@ -1385,9 +1615,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "vertical"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-49e485c2c78c",
@@ -1433,9 +1674,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "reverse corners"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-348637d6c913",
@@ -1481,9 +1733,20 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original complete physical cell matrices assert range geometry, row-major collection traversal, and horizontal/vertical span roles; helper proxy iteration is replaced with its observable XML/model outcome. Exact selected geometry is named in originalTests.parameter; all physical positions independently assert the helper-selected edges and complement.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "offset square"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-cab8f2ac9690",
@@ -1533,9 +1796,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Exact single-empty-body versus two-empty-paragraph distinction is retained with original text; all content moves once to origin and remains there after split.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "moves paragraph content once for %s",
+          "parameter": "empty pair"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-f87886454208",
@@ -1585,9 +1855,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Exact single-empty-body versus two-empty-paragraph distinction is retained with original text; all content moves once to origin and remains there after split.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "moves paragraph content once for %s",
+          "parameter": "empty origin"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-e34245a9ae1b",
@@ -1637,9 +1914,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Exact single-empty-body versus two-empty-paragraph distinction is retained with original text; all content moves once to origin and remains there after split.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "moves paragraph content once for %s",
+          "parameter": "empty neighbor"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-6aabff6c156c",
@@ -1689,9 +1973,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Exact single-empty-body versus two-empty-paragraph distinction is retained with original text; all content moves once to origin and remains there after split.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "moves paragraph content once for %s",
+          "parameter": "two paragraphs"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-85ad8803d20c",
@@ -1741,9 +2032,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Exact single-empty-body versus two-empty-paragraph distinction is retained with original text; all content moves once to origin and remains there after split.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "moves paragraph content once for %s",
+          "parameter": "trailing empty paragraphs"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-2ce84f148928",
@@ -1793,9 +2091,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Exact single-empty-body versus two-empty-paragraph distinction is retained with original text; all content moves once to origin and remains there after split.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "moves paragraph content once for %s",
+          "parameter": "leading empty paragraphs"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-f9f7ca72ecab",
@@ -5425,9 +5730,15 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original labeled 3x3 grid merges its upper-left 2x2 rectangle; all nine output texts independently prove row-major paragraph transfer, empty continuations and untouched exterior cells.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "collects only the rectangular paragraph owners in physical row order"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-7f712fa432f5",
@@ -5465,9 +5776,15 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Cross-table merge validation belongs to the explicitly deferred merge API.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Independent model cases reject cross-table merge and unmerged/continuation split with byte-identical input.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "rejects foreign endpoints and non-origin splits without mutation"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-e6d806216411",
@@ -5505,9 +5822,15 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "language-security-mapped",
+      "reason": "Explicit contract difference: complete contained spans are merged into the larger rectangle; partial intersections reject atomically. The source rejects all already-merged ranges. This row is not behavioral parity.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "combines complete prior spans without duplicating their owned paragraphs"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-e0f7e6fc5dbc",
@@ -5883,9 +6206,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Horizontal, vertical and two-dimensional split independently assert every released physical cell has width/height one and no origin/continuation role; no text redistribution occurs.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "horizontal"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-8b35c933578d",
@@ -5943,9 +6273,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Horizontal, vertical and two-dimensional split independently assert every released physical cell has width/height one and no origin/continuation role; no text redistribution occurs.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "vertical"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-96a3c3a8007b",
@@ -6003,9 +6340,16 @@
         ],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Horizontal, vertical and two-dimensional split independently assert every released physical cell has width/height one and no origin/continuation role; no text redistribution occurs.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "reverse corners"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-7aafcb02c145",
@@ -6040,9 +6384,15 @@
         "fixture_contracts": [],
         "parameter_helper_contracts": []
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Independent model cases reject cross-table merge and unmerged/continuation split with byte-identical input.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "rejects foreign endpoints and non-origin splits without mutation"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-unit-21aad9be325d",
@@ -6104,7 +6454,7 @@
         "assertions": [
           {
             "line": 335,
-            "expression": "text_frame_.text == 'f\u00f8\u00f8b\u00e5r'"
+            "expression": "text_frame_.text == 'føøbår'"
           }
         ],
         "mock_expectations": [],
@@ -9928,9 +10278,15 @@
         ],
         "example": null
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Original labeled 3x3 grid merges its upper-left 2x2 rectangle; all nine output texts independently prove row-major paragraph transfer, empty continuations and untouched exterior cells.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "collects only the rectangular paragraph owners in physical row order"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-bdd-d2661515a2b2",
@@ -10049,9 +10405,16 @@
         ],
         "example": null
       },
-      "status": "deferred-structural-operation",
-      "reason": "Merge/split/range algorithms or placeholder replacement are outside this bounded formatting change; retained as public coverage gaps.",
-      "originalTests": []
+      "status": "original-behavior-covered",
+      "reason": "Split restores width/height one and false origin/continuation roles for every physical cell.",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label",
+          "parameter": "horizontal"
+        }
+      ],
+      "validation": "21-case independent suite passed; exact source identity and existing original title links verified. Maintained package check receipt: docs/plans/pptx-table-spans-accounting.md."
     },
     {
       "id": "presentation-bdd-9e6c53793217",

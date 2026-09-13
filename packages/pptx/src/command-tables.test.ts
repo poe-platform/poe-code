@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { addTable, mutateTables, readTables } from "./table-operations.js";
+import { addTable, mutateTables, readTables, restructureTables } from "./table-operations.js";
 import { Volume } from "memfs";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { createPresentation } from "./creation.js";
@@ -75,6 +75,112 @@ const add = [
   '[["North",""],["South","East"]]',
   "--in-place"
 ];
+it("merges, expands, shrinks and splits table spans with explicit policies", async () => {
+  const { run, fs } = await fixture();
+  expect((await run(add)).code).toBe(0);
+  const edit = (path: string[], flags: string[]) =>
+    run(["tables", ...path, "/deck.pptx", "--slide", "1", "--table", "1", ...flags, "--in-place"]);
+  const merged = await edit(["merge"], ["--from", "1,1", "--to", "2,2"]);
+  expect(merged.code, JSON.stringify(merged.value)).toBe(0);
+  const mergeSchema = (await run(["schema", "tables", "merge"])).value.data.operations[
+    "tables.merge"
+  ];
+  expect(compileJsonSchema(mergeSchema.result).validate(merged.value).ok).toBe(true);
+  let table = (
+    await readTables(
+      new Uint8Array(fs.readFileSync("/deck.pptx") as Buffer),
+      { slide: 1, table: 1 },
+      context
+    )
+  )[0]!;
+  expect(table.data).toEqual([
+    ["North\nSouth\nEast", ""],
+    ["", ""]
+  ]);
+  const before = fs.readFileSync("/deck.pptx");
+  expect((await edit(["rows", "add"], ["--position", "2", "--span-policy", "reject"])).code).toBe(
+    1
+  );
+  expect(fs.readFileSync("/deck.pptx")).toEqual(before);
+  expect((await edit(["rows", "add"], ["--position", "2"])).code).toBe(2);
+  expect((await edit(["rows", "add"], ["--position", "2", "--span-policy", "expand"])).code).toBe(
+    0
+  );
+  expect(
+    (await edit(["columns", "remove"], ["--position", "1", "--span-policy", "shrink"])).code
+  ).toBe(0);
+  expect((await edit(["split"], ["--cell", "1,1"])).code).toBe(0);
+  table = (
+    await readTables(
+      new Uint8Array(fs.readFileSync("/deck.pptx") as Buffer),
+      { slide: 1, table: 1 },
+      context
+    )
+  )[0]!;
+  expect(table.data).toEqual([["North\nSouth\nEast"], [""], [""]]);
+  expect(table.cells.every((cell) => !cell.isSpanned && !cell.isMergeOrigin)).toBe(true);
+  expect(
+    (await edit(["columns", "add"], ["--position", "2", "--span-policy", "expand"])).code
+  ).toBe(0);
+  expect(
+    (await edit(["rows", "remove"], ["--position", "3", "--span-policy", "shrink"])).code
+  ).toBe(0);
+  table = (
+    await readTables(
+      new Uint8Array(fs.readFileSync("/deck.pptx") as Buffer),
+      { slide: 1, table: 1 },
+      context
+    )
+  )[0]!;
+  expect(table.data).toEqual([
+    ["North\nSouth\nEast", ""],
+    ["", ""]
+  ]);
+});
+it("admits structural SDK options without invoking getters or acquiring malformed inputs", async () => {
+  const read = vi.fn();
+  const getter = vi.fn(() => ({ kind: "split", cell: { row: 0, column: 0 } }));
+  const options = Object.defineProperty({ slide: 1 }, "operation", { get: getter });
+  await expect(restructureTables({ read }, options as never, context)).rejects.toMatchObject({
+    code: "invalid-value"
+  });
+  await expect(
+    restructureTables({ read }, { slide: 1, operation: undefined } as never, context)
+  ).rejects.toMatchObject({ code: "invalid-value" });
+  for (const extra of [{ update: { text: "Discarded" } }, { cell: "2,2" }])
+    await expect(
+      restructureTables(
+        { read },
+        { slide: 1, ...extra, operation: { kind: "split", cell: { row: 0, column: 0 } } } as never,
+        context
+      )
+    ).rejects.toMatchObject({ code: "invalid-value" });
+  expect(getter).not.toHaveBeenCalled();
+  expect(read).not.toHaveBeenCalled();
+});
+it("publishes structural option and result schemas with explicit conflict policies", async () => {
+  const { run } = await fixture();
+  for (const path of [
+    ["merge"],
+    ["split"],
+    ["rows", "add"],
+    ["rows", "remove"],
+    ["columns", "add"],
+    ["columns", "remove"]
+  ]) {
+    const response = await run(["schema", "tables", ...path]);
+    const schema = response.value.data.operations[`tables.${path.join(".")}`];
+    expect(schema).toBeDefined();
+    expect(compileJsonSchema(schema.options).validate).toBeTypeOf("function");
+    expect(compileJsonSchema(schema.result).validate).toBeTypeOf("function");
+    if (path.length === 2) {
+      expect(schema.options.required).toEqual(["position", "spanPolicy"]);
+      expect(schema.options.properties.spanPolicy.enum).toEqual(
+        path[1] === "add" ? ["expand", "reject"] : ["shrink", "reject"]
+      );
+    }
+  }
+});
 it("creates a rectangular table and edits one logical cell with exact sizes", async () => {
   const { run, fs } = await fixture();
   const created = await run(add);

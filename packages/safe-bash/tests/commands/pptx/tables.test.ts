@@ -239,6 +239,38 @@ test("table cell formatting retains theme links, dimensions and explicit zero ma
   } finally { await shell.dispose(); }
 });
 
+test("span edits share SDK behavior through the registered command and preserve failed inputs", async () => {
+  const { shell, volume } = fixture();
+  const created = await pptx.addTable(await createPresentation({ slides: [{}] }, context), {
+    slide: 1, update: { rows: 2, columns: 2, left: { value: 0, unit: "emu" }, top: { value: 0, unit: "emu" }, width: { value: 101, unit: "emu" }, height: { value: 61, unit: "emu" }, data: [["Harbor", "Point"], ["Bay", "Cape"]] }
+  }, context);
+  volume.writeFileSync("/work/deck.pptx", created.bytes);
+  try {
+    const merged = await shell.exec("pptx tables merge deck.pptx --slide 1 --table 1 --from 1,1 --to 2,2 --in-place --json");
+    assert.equal(merged.exitCode, 0, merged.stdout + merged.stderr);
+    const sdk = await pptx.restructureTables(created.bytes, { slide: 1, table: 1, operation: { kind: "merge", from: { row: 0, column: 0 }, to: { row: 1, column: 1 } } }, context);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), sdk.bytes);
+    const record = (await pptx.readTables(sdk.bytes, { slide: 1, table: 1 }, context))[0]!;
+    assert.deepEqual(record.data, [["Harbor\nPoint\nBay\nCape", ""], ["", ""]]);
+    assert.deepEqual(record.rowHeights, [31, 30]);
+    assert.deepEqual(record.columnWidths, [51, 50]);
+    for (const [flags, status] of [["rows add --position 2 --span-policy reject", 1], ["columns remove --position 1", 2], ["merge --from 1,1 --to 1,2", 1]] as const) {
+      const parts = flags.split(" ");
+      const action = parts.shift()!;
+      const sub = ["rows", "columns"].includes(action) ? ` ${parts.shift()!}` : "";
+      const rejected = await shell.exec(`pptx tables ${action}${sub} deck.pptx --slide 1 --table 1 ${parts.join(" ")} --in-place --json`);
+      assert.equal(rejected.exitCode, status, rejected.stdout + rejected.stderr);
+      assert.equal(JSON.parse(rejected.stdout).affected, 0);
+      assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), sdk.bytes);
+    }
+    const split = await shell.exec("pptx tables split deck.pptx --slide 1 --table 1 --cell 1,1 --in-place --json");
+    assert.equal(split.exitCode, 0, split.stdout + split.stderr);
+    const released = (await pptx.readTables(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), { slide: 1, table: 1 }, context))[0]!;
+    assert.equal(released.cells.every(cell => !cell.isMergeOrigin && !cell.isSpanned), true);
+    assert.deepEqual(released.data, [["Harbor\nPoint\nBay\nCape", ""], ["", ""]]);
+  } finally { await shell.dispose(); }
+});
+
 test("table usage errors reject invalid grids and dimensions before publication", async () => {
   const { shell, volume } = fixture();
   volume.writeFileSync("/work/deck.pptx", await createPresentation({ slides: [{}] }, context));

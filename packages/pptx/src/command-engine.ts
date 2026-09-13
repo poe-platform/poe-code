@@ -1,6 +1,7 @@
 import {
   addTable,
   mutateTables,
+  restructureTables,
   readTables,
   tableCell,
   validateTableSelection,
@@ -8,6 +9,7 @@ import {
 } from "./table-operations.js";
 import { validateTableUpdate, type TableUpdate } from "./tables.js";
 import { tableSchemas, tableValues } from "./tables-schema.js";
+import type { TableStructureOperation } from "./table-spans.js";
 import { readDrawing, mutateDrawing } from "./drawing-operations.js";
 import { validateDrawingUpdate, type DrawingUpdate, type DrawingColor } from "./drawing-format.js";
 import { addShapePath, setShapePath, readShapePaths } from "./shape-path-operations.js";
@@ -355,6 +357,11 @@ const help =
   "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
+  tableStructure?: TableStructureOperation;
+  tableFrom?: string;
+  tableTo?: string;
+  tablePosition?: number;
+  tableSpanPolicy?: string;
   tableEdit?: TableUpdate;
   table?: number;
   cell?: string;
@@ -374,7 +381,7 @@ interface Arguments {
   shadowColor?: DrawingColor;
   fieldEdit?: FieldUpdate;
   operation:
-    | `tables.${"list" | "get" | "add" | "set"}`
+    | `tables.${"list" | "get" | "add" | "set" | "merge" | "split" | "rows.add" | "rows.remove" | "columns.add" | "columns.remove"}`
     | `connectors.${"list" | "get" | "add" | "set" | "remove"}`
     | `fields.${"list" | "get" | "set" | "add" | "remove"}`
     | `masters.${"list" | "get" | "add" | "set"}`
@@ -587,6 +594,9 @@ const frameFlags = [
 ];
 
 const scalarOptions = [
+  "--from",
+  "--to",
+  "--span-policy",
   "--begin-x",
   "--begin-y",
   "--end-x",
@@ -799,6 +809,15 @@ function parse(
     args.splice(0, 3, path);
     output.operation = path;
   }
+  if (
+    args[0] === "tables" &&
+    ["rows", "columns"].includes(args[1]!) &&
+    ["add", "remove"].includes(args[2]!)
+  ) {
+    const path = `tables.${args[1]}.${args[2]}`;
+    args.splice(0, 3, path);
+    output.operation = path;
+  }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
     "tables",
@@ -894,6 +913,7 @@ function parse(
       operation.startsWith("tables.") &&
       (argument === "--table" ||
         argument === "--cell" ||
+        ["--from", "--to", "--position", "--span-policy"].includes(argument) ||
         Object.keys(tableValues).some(
           (key) =>
             "--" +
@@ -910,7 +930,7 @@ function parse(
         .split("-")
         .map((word, i) => (i ? word[0]!.toUpperCase() + word.slice(1) : word))
         .join("");
-      if (key === "table" || key === "rows" || key === "columns") {
+      if (key === "table" || key === "rows" || key === "columns" || key === "position") {
         if (
           !value.length ||
           [...value].some((c) => c < "0" || c > "9") ||
@@ -918,15 +938,19 @@ function parse(
           Number(value) < 1
         )
           usage("Table positions and dimensions require positive integers.");
-        if (key === "table") result.table = Number(value);
+        if (key === "position") result.tablePosition = Number(value);
+        else if (key === "table") result.table = Number(value);
         else result.tableEdit = { ...result.tableEdit, [key]: Number(value) };
-      } else if (key === "cell") {
+      } else if (key === "spanPolicy") result.tableSpanPolicy = value;
+      else if (key === "cell" || key === "from" || key === "to") {
         try {
           tableCell(value);
         } catch {
           usage("Cell requires one-based row,column coordinates.");
         }
-        result.cell = value;
+        if (key === "from") result.tableFrom = value;
+        else if (key === "to") result.tableTo = value;
+        else result.cell = value;
       } else {
         const lengths = [
           "left",
@@ -2147,6 +2171,8 @@ function parse(
     ].includes(operation);
     const grouping = operation === "shapes.group" || operation === "shapes.ungroup";
     const mutation =
+      operation === "tables.merge" ||
+      operation === "tables.split" ||
       selectionMutation ||
       grouping ||
       operation.endsWith(".add") ||
@@ -2180,14 +2206,44 @@ function parse(
       );
     if (mutation) {
       if (operation.startsWith("tables.")) {
-        if (!result.tableEdit) usage("A table edit is required.");
-        validateTableUpdate(
-          {
-            ...result.tableEdit,
-            ...(result.cell === undefined ? {} : { cell: tableCell(result.cell) })
-          },
-          operation === "tables.add"
-        );
+        if (operation === "tables.merge") {
+          if (!result.tableFrom || !result.tableTo)
+            usage("Merge requires from and to coordinates.");
+          result.tableStructure = {
+            kind: "merge",
+            from: tableCell(result.tableFrom),
+            to: tableCell(result.tableTo)
+          };
+        } else if (operation === "tables.split") {
+          if (!result.cell) usage("Split requires one merge origin cell.");
+          result.tableStructure = { kind: "split", cell: tableCell(result.cell) };
+        } else if (
+          operation.startsWith("tables.rows.") ||
+          operation.startsWith("tables.columns.")
+        ) {
+          const adding = operation.endsWith(".add");
+          if (
+            !result.tablePosition ||
+            !(adding ? ["expand", "reject"] : ["shrink", "reject"]).includes(
+              result.tableSpanPolicy!
+            )
+          )
+            usage("A position and explicit span policy are required.");
+          result.tableStructure = {
+            kind: operation.slice(7).split(".").join("-"),
+            position: result.tablePosition - 1,
+            spanPolicy: result.tableSpanPolicy
+          } as TableStructureOperation;
+        } else {
+          if (!result.tableEdit) usage("A table edit is required.");
+          validateTableUpdate(
+            {
+              ...result.tableEdit,
+              ...(result.cell === undefined ? {} : { cell: tableCell(result.cell) })
+            },
+            operation === "tables.add"
+          );
+        }
       } else if (operation === "shapes.remove") {
         if (
           result.connectorEdit?.detachPolicy !== undefined &&
@@ -3000,7 +3056,10 @@ async function execute(
             "Detach keeps connectors with free coordinates; remove deletes affected connectors. Timing references reject deletion.\n" +
             "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n"
           : args.schemaPath?.startsWith("tables.")
-            ? "Usage: pptx tables list|get|add|set INPUT [--slide N --table N --cell row,column] [properties] [output]\n" +
+            ? "Usage: pptx tables list|get|add|set|merge|split INPUT [--slide N --table N --cell row,column] [properties] [output]\n" +
+              "Merge: --from row,column --to row,column; split: --cell row,column (merge origin).\n" +
+              "Rows/columns: tables rows|columns add|remove INPUT --position N --span-policy expand|shrink|reject\n" +
+              "Insertion accepts expand/reject; deletion accepts shrink/reject. Partial intersecting merges fail.\n" +
               "Add: --rows N --columns N --left LENGTH --top LENGTH --width LENGTH --height LENGTH [--data JSON]\n" +
               "Set: --text TEXT (one cell), --data JSON, --row-height LENGTH, --column-width LENGTH, --style ID\n" +
               "Formatting: --fill RGB --border-color RGB --border-width LENGTH --margin-left|right|top|bottom LENGTH\n" +
@@ -3164,7 +3223,7 @@ async function execute(
             level: "edit",
             operations: Object.keys(tableSchemas),
             description:
-              "F28 subset: rectangular tables, empty cell text, row/column sizes, style references, style flags, direct solid RGB fills, four-side borders and margins. Reports physical cells and logical merge spans; spanned-cell text writes reject. Theme-linked content is retained, not flattened. Merge/split and structural row/column editing remain unavailable."
+              "F28/F29: rectangular tables, formatting, physical cells and logical spans. Merge requires complete rectangular spans; split preserves origin text. Row/column insertion uses explicit expand/reject and deletion uses shrink/reject policies. Theme-linked content is retained."
           },
           connectors: {
             supported: true,
@@ -3602,8 +3661,13 @@ async function execute(
           )
           .join("");
       } else {
-        const mutation =
-          args.operation === "tables.add"
+        const mutation = args.tableStructure
+          ? await restructureTables(
+              bytes,
+              { ...tableSelection, operation: args.tableStructure },
+              context
+            )
+          : args.operation === "tables.add"
             ? await addTable(bytes, { ...tableSelection, update: args.tableEdit! }, context)
             : args.operation === "tables.set"
               ? await mutateTables(bytes, { ...tableSelection, update: args.tableEdit! }, context)
@@ -3707,7 +3771,9 @@ async function execute(
                       ? "remove"
                       : "set",
                 feature: args.operation.startsWith("tables.")
-                  ? "F28"
+                  ? args.tableStructure
+                    ? "F29"
+                    : "F28"
                   : args.drawingEdit
                     ? "F27"
                     : args.operation.startsWith("connectors.")

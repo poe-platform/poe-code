@@ -320,7 +320,13 @@ export {
   ShadowFormat
 } from "./shapes.js";
 
-export { readTables, addTable, mutateTables, type TableSelection } from "./table-operations.js";
+export {
+  readTables,
+  addTable,
+  mutateTables,
+  restructureTables,
+  type TableSelection
+} from "./table-operations.js";
 export {
   readTable,
   createTableXml,
@@ -338,3 +344,9 @@ export {
   TableColumns,
   TableCells
 } from "./tables-model.js";
+
+export {
+  applyTableStructure,
+  type TableCoordinate,
+  type TableStructureOperation
+} from "./table-spans.js";

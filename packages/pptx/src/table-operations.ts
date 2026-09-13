@@ -1,5 +1,10 @@
 import type { BinaryInput, Scope } from "./contracts.js";
 import { OfficeError } from "./errors.js";
+import {
+  applyTableStructure,
+  validateTableStructureOperation,
+  type TableStructureOperation
+} from "./table-spans.js";
 import { attr, child, loadShared, required } from "./masters.js";
 import { nodeFor, selected } from "./shape-operations.js";
 import { SelectionError, type SelectionContext, type SelectionRecord } from "./selectors.js";
@@ -235,12 +240,61 @@ export async function mutateTables(
 ) {
   validateTableSelection(options, "set");
   const update = selectedUpdate(options);
+  return editTables(input, options, context, update);
+}
+export async function restructureTables(
+  input: BinaryInput,
+  options: TableSelection & { readonly operation: TableStructureOperation },
+  context: SelectionContext
+) {
+  if (
+    !options ||
+    typeof options !== "object" ||
+    ![Object.prototype, null].includes(Object.getPrototypeOf(options)) ||
+    Reflect.ownKeys(options).some(
+      (key) =>
+        typeof key !== "string" || !("value" in Object.getOwnPropertyDescriptor(options, key)!)
+    )
+  )
+    throw new OfficeError("invalid-value", "Structural options require stored data.", "usage");
+  const { operation, ...selection } = options;
+  validateTableStructureOperation(operation);
+  if (Object.hasOwn(selection, "update"))
+    throw new OfficeError(
+      "invalid-value",
+      "Formatting updates cannot be mixed with structural edits.",
+      "usage"
+    );
+  validateTableSelection(selection, "set");
+  if (selection.cell !== undefined) {
+    const cell = tableCell(selection.cell);
+    if (
+      operation.kind !== "split" ||
+      operation.cell.row !== cell.row ||
+      operation.cell.column !== cell.column
+    )
+      throw new OfficeError("invalid-value", "Cell selector must match the split origin.", "usage");
+  }
+  return editTables(input, selection, context, undefined, operation);
+}
+async function editTables(
+  input: BinaryInput,
+  options: TableSelection,
+  context: SelectionContext,
+  update?: TableUpdate,
+  structure?: TableStructureOperation
+) {
   const s = await loadShared(input, context),
     records = tableRecords(s, options);
   count(records, options);
   for (const r of records) {
     const doc = s.doc(r.part);
-    s.save(r.part, applyTableUpdate(doc, nodeFor(doc.root, r.id), update));
+    s.save(
+      r.part,
+      structure
+        ? applyTableStructure(doc, nodeFor(doc.root, r.id), structure)
+        : applyTableUpdate(doc, nodeFor(doc.root, r.id), update!)
+    );
   }
   const part = records[0]?.part ?? s.main;
   const affectedSlides = s.index.inventory.slides

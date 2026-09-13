@@ -4,7 +4,12 @@
   "scope": "Public table types, inherited part members, constructors, cell/row/column collection protocols and adjacent table accessors remain explicit obligations, including underscore-prefixed types.",
   "notice": "Research/provenance; required standalone notices remain upstream-license-notice.txt and public-api-map-notice.txt.",
   "counts": {
-    "inventoryRecords": 80
+    "inventoryRecords": 80,
+    "byStatus": {
+      "planned": 43,
+      "implemented": 35,
+      "documentation-error": 2
+    }
   },
   "languageSecurityMappings": {
     "names": "Neutral Table, cell, iter_cells, first_row, margin_left, text_frame names remain primary model spellings. CLI/operation JSON uses camelCase only. Underscore-prefixed documented types are public obligations.",
@@ -12,11 +17,14 @@
     "identity": "Live views retain owned physical a:tc identity; logical covered positions must not be conflated with physically serialized cells. Source equality maps to documented owner/node equality rather than Python wrapper identity.",
     "null": "undefined leaves operation fields unchanged. null margins/anchor remove direct overrides; fill:null and borderColor:null explicitly write noFill. Null is field-specific, not universally inheritance. Empty text is a value.",
     "units": "Finite safe numeric EMU model lengths and explicit unit-tagged operation lengths. No boolean-to-number coercion; integer validation before mutation.",
-    "errors": "Neutral typed invalid-value, invalid-selector or unsupported-edit errors; unsupported structural edits must remain visible.",
+    "errors": "Neutral OfficeError with invalid-value in usage phase (CLI exit 2), invalid-selection in select phase (exit 1), and unsupported-edit in validate-intent phase (exit 1); whole API limitations stay visible.",
     "io": "Async input/save through explicit VFS or supplied bytes; synchronous in-memory table properties. No ambient host files, native runtime, network, fonts, clock or executable input.",
     "constructors": "Returned owned table interfaces do not promise unchecked raw XML construction. Inherited part is an owned package view, not an unrestricted ZIP or host handle.",
     "drift": "Published version 1.0.0 versus pinned source 1.0.2 is historical drift. Prose cell row_idx/col_idx are documentation errors, not hidden missing APIs. Public enums and returned fill/text-frame graphs remain separate full API obligations.",
-    "coordinates": "Package readTables/addTable/mutateTables options.cell is a one-based string such as 1,2, matching CLI --cell. Package updates reject update.cell. Internal TableUpdate.cell uses zero-based {row,column}; live Table.cell and collection indexing are also zero-based."
+    "coordinates": "Package readTables/addTable/mutateTables options.cell is a one-based string such as 1,2, matching CLI --cell. Package updates reject update.cell. Internal TableUpdate.cell uses zero-based {row,column}; live Table.cell and collection indexing are also zero-based.",
+    "spans": "Model merge(other_cell) normalizes opposite corners; direct ordered from/to rejects reversed coordinates. Complete prior merges may be absorbed, unlike the pinned reject-any-merge baseline; partial intersections reject. Split only accepts an origin and never redistributes prior cell text.",
+    "structuralHandles": "Successful row/column insertion/deletion invalidates existing cell, row, column, row-cell collection and bound text-frame handles with invalid-selection. Table.rows and Table.columns remain live positional collections. Merge/split preserves coordinate handles.",
+    "conflictPolicy": "CLI position is one-based; restructureTables.operation.position is zero-based. Both insert before the specified row/column, with CLI length+1 or typed operation length appending. Addition requires expand or reject; removal requires shrink or reject. Inserted size copies the following row/column, or preceding one on append. Removal may not leave zero rows/columns."
   },
   "rows": [
     {
@@ -1333,9 +1341,17 @@
         {
           "file": "packages/pptx/src/tables-model.test.ts",
           "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
         }
       ],
-      "targetSignature": "iter_cells(): Iterator<_Cell>",
+      "targetSignature": "iter_cells(): IterableIterator<TableCell>",
       "arguments": [],
       "returnType": "Iterator<_Cell>",
       "sideEffects": [
@@ -1814,6 +1830,14 @@
         {
           "file": "packages/pptx/src/tables-model.test.ts",
           "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
         }
       ],
       "targetSignature": "get is_merge_origin(): boolean",
@@ -1865,6 +1889,14 @@
         {
           "file": "packages/pptx/src/tables-model.test.ts",
           "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
         }
       ],
       "targetSignature": "get is_spanned(): boolean",
@@ -2113,19 +2145,32 @@
       "readSignature": "(self, other_cell: _Cell) -> None",
       "writeSignature": null,
       "targetMember": "merge",
-      "status": "planned",
-      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "status": "implemented",
+      "reason": "Retained neutral model method is implemented with validated rectangular spans and owned paragraph migration. Whole API remains partial.",
       "mappingRules": [
         "J01"
       ],
-      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
-      "tests": [],
-      "targetSignature": "merge(other_cell: _Cell): void",
+      "cli": "tables merge --from ROW,COLUMN --to ROW,COLUMN; ordered one-based operation corners",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "rejects foreign endpoints and non-origin splits without mutation"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "collects only the rectangular paragraph owners in physical row order"
+        }
+      ],
+      "targetSignature": "merge(other_cell: TableCell): void",
       "arguments": [
         {
           "name": "other_cell",
           "target_binding": "other_cell",
-          "ts_type": "_Cell",
+          "ts_type": "TableCell",
           "position": "positional",
           "optional": false,
           "source_default": null,
@@ -2136,23 +2181,37 @@
       ],
       "returnType": "void",
       "sideEffects": [
-        "Merge rectangular cell region; transfer content to origin and record span; reject overlap/cross-table conflicts."
+        "Normalize opposite owned cell corners; validate the complete rectangular grid before mutation; combine complete contained merges; reject partial intersections and different-table endpoints. Move meaningful paragraphs once to the top-left origin in row-major order; clear continuation text. Preserve widths/heights and live coordinate handles."
       ],
       "errors": {
         "declared": [
           {
-            "source": "ValueError",
-            "class": "ValueError",
-            "code": "invalid-value",
+            "class": "OfficeError",
+            "code": "invalid-selection",
             "exit": 1,
-            "when": "Declared source failure; see pinned evidence span."
+            "when": "Stale structural coordinate handles.",
+            "phase": "select"
+          },
+          {
+            "class": "OfficeError",
+            "code": "invalid-value",
+            "exit": 2,
+            "when": "Foreign-table merge endpoints or invalid operation data/coordinates.",
+            "phase": "usage"
+          },
+          {
+            "class": "OfficeError",
+            "code": "unsupported-edit",
+            "exit": 1,
+            "when": "Split selected cell is not a merge origin; malformed/nonrectangular spans, partial intersections, or locked structural content.",
+            "phase": "validate-intent"
           }
         ],
         "shared_profile": "owner-validation",
-        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        "transitive_policy": "Admission and package/XML security failures remain possible."
       },
       "collection": null,
-      "coverageDetail": "planned-model-api"
+      "coverageDetail": "implemented-bounded-model"
     },
     {
       "sourceId": "pptx.table._Cell.part",
@@ -2255,6 +2314,14 @@
         {
           "file": "packages/pptx/src/tables-model.test.ts",
           "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
         }
       ],
       "targetSignature": "get span_height(): number",
@@ -2306,6 +2373,14 @@
         {
           "file": "packages/pptx/src/tables-model.test.ts",
           "title": "keeps retained cell and collection handles live through edits"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "serializes an offset rectangle with exact independent span attributes"
         }
       ],
       "targetSignature": "get span_width(): number",
@@ -2342,34 +2417,61 @@
       "readSignature": "(self) -> None",
       "writeSignature": null,
       "targetMember": "split",
-      "status": "planned",
-      "reason": "Operation support is separate from retained neutral public model spellings; no model completeness claim.",
+      "status": "implemented",
+      "reason": "Retained neutral model method is implemented with validated rectangular spans and owned paragraph migration. Whole API remains partial.",
       "mappingRules": [
         "J01"
       ],
-      "cli": "tables list/get/add/set for bounded supported data; no generic method evaluator",
-      "tests": [],
+      "cli": "tables split --cell ROW,COLUMN with slide/table selection; cell tokens are not exposed",
+      "tests": [
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "marks every physical position and preserves dimensions for $label"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "rejects foreign endpoints and non-origin splits without mutation"
+        },
+        {
+          "file": "packages/pptx/src/table-span-behavior-cases.test.ts",
+          "title": "collects only the rectangular paragraph owners in physical row order"
+        }
+      ],
       "targetSignature": "split(): void",
       "arguments": [],
       "returnType": "void",
       "sideEffects": [
-        "Remove merge span without recreating the original pre-merge text distribution."
+        "Require a merge origin; clear gridSpan/rowSpan/hMerge/vMerge across the complete rectangle; retain all text at origin and clear released cells. Preserve widths/heights and live coordinate handles."
       ],
       "errors": {
         "declared": [
           {
-            "source": "ValueError",
-            "class": "ValueError",
-            "code": "invalid-value",
+            "class": "OfficeError",
+            "code": "invalid-selection",
             "exit": 1,
-            "when": "Declared source failure; see pinned evidence span."
+            "when": "Stale structural coordinate handles.",
+            "phase": "select"
+          },
+          {
+            "class": "OfficeError",
+            "code": "invalid-value",
+            "exit": 2,
+            "when": "Foreign-table merge endpoints or invalid operation data/coordinates.",
+            "phase": "usage"
+          },
+          {
+            "class": "OfficeError",
+            "code": "unsupported-edit",
+            "exit": 1,
+            "when": "Split selected cell is not a merge origin; malformed/nonrectangular spans, partial intersections, or locked structural content.",
+            "phase": "validate-intent"
           }
         ],
         "shared_profile": "owner-validation",
-        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+        "transitive_policy": "Admission and package/XML security failures remain possible."
       },
       "collection": null,
-      "coverageDetail": "planned-model-api"
+      "coverageDetail": "implemented-bounded-model"
     },
     {
       "sourceId": "pptx.table._Cell.text",
@@ -3956,6 +4058,7 @@
   ],
   "documentationDrift": [
     "Historical public-api-map.json batch entries such as tables.table.cell.marginLeft.set are proposed design records, not executable routes. Current direct operations use tables list/get/add/set; do not advertise a generic member evaluator.",
-    "Operation inspection reports direct margins as nullable EMU values; live model margin_left etc must return defaults 91440 horizontal and 45720 vertical when absent. These are distinct surfaces."
+    "Operation inspection reports direct margins as nullable EMU values; live model margin_left etc must return defaults 91440 horizontal and 45720 vertical when absent. These are distinct surfaces.",
+    "F29 direct routes and retained merge/split model methods are implemented by this bounded change. Historical generic tables.table.* evaluator paths remain proposed and are not executable aliases. Split requires an explicit coordinate cell selector; cell token selection is not exposed."
   ]
 }

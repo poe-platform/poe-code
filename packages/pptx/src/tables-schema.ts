@@ -122,7 +122,7 @@ export const tableSchemas: typeof shapeSchemas = Object.fromEntries(
       base = shapeSchemas[mutation ? "shapes.set" : "shapes.list"]!,
       schema = JSON.parse(JSON.stringify(base));
     schema.description =
-      "Tables use one-based slide/table positions and row,column cell selectors. Reads report physical cells and logical spans. Grid changes, merge and split are unavailable. Formatting edits preserve unrelated theme references.";
+      "Tables use one-based slide/table positions and row,column cell selectors. Reads report physical cells and logical spans. Formatting edits preserve unrelated theme references.";
     schema.options.$defs = textGetSchema.result.$defs;
     schema.options.properties = Object.fromEntries(
       [
@@ -175,3 +175,39 @@ export const tableSchemas: typeof shapeSchemas = Object.fromEntries(
     return [`tables.${action}`, schema];
   })
 );
+for (const action of [
+  "merge",
+  "split",
+  "rows.add",
+  "rows.remove",
+  "columns.add",
+  "columns.remove"
+]) {
+  const schema = JSON.parse(JSON.stringify(tableSchemas["tables.set"]));
+  for (const key of Object.keys(tableValues)) delete schema.options.properties[key];
+  schema.options.allOf = schema.options.allOf.filter(
+    (rule: { anyOf?: unknown; if?: { required?: string[] } }) =>
+      !rule.anyOf && rule.if?.required?.[0] !== "text"
+  );
+  schema.description =
+    "Merge requires an ordered rectangle containing complete spans; text joins in row-major paragraph order. Split releases one origin. Span policies are mandatory for insertion/deletion; positions are one-based.";
+  if (action === "merge") {
+    schema.options.properties.from = { type: "string", minLength: 3 };
+    schema.options.properties.to = { type: "string", minLength: 3 };
+    schema.options.required = ["from", "to"];
+    delete schema.options.properties.cell;
+  } else if (action === "split") schema.options.required = ["cell"];
+  else {
+    delete schema.options.properties.cell;
+    schema.options.properties.position = { type: "integer", minimum: 1, maximum: 250001 };
+    schema.options.properties.spanPolicy = {
+      enum: action.endsWith("add") ? ["expand", "reject"] : ["shrink", "reject"]
+    };
+    schema.options.required = ["position", "spanPolicy"];
+  }
+  schema.result.properties.operation = { const: `tables.${action}` };
+  schema.result.properties.data.oneOf[1].properties.effects.items.properties.feature = {
+    const: "F29"
+  };
+  tableSchemas[`tables.${action}`] = schema;
+}

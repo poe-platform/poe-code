@@ -1,3 +1,4 @@
+import { readXmlCoordinate, readXmlInteger } from "./xml-scalars.js";
 import { createXmlElementView } from "./xml-view.js";
 import { AdjustmentCollection, validateAdjustmentValues } from "./shape-adjustments.js";
 import { InvalidHandleError, IndexError, OfficeError, ValueError } from "./errors.js";
@@ -227,10 +228,7 @@ function props(node: XmlElement) {
 function num(node: XmlElement | undefined, key: string): number | null {
   const v = node && attr(node, key);
   if (v === undefined) return null;
-  const n = Number(v);
-  if (!Number.isSafeInteger(n))
-    throw new OfficeError("invalid-xml", "Invalid shape geometry.", "parse");
-  return n;
+  return ["x", "y"].includes(key) ? readXmlCoordinate(v) : readXmlInteger(v);
 }
 export function readShape(node: XmlElement) {
   const a = drawing(node),

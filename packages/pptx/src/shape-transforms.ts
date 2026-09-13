@@ -1,5 +1,6 @@
 import { OfficeError } from "./errors.js";
 import { Length } from "./length.js";
+import { readXmlCoordinate, readXmlInteger } from "./xml-scalars.js";
 import { attr, child } from "./masters.js";
 import type { XmlElement } from "./xml.js";
 
@@ -35,8 +36,11 @@ function transform(node: XmlElement) {
     const pair = child(xfrm, name, a),
       value = pair && attr(pair, key);
     if (value === undefined) return null;
-    if (!value.trim() || !Number.isSafeInteger(Number(value))) invalid();
-    return Number(value);
+    try {
+      return name === "off" || name === "chOff" ? readXmlCoordinate(value) : readXmlInteger(value);
+    } catch {
+      invalid();
+    }
   };
   const x = integer("off", "x"),
     y = integer("off", "y"),
@@ -45,9 +49,14 @@ function transform(node: XmlElement) {
   if (x === null || y === null || w === null || h === null) return null;
   if (w < 0 || h < 0) invalid();
   const rawRotation = attr(xfrm, "rot");
-  const rotation = rawRotation === undefined ? 0 : Number(rawRotation);
-  if ((rawRotation !== undefined && !rawRotation.trim()) || !Number.isSafeInteger(rotation))
-    invalid();
+  let rotation = 0;
+  if (rawRotation !== undefined) {
+    try {
+      rotation = readXmlInteger(rawRotation);
+    } catch {
+      invalid();
+    }
+  }
   const flip = (key: string) => {
     const value = attr(xfrm, key);
     if (value !== undefined && !["true", "false", "1", "0"].includes(value)) invalid();

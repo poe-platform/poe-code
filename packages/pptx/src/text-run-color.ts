@@ -1,3 +1,4 @@
+import { readXmlPercentage } from "./xml-scalars.js";
 import {
   IndexError,
   OfficeError,
@@ -109,7 +110,7 @@ export function readRunColor(parent: XmlElement): RunColorRecord | null {
     );
     if (children.length > 1)
       throw new OfficeError("invalid-xml", "Multiple brightness transforms.", "index");
-    return children[0] ? Number(attr(children[0], "val")) / 100000 : undefined;
+    return children[0] ? readXmlPercentage(attr(children[0], "val")) : undefined;
   };
   const off = transform("lumOff"),
     mod = transform("lumMod");

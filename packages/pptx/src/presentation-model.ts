@@ -1,3 +1,7 @@
+import { Image } from "./image-value.js";
+import { addMedia } from "./media-editing.js";
+import type { OleApplication } from "./ole-enum.js";
+import { addOleObject } from "./ole-insertion.js";
 import type { BinaryInput, ByteSink } from "./contracts.js";
 import type { PptxPublicationRequest } from "./command-engine.js";
 import { readBinary, writeBinary } from "./bytes.js";
@@ -10,10 +14,15 @@ import { Length } from "./length.js";
 import { attr, child, loadShared } from "./masters.js";
 import { applyPresentationCanvasSettings } from "./presentation-settings.js";
 import { CoreProperties, createPropertyPart } from "./properties.js";
-import { Slide, Slides, preservePlaceholder, type SlideShapeOwner } from "./slide-model.js";
+import {
+  Slide,
+  Slides,
+  preservePlaceholder,
+  reparentInsertedAsset,
+  type SlideShapeOwner
+} from "./slide-model.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
 import { insertChartIntoState, replaceChartData } from "./chart-editing.js";
-import { validatePictureInput } from "./picture-input.js";
 import { readShape } from "./shapes.js";
 import { writePackageArchive, type ArchiveMember } from "./package-writer.js";
 import { Chart } from "./chart-model.js";
@@ -166,6 +175,134 @@ class LivePresentation implements PresentationModel {
         let latestBytes: Uint8Array | undefined;
         let latestXml: ReturnType<State["doc"]> | undefined;
         const owner: SlideShapeOwner = {
+          part: this.#part.package.get_part(record.part)!,
+          resource: (id) => {
+            const edge = parseRelationships(
+              state.doc(relPart(record.part)).bytes(),
+              context.relationshipLimits
+            ).find((edge) => edge.id === id);
+            if (!edge || edge.external)
+              throw new OfficeError(
+                "unsupported-edit",
+                "Only embedded resources are accessible.",
+                "select"
+              );
+            const name = resolvePartReference(packageUri(record.part).baseURI, edge.target);
+            const part = this.#part.package.get_part(name);
+            if (!part)
+              throw new OfficeError("invalid-opc", "Embedded resource is missing.", "select");
+            return part;
+          },
+          insertAsset: async (kind, options, groupId) => {
+            const revision = this.#revision;
+            const geometry: Record<string, number> = {};
+            for (const key of [
+              "left",
+              "top",
+              "width",
+              "height",
+              "icon_width",
+              "icon_height"
+            ] as const) {
+              const value = options[key];
+              if (value === undefined || value === null) continue;
+              if (!(value instanceof Length))
+                throw new ValueError("Expected explicit Length geometry.");
+              geometry[key] = value.emu;
+            }
+            if (geometry.left === undefined || geometry.top === undefined)
+              throw new ValueError("Expected explicit placement.");
+            const suppliedPoster =
+              kind === "movie" ? options.poster_frame_image : options.icon_file;
+            const posterInput =
+              suppliedPoster instanceof Uint8Array
+                ? new Uint8Array(suppliedPoster)
+                : suppliedPoster;
+            const bytes = await readBinary(options.input as BinaryInput, context);
+            let poster: Image | undefined;
+            if (kind !== "picture")
+              poster = new Image(await readBinary(posterInput as BinaryInput, context));
+            await this.#flushWorkbooks();
+            if (revision !== this.#revision)
+              throw new OfficeError(
+                "stale-selection",
+                "Presentation changed during insertion.",
+                "publish"
+              );
+            const before = owner.read();
+            const ids = new Set(
+              required(required(before.root, "cSld"), "spTree").children.map(
+                (node) => readShape(node).shapeId
+              )
+            );
+            const snapshot = await state.finish(state.main, []);
+            let inserted: Uint8Array;
+            if (kind === "picture") {
+              const image = new Image(bytes);
+              inserted = await addImage(
+                snapshot.bytes,
+                { slide: record.position, bytes, contentType: image.content_type, ...geometry },
+                context
+              );
+            } else if (kind === "movie") {
+              inserted = await addMedia(
+                snapshot.bytes,
+                {
+                  slide: record.position,
+                  bytes,
+                  contentType: options.mime_type as string,
+                  kind: "video",
+                  poster: { bytes: poster!.blob, contentType: poster!.content_type },
+                  left: geometry.left,
+                  top: geometry.top,
+                  width: geometry.width!,
+                  height: geometry.height!
+                },
+                context
+              );
+            } else {
+              const { icon_width, icon_height, ...bounds } = geometry;
+              inserted = await addOleObject(
+                snapshot.bytes,
+                {
+                  slide: record.position,
+                  bytes,
+                  progId: options.prog_id as string | OleApplication,
+                  iconBytes: poster!.blob,
+                  iconContentType: poster!.content_type,
+                  ...bounds,
+                  ...(icon_width === undefined ? {} : { iconWidth: icon_width }),
+                  ...(icon_height === undefined ? {} : { iconHeight: icon_height })
+                },
+                context
+              );
+            }
+            const updated = await loadShared(inserted, context);
+            if (revision !== this.#revision)
+              throw new OfficeError(
+                "stale-selection",
+                "Presentation changed during insertion.",
+                "publish"
+              );
+            const doc = updated.doc(record.part);
+            const added = required(required(doc.root, "cSld"), "spTree").children.find(
+              (node) => !ids.has(readShape(node).shapeId)
+            );
+            if (!added)
+              throw new OfficeError(
+                "invalid-opc",
+                "Asset insertion produced no shape.",
+                "validate-result"
+              );
+            const final =
+              groupId === undefined
+                ? doc
+                : reparentInsertedAsset(doc, readShape(added).shapeId, groupId);
+            for (const name of updated.reader.names)
+              state.changes.set(name, updated.reader.get(name));
+            owner.write(final);
+            return readShape(added).shapeId;
+          },
           read: () => {
             const bytes = state.changes.get(record.part);
             if (latestXml && bytes === latestBytes) return latestXml;
@@ -418,8 +555,7 @@ class LivePresentation implements PresentationModel {
             if (kind === "picture") {
               const picture = options as { input: BinaryInput };
               const bytes = await readBinary(picture.input, context);
-              const contentType =
-                validatePictureInput(bytes) === "png" ? "image/png" : "image/jpeg";
+              const contentType = new Image(bytes).content_type;
               const { input: ignored, ...geometry } = picture;
               void ignored;
               options = { ...geometry, bytes, contentType };

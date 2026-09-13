@@ -108,7 +108,8 @@ function validate(options: SetImageOptions) {
 export function applyPictureUpdate(
   document: XmlPart,
   node: XmlElement,
-  options: SetImageOptions
+  options: SetImageOptions,
+  cropPolicy: "visible-area" | "signed-fraction" = "visible-area"
 ): XmlPart {
   validate(options);
   const p = node.name.namespace;
@@ -137,7 +138,10 @@ export function applyPictureUpdate(
         invalid("Stored crop is outside the editable range.");
       return result;
     });
-    if (values[0]! + values[2]! >= 100000 || values[1]! + values[3]! >= 100000)
+    if (
+      cropPolicy === "visible-area" &&
+      (values[0]! + values[2]! >= 100000 || values[1]! + values[3]! >= 100000)
+    )
       invalid("Crop must leave positive visible width and height after rounding.");
     if (crop)
       document = document.merge(crop, {

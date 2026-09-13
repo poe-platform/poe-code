@@ -1,3 +1,7 @@
+import { PROG_ID, type OleApplication } from "./ole-enum.js";
+import { Image } from "./image-value.js";
+import type { PartView } from "./package-view.js";
+import { PP_MEDIA_TYPE } from "./media-enum.js";
 import { shapeOwnerTokens } from "./shape-owner-token.js";
 import type { BinaryInput } from "./contracts.js";
 import {
@@ -31,6 +35,13 @@ import { FreeformBuilder } from "./freeform-builder.js";
 import { ShapeIdAllocator } from "./shape-id.js";
 
 export interface SlideShapeOwner {
+  part?: PartView;
+  resource?(relationshipId: string): Pick<PartView, "blob" | "content_type" | "partname">;
+  insertAsset?(
+    kind: "picture" | "movie" | "ole",
+    options: Record<string, unknown>,
+    groupId?: number
+  ): Promise<number>;
   read(): XmlPart;
   write(xml: XmlPart): void;
   inherited?(idx: number): readonly XmlPart[];
@@ -141,6 +152,11 @@ class InheritedShape extends Shape {
     super(bound.read(), bound);
     this.#owner = owner;
     this.#binding = bound;
+  }
+  get part(): PartView {
+    void this.element;
+    if (!this.#owner.part) throw new PropertyAccessError("Shape has no package part.");
+    return this.#owner.part;
   }
   #dimension(key: "left" | "top" | "width" | "height"): Length | null {
     const own = readShape(this.element)[key];
@@ -324,8 +340,16 @@ export class GraphicFrame extends InheritedShape {
         n.children.some((d) => d.children.some((t) => t.name.localName === "chart"))
     );
   }
-  override get shape_type(): 14 | 19 | 3 {
-    return this.is_placeholder ? 14 : this.has_table ? 19 : 3;
+  override get shape_type(): 14 | 19 | 3 | 7 | 10 {
+    if (this.is_placeholder) return 14;
+    const ole = descendants(this.xml).find((node) => node.name.localName === "oleObj");
+    if (ole) return ole.children.some((node) => node.name.localName === "link") ? 10 : 7;
+    return this.has_table ? 19 : 3;
+  }
+  get ole_format(): OleFormat {
+    if (!descendants(this.xml).some((node) => node.name.localName === "oleObj"))
+      throw new PropertyAccessError("Graphic frame has no OLE object.");
+    return new OleFormat(this, this.#owner);
   }
   get chart(): Chart {
     if (!this.has_chart || !this.#owner.chart)
@@ -339,13 +363,29 @@ export class GraphicFrame extends InheritedShape {
   }
 }
 export class Picture extends InheritedShape {
+  readonly #owner: SlideShapeOwner;
   readonly #binding: ReturnType<typeof binding>;
   constructor(owner: SlideShapeOwner, id: number, groupId?: number) {
     const bound = binding(owner, id, "pic", groupId);
     super(owner, id, "pic", groupId);
     this.#binding = bound;
+    this.#owner = owner;
   }
-  override get shape_type(): 14 | 13 {
+  get image(): Image {
+    const blip = required(this.element, "blipFill").children.find(
+      (node) => node.name.localName === "blip"
+    );
+    if (!blip) throw new PropertyAccessError("Picture has no image reference.");
+    const id = blip.attributes.find(
+      (attribute) =>
+        attribute.name.localName === "embed" && attribute.name.namespace.endsWith("/relationships")
+    )?.value;
+    if (!id || !this.#owner.resource)
+      throw new PropertyAccessError("Picture has no embedded image.");
+    const resource = this.#owner.resource(id);
+    return new Image(resource.blob, null, resource.content_type);
+  }
+  override get shape_type(): 14 | 13 | 16 {
     return this.is_placeholder ? 14 : 13;
   }
   #crop(side: string) {
@@ -355,7 +395,7 @@ export class Picture extends InheritedShape {
   }
   #setCrop(key: keyof SetImageOptions, value: number) {
     const xml = this.#binding.read();
-    this.#binding.write(applyPictureUpdate(xml, xml.root, { [key]: value }));
+    this.#binding.write(applyPictureUpdate(xml, xml.root, { [key]: value }, "signed-fraction"));
   }
   get crop_left() {
     return this.#crop("l");
@@ -380,6 +420,85 @@ export class Picture extends InheritedShape {
   }
   set crop_bottom(v: number) {
     this.#setCrop("cropBottom", v);
+  }
+}
+export class MediaFormat {
+  constructor(readonly parent: Movie) {}
+  get element(): XmlElement {
+    return this.parent.element;
+  }
+  get part(): PartView {
+    return this.parent.part;
+  }
+}
+export class Movie extends Picture {
+  override get shape_type(): 16 {
+    return 16;
+  }
+  get media_type(): PP_MEDIA_TYPE {
+    void this.element;
+    return PP_MEDIA_TYPE.MOVIE;
+  }
+  get media_format(): MediaFormat {
+    return new MediaFormat(this);
+  }
+  get poster_frame(): Image | null {
+    const fill = this.element.children.find(
+      (node) =>
+        node.name.localName === "blipFill" && node.name.namespace === this.element.name.namespace
+    );
+    const a = this.element.name.namespace.includes("purl")
+      ? "http://purl.oclc.org/ooxml/drawingml/main"
+      : "http://schemas.openxmlformats.org/drawingml/2006/main";
+    const blip = fill?.children.find(
+      (node) => node.name.localName === "blip" && node.name.namespace === a
+    );
+    if (
+      !blip?.attributes.some(
+        (attribute) =>
+          attribute.name.localName === "embed" &&
+          attribute.name.namespace.endsWith("/relationships")
+      )
+    )
+      return null;
+    return this.image;
+  }
+}
+export class OleFormat {
+  constructor(
+    readonly parent: GraphicFrame,
+    private readonly owner: SlideShapeOwner
+  ) {}
+  get element(): XmlElement {
+    const graphic = this.parent.element.children.find((node) => node.name.localName === "graphic");
+    if (!graphic) throw new PropertyAccessError("Graphic frame has no graphic data.");
+    return required(graphic, "graphicData");
+  }
+  get part(): PartView {
+    return this.parent.part;
+  }
+  get prog_id(): string | null {
+    return (
+      attr(this.element.children.find((node) => node.name.localName === "oleObj")!, "progId") ??
+      null
+    );
+  }
+  get show_as_icon(): boolean {
+    return ["1", "true"].includes(
+      attr(this.element.children.find((node) => node.name.localName === "oleObj")!, "showAsIcon") ??
+        "0"
+    );
+  }
+  get blob(): Uint8Array | null {
+    const ole = this.element.children.find((node) => node.name.localName === "oleObj")!;
+    if (!ole.children.some((node) => node.name.localName === "embed")) return null;
+    const id = ole.attributes.find(
+      (attribute) =>
+        attribute.name.localName === "id" && attribute.name.namespace.endsWith("/relationships")
+    )?.value;
+    if (!id) return null;
+    if (!this.owner.resource) throw new PropertyAccessError("OLE object has no embedded resource.");
+    return new Uint8Array(this.owner.resource(id).blob);
   }
 }
 function recalculateGroups(document: XmlPart, initialId: number): XmlPart {
@@ -439,6 +558,19 @@ function recalculateGroups(document: XmlPart, initialId: number): XmlPart {
   }
   return document;
 }
+export function reparentInsertedAsset(document: XmlPart, id: number, groupId: number): XmlPart {
+  const root = tree(document);
+  const node = shapes(document).find((node) => readShape(node).shapeId === id);
+  if (!node) throw new InvalidHandleError();
+  const markup = document.markup(node, true);
+  document = document.spliceChildren(root, root.children.indexOf(node), 1, []);
+  const group = tree(document, groupId);
+  const extension = group.children.findIndex((node) => node.name.localName === "extLst");
+  document = document.spliceChildren(group, extension < 0 ? group.children.length : extension, 0, [
+    markup
+  ]);
+  return recalculateGroups(document, groupId);
+}
 export class SlideShapes implements Iterable<Shape | Connector> {
   readonly [index: number]: Shape | Connector;
   readonly #owner: SlideShapeOwner;
@@ -490,7 +622,18 @@ export class SlideShapes implements Iterable<Shape | Connector> {
     }
     if (node.name.localName === "graphicFrame")
       return new GraphicFrame(this.#owner, id, this.#groupId);
-    if (node.name.localName === "pic") return new Picture(this.#owner, id, this.#groupId);
+    if (node.name.localName === "pic") {
+      const a = node.name.namespace.includes("purl")
+        ? "http://purl.oclc.org/ooxml/drawingml/main"
+        : "http://schemas.openxmlformats.org/drawingml/2006/main";
+      const props = required(required(node, "nvPicPr"), "nvPr");
+      const media = props.children.some(
+        (child) => child.name.localName === "videoFile" && child.name.namespace === a
+      );
+      return media
+        ? new Movie(this.#owner, id, this.#groupId)
+        : new Picture(this.#owner, id, this.#groupId);
+    }
     if (readShape(node).placeholder) return new SlidePlaceholder(this.#owner, id, this.#groupId);
     const bound = binding(this.#owner, id, node.name.localName, this.#groupId);
     return new Shape(bound.read(), bound);
@@ -503,6 +646,75 @@ export class SlideShapes implements Iterable<Shape | Connector> {
     if (this.#groupId !== undefined) updated = recalculateGroups(updated, this.#groupId);
     this.#owner.write(updated);
     return this.get(this.length - 1);
+  }
+  async add_picture(
+    input: BinaryInput,
+    left: Length,
+    top: Length,
+    width: Length | null = null,
+    height: Length | null = null
+  ): Promise<Picture> {
+    if (!this.#owner.insertAsset)
+      throw new PropertyAccessError("Insertion requires a package owner.");
+    const id = await this.#owner.insertAsset(
+      "picture",
+      { input, left, top, width, height },
+      this.#groupId
+    );
+    return this.get_by_id(id) as Picture;
+  }
+  async add_movie(
+    input: BinaryInput,
+    left: Length,
+    top: Length,
+    width: Length,
+    height: Length,
+    options: { poster_frame_image: BinaryInput; mime_type: string }
+  ): Promise<Movie> {
+    if (!this.#owner.insertAsset)
+      throw new PropertyAccessError("Insertion requires a package owner.");
+    if (!options || !options.poster_frame_image || typeof options.mime_type !== "string")
+      throw new ValueError("Movie insertion requires an explicit poster and MIME type.");
+    const id = await this.#owner.insertAsset(
+      "movie",
+      { input, left, top, width, height, ...options },
+      this.#groupId
+    );
+    return this.get_by_id(id) as Movie;
+  }
+  async add_ole_object(
+    input: BinaryInput,
+    prog_id: string | OleApplication,
+    left: Length,
+    top: Length,
+    options: {
+      icon_file: BinaryInput;
+      width?: Length;
+      height?: Length;
+      icon_width?: Length;
+      icon_height?: Length;
+    }
+  ): Promise<GraphicFrame> {
+    if (!this.#owner.insertAsset)
+      throw new PropertyAccessError("Insertion requires a package owner.");
+    if (!options || !options.icon_file)
+      throw new ValueError("OLE insertion requires an explicit icon.");
+    const application = Object.values(PROG_ID).find((value) => value === prog_id);
+    if (typeof prog_id !== "string" && !application)
+      throw new ValueError("Expected a program ID or registered application.");
+    const id = await this.#owner.insertAsset(
+      "ole",
+      {
+        input,
+        prog_id,
+        left,
+        top,
+        ...(application ? { width: application.width, height: application.height } : {}),
+        ...options
+      },
+      this.#groupId
+    );
+    return this.get_by_id(id) as GraphicFrame;
   }
   add_shape(kind: ShapeKind, left: Length, top: Length, width: Length, height: Length): Shape {
     return this.#append((id) =>

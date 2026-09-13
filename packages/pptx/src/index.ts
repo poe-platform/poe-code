@@ -1,7 +1,7 @@
 export { addOleObject, type AddOleObjectOptions } from "./ole-insertion.js";
 export { Image, detectImageContentType } from "./image-value.js";
 export { Chart } from "./chart-model.js";
-export { SlidePlaceholder, SlidePlaceholders, SlideShapes, Slide, Slides, Picture, GraphicFrame } from "./slide-model.js";
+export { SlidePlaceholder, SlidePlaceholders, SlideShapes, Slide, Slides, Picture, Movie, MediaFormat, OleFormat, GraphicFrame } from "./slide-model.js";
 export { GroupShape } from "./group-model.js";
 export { Adjustment, AdjustmentCollection } from "./shape-adjustments.js";
 export { FreeformBuilder, FreeformPath, DrawingOperation, type FreeformGeometry, type FreeformCommand } from "./freeform-builder.js";

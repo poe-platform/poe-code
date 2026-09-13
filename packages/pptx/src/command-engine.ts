@@ -404,8 +404,9 @@ const help =
   "--limit NAME=VALUE lowers maxBytes, maxNodes, maxDepth or maxOutputBytes.\n" +
   "Repeat --limit for distinct names; output requires at least 512 bytes.\n" +
   "XML get emits original bytes; --pretty labels formatted output.\n" +
-  "XML set validates before publication; element structure and resource bindings\n" +
-  "must remain unchanged. Semantic checks are partial, not full schema validation.\n" +
+  "XML set validates before publication; supported existing drawing/run children\n" +
+  "may be reordered or removed. Opaque content and resource bindings are retained.\n" +
+  "Semantic checks are partial, not full schema validation.\n" +
   "Create defaults: empty deck, 12192000 x 6858000 EMUs, blank layout and master.\n" +
   "Lengths require emu, in, cm, mm or pt. Dates/authors are never synthesized.\n" +
   "Create supports Transitional only; supplied templates are unavailable.\n" +
@@ -4411,7 +4412,7 @@ async function execute(
           xml: {
             level: options.context.validationLimits ? "edit" : "reject",
             subset:
-              "bounded XML read; presentation and slide replacement retains element structure, opaque content and resource bindings; partial semantic validation; signed, protected and dialect-changing edits rejected",
+              "bounded XML read; presentation and slide replacement retains opaque content and resource bindings; existing supported drawing children and paragraph runs/breaks may be reordered or removed within their parent; partial semantic validation; signed, protected and dialect-changing edits rejected",
             ...(options.context.validationLimits
               ? {}
               : { reason: "Explicit XML validation limits are unavailable." })

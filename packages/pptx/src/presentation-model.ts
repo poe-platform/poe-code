@@ -4,6 +4,8 @@ import { readBinary, writeBinary } from "./bytes.js";
 import { createPresentation } from "./creation.js";
 import { OfficeError, TypeError as ModelTypeError, ValueError } from "./errors.js";
 import type { FontMetricsHandle } from "./font-metrics.js";
+import { createPackageView, type PartView } from "./package-view.js";
+import type { XmlElementView } from "./xml-view.js";
 import { Length } from "./length.js";
 import { attr, child, loadShared } from "./masters.js";
 import { applyPresentationCanvasSettings } from "./presentation-settings.js";
@@ -76,6 +78,8 @@ function cancelled(context: SelectionContext): void {
 type State = Awaited<ReturnType<typeof loadShared>>;
 
 export interface PresentationModel {
+  readonly element: XmlElementView;
+  readonly part: PartView;
   readonly core_properties: CoreProperties;
   get slide_width(): Length | null;
   set slide_width(value: Length);
@@ -86,16 +90,22 @@ export interface PresentationModel {
 }
 
 class LivePresentation implements PresentationModel {
+  #part: PartView;
+  #state: State;
+  #context: SelectionContext;
+  #inputPath: string | undefined;
   #properties: CoreProperties | undefined;
   #propertyPart: string | undefined;
   #revision = 0;
   #publishedSource: Uint8Array;
-  constructor(
-    private readonly state: State,
-    private readonly context: SelectionContext,
-    private readonly inputPath?: string
-  ) {
+  constructor(state: State, context: SelectionContext, inputPath?: string) {
+    this.#state = state;
+    this.#context = context;
+    this.#inputPath = inputPath;
     this.#publishedSource = state.source;
+    this.#part = createPackageView(state, context, () => {
+      this.#revision++;
+    }).get_part(state.main)!;
     const parts = state.index.inventory.relationships.filter(
       (edge) =>
         edge.owner === "/" && edge.type.endsWith("/metadata/core-properties") && !edge.external
@@ -104,17 +114,23 @@ class LivePresentation implements PresentationModel {
       throw new OfficeError("ambiguous-selection", "Multiple core property parts.", "select");
     this.#propertyPart = parts[0]?.targetPart ?? undefined;
   }
+  get part(): PartView {
+    return this.#part;
+  }
+  get element(): XmlElementView {
+    return this.#part.element;
+  }
   get core_properties(): CoreProperties {
     if (!this.#properties) {
       if (!this.#propertyPart) {
-        this.#propertyPart = createPropertyPart(this.state, "core", this.context);
+        this.#propertyPart = createPropertyPart(this.#state, "core", this.#context);
         this.#revision++;
       }
       const part = this.#propertyPart;
       this.#properties = new CoreProperties(
-        () => this.state.doc(part),
+        () => this.#state.doc(part),
         (doc) => {
-          this.state.save(part, doc);
+          this.#state.save(part, doc);
           this.#revision++;
         }
       );
@@ -122,7 +138,7 @@ class LivePresentation implements PresentationModel {
     return this.#properties;
   }
   #dimension(attribute: "cx" | "cy"): Length | null {
-    const doc = this.state.doc(this.state.main);
+    const doc = this.#state.doc(this.#state.main);
     const size = child(doc.root, "sldSz");
     if (!size) return null;
     const raw = attr(size, attribute);
@@ -134,10 +150,11 @@ class LivePresentation implements PresentationModel {
     if (!(value instanceof Length)) throw new ModelTypeError("Slide dimensions require a Length.");
     if (value.emu < 914400 || value.emu > 51206400)
       throw new ValueError("Slide dimensions must be between 1 and 56 inches.");
-    const doc = this.state.doc(this.state.main);
+    const doc = this.#state.doc(this.#state.main);
     const missing = !child(doc.root, "sldSz");
-    const propertyEdge = this.state.index.inventory.relationships.find(
-      (edge) => edge.owner === this.state.main && edge.type.endsWith("/presProps") && !edge.external
+    const propertyEdge = this.#state.index.inventory.relationships.find(
+      (edge) =>
+        edge.owner === this.#state.main && edge.type.endsWith("/presProps") && !edge.external
     );
     const updated = applyPresentationCanvasSettings(
       doc,
@@ -145,9 +162,9 @@ class LivePresentation implements PresentationModel {
         ...(missing ? { width: 9144000, height: 6858000 } : {}),
         [attribute === "cx" ? "width" : "height"]: value.emu
       },
-      propertyEdge?.targetPart ? this.state.doc(propertyEdge.targetPart) : undefined
+      propertyEdge?.targetPart ? this.#state.doc(propertyEdge.targetPart) : undefined
     );
-    this.state.save(this.state.main, updated);
+    this.#state.save(this.#state.main, updated);
     this.#revision++;
   }
   get slide_width(): Length | null {
@@ -175,8 +192,8 @@ class LivePresentation implements PresentationModel {
         (destination.inPlace !== undefined && typeof destination.inPlace !== "boolean") ||
         (destination.force !== undefined && typeof destination.force !== "boolean") ||
         (destination.inPlace &&
-          (!this.inputPath || destination.outputPath !== this.inputPath || destination.force)) ||
-        (!destination.inPlace && this.inputPath === destination.outputPath)
+          (!this.#inputPath || destination.outputPath !== this.#inputPath || destination.force)) ||
+        (!destination.inPlace && this.#inputPath === destination.outputPath)
       )
         throw new ValueError("Invalid explicit publication destination.");
       destination = {
@@ -191,10 +208,10 @@ class LivePresentation implements PresentationModel {
     ) {
       throw new ModelTypeError("Expected an explicit byte sink.");
     }
-    cancelled(this.context);
+    cancelled(this.#context);
     const revision = this.#revision;
-    const { bytes } = await this.state.finish(this.state.main, []);
-    cancelled(this.context);
+    const { bytes } = await this.#state.finish(this.#state.main, []);
+    cancelled(this.#context);
     if (revision !== this.#revision)
       throw new OfficeError(
         "stale-selection",
@@ -206,7 +223,7 @@ class LivePresentation implements PresentationModel {
       try {
         await destination.publishOutput(
           {
-            ...(this.inputPath === undefined ? {} : { inputPath: this.inputPath }),
+            ...(this.#inputPath === undefined ? {} : { inputPath: this.#inputPath }),
             outputPath: destination.outputPath,
             bytes: new Uint8Array(bytes),
             originalBytes: new Uint8Array(this.#publishedSource),
@@ -214,11 +231,11 @@ class LivePresentation implements PresentationModel {
             force: destination.force ?? false,
             dryRun: false
           },
-          this.context.signal
+          this.#context.signal
         );
         if (destination.inPlace) this.#publishedSource = new Uint8Array(bytes);
       } catch (error) {
-        cancelled(this.context);
+        cancelled(this.#context);
         if (
           error &&
           typeof error === "object" &&
@@ -228,10 +245,10 @@ class LivePresentation implements PresentationModel {
           throw new OfficeError("stale-selection", "Publication source changed.", "publish");
         throw new OfficeError("io-failure", "Presentation publication failed.", "publish");
       }
-      cancelled(this.context);
+      cancelled(this.#context);
       return;
     }
-    await writeBinary(bytes, destination, this.context);
+    await writeBinary(bytes, destination, this.#context);
   }
 }
 

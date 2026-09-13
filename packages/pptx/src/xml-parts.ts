@@ -1,3 +1,4 @@
+import { validateXmlViewReplacement } from "./xml-view-validation.js";
 import { SaxesParser } from "saxes";
 import { readBinary } from "./bytes.js";
 import { parseContentTypes } from "./content-types.js";
@@ -180,6 +181,32 @@ export async function replaceXmlPart(
 ): Promise<Uint8Array> {
   const source = await readBinary(input, context);
   const reader = await readPackage(source, context);
+  const bytes = await readBinary(replacement, context, {
+    maxBytes: context.validationLimits.maxBytes
+  });
+  const candidate = validateXmlViewReplacement(
+    reader,
+    part,
+    bytes,
+    context,
+    validateXmlPartReplacement
+  );
+  const original = reader.get(part);
+  if (bytes.length === original.length && bytes.every((byte, index) => byte === original[index]))
+    return source;
+  return writePackageArchive(
+    reader.names.map((name) => ({ name: name.slice(1), bytes: candidate.get(name) })),
+    context,
+    { compression: "auto", source }
+  );
+}
+
+export function validateXmlPartReplacement(
+  reader: PackageReader,
+  part: string,
+  bytes: Uint8Array,
+  context: XmlPartContext
+): PackageReader {
   const selected = select(reader, part, context);
   const graph = readRelationshipGraph(reader, context.validationLimits);
   const contentTypes = parseContentTypes(
@@ -257,10 +284,29 @@ export async function replaceXmlPart(
     unsupported(
       "Replacement supports presentation and slide XML with unchanged element structure."
     );
-  const bytes = await readBinary(replacement, context, {
-    maxBytes: context.validationLimits.maxBytes
-  });
   const changed = parseXmlPart(bytes, context.validationLimits);
+  for (const size of changed.root.children.filter(
+    (node) => node.name.namespace === changed.root.name.namespace && node.name.localName === "sldSz"
+  )) {
+    for (const axis of ["cx", "cy"]) {
+      const value = size.attributes.find(
+        (attribute) => !attribute.name.namespace && attribute.name.localName === axis
+      )?.value;
+      const number = Number(value);
+      if (
+        !value ||
+        [...value].some((character) => character < "0" || character > "9") ||
+        !Number.isSafeInteger(number) ||
+        number < 914400 ||
+        number > 51206400
+      )
+        throw new OfficeError(
+          "invalid-opc",
+          "Invalid authored slide dimensions.",
+          "validate-result"
+        );
+    }
+  }
   if (changed.root.name.localName !== expected || root.name.localName !== expected)
     throw new OfficeError(
       "invalid-opc",
@@ -353,14 +399,5 @@ export async function replaceXmlPart(
       "Replacement fails presentation graph validation.",
       "validate-result"
     );
-  if (
-    bytes.length === selected.bytes.length &&
-    bytes.every((byte, index) => byte === selected.bytes[index])
-  )
-    return source;
-  return writePackageArchive(
-    reader.names.map((name) => ({ name: name.slice(1), bytes: candidate.get(name) })),
-    context,
-    { compression: "auto", source }
-  );
+  return candidate;
 }

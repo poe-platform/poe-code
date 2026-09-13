@@ -102,6 +102,9 @@ export {
 
 export { getXmlPart, replaceXmlPart, type XmlPartContext, type XmlPartData } from "./xml-parts.js";
 
+export type { PartView, PackageView, PartRelationship } from "./package-view.js";
+export type { XmlElementView } from "./xml-view.js";
+
 export {
   Presentation,
   type PresentationModel,

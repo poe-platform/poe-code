@@ -2,6 +2,11 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Current presentation element/part boundary: [live package-view evidence](live-package-view-evidence.md)
+and [exact owner/returned-view mapping](live-owner-surface-map.md) cover bounded
+XML traversal/mutation, current package reads, isolated bytes and shared `xml set`
+validation. Live slide/drawing/chart graph obligations remain incomplete.
+
 Current public surface additions: [typed input failures](public-input-errors-evidence.md),
 [inherited connector formatting](connector-public-surface.md), and
 [remaining owner/graph obligations](public-surface-current-gaps.md).

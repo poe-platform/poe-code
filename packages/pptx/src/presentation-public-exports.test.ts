@@ -7,6 +7,11 @@ it("exports the async presentation factory and synchronous live core properties"
   expectTypeOf(pending).toEqualTypeOf<Promise<sdk.PresentationModel>>();
   expect(pending).toBeInstanceOf(Promise);
   const model = await pending;
+  expectTypeOf(model.part).toEqualTypeOf<sdk.PartView>();
+  expectTypeOf(model.part.package).toEqualTypeOf<sdk.PackageView>();
+  expectTypeOf(model.element).toEqualTypeOf<sdk.XmlElementView>();
+  expectTypeOf(model.part.rels).toEqualTypeOf<readonly sdk.PartRelationship[]>();
+  expect(model.element.tag.localName).toBe("presentation");
   expect(model.core_properties).toBeInstanceOf(sdk.CoreProperties);
   expectTypeOf(model.core_properties).toEqualTypeOf<sdk.CoreProperties>();
   model.core_properties.title = "Estuary survey";

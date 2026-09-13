@@ -1,102 +1,110 @@
 # Presentation case accounting
 
-Status: Research accounting complete for the collected presentation inventory;
-semantic adaptation partial; no product implementation or passing target tests.
+Status: Complete source-row and parameter accounting; semantic adaptation remains
+partial. No product implementation or passing target tests.
 
-[The case ledger](test-case-map.json) preserves one row for each of the 2,700
-collected unit variants and 973 expanded BDD examples. It pins the input inventory,
-audits, contracts, API map, command register and corpus manifest by SHA-256.
-The [agent procedure](../plans/pptx-test-case-accounting.md) records verification.
+[The ledger](test-case-map.json) retains one row for each of 2,700 collected unit
+nodes and 973 expanded BDD scenarios/examples. Every row has its source revision,
+file hash, original behavior evidence, target TypeScript case or task, equivalence
+rationale, status and execution evidence. No source identity was merged or removed.
+The [agent procedure](../plans/pptx-case-behavior-expansion.md) records this update;
+the [earlier receipt](../plans/pptx-test-case-accounting.md) remains historical.
 
-## What changed
+## Unit behavior evidence
 
-The earlier API map supplies class/workflow candidates, not reviewed per-case
-mappings. Comparing every collected identity against those candidates reveals
-875 unit cases and 307 BDD examples with no candidate. The new ledger retains
-those cases as obligations rather than treating a missing link as an exclusion.
-Candidate presence also does not prove that a member's behavior is covered.
+[The behavior register](test-behavior-evidence.json) retains source assertions,
+mock expectations, explicit raises, complete test/fixture/helper source spans and
+recursive fixture dependencies. Source text is research material under the
+[standalone MIT notice](test-case-map-notice.txt), never product code or fixtures.
+Its 2,450 spans and 71 file hashes are provenance, not coverage measurements.
 
-Each row has its full source identity, source commit, file hash, inventory pointer,
-source location, neutral reserved case ID and implementation-task destination.
-BDD rows additionally retain the actual scenario heading, example values and
-expanded steps, checked against the collected step count. The original inventory's
-`template_line` sometimes points to the example row rather than the outline;
-`source.scenario_line` in this ledger identifies the actual heading without
-rewriting the historical collection. Source steps and identities are research
-material covered by [the standalone notice](test-case-map-notice.txt). They are
-not product test names or fixture content.
+All 2,057 parameterized node IDs match a unique static parameter table selection;
+643 cases are unparameterized. Matching includes compound IDs, class names, enum
+values, constants, unit values and helper-returned tables. Selected expressions
+are source evidence, not evaluated fixture results. Every exact node remains a
+separate row even when several nodes share a test body or fixture. Successful
+no-exception parsing is retained even where the source contains no assert.
 
-A reserved case ID with `original_case: null` means **semantic review required**.
-It is not a TypeScript test, a specified assertion or a completed adaptation.
-None of the 3,673 obligations has been implemented or executed. No many-to-one
-merger or architecture-only exclusion is approved by this ledger.
+Each unit row has an original TypeScript adaptation task tied to its own source
+contract. A task destination does not establish equivalence. Mock-only behavior
+must become a specific public return, ownership, state, error or publication
+assertion; private class topology is not a reason to drop a behavior. The task
+includes every recorded assertion, not only the first or the function heading.
 
-## Original regression designs
+## Original designs and open work
 
-Seventy source rows now have original arrange/action/expected-result designs:
+The ledger distinguishes:
 
-- Twelve image metadata cases retain each of six formats independently for media
-  type and canonical extension, including WMF characterization. They require
-  authored bytes or an explicit bounded characterization capability.
-- Five density cases distinguish valid, fractional, absent, out-of-range and
-  malformed input. The malformed text is original; meaningful numeric boundaries
-  and expected fallback values remain explicit.
-- Four sizing cases replace a private helper and disk image with observable
-  inserted-picture dimensions: native size, width-only, height-only and both
-  dimensions. The square geometry and each parameter variant remain separate.
-- Forty-nine navigation examples use an original five-slide deck. They distinguish
-  action classification, the returned hyperlink interface, slide destinations and
-  destination assignment/removal. File/program/macro actions remain metadata and
-  must never trigger execution or I/O.
+- 110 reviewed original designs, all awaiting implementation and passing evidence.
+- 897 proposed BDD descriptions with expanded conditions/actions/outcomes and
+  original content substitutions; source step definitions and fixture semantics
+  still require reconciliation before semantic approval.
+- One deferred public graphic-frame shadow behavior, with a specified rejection
+  case. Rejection coverage does not establish shadow editing support.
+- 2,665 unit cases with exact source contracts and assigned TypeScript tasks whose
+  original semantic designs remain required.
 
-These are proposed original TypeScript regressions, not QA failures reproduced
-against a product. They preserve behavior while replacing source wording/assets
-and private mock identities. The remaining 3,603 presentation rows require
-semantic review before their original assertions can be specified. Completing
-that review remains part of `map-every-upstream-case`; this accounting receipt
-does not mark that pipeline task done or run its dependent implementation tasks.
+Thus all source cases are accounted for, but the requirement to adapt every
+applicable behavior is **not complete**. The pipeline's map-every-upstream-case
+task must stay open. Neither drafts nor task assignments are counted as adapted,
+implemented or passing cases. No blanket skips, architecture-only exclusions or
+many-to-one source-row mergers are approved.
 
-## Shared package behavior and public API
+Reviewed additions include all 13 unit conversion cases, 19 paragraph spacing
+cases, four freeform construction cases and an explicit metrics-based fitting
+case. Existing image and navigation designs remain intact. Unit conversions
+follow the shared rounding contract: 12.5 centipoints becomes 1,588 EMU, 2.53 cm
+becomes 910,800 EMU, and 9,144.9 EMU rounds to 9,145. These deliberately differ from
+source truncation and are not source-equivalence passes.
 
-The full counterpart inventory was also parsed. The ledger retains 391 additional
-unit obligations from `tests/opc/**`, `tests/image/**` and the shared XML
-simple-type/descriptor/namespace test files that exist in that inventory. Other
-counterpart document behaviors and its BDD workflows are outside this shared
-package subset; all remain in their original inventory. No equivalence between
-formats is inferred from matching test names or shared ancestry.
+Paragraph cases distinguish null, numeric line multiples and Length objects.
+A primitive's missing .pt member is a language typing issue, not an unavailable
+model property. Freeform cases replace private start/scale assertions with
+non-square original path bounds. Text fitting uses original text and explicit
+metrics so 10pt fits and 11pt does not, without relying on host font differences.
 
-All 2,424 target API rows remain visible, including the 2,407 reconciled source
-records and 17 bounded-view additions. Each points to its independently planned
-original API acceptance IDs. Of these rows, 1,072 have no prior unit or BDD
-candidate. That count mixes types, enum symbols, inherited members, helpers and
-other record kinds; it is not a percentage of untested callable APIs. Leading
-underscores and absence of source tests never remove a public obligation.
+## Validated research finding
 
-The shared [SDK](../specs/office-sdk.md) and [CLI](../specs/office-cli.md) govern
-language/security mappings and commands. The target API map defines signatures;
-the later command register resolves its recorded route corrections. Neutral
-model spellings remain primary, while command JSON uses camelCase. Common routes
-retain `images`, `tables`, `properties`, `text replace`, `schema` and
-`capabilities`. Original source-case adaptation must obey these contracts even
-where it deliberately differs from the reference's host or language behavior.
+The source BDD outline at features/cht-datalabels.feature:100 is named for the
+value-label getter, but its Then clause reads show_series_name. The step
+implementation at features/steps/datalabel.py:186–195 confirms which getter runs;
+the model at src/pptx/chart/datalabel.py:125–140 defines separate XML flags.
 
-## Evidence reused and limits
+Both expanded rows remain. Their original designs preserve the actual series-name
+assertion and add the intended value assertion. The supplemental
+label-switch-independence design uses opposite flags and verifies isolated
+mutation and round-trip retention. This is a small original regression design
+for a validated research gap, not a reproduced failure in an implemented product.
 
-All six retained artifacts for each reference run matched their recorded hashes:
-unit log, BDD log, both failure logs, coverage JSON and JUnit XML. Both checkouts
-matched their pinned commits with no tracked changes under source, tests,
-features or docs. All 101 presentation source and 54 documentation hashes matched
-the API inventory. No Python/reference runtime or native renderer was executed.
-The original dependency resolution and failed attempts remain intact.
+## Shared contracts and public API
 
-Unit statement coverage remains 11,246/11,508 and branch coverage 1,327/1,466 for
-the historical presentation implementation. The separate 973 BDD passes are not
-part of those percentages. Neither measure establishes format coverage, visual
-fidelity, security conformance or target TypeScript coverage. This task adds no
-product pass, failure, screenshot or playback evidence.
+All 2,424 API target obligations remain, including inherited members, enums,
+collections, helpers, APIs without source tests and 17 bounded-view additions.
+None is excluded for an underscore prefix. All 391 existing counterpart package,
+image and XML obligations remain; matching source names never establish
+cross-format equivalence.
 
-The [corpus manifest](corpus-manifest.json) remains the source of disposable QA
-inputs. No downloaded deck, cloned binary or corpus byte was copied, mutated,
-shipped or deleted. The current work uses metadata only. Meaningful future QA
-findings need small independent original regressions before cleanup; unit tests
-must run with downloads absent. No README or product file changed.
+The shared [SDK](../specs/office-sdk.md) and [CLI](../specs/office-cli.md) contracts
+remain authoritative. [Language mappings](api-language-mappings.md) and the
+[target API register](public-api-map.json) define model semantics; the later
+[command register](command-coverage.json) records route corrections. Model
+snake_case is retained. Operation JSON uses camelCase, dotted IDs and the common
+version-1 envelope. Commands use images, tables, properties, text replace, schema
+and capabilities. Whole-text setters remain distinct from preserving replacement.
+
+Source baseline passes and declaration counts provide no target runtime evidence.
+The historical input hashes in the ledger remain historical; current evidence
+hashes identify the new behavior register and language notes. All execution and
+implementation flags remain false.
+
+## Corpus and legal boundary
+
+The [corpus manifest](corpus-manifest.json) remains the authority for disposable
+QA inputs. This update uses metadata only; no binary is copied, mutated, shipped
+or deleted. Unit fixtures must be independently authored in memory and work with
+all downloads absent. Product corpus QA and visual checks remain unrun.
+
+Reference identities and copied source expressions remain research/provenance
+under the standalone notice. Original target names and authored assets remain
+neutral. No README, product code, public CLI output, fixture binary or runtime
+configuration changes are part of this update.

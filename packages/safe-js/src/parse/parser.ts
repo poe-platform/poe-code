@@ -2066,7 +2066,8 @@ class Parser {
     const offset = token.value === "await" && this.peekToken(1).value === "using" ? 1 : 0;
     const using = offset === 0 ? token : this.peekToken(1);
     const binding = this.peekToken(offset + 1);
-    if (using.value !== "using" || hasLineBreakBetween(using, binding) || !isIdentifierLikeToken(binding)) return undefined;
+    if (using.value !== "using" || hasLineBreakBetween(using, binding) ||
+        (!isIdentifierLikeToken(binding) && !this.isContextualIdentifier(binding))) return undefined;
     if (offset === 1 && hasLineBreakBetween(token, using)) throw unexpectedTokenError(using);
     return offset === 1 ? "async" : "sync";
   }
@@ -2207,7 +2208,10 @@ class Parser {
       if (this.currentToken().value === "{") {
         const body = this.withLexicalContext({
           newTarget: true, superProperty: true, superCall: false,
-          arguments: false, return: false, await: false, strictAwait: true
+          arguments: false, return: false, await: false, strictAwait: true,
+          ...(this.lexicalContext.grammar === undefined ? {} : {
+            grammar: {...this.lexicalContext.grammar, await: true}
+          })
         }, () => this.withFunctionContext("normal", () => this.parseBlockStatement([])));
         return { type: "StaticBlock", body, span: createSpan(start.start, body.span.end) };
       }

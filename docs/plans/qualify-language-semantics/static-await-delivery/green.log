@@ -1,0 +1,15 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/src/parse/static-catch-await.test.ts (14 tests) 249ms
+ ✓ packages/safe-js/src/parse/let-await-yield-lookahead.test.ts (16 tests) 818ms
+   ✓ retains eval early errors, source and generator state across repeated replay  802ms
+ ✓ packages/safe-js/src/parse/eval-script.test.ts (46 tests) 30ms
+ ✓ packages/safe-js/src/parse/class-modifier-spellings.test.ts (16 tests) 686ms
+   ✓ preserves eval errors, private closures and source across repeated replay  602ms
+
+ Test Files  4 passed (4)
+      Tests  92 passed (92)
+   Start at  10:44:06
+   Duration  4.80s (transform 4.60s, setup 160ms, import 6.48s, tests 1.78s, environment 0ms)
+

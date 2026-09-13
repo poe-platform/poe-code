@@ -2318,3 +2318,16 @@ Whole-task acceptance is open: the fresh delivered-source full focused selection
 to the earlier dirty-source audit. This narrow reentry repair removes six of those;
 **199 residual nonpasses** remain before edition/proposal dispositions. No whole-suite
 or publication success is inferred. Remote and registry receipts follow separately.
+
+### qualify-language-semantics — static await grammar integration, 2026-09-13
+
+Reproduced and integrated the earlier uncommitted static-block await grammar repair
+on clean delivered e69000eb0. [Exact evidence and commands](qualify-language-semantics/static-await-delivery/audit.md):
+**nine failed/five passing controls →92 focused passes**, plus155 class/function
+boundary passes; scoped lint and maintained build pass. Reused original 38-file
+selection: **74/76 variants pass**, with two class-name-await controls still failing.
+Those are a separate independently reproduced class binding defect, not passing
+static coverage. The source grammar preserves function boundaries and separately
+tracked resource-management contexts. Original fixture hashes, Node22.23.2/ICU78.2,
+deadlines, budgets, support and host authority remain unchanged. CLI screenshot
+was inspected. Full language qualification and publication remain open.

@@ -2,6 +2,11 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Current register reconciliation: [complete identity and obligation check](register-reconciliation-20260913.md)
+accounts for 2,409 inventory records and 2,426 target rows, including the two
+later public builder offsets. All 3,673 collected test identities retain separate
+adaptation rows. These totals describe accounting, not completed API or test parity.
+
 Current axis crossing correction: [exact parameter and JS mappings](axis-crossing-evidence.md)
 reconcile 14 unit variants and 17 BDD examples. Custom-mode initialization and
 null-removal reads are corrected with independent SDK and CLI evidence; this

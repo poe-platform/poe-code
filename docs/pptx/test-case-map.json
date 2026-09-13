@@ -39,8 +39,8 @@
     "implemented": 43,
     "executed": 43,
     "shared_counterpart_obligations": 391,
-    "api_records": 2407,
-    "api_target_rows": 2424,
+    "api_records": 2409,
+    "api_target_rows": 2426,
     "api_rows_without_prior_candidates": 1072,
     "proposed_original_designs": 877,
     "deferred_public_behaviors": 1,
@@ -310593,6 +310593,26 @@
       "candidate_unit_count": 0,
       "candidate_bdd_count": 0,
       "implemented": false
+    },
+    {
+      "record": "public-api-map.json#/rows/2424",
+      "source_id": "pptx.shapes.freeform.FreeformBuilder.shape_offset_x",
+      "original_cases": ["freeform-live-x-offset"],
+      "candidate_unit_count": 34,
+      "candidate_bdd_count": 12,
+      "implemented": true,
+      "evidence_receipt": "adjustments-freeform-evidence-20260913.md",
+      "verification_receipt": "register-reconciliation-20260913.md"
+    },
+    {
+      "record": "public-api-map.json#/rows/2425",
+      "source_id": "pptx.shapes.freeform.FreeformBuilder.shape_offset_y",
+      "original_cases": ["freeform-live-y-offset"],
+      "candidate_unit_count": 34,
+      "candidate_bdd_count": 12,
+      "implemented": true,
+      "evidence_receipt": "adjustments-freeform-evidence-20260913.md",
+      "verification_receipt": "register-reconciliation-20260913.md"
     }
   ],
   "adaptation_rules": {
@@ -310661,7 +310681,7 @@
   "current_evidence_sha256": {
     "docs/pptx/test-behavior-evidence.json": "9a30c612931cb72af2341f240470833462ccacc80d029cd88f7c02bc3b48e0bf",
     "docs/pptx/api-language-mappings.md": "e5a68d5bfcea65bff45cc876cde12081e8fd86b689e69acc47cb5dcffde5bf2d",
-    "docs/pptx/upstream-api-audit.md": "8e755f16aff69fe329f78d640de6a0254af14b27396f1abce5c56740e7d3c5ec",
+    "docs/pptx/upstream-api-audit.md": "ad0b9e0055397e38532ca8aeb499f539da16dd3caed2a1d3630302d90fc0b83c",
     "docs/pptx/corpus-manifest.json": "0b6ad231278c7cd60bbcf1dbecf433e52d8650595425f7f9cde18ff44b4f13cd"
   },
   "current_evidence_baseline": "dfb4530bb0fcd3f8dc2d187ac16d8e283beaef5a",

@@ -1,3 +1,4 @@
+import { inspectDiagrams, type DiagramInventory } from "./diagram-resources.js";
 import { resolveTextStyles, type TextStyleRecord } from "./text-style-resolution.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { parseContentTypes } from "./content-types.js";
@@ -24,6 +25,7 @@ export interface SlideInventory {
   readonly show: { readonly explicit: boolean | null; readonly effective: boolean };
 }
 export interface PresentationInventory {
+  readonly diagrams: readonly DiagramInventory[];
   readonly textStyles: readonly TextStyleRecord[];
   readonly slides: readonly SlideInventory[];
   readonly masters: readonly string[];
@@ -199,6 +201,7 @@ export function inspectInventory(
   }
   return Object.freeze({
     slides,
+    diagrams: inspectDiagrams(parts, graph),
     textStyles: Object.freeze(textStyles),
     masters,
     layouts,

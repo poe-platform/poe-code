@@ -1,0 +1,1352 @@
+{
+  "schema_version": 1,
+  "purpose": "Bounded diagram research/provenance; not a full public API parity certificate",
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "source_test_inventory": "upstream-test-inventory.json",
+  "source_api_inventory": "upstream-api-inventory.json",
+  "scope": "All explicit graphfrm/graphicFrame/diagram/SmartArt test mentions, including every expanded discriminator variant; complete GraphicFrame, PlaceholderGraphicFrame and returned _OleFormat API entries; DIAGRAM/IGX_GRAPHIC/ORG_CHART enums. Shared generic shape/OPC behavior remains in its existing ledgers.",
+  "unit_cases": [
+    {
+      "source_id": "tests/oxml/shapes/test_graphfrm.py::DescribeCT_GraphicalObjectFrame::it_can_construct_a_new_graphicFrame",
+      "source_file": "tests/oxml/shapes/test_graphfrm.py",
+      "line": 18,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/oxml/shapes/test_graphfrm.py::DescribeCT_GraphicalObjectFrame::it_can_construct_a_new_chart_graphicFrame",
+      "source_file": "tests/oxml/shapes/test_graphfrm.py",
+      "line": 23,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/oxml/shapes/test_graphfrm.py::DescribeCT_GraphicalObjectFrame::it_can_construct_a_new_table_graphicFrame",
+      "source_file": "tests/oxml/shapes/test_graphfrm.py",
+      "line": 28,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/oxml/shapes/test_groupshape.py::DescribeCT_GroupShape::it_can_add_a_graphicFrame_element_containing_a_table",
+      "source_file": "tests/oxml/shapes/test_groupshape.py",
+      "line": 19,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:graphicFrame/p:nvGraphicFramePr/p:cNvPr]",
+      "source_file": "tests/shapes/test_base.py",
+      "line": 50,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame/p:xfrm-None-None]",
+      "source_file": "tests/shapes/test_base.py",
+      "line": 69,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_base.py::DescribeBaseShape::it_has_a_position[p:graphicFrame/p:xfrm/a:off{x=123,y=456}-123-456]",
+      "source_file": "tests/shapes/test_base.py",
+      "line": 69,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_provides_access_to_the_chart_it_contains",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 27,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::but_it_raises_on_chart_if_there_isnt_one",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 36,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_provides_access_to_its_chart_part",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 43,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_chart[http://schemas.openxmlformats.org/drawingml/2006/chart-True]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 56,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps chart graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": true
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_chart[http://schemas.openxmlformats.org/presentationml/2006/ole-False]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 56,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps embedded object graphic frames outside the ordinary shape editor"
+        },
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps linked object graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": false
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_chart[http://schemas.openxmlformats.org/drawingml/2006/table-False]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 56,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps table graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": false
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_table[http://schemas.openxmlformats.org/drawingml/2006/chart-False]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 68,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps chart graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": false
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_table[http://schemas.openxmlformats.org/presentationml/2006/ole-False]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 68,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps embedded object graphic frames outside the ordinary shape editor"
+        },
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps linked object graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": false
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_table[http://schemas.openxmlformats.org/drawingml/2006/table-True]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 68,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps table graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": true
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_provides_access_to_the_OleFormat_object",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 80,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::but_it_raises_on_ole_format_when_this_is_not_an_OLE_object",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 97,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_raises_on_shadow",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 109,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http://schemas.openxmlformats.org/drawingml/2006/chart-None-CHART (3)]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 114,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps chart graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": 3
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http://schemas.openxmlformats.org/presentationml/2006/ole-embed-EMBEDDED_OLE_OBJECT (7)]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 114,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps embedded object graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": 7
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http://schemas.openxmlformats.org/presentationml/2006/ole-link-LINKED_OLE_OBJECT (10)]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 114,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps linked object graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": 10
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http://schemas.openxmlformats.org/drawingml/2006/table-None-TABLE (19)]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 114,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps table graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": 19
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[foobar-None-None]",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 114,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps unknown content graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": null
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::Describe_OleFormat::it_provides_access_to_the_OLE_object_blob",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 150,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::Describe_OleFormat::it_knows_the_OLE_object_prog_id",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 162,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_graphfrm.py::Describe_OleFormat::it_knows_whether_to_show_the_OLE_object_as_an_icon",
+      "source_file": "tests/shapes/test_graphfrm.py",
+      "line": 166,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_placeholder.py::DescribeChartPlaceholder::it_creates_a_graphicFrame_element_to_help",
+      "source_file": "tests/shapes/test_placeholder.py",
+      "line": 317,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_placeholder.py::DescribeTablePlaceholder::it_creates_a_graphicFrame_element_to_help",
+      "source_file": "tests/shapes/test_placeholder.py",
+      "line": 554,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_chart_graphicFrame_to_help",
+      "source_file": "tests/shapes/test_shapetree.py",
+      "line": 448,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_provides_a_graphicFrame_interface_method",
+      "source_file": "tests/shapes/test_shapetree.py",
+      "line": 2066,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    },
+    {
+      "source_id": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_creates_the_graphicFrame_element",
+      "source_file": "tests/shapes/test_shapetree.py",
+      "line": 2108,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Adjacent graphic-frame construction, access, formatting or inherited behavior: not claimed by opaque diagram inventory/preservation; retained as public behavior obligation."
+    }
+  ],
+  "bdd_cases": [
+    {
+      "source_id": "features/shp-graphicframe.feature:7:GraphicFrame.chart",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 7,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Returned chart/OLE model or unsupported shadow behavior remains visible; not counted as diagram parity."
+    },
+    {
+      "source_id": "features/shp-graphicframe.feature:18:GraphicFrame.has_chart -- @1.1 Shape types",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 18,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps chart graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": true
+    },
+    {
+      "source_id": "features/shp-graphicframe.feature:19:GraphicFrame.has_chart -- @1.2 Shape types",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 19,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps table graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": false
+    },
+    {
+      "source_id": "features/shp-graphicframe.feature:22:GraphicFrame.ole_format",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 22,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Returned chart/OLE model or unsupported shadow behavior remains visible; not counted as diagram parity."
+    },
+    {
+      "source_id": "features/shp-graphicframe.feature:33:GraphicFrame.shape_type -- @1.1 Shape types",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 33,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps embedded object graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": 7
+    },
+    {
+      "source_id": "features/shp-graphicframe.feature:34:GraphicFrame.shape_type -- @1.2 Shape types",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 34,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps chart graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": 3
+    },
+    {
+      "source_id": "features/shp-graphicframe.feature:35:GraphicFrame.shape_type -- @1.3 Shape types",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 35,
+      "status": "security_boundary_tested_live_model_deferred",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "keeps table graphic frames outside the ordinary shape editor"
+        }
+      ],
+      "disposition": "Original cases establish the admitted generic reader geometry/null preset kind and ordinary Shape-editor rejection for this exact input family. They do not implement the source has_chart/has_table/shape_type getter; source expected boolean/enum/null remains an outstanding public model obligation.",
+      "equivalence": "Many source discriminator checks share one XML content family. Boundary tests cover that family once; they are a security mapping, not boolean/enum behavior parity.",
+      "source_expected": 19
+    },
+    {
+      "source_id": "features/shp-graphicframe.feature:38:_OleFormat.blob",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 38,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Returned chart/OLE model or unsupported shadow behavior remains visible; not counted as diagram parity."
+    },
+    {
+      "source_id": "features/shp-graphicframe.feature:43:_OleFormat.prog_id",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 43,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Returned chart/OLE model or unsupported shadow behavior remains visible; not counted as diagram parity."
+    },
+    {
+      "source_id": "features/shp-graphicframe.feature:48:_OleFormat.show_as_icon",
+      "source_file": "features/shp-graphicframe.feature",
+      "line": 48,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Returned chart/OLE model or unsupported shadow behavior remains visible; not counted as diagram parity."
+    },
+    {
+      "source_id": "features/shp-shared.feature:166:GraphicFrame.shadow (not-implemented)",
+      "source_file": "features/shp-shared.feature",
+      "line": 166,
+      "status": "public_behavior_deferred",
+      "original_tests": [],
+      "disposition": "Returned chart/OLE model or unsupported shadow behavior remains visible; not counted as diagram parity."
+    }
+  ],
+  "api_members": [
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.DIAGRAM",
+      "declared_on": null,
+      "kind": "enum-member",
+      "target_member": "DIAGRAM",
+      "readable": null,
+      "writable": null,
+      "source_signature": null,
+      "source_returns": null,
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "retains diagram category values without implying an editable diagram model"
+        }
+      ],
+      "disposition": "Stable public enum value verified independently; no semantic diagram editing implied."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame",
+      "declared_on": null,
+      "kind": "type",
+      "target_member": "GraphicFrame",
+      "readable": null,
+      "writable": null,
+      "source_signature": "(graphicFrame: 'CT_GraphicalObjectFrame', parent: 'ProvidesPart')",
+      "source_returns": null,
+      "mapping_rules": ["J01"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.__eq__",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "function",
+      "target_member": "equals",
+      "readable": null,
+      "writable": null,
+      "source_signature": "(self, other: object) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J03"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.__init__",
+      "declared_on": null,
+      "kind": "constructor",
+      "target_member": "constructor",
+      "readable": null,
+      "writable": null,
+      "source_signature": "(self, graphicFrame: CT_GraphicalObjectFrame, parent: ProvidesPart)",
+      "source_returns": null,
+      "mapping_rules": ["J01"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.chart",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "chart",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> Chart",
+      "source_returns": "Chart",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.chart_part",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "chart_part",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> ChartPart",
+      "source_returns": "ChartPart",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.click_action",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "lazyproperty",
+      "target_member": "click_action",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> ActionSetting",
+      "source_returns": "ActionSetting",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.element",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "element",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> ShapeElement",
+      "source_returns": "ShapeElement",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Public bounded XML/package view obligation remains; no host or dependency runtime exposure."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.has_chart",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "has_chart",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.has_table",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "has_table",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.has_text_frame",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "has_text_frame",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.height",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "height",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.is_placeholder",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "is_placeholder",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.left",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "left",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.name",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "name",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> str",
+      "source_returns": "str",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.ole_format",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "ole_format",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> _OleFormat",
+      "source_returns": "_OleFormat",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.part",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "part",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> BaseSlidePart",
+      "source_returns": "BaseSlidePart",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Public bounded XML/package view obligation remains; no host or dependency runtime exposure."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.placeholder_format",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "placeholder_format",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> _PlaceholderFormat",
+      "source_returns": "_PlaceholderFormat",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.rotation",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "rotation",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> float",
+      "source_returns": "float",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.shadow",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "lazyproperty",
+      "target_member": "shadow",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> ShadowFormat",
+      "source_returns": "ShadowFormat",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.shape_id",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "shape_id",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> int",
+      "source_returns": "int",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.shape_type",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "shape_type",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> MSO_SHAPE_TYPE",
+      "source_returns": "MSO_SHAPE_TYPE",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Correct optional return to MSO_SHAPE_TYPE | null; diagram/unknown returns null; inventory kind is a separate classification."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.table",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "table",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> Table",
+      "source_returns": "Table",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.top",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "top",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm.GraphicFrame.width",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "width",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat",
+      "declared_on": null,
+      "kind": "type",
+      "target_member": "_OleFormat",
+      "readable": null,
+      "writable": null,
+      "source_signature": null,
+      "source_returns": null,
+      "mapping_rules": ["J01"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Returned underscore-prefixed type remains public. Embedded bytes require bounded byte ownership and no execution/network; live model not covered by diagram preservation."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.__eq__",
+      "declared_on": "pptx.shared.ElementProxy",
+      "kind": "function",
+      "target_member": "equals",
+      "readable": null,
+      "writable": null,
+      "source_signature": "(self, other: object) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J03"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Returned underscore-prefixed type remains public. Embedded bytes require bounded byte ownership and no execution/network; live model not covered by diagram preservation."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.__init__",
+      "declared_on": null,
+      "kind": "constructor",
+      "target_member": "constructor",
+      "readable": null,
+      "writable": null,
+      "source_signature": "(self, graphicData: CT_GraphicalObjectData, parent: ProvidesPart)",
+      "source_returns": null,
+      "mapping_rules": ["J01"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Returned underscore-prefixed type remains public. Embedded bytes require bounded byte ownership and no execution/network; live model not covered by diagram preservation."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.blob",
+      "declared_on": "pptx.shapes.graphfrm._OleFormat",
+      "kind": "property",
+      "target_member": "blob",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> bytes | None",
+      "source_returns": "bytes | None",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Returned underscore-prefixed type remains public. Embedded bytes require bounded byte ownership and no execution/network; live model not covered by diagram preservation."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.element",
+      "declared_on": "pptx.shared.ElementProxy",
+      "kind": "property",
+      "target_member": "element",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self)",
+      "source_returns": null,
+      "mapping_rules": ["J01", "J02", "J09"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Returned underscore-prefixed type remains public. Embedded bytes require bounded byte ownership and no execution/network; live model not covered by diagram preservation."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.parent",
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "kind": "property",
+      "target_member": "parent",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self)",
+      "source_returns": null,
+      "mapping_rules": ["J01", "J02", "J09"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Returned underscore-prefixed type remains public. Embedded bytes require bounded byte ownership and no execution/network; live model not covered by diagram preservation."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.part",
+      "declared_on": "pptx.shared.ParentedElementProxy",
+      "kind": "property",
+      "target_member": "part",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> XmlPart",
+      "source_returns": "XmlPart",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Returned underscore-prefixed type remains public. Embedded bytes require bounded byte ownership and no execution/network; live model not covered by diagram preservation."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.prog_id",
+      "declared_on": "pptx.shapes.graphfrm._OleFormat",
+      "kind": "property",
+      "target_member": "prog_id",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> str | None",
+      "source_returns": "str | None",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Returned underscore-prefixed type remains public. Embedded bytes require bounded byte ownership and no execution/network; live model not covered by diagram preservation."
+    },
+    {
+      "source_id": "pptx.shapes.graphfrm._OleFormat.show_as_icon",
+      "declared_on": "pptx.shapes.graphfrm._OleFormat",
+      "kind": "property",
+      "target_member": "show_as_icon",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> bool | None",
+      "source_returns": "bool | None",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Returned underscore-prefixed type remains public. Embedded bytes require bounded byte ownership and no execution/network; live model not covered by diagram preservation."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame",
+      "declared_on": null,
+      "kind": "type",
+      "target_member": "PlaceholderGraphicFrame",
+      "readable": null,
+      "writable": null,
+      "source_signature": "(graphicFrame: 'CT_GraphicalObjectFrame', parent: 'ProvidesPart')",
+      "source_returns": null,
+      "mapping_rules": ["J01"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.__eq__",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "function",
+      "target_member": "equals",
+      "readable": null,
+      "writable": null,
+      "source_signature": "(self, other: object) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J03"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.__init__",
+      "declared_on": null,
+      "kind": "constructor",
+      "target_member": "constructor",
+      "readable": null,
+      "writable": null,
+      "source_signature": "(self, graphicFrame: CT_GraphicalObjectFrame, parent: ProvidesPart)",
+      "source_returns": null,
+      "mapping_rules": ["J01"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.chart",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "chart",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> Chart",
+      "source_returns": "Chart",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.chart_part",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "chart_part",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> ChartPart",
+      "source_returns": "ChartPart",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.click_action",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "lazyproperty",
+      "target_member": "click_action",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> ActionSetting",
+      "source_returns": "ActionSetting",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.element",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "element",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> ShapeElement",
+      "source_returns": "ShapeElement",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Public bounded XML/package view obligation remains; no host or dependency runtime exposure."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.has_chart",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "has_chart",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.has_table",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "has_table",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.has_text_frame",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "has_text_frame",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> bool",
+      "source_returns": "bool",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.height",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "height",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.is_placeholder",
+      "declared_on": "pptx.shapes.placeholder.PlaceholderGraphicFrame",
+      "kind": "property",
+      "target_member": "is_placeholder",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self)",
+      "source_returns": null,
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.left",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "left",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.name",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "name",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> str",
+      "source_returns": "str",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.ole_format",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "ole_format",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> _OleFormat",
+      "source_returns": "_OleFormat",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.part",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "part",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> BaseSlidePart",
+      "source_returns": "BaseSlidePart",
+      "mapping_rules": ["J01", "J02", "J09"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Public bounded XML/package view obligation remains; no host or dependency runtime exposure."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.placeholder_format",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "placeholder_format",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> _PlaceholderFormat",
+      "source_returns": "_PlaceholderFormat",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.rotation",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "rotation",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> float",
+      "source_returns": "float",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.shadow",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "lazyproperty",
+      "target_member": "shadow",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> ShadowFormat",
+      "source_returns": "ShadowFormat",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.shape_id",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "shape_id",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> int",
+      "source_returns": "int",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.shape_type",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "shape_type",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> MSO_SHAPE_TYPE",
+      "source_returns": "MSO_SHAPE_TYPE",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Correct optional return to MSO_SHAPE_TYPE | null; diagram/unknown returns null; inventory kind is a separate classification."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.table",
+      "declared_on": "pptx.shapes.graphfrm.GraphicFrame",
+      "kind": "property",
+      "target_member": "table",
+      "readable": true,
+      "writable": false,
+      "source_signature": "(self) -> Table",
+      "source_returns": "Table",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.top",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "top",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.shapes.placeholder.PlaceholderGraphicFrame.width",
+      "declared_on": "pptx.shapes.base.BaseShape",
+      "kind": "property",
+      "target_member": "width",
+      "readable": true,
+      "writable": true,
+      "source_signature": "(self) -> Length",
+      "source_returns": "Length",
+      "mapping_rules": ["J01", "J02"],
+      "status": "public_model_gap",
+      "original_tests": [],
+      "disposition": "Neutral method spelling, inherited ownership and source side effects remain public obligations; detached diagram records are not a live model substitute."
+    },
+    {
+      "source_id": "pptx.enum.shapes.MSO_SHAPE_TYPE.IGX_GRAPHIC",
+      "kind": "enum-member",
+      "target_member": "IGX_GRAPHIC",
+      "value": 24,
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "retains diagram category values without implying an editable diagram model"
+        }
+      ],
+      "disposition": "Stable public enum value verified independently; no semantic diagram editing implied."
+    },
+    {
+      "source_id": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.ORG_CHART",
+      "kind": "enum-member",
+      "target_member": "ORG_CHART",
+      "value": 11,
+      "mapping_rules": ["J01", "J04"],
+      "status": "implemented",
+      "original_tests": [
+        {
+          "file": "packages/pptx/src/diagram-api-contract.test.ts",
+          "name": "retains the diagram placeholder value and XML token"
+        }
+      ],
+      "disposition": "Stable public enum value verified independently; no semantic diagram editing implied."
+    }
+  ],
+  "acceptance": {
+    "status": "bounded API boundary tests verified; final integration receipts in docs/plans/pptx-diagrams.md",
+    "full_public_api_coverage": false,
+    "full_automatic_layout": false,
+    "semantic_editing": false,
+    "unit_download_dependencies": false,
+    "corpus_qa": "manifest-verified single-slide general read returned zero diagrams; no real-world diagram visual acceptance",
+    "api_boundary_tests": {
+      "command": "npx vitest run packages/pptx/src/diagram-api-contract.test.ts",
+      "passed": 9,
+      "duration_ms": 12
+    }
+  },
+  "original_feature_tests": [
+    {
+      "file": "packages/pptx/src/diagram-inventory.test.ts",
+      "scope": "five resource kinds; direct shared owners; deterministic full cyclic closure; missing and fallback-only cases"
+    },
+    {
+      "file": "packages/pptx/src/diagram-import.test.ts",
+      "scope": "13 cases: shared and fallback-only payload preservation, required edge selectors, missing target rejection, both retained MCE branches and exclusive-branch/local shape-ID preservation with within-branch duplicate and malformed repeated fallback rejection"
+    },
+    {
+      "file": "packages/safe-bash/tests/commands/pptx/diagram-inventory.test.ts",
+      "scope": "6 passing cases: configured CLI and SDK inspect complete/missing/fallback resources; unrelated text replacement bytes; colliding slide import resources and closure; capabilities"
+    }
+  ]
+}

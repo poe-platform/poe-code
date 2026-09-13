@@ -23,6 +23,7 @@ export const inventorySchema = {
   additionalProperties: false,
   required: [
     "slides",
+    "diagrams",
     "textStyles",
     "masters",
     "layouts",
@@ -35,6 +36,22 @@ export const inventorySchema = {
     "counts"
   ],
   properties: {
+    diagrams: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["part", "kind", "owners", "dependencies", "missing", "semanticEditing"],
+        properties: {
+          part: { type: "string" },
+          kind: { enum: ["data", "layout", "style", "colors", "drawing"] },
+          owners: { type: "array", items: { type: "string" } },
+          dependencies: { type: "array", items: { type: "string" } },
+          missing: { type: "array", items: { type: "string" } },
+          semanticEditing: { const: false }
+        }
+      }
+    },
     textStyles: {
       type: "array",
       items: {

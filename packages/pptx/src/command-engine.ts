@@ -3668,6 +3668,14 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          diagrams: {
+            level: "preserve",
+            operations: ["inspect", "slides.import"],
+            semanticEditing: false,
+            automaticLayout: false,
+            subset:
+              "F40: inventory diagram data, layout, style, colors and fallback drawing resources with relationship closure. Import retains original appearance resources; unrelated edits preserve their bytes. Full semantic editing and automatic layout are unsupported."
+          },
           charts: {
             level: "edit",
             operations: Object.keys(chartSchemas),

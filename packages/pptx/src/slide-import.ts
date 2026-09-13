@@ -15,6 +15,8 @@ import {
   chartImportTypes,
   validatePreservedChart
 } from "./chart-import.js";
+import { diagramContentTypes, diagramRelationshipKinds } from "./diagram-resources.js";
+import { validatePreservedDiagram } from "./diagram-import.js";
 import { parseXmlPart, type XmlElement } from "./xml.js";
 import { validatePresentation } from "./validation.js";
 
@@ -336,9 +338,13 @@ export async function importSelectedSlides(
     theme: "application/vnd.openxmlformats-officedocument.theme+xml",
     themeOverride: "application/vnd.openxmlformats-officedocument.themeOverride+xml",
     ...chartImportTypes,
+    ...Object.fromEntries(
+      Object.entries(diagramContentTypes).map(([kind, type]) => [`diagram:${kind}`, type])
+    ),
     package: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   };
   const opaqueChartTypes = new Set<string>(Object.values(chartImportTypes));
+  const opaqueDiagramTypes = new Set<string>(Object.values(diagramContentTypes));
   const closure = [...selected];
   const visited = new Set(selected);
   for (let cursor = 0; cursor < closure.length; cursor++) {
@@ -346,6 +352,9 @@ export async function importSelectedSlides(
     const owner = closure[cursor]!;
     for (const edge of sourceGraph.outgoing(owner)) {
       const kind =
+        (diagramRelationshipKinds[edge.type]
+          ? `diagram:${diagramRelationshipKinds[edge.type]}`
+          : undefined) ??
         chartImportRelationships[edge.type] ??
         (edge.type.startsWith(`${d.r}/`) ? edge.type.slice(d.r.length + 1) : "");
       if (
@@ -353,6 +362,19 @@ export async function importSelectedSlides(
         !["package", "image", "chartStyle", "chartColorStyle", "themeOverride"].includes(kind)
       )
         unsupported("Import cannot preserve this chart dependency safely.");
+      if (
+        opaqueDiagramTypes.has(types.get(owner)) &&
+        ![
+          "diagram:data",
+          "diagram:layout",
+          "diagram:style",
+          "diagram:colors",
+          "diagram:drawing",
+          "image",
+          "themeOverride"
+        ].includes(kind)
+      )
+        unsupported("Import cannot preserve this diagram dependency safely.");
       if (edge.external) {
         if (!["hyperlink", "image", "audio", "video"].includes(kind))
           unsupported("Import encountered an unsupported external relationship.");
@@ -436,14 +458,18 @@ export async function importSelectedSlides(
     const edges = sourceGraph.outgoing(original);
     const type = types.get(original);
     const preserveChart = opaqueChartTypes.has(type);
+    const preserveDiagram = opaqueDiagramTypes.has(type);
     const oldIds = new Set(edges.map((edge) => edge.id));
     const ids = new Map<string, string>();
     let next = 1;
     for (const edge of edges) {
       while (oldIds.has(`rId${next}`)) next++;
-      ids.set(edge.id, preserveChart ? edge.id : `rId${next++}`);
+      ids.set(edge.id, preserveChart || preserveDiagram ? edge.id : `rId${next++}`);
     }
-    if (preserveChart) {
+    if (preserveDiagram) {
+      validatePreservedDiagram(parse(bytes), type, edges, d);
+      save(copy, bytes);
+    } else if (preserveChart) {
       validatePreservedChart(parse(bytes), type, edges, d);
       save(copy, bytes);
     } else if (type.endsWith("+xml") || type === "application/xml" || type === "text/xml") {
@@ -460,6 +486,7 @@ export async function importSelectedSlides(
         remapCopiedXml(bytes, edges, ids, {
           xmlLimits: context.xmlLimits,
           dialect: d,
+          preserveShapeIds: edges.some((edge) => diagramRelationshipKinds[edge.type] !== undefined),
           allocateLayoutId: () => {
             while (usedLayoutIds.has(nextLayoutId)) nextLayoutId++;
             if (nextLayoutId > 4294967295)

@@ -24,6 +24,7 @@
     "./core": { "types": "./dist/core.d.ts", "import": "./dist/core.js" },
     "./testing/atomic": { "types": "./dist/testing/atomic-filesystem.d.ts", "workerd": "./dist/testing/atomic-filesystem.js", "browser": "./dist/testing/atomic-filesystem.js", "import": "./dist/testing/atomic-filesystem.js" },
     "./node": { "types": "./dist/node/index.d.ts", "import": "./dist/node/index.js" },
+    "./node/filesystem": {"types": {"browser": "./dist/node-unavailable.d.ts", "default": "./dist/node/filesystem.d.ts"}, "browser": null, "import": "./dist/node/filesystem.js"},
     "./fs/memory": { "types": "./dist/fs/memory/index.d.ts", "import": "./dist/fs/memory/index.js" },
     "./fs/real": { "types": "./dist/fs/real/index.d.ts", "import": "./dist/fs/real/index.js" },
     "./fs/s3/http": { "types": "./dist/fs/s3/http/index.d.ts", "import": "./dist/fs/s3/http/index.js" },

@@ -118,7 +118,21 @@ Promise key/value/settlement aliases. This is a host proof-capability contract,
 not a claim about ECMAScript symbol support.
 
 The maintained exact SDK export inventory must include
-`admitNativePromiseProperties`. Its public contract test requires that `index`,
-`core` and `workerd` export the identical registration function, so admission
-registered through one entrypoint is shared by the others. The strict export
-list remains exact; it is not replaced by a partial match.
+`admitNativePromiseProperties`. The source export test requires that `index`,
+`core` and `workerd` re-export the identical source registration function. The
+strict export list remains exact; it is not replaced by a partial match.
+Installed-artifact qualification corrects the earlier inference that all
+bundled entrypoints therefore share one registry: Node `index` and `core` do,
+but the separately built Workerd runtime has its own registry. Register using
+the runtime entrypoint that imports the Promise. Each runtime's registration,
+bindings and host results have equivalent admission behavior; registration in
+another independently bundled runtime is not authority for this one. Actual
+Workerd execution is qualified separately from Node importing its bundle.
+
+The Workerd packaging follow-up provides an explicit SafeFS `node/filesystem`
+subpath, preserving the broad legacy `node` export. SafeJS imports that bridge
+and the existing portable `core` contract surface, so both root and scoped
+Workerd consumers avoid the real-filesystem native seek loader. This adds no
+guest filesystem authority. The bridge is a Node-compatible host adapter;
+its generic browser condition remains disabled. Failed broad-barrel controls,
+source and installed-artifact results are recorded in the delivery evidence.

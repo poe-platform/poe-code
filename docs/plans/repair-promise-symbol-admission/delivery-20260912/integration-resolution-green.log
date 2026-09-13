@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ scripts/cli-startup.test.ts (1 test) 825ms
+   ✓ keeps filesystem imports out of the CLI startup graph  824ms
+ ✓ scripts/bundle-fs.test.ts (5 tests) 68ms
+ ✓ tests/integration/standalone-package-metadata.test.ts (21 tests) 58ms
+ ✓ scripts/record-fs-conformance.test.ts (11 tests) 6ms
+
+ Test Files  4 passed (4)
+      Tests  38 passed (38)
+   Start at  20:01:53
+   Duration  5.31s (transform 4.12s, setup 206ms, import 5.29s, tests 958ms, environment 0ms)
+

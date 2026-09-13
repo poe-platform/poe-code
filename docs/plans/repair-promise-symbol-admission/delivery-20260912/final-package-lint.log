@@ -1,0 +1,24 @@
+
+> poe-code@0.0.0-dev lint:packages
+> tsx packages/package-lint/src/cli.ts
+
+package-lint · 17 rules · 71 packages
+
+shipped-dist-deps-unresolvable           ✓
+no-published-to-private-dep              ✓
+published-dep-needs-version-range        ✓
+public-needs-publish-wiring              ✓
+release-workflow-maps-to-package         ✓
+lockstep-release-group-valid             ✓
+no-cross-package-relative-import         ✓
+imported-workspace-dep-unresolvable      ✓
+exports-subpath-resolvable               ✓
+bundle-self-contained                    ✓
+bundled-transitive-npm-dep-unbundled     ✓
+published-bin-must-be-executable         ✓
+package-readme-required                  ✓
+runtime-file-assets-collocated           ✓
+runtime-file-assets-packaged             ✓
+published-license-required               ✓
+no-import-attributes-in-shipped-source   ✓
+✓ all 17 rules passed

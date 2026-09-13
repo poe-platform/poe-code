@@ -231,6 +231,7 @@ describe("standalone package publish metadata", () => {
       "./safe-fs",
       "./safe-fs/core",
       "./safe-fs/node",
+      "./safe-fs/node/filesystem",
       "./safe-js",
       "./safe-js/cli",
       "./safe-js/core",

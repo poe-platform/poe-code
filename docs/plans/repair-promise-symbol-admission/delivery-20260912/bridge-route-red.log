@@ -1,0 +1,66 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ scripts/bundle-fs.test.ts (5 tests | 1 failed) 68ms
+   ✓ builds the explicit workerd runtime separately from Node filesystem publishers 3ms
+   × externalizes canonical routes without flattening core, node or bridge 4ms
+   ✓ keeps Node SafeJS and all Node FS roots in one publisher-managed split build 1ms
+   ✓ externalizes the registered native loader only in the Node canonical profile 0ms
+   ✓ publishes separately built runtimes without pruning live canonical filesystem chunks 59ms
+FAIL scripts/bundle-fs.test.ts > externalizes canonical routes without flattening core, node or bridge
+AssertionError: expected { …(5) } to deeply equal { …(5) }
+
+- Expected
++ Received
+
+  {
+    "@poe-code/safe-fs": "poe-code/safe-fs",
+    "@poe-code/safe-fs/core": "poe-code/safe-fs/core",
+    "@poe-code/safe-fs/node": "poe-code/safe-fs/node",
+-   "@poe-code/safe-fs/node/bridge": "poe-code/safe-fs/node/bridge",
++   "@poe-code/safe-fs/node/bridge": "poe-code/safe-fs",
+    "other": "/repo/packages/other/src/index.ts",
+  }
+
+ ❯ scripts/bundle-fs.test.ts:34:24
+     32|     canonicalFs
+     33|   );
+     34|   expect(result.alias).toEqual({
+       |                        ^
+     35|     "@poe-code/safe-fs": "poe-code/safe-fs",
+     36|     "@poe-code/safe-fs/core": "poe-code/safe-fs/core",
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/bundle-fs.test.ts > externalizes canonical routes without flattening core, node or bridge
+AssertionError: expected { …(5) } to deeply equal { …(5) }
+
+- Expected
++ Received
+
+  {
+    "@poe-code/safe-fs": "poe-code/safe-fs",
+    "@poe-code/safe-fs/core": "poe-code/safe-fs/core",
+    "@poe-code/safe-fs/node": "poe-code/safe-fs/node",
+-   "@poe-code/safe-fs/node/bridge": "poe-code/safe-fs/node/bridge",
++   "@poe-code/safe-fs/node/bridge": "poe-code/safe-fs",
+    "other": "/repo/packages/other/src/index.ts",
+  }
+
+ ❯ scripts/bundle-fs.test.ts:34:24
+     32|     canonicalFs
+     33|   );
+     34|   expect(result.alias).toEqual({
+       |                        ^
+     35|     "@poe-code/safe-fs": "poe-code/safe-fs",
+     36|     "@poe-code/safe-fs/core": "poe-code/safe-fs/core",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  19:50:11
+   Duration  253ms (transform 72ms, setup 42ms, import 43ms, tests 68ms, environment 0ms)
+

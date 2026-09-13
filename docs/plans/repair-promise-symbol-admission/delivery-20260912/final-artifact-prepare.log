@@ -1,0 +1,20 @@
+[
+  {
+    "name": "@poe-platform/safe-fs",
+    "directory": "/private/tmp/promise-artifact-candidate-final2/safe-fs",
+    "version": "0.0.0-promise-filesystem",
+    "files": 137
+  },
+  {
+    "name": "@poe-platform/safe-js",
+    "directory": "/private/tmp/promise-artifact-candidate-final2/safe-js",
+    "version": "0.0.0-promise-filesystem",
+    "files": 365
+  },
+  {
+    "name": "@poe-platform/safe-bash",
+    "directory": "/private/tmp/promise-artifact-candidate-final2/safe-bash",
+    "version": "0.0.0-promise-filesystem",
+    "files": 1654
+  }
+]

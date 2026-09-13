@@ -1,0 +1,12 @@
+
+> poe-code@0.0.0-dev screenshot-poe-code
+> tsx scripts/screenshot.ts --poe-code --help
+
+[2m• turbo 2.9.18[0m
+
+   • Packages in scope: @poe-code/acp-telemetry, @poe-code/agent-child-process, @poe-code/agent-defs, @poe-code/agent-eval, @poe-code/agent-gaslight, @poe-code/agent-harness, @poe-code/agent-harness-tools, @poe-code/agent-hook-config, @poe-code/agent-human-in-loop, @poe-code/agent-mcp-config, @poe-code/agent-skill-config, @poe-code/agent-spawn, @poe-code/agent-trace-viewer, @poe-code/agent-traces, @poe-code/braintrust, @poe-code/cached-resource, @poe-code/config-extends, @poe-code/config-mutations, @poe-code/e2e-test-runner, @poe-code/experiment-loop, @poe-code/frontmatter, @poe-code/github-workflows, @poe-code/maestro, @poe-code/maestro-tui, @poe-code/markdown-reader, @poe-code/memory, @poe-code/package-lint, @poe-code/pipeline, @poe-code/plan-browser, @poe-code/poe-acp-client, @poe-code/poe-agent, @poe-code/poe-code-config, @poe-code/process-launcher, @poe-code/process-runner, @poe-code/providers, @poe-code/py-poe-spawn, @poe-code/ralph, @poe-code/safe-fs, @poe-code/safe-js, @poe-code/superintendent, @poe-code/task-list, @poe-code/user-error, @poe-code/workspace-resolver, @poe-code/worktree, agent-code-review, agent-stash, auth-store, github-review, mcp-oauth, mcp-oauth-server, opencode-poe-auth, poe-oauth, safe-bash-playground, terminal-pilot, terminal-pilot-mcp, terminal-png, terminal-png-mcp, tiny-http-mcp-oauth-test-server, tiny-http-mcp-server, tiny-mcp-client, tiny-oauth-test-server, tiny-stdio-mcp-server, tiny-stdio-mcp-test-server, tokenfill, toolcraft, toolcraft-codemode, toolcraft-design, toolcraft-landing-page, toolcraft-openapi, toolcraft-schema, virtual-bash
+   • Running build in 71 packages
+   • Remote caching enabled
+
+[33m[1m[7m WARNING [0m [33mRemote cache is read-only, skipping upload[0m
+Shutting down Turborepo tasks...

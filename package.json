@@ -359,6 +359,14 @@
       "workerd": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
       "browser": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/line-endings/index.js"
+    },
+    "./safe-fs/node/filesystem": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-fs/dist/node/filesystem.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/safe-fs-bridge.js"
     }
   },
   "workspaces": [

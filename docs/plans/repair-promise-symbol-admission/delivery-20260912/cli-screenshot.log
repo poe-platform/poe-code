@@ -1,0 +1,5 @@
+
+> poe-code@0.0.0-dev screenshot
+> tsx scripts/screenshot.ts node dist/bin.cjs --help
+
+screenshots/node-dist-bin.cjs-help.png

@@ -1,0 +1,235 @@
+
+> poe-code@0.0.0-dev test
+> node scripts/build-workspaces.mjs --test-unit
+
+
+> @poe-code/safe-fs@0.0.0-dev build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-code/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> virtual-bash@0.0.0 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs
+
+
+> poe-code@0.0.0-dev test:unit:shared
+> node scripts/test-vitest-workspaces.mjs . packages/acp-telemetry packages/agent-child-process packages/agent-code-review packages/agent-gaslight packages/agent-harness packages/agent-harness-tools packages/agent-hook-config packages/agent-spawn packages/agent-stash packages/agent-trace-viewer packages/agent-traces packages/braintrust packages/experiment-loop packages/frontmatter packages/github-review packages/github-workflows packages/maestro packages/maestro-tui packages/markdown-reader packages/mcp-oauth-server packages/memory packages/opencode-poe-auth packages/package-lint packages/process-launcher packages/process-runner packages/ralph packages/safe-bash-playground packages/superintendent packages/task-list packages/toolcraft packages/toolcraft-codemode packages/toolcraft-landing-page packages/toolcraft-openapi packages/toolcraft-schema packages/workspace-resolver
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+Unit workspace poe-code: running 521 files
+Unit workspace @poe-code/acp-telemetry: running 6 files
+Unit workspace @poe-code/agent-child-process: running 1 files
+Unit workspace agent-code-review: running 12 files
+Unit workspace @poe-code/agent-gaslight: running 4 files
+Unit workspace @poe-code/agent-harness: running 13 files
+Unit workspace @poe-code/agent-harness-tools: running 17 files
+Unit workspace @poe-code/agent-hook-config: running 8 files
+Unit workspace @poe-code/agent-spawn: running 23 files
+Unit workspace agent-stash: running 13 files
+Unit workspace @poe-code/agent-trace-viewer: running 8 files
+Unit workspace @poe-code/agent-traces: running 9 files
+Unit workspace @poe-code/braintrust: running 9 files
+Unit workspace @poe-code/experiment-loop: running 3 files
+Unit workspace @poe-code/frontmatter: running 1 files
+Unit workspace github-review: running 6 files
+Unit workspace @poe-code/github-workflows: running 10 files
+Unit workspace @poe-code/maestro: running 27 files
+Unit workspace @poe-code/maestro-tui: running 3 files
+Unit workspace @poe-code/markdown-reader: running 7 files
+Unit workspace mcp-oauth-server: running 2 files
+Unit workspace @poe-code/memory: running 29 files
+Unit workspace opencode-poe-auth: running 1 files
+Unit workspace @poe-code/package-lint: running 13 files
+Unit workspace @poe-code/process-launcher: running 11 files
+Unit workspace @poe-code/process-runner: running 9 files
+Unit workspace @poe-code/ralph: running 2 files
+Unit workspace safe-bash-playground: running 8 files
+Unit workspace @poe-code/superintendent: running 34 files
+Unit workspace @poe-code/task-list: running 19 files
+Unit workspace toolcraft: running 52 files
+Unit workspace toolcraft-codemode: running 6 files
+Unit workspace toolcraft-landing-page: running 3 files
+Unit workspace toolcraft-openapi: running 21 files
+Unit workspace toolcraft-schema: running 6 files
+Unit workspace @poe-code/workspace-resolver: running 2 files
+ ❯ scripts/cli-startup.test.ts (1 test | 1 failed) 4ms
+   × keeps filesystem imports out of the CLI startup graph 3ms
+FAIL scripts/cli-startup.test.ts > keeps filesystem imports out of the CLI startup graph
+Error: ENOTDIR: not a directory, open '/Users/kjopek/Workspace/poe-code/packages/.DS_Store/package.json'
+ ❯ scripts/cli-startup.test.ts:15:25
+     13|       workspaces.push({
+     14|         dir,
+     15|         pkg: JSON.parse(await readFile(path.join(root, "packages", dir…
+       |                         ^
+     16|       });
+     17|     } catch (error) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { errno: -20, code: 'ENOTDIR', syscall: 'open', path: '/Users/kjopek/Workspace/poe-code/packages/.DS_Store/package.json' }
+ ❯ scripts/record-fs-conformance.test.ts (0 test)
+FAIL scripts/record-fs-conformance.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/modules/fs.conformance-cases.ts:5:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/agent-harness/src/loader/run.test.ts (0 test)
+FAIL packages/agent-harness/src/loader/run.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/agent-harness/src/loader/callable-parity.test.ts (0 test)
+FAIL packages/agent-harness/src/loader/callable-parity.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/agent-harness/src/testing/replay-equivalence.test.ts (0 test)
+FAIL packages/agent-harness/src/testing/replay-equivalence.test.ts
+Error: [vitest] There was an error when mocking a module. If you are using "vi.mock" factory, make sure there are no top level variables inside, since this call is hoisted to top of the file. Read more: https://vitest.dev/api/vi.html#vi-mock
+ ❯ packages/agent-harness/src/loader/run.ts:7:1
+      5|
+      6| import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
+      7| import {
+       | ^
+      8|   lint,
+      9|   FileSnapshotBackend,
+ ❯ packages/agent-harness/src/testing/replay-equivalence.ts:9:1
+
+Caused by: Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/agent-harness/src/testing/recovery-e2e.test.ts (0 test)
+FAIL packages/agent-harness/src/testing/recovery-e2e.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/agent-harness/src/templates/index.test.ts (0 test)
+FAIL packages/agent-harness/src/templates/index.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/agent-harness/src/codegen/emit-schemas.test.ts (0 test)
+FAIL packages/agent-harness/src/codegen/emit-schemas.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/agent-harness/src/loader/agent-results.test.ts (0 test)
+FAIL packages/agent-harness/src/loader/agent-results.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ src/cli/commands/harness-command.test.ts (0 test)
+FAIL src/cli/commands/harness-command.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/agent-harness/src/loader/extract-schema.test.ts (0 test)
+FAIL packages/agent-harness/src/loader/extract-schema.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/agent-harness/src/loader/mcp.test.ts (0 test)
+FAIL packages/agent-harness/src/loader/mcp.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/bridge' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/bridge";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/index.ts:98:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+Error: Build or unit execution interrupted by SIGINT
+    at taskError (file:///Users/kjopek/Workspace/poe-code/scripts/build-workspaces.mjs:174:17)
+    at stop (file:///Users/kjopek/Workspace/poe-code/scripts/build-workspaces.mjs:299:34)
+    at process.<anonymous> (file:///Users/kjopek/Workspace/poe-code/scripts/build-workspaces.mjs:304:77)
+    at process.emit (node:events:519:28) {
+  exitCode: 1
+}

@@ -1,0 +1,35 @@
+{
+  "observedAt": "2026-09-13T01:02:21.130310+00:00",
+  "packages": [
+    {
+      "name": "@poe-platform/safe-fs",
+      "version": "0.1.564",
+      "integrity": "sha512-hJmtKmza/JXzaAR2TTa8NQeTFJHfvUxbJEXqdxuk7K1SFqI1bsHFxLNetW2ttmLnPsVUuJ9dnK+QwQbIgypoJQ==",
+      "integrityMatches": true,
+      "provenanceSubjectMatches": true,
+      "sourceSha": "11a7a80571a633cd452fde83a3fd57290fc019a4",
+      "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34728928966/attempts/1",
+      "embeddedProvenance": "not shipped; registry provenance used"
+    },
+    {
+      "name": "@poe-platform/safe-js",
+      "version": "0.1.564",
+      "integrity": "sha512-CUEr6+ukoHF6frI8YT/ft51b6m1LFuw9es+2LYDUXI/bveFvy6TLKpFqZgEXJVRUZVzFOjEvoeaBpDFvsHLLwQ==",
+      "integrityMatches": true,
+      "provenanceSubjectMatches": true,
+      "sourceSha": "11a7a80571a633cd452fde83a3fd57290fc019a4",
+      "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34728928966/attempts/1",
+      "embeddedProvenance": "not shipped; registry provenance used"
+    },
+    {
+      "name": "@poe-platform/safe-bash",
+      "version": "0.1.564",
+      "integrity": "sha512-6h7hwB1oxR/fk4YpyFUfhth0jsJ2CCkZrl35dcA/jE4q+LfnR4/SJCeh0laEh9hz9JLYcC4Ckp5bXnypWg6yhQ==",
+      "integrityMatches": true,
+      "provenanceSubjectMatches": true,
+      "sourceSha": "11a7a80571a633cd452fde83a3fd57290fc019a4",
+      "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34728928966/attempts/1",
+      "embeddedProvenance": "not shipped; registry provenance used"
+    }
+  ]
+}

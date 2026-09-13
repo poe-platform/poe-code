@@ -1,0 +1,97 @@
+[
+  {
+    "file": "bridge-route-red.log",
+    "rawSha256": "27035ac0f903818f8a931e458578e36fdd714423fc5cb8eff5bdac86de0e5421",
+    "rawBytes": 2473
+  },
+  {
+    "file": "bridge-route-fixture-failures.log.gz",
+    "rawSha256": "a26653b86e6c498eb764e0ee65d4e3754ba139058b558ce798d57322617fd933",
+    "rawBytes": 136993
+  },
+  {
+    "file": "bridge-route-green.log",
+    "rawSha256": "9e0aa603d8e505ab1d3c47d38e5c6c989efb85758e43765aae8f7bbfd764d6d6",
+    "rawBytes": 1276
+  },
+  {
+    "file": "export-inventory-green.log",
+    "rawSha256": "1267eee0ce6218b882ddedd7c8ebb2a49898a4f7dc5961b0f29a000ee2b9496e",
+    "rawBytes": 292
+  },
+  {
+    "file": "root-test-first-interrupted.log",
+    "rawSha256": "e56b24ff83667d1b4cbf54a475605d93f8143edebae27b834786b5430df48203",
+    "rawBytes": 7861
+  },
+  {
+    "file": "root-test-second-interrupted.log",
+    "rawSha256": "d5e45db47316c87651cbfc313a1c2514ab0baedf9a487340ad5c4e8da9ac69f9",
+    "rawBytes": 13124
+  },
+  {
+    "file": "root-test-screenshot-interference.log",
+    "rawSha256": "6ab1354ad89f6cff337653bca4a23d583c9c3ff4d615ef7d1e10f1a5cff423e1",
+    "rawBytes": 4534
+  },
+  {
+    "file": "integration-resolution-red.log",
+    "rawSha256": "50b2fbf38bd3fc1286fd60d4def7ab69fb491af6e9814ac06f5a26d349612910",
+    "rawBytes": 1955
+  },
+  {
+    "file": "integration-resolution-green.log",
+    "rawSha256": "ad7ddb3040e07b0c31f9641c2281f0a78c6f987832f2c932fcfd386710f10867",
+    "rawBytes": 516
+  },
+  {
+    "file": "final-focused.log",
+    "rawSha256": "9f8676aa2bc5c0a7896ec2ef023a7aea11eb1d2ded48f443ef10757874673980",
+    "rawBytes": 1564
+  },
+  {
+    "file": "final-package-lint.log",
+    "rawSha256": "d6bfe1560fedb3d003cf38211c8a517f69b466b5d68080aa16b64fb43b24dd74",
+    "rawBytes": 906
+  },
+  {
+    "file": "restored-build.log",
+    "rawSha256": "00d12d1e59a2421d42e35c0a0b7ffe0bc78b69d4ed6243b57255bc575f0bb68d",
+    "rawBytes": 12332
+  },
+  {
+    "file": "restored-budget-control.log",
+    "rawSha256": "d4c843bdfa906bb77b48c74a923ba23c63adc512dc378509f389dc2c8fc7908f",
+    "rawBytes": 295
+  },
+  {
+    "file": "first-scoped-release.log.gz",
+    "rawSha256": "d28ca2c9a54df462a7d01c542fea67f1986ac6d553495131da2a36e7dab9beda",
+    "rawBytes": 650944
+  },
+  {
+    "file": "first-registry-receipt.json",
+    "rawSha256": "99d5117d2f5d5e4dba1c0e6d840c66086ea8b06a206bb293add42f8e515a7a91",
+    "rawBytes": 1574
+  },
+  {
+    "file": "first-signatures.log",
+    "rawSha256": "eb5c53a9f363ca85d6d7da8b6d8a781be09e4c038e09712b750a8ea3a1d7f14d",
+    "rawBytes": 114
+  },
+  {
+    "file": "cli-screenshot-interrupted.log",
+    "rawSha256": "fae6109af4c2b52a5d8d5e14e67d365d0a99ad4e6f8c0f7f959a639c4449e457",
+    "rawBytes": 1896
+  },
+  {
+    "file": "cli-screenshot.log",
+    "rawSha256": "98aca1a9481b31904976032dbdbb30e619f8f9df1be2c8e525e99a1e9a16e569",
+    "rawBytes": 126
+  },
+  {
+    "file": "final-artifact-prepare.log",
+    "rawSha256": "51975b4229fd3ffef2b9162ea6fce263c4264b10fae0b1b0efbd5260dbdaff05",
+    "rawBytes": 551
+  }
+]

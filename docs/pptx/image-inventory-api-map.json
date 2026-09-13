@@ -16,7 +16,7 @@
   "languageMappings": {
     "admission": "Always async bytes/stream or explicit capability-scoped VFS input. No path inference, native image runtime, ambient filesystem or network.",
     "indexing": "CLI picture positions are one-based within owning parts. Fallback references share a picture position. Structural reference IDs remain distinct.",
-    "density": "Missing/invalid density uses 72 per axis. Numbers round to nearest integer with positive halfway values upward, then must be in 1..2048. Numeric strings are rejected; no coercion. This explicitly differs from source float coercion and ties-to-even.",
+    "density": "Missing/invalid density uses 72 per axis. Finite numbers round to the nearest integer with ties-to-even, then must be in 1..2048. Numeric strings are rejected without coercion; this differs from source float coercion, not its rounding rule. See image-density-evidence.md.",
     "dimensions": "PNG/JPEG/GIF/BMP/TIFF bounded header metadata, not pixel decoding or image validity certification. Unsupported vector intrinsic dimensions are null.",
     "hash": "SHA-256 identifies admitted bytes; explicit unique groups hashes while preserving contributing parts. Media sha1 exposes independently tested compatibility metadata, never the integrity identity. Mixed MIME groups retain all declarations, null dimensions and default DPI.",
     "ownership": "Inventory is a detached noncreating read, not live Image/Picture model objects. Local placement corners and inherited slide membership do not promise rendering.",

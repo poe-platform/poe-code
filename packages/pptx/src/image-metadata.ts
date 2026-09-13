@@ -9,7 +9,8 @@ export function normalizeImageDpi(value: unknown): [number, number] {
   const axes: unknown[] = Array.isArray(value) ? value : [];
   const axis = (raw: unknown): number => {
     if (typeof raw !== "number" || !Number.isFinite(raw)) return 72;
-    const rounded = Math.round(raw);
+    const lower = Math.floor(raw);
+    const rounded = raw - lower === 0.5 ? lower + (lower % 2 === 0 ? 0 : 1) : Math.round(raw);
     return rounded >= 1 && rounded <= 2048 ? rounded : 72;
   };
   return [axis(axes[0]), axis(axes[1])];

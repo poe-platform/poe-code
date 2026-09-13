@@ -230,11 +230,11 @@ it.each([
   ],
   [
     [0.4, 2048.5],
-    [72, 72]
+    [72, 2048]
   ],
   [
     [42.5, 23.5],
-    [43, 24]
+    [42, 24]
   ],
   [
     ["96", 96],
@@ -243,6 +243,51 @@ it.each([
 ])("rounds numeric density before applying the supported range (%j)", (raw, expected) => {
   expect(normalizeImageDpi(raw)).toEqual(expected);
 });
+
+it.each([
+  [
+    [0.5, 1.5],
+    [72, 2]
+  ],
+  [
+    [2.5, 3.5],
+    [2, 4]
+  ],
+  [
+    [2047.5, 2049.5],
+    [2048, 72]
+  ],
+  [
+    [42.499999999, 42.500000001],
+    [42, 43]
+  ],
+  [
+    [-0.5, -1.5],
+    [72, 72]
+  ]
+])("rounds density ties to even before independent fallback (%j)", (raw, expected) => {
+  expect(normalizeImageDpi(raw)).toEqual(expected);
+});
+
+it.each([true, false])(
+  "rounds TIFF rational density ties without changing bytes (%s)",
+  (little) => {
+    const bytes = tiff(little);
+    const view = new DataView(bytes.buffer);
+    view.setUint32(74, 85, little);
+    view.setUint32(78, 2, little);
+    view.setUint32(82, 47, little);
+    view.setUint32(86, 2, little);
+    const before = bytes.slice();
+    expect(imageMetadata(bytes, "image/tiff")).toEqual({
+      pixelWidth: 300,
+      pixelHeight: 150,
+      dpiX: 42,
+      dpiY: 24
+    });
+    expect(bytes).toEqual(before);
+  }
+);
 
 it("reads a square JPEG frame with absent density", () => {
   const bytes = Uint8Array.from([

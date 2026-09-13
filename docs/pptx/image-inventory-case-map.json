@@ -580,7 +580,7 @@
         }
       ],
       "status": "inventory-behavior-covered",
-      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded metadata helper; finite numeric axes use ties-to-even before the 1..2048 check and independent 72-DPI fallback. Numeric strings do not coerce. See image-density-evidence.md for exact original regression coverage.",
       "tests": [
         "packages/pptx/src/image-metadata.test.ts"
       ],
@@ -602,7 +602,7 @@
         }
       ],
       "status": "inventory-behavior-covered",
-      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded metadata helper; finite numeric axes use ties-to-even before the 1..2048 check and independent 72-DPI fallback. Numeric strings do not coerce. See image-density-evidence.md for exact original regression coverage.",
       "tests": [
         "packages/pptx/src/image-metadata.test.ts"
       ],
@@ -624,7 +624,7 @@
         }
       ],
       "status": "inventory-behavior-covered",
-      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded metadata helper; finite numeric axes use ties-to-even before the 1..2048 check and independent 72-DPI fallback. Numeric strings do not coerce. See image-density-evidence.md for exact original regression coverage.",
       "tests": [
         "packages/pptx/src/image-metadata.test.ts"
       ],
@@ -646,7 +646,7 @@
         }
       ],
       "status": "inventory-behavior-covered",
-      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded metadata helper; finite numeric axes use ties-to-even before the 1..2048 check and independent 72-DPI fallback. Numeric strings do not coerce. See image-density-evidence.md for exact original regression coverage.",
       "tests": [
         "packages/pptx/src/image-metadata.test.ts"
       ],
@@ -668,7 +668,7 @@
         }
       ],
       "status": "inventory-behavior-covered",
-      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded metadata helper; finite numeric axes use ties-to-even before the 1..2048 check and independent 72-DPI fallback. Numeric strings do not coerce. See image-density-evidence.md for exact original regression coverage.",
       "tests": [
         "packages/pptx/src/image-metadata.test.ts"
       ],

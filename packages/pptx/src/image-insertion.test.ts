@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
+import { createHash } from "node:crypto";
 import { addImage, createPresentation, readImages } from "./index.js";
 import { inspectZip } from "../tests/zip-reader.js";
 const context = {
@@ -29,6 +30,30 @@ const tile = new Uint8Array([
   71, 73, 70, 56, 57, 97, 4, 0, 2, 0, 128, 0, 0, 0, 0, 0, 20, 90, 160, 33, 249, 4, 1, 0, 0, 0, 0,
   44, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59
 ]);
+it("sizes admitted JPEG density ties to even and retains the original media hash", async () => {
+  const bytes = new Uint8Array([
+    255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0, 1, 2, 2, 0, 75, 0, 25, 0, 0, 255, 192, 0, 11, 8,
+    0, 64, 0, 190, 1, 1, 17, 0, 255, 218, 0, 8, 1, 1, 0, 0, 63, 0, 19, 255, 0, 20, 255, 217
+  ]);
+  const hash = createHash("sha256").update(bytes).digest("hex");
+  const input = await createPresentation({ slides: [{}] }, context);
+  const output = await addImage(input, { slide: 1, bytes, contentType: "image/jpeg" }, context);
+  const entries = parts(output);
+  expect(attrs(entries.get("ppt/slides/slide1.xml")!, "ext").at(-1)).toEqual({
+    cx: "914400",
+    cy: "914400"
+  });
+  expect(createHash("sha256").update(entries.get("ppt/media/image1.jpg")!).digest("hex")).toBe(
+    hash
+  );
+  expect((await readImages(output, {}, context)).media[0]).toMatchObject({
+    dpiX: 190,
+    dpiY: 64,
+    pixelWidth: 190,
+    pixelHeight: 64,
+    sha256: hash
+  });
+});
 function parts(bytes: Uint8Array) {
   const vfs = Volume.fromJSON({});
   vfs.writeFileSync("/result.pptx", bytes);

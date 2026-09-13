@@ -1696,3 +1696,46 @@ Commands, source/configuration for manual artifact controls, failures/skips and 
 Source `f323b061349f26d08abccdef39ee22627273b0b4`, Node 22.23.2 / ICU 78.2: full maintained `npm test` passed, including 29,262 SafeJS tests / 47 declared skips, all declared workspace stages and the root posttest stress checks. [Terminal receipt](repair-promise-symbol-admission/delivery-20260912/root-test-final.json) binds the compressed raw log to the source; [qualification details](repair-promise-symbol-admission/delivery-20260912/followup-qualification.md) retain all failed/interrupted attempts and commands. The independent committed archive check passed. An intervening ENOSPC attempt was interrupted and is not counted as passing; only task-owned temporary consumers were removed before the successful complete retry. Candidate source hashes and unrelated staged changes remain unchanged. Full build, full lint and package lint also passed. The published-edition target remains unchanged.
 
 The first root workflow [34728929036](https://github.com/poe-platform/poe-code/actions/runs/34728929036) succeeded, publishing `poe-code@15.0.29` from `11a7a80571a633cd452fde83a3fd57290fc019a4`; the scoped workflow published all three safe packages at `0.1.564`. Separate registry receipts verify every tarball integrity and SLSA subject/source/workflow. Installed root admission/replay smoke passed all six entrypoint/surface controls; npm verified 207 signatures / 37 attestations. The first scoped receipt and independent installed controls remain recorded. These first releases do not resolve the published Workerd barrel issue; the locally qualified `node/filesystem` follow-up requires its own verified remote delivery and successful publication. No explicitly associated issue was supplied.
+
+
+### qualify-source-modules — prompt unsupported-dump rejection (2026-09-13 UTC)
+
+Source base `60a6f594ec0f40467b61880a856a626d3b14de35`, Node **22.23.2 /
+ICU 78.2**, Darwin arm64. The ECMA-262 edition 16 / ECMA-402 edition 12 target,
+previously tracked newer APIs and pinned Test262 revision remain unchanged.
+[Qualification and reproducible blockers](qualify-source-modules/dump-readiness-audit/qualification.md)
+distinguish the task-owned repair from the pre-existing source-module candidate.
+
+Two failing regressions established that `dump()` and `dumpCurrent()` wait
+indefinitely for unsupported live snapshots when a host operation is pending.
+The live-run branch now attaches the existing dump controller with its existing
+unsupported-snapshot error. Requests reject promptly without stopping execution.
+Host completion and cancellation remain tested. Module-specific pending resolver
+and host-operation probes also reject promptly and preserve cancellation reasons.
+This is an error-readiness repair, not graph checkpoint or replay support.
+
+The exact committed code was checked in a detached checkout excluding prior local
+changes: maintained pretest, **49 tests / zero skipped**, lint and package
+typechecking all passed. The initial isolated test attempt lacked generated
+number-format fixtures and executed no tests; the maintained pretest repaired
+that preparation. Working-tree selections passed **67** snapshot/realm tests
+and **132** module/parser/SDK/CLI/runner controls, with no failures or skips.
+The CLI screenshot was opened and visually checked. Full package/root gates and
+the runtime matrix were not repeated for this focused repair.
+
+The complete pinned module-code rerun remains **594 passed / two failed / six
+unsupported**, 602 variants, exit 1. The previously recorded edition/capability
+dispositions remain; no nonpass is counted as a pass. Candidate source digest:
+`bce76d2afd041d595a1bae1e2e3169885fa88fed72c657d9898948e402a89cd9`.
+
+**Acceptance remains incomplete.** Fresh probes still produce identical
+placeholder hashes for different dependency sources, reject import-frame capture
+and all source restores before consulting the resolver, and return outside
+source under an inside identity in the deterministic two-swap rooted-resolution
+attack. Prompt dump rejection does not provide checkpoint encoding, pending-host
+replay, source-manifest mismatch validation or atomic ancestor confinement.
+
+This entry accompanies the local atomic dump repair commit; its SHA is reported
+after creation. The pre-existing module candidate and unrelated staged changes
+are preserved. Verified task remote-main delivery: **none**. Successful task
+release/publication receipts: **none**. No push was initiated.

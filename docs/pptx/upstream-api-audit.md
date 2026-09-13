@@ -2,6 +2,11 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Current links: [bounded F47 evidence and language/security mappings](links-evidence.md),
+[144-case accounting](links-case-map.json), [50-member API receipt](links-api-map.json)
+and [draft usage](links-usage.md). This is a later bounded implementation receipt;
+historical baseline statements below do not describe the current package.
+
 Current chart operations: [29-variant expansion and exact mappings](chart-expansion-evidence.md),
 [complete retained chart case ledger](chart-expansion-case-map.json), and
 [chart public-member ledger](chart-expansion-api-map.json). This expands bounded

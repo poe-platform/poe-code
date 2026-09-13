@@ -1,0 +1,2865 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "F47 bounded operations; each relevant unit variant and expanded BDD example retained separately. Entries are not a parity certificate.",
+  "notice": "Research/provenance only. Original TypeScript assets and wording; no source fixtures copied. Existing upstream-license-notice.txt and test-case-map-notice.txt retained.",
+  "selection": "All tests/test_action.py cases; hyperlink and click_action cases across shape/text tests; every act-action/act-hyperlink BDD example plus shared shape/group and text/table-cell link scenarios.",
+  "counts": {
+    "unit": 64,
+    "bdd": 80
+  },
+  "verification": "links-actions.test.ts and links-model.test.ts pass focused original package/model checks; root integration receipt records final maintained checks. Status distinguishes source semantics from complete original model graph integration.",
+  "rows": [
+    {
+      "inventoryPointer": "unit_cases/1712",
+      "source": {
+        "node_id": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:sp/p:nvSpPr/p:cNvPr]",
+        "source_file": "tests/shapes/test_base.py",
+        "line": 50,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "unit_cases/1713",
+      "source": {
+        "node_id": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:grpSp/p:nvGrpSpPr/p:cNvPr]",
+        "source_file": "tests/shapes/test_base.py",
+        "line": 50,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "unit_cases/1714",
+      "source": {
+        "node_id": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:graphicFrame/p:nvGraphicFramePr/p:cNvPr]",
+        "source_file": "tests/shapes/test_base.py",
+        "line": 50,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "unit_cases/1715",
+      "source": {
+        "node_id": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:cxnSp/p:nvCxnSpPr/p:cNvPr]",
+        "source_file": "tests/shapes/test_base.py",
+        "line": 50,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "unit_cases/1716",
+      "source": {
+        "node_id": "tests/shapes/test_base.py::DescribeBaseShape::it_provides_access_to_its_click_action[p:pic/p:nvPicPr/p:cNvPr]",
+        "source_file": "tests/shapes/test_base.py",
+        "line": 50,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "unit_cases/1896",
+      "source": {
+        "node_id": "tests/shapes/test_group.py::DescribeGroupShape::it_raises_on_access_click_action",
+        "source_file": "tests/shapes/test_group.py",
+        "line": 17,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "unit_cases/2130",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture0]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr', None, PP_ACTION.NONE)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2131",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture1]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', None, PP_ACTION.HYPERLINK)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2132",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture2]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://hlinkshowjump?jump=firstslide', PP_ACTION.FIRST_SLIDE)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2133",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture3]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://hlinkshowjump?jump=lastslide', PP_ACTION.LAST_SLIDE)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2134",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture4]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://hlinkshowjump?jump=nextslide', PP_ACTION.NEXT_SLIDE)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2135",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture5]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://hlinkshowjump?jump=previousslide', PP_ACTION.PREVIOUS_SLIDE)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2136",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture6]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://hlinkshowjump?jump=endshow', PP_ACTION.END_SHOW)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2137",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture7]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://hlinksldjump', PP_ACTION.NAMED_SLIDE)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2138",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture8]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://hlinkfile', PP_ACTION.OPEN_FILE)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2139",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture9]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://hlinkpres', PP_ACTION.PLAY)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2140",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture10]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://customshow', PP_ACTION.NAMED_SLIDE_SHOW)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2141",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture11]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://ole', PP_ACTION.OLE_VERB)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2142",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture12]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://macro', PP_ACTION.RUN_MACRO)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2143",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture13]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://program', PP_ACTION.RUN_PROGRAM)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2144",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture14]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://hlinkshowjump?jump=lastslideviewed', PP_ACTION.LAST_SLIDE_VIEWED)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2145",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_action_type[action_fixture15]",
+        "source_file": "tests/test_action.py",
+        "line": 21,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick', 'ppaction://media', PP_ACTION.NONE)",
+      "originalCase": "returns action metadata and a live URL view for %s"
+    },
+    {
+      "inventoryPointer": "unit_cases/2146",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_provides_access_to_its_hyperlink",
+        "source_file": "tests/test_action.py",
+        "line": 26,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "unit_cases/2147",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture0]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.NONE, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2148",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture1]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.HYPERLINK, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2149",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture2]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.FIRST_SLIDE, 0)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2150",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture3]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.LAST_SLIDE, 5)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2151",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture4]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.NEXT_SLIDE, 3)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2152",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture5]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.PREVIOUS_SLIDE, 1)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2153",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture6]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.END_SHOW, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2154",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture7]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.NAMED_SLIDE, 4)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2155",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture8]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.OPEN_FILE, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2156",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture9]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.PLAY, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2157",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture10]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.NAMED_SLIDE_SHOW, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2158",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture11]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.OLE_VERB, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2159",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture12]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.RUN_MACRO, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2160",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture13]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.RUN_PROGRAM, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2161",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_find_its_slide_jump_target[target_get_fixture14]",
+        "source_file": "tests/test_action.py",
+        "line": 33,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.LAST_SLIDE_VIEWED, None)",
+      "originalCase": "resolves %s against live slide membership; returns no slide object for non-slide action %s; sets and clears a same-owner slide while rejecting foreign identities"
+    },
+    {
+      "inventoryPointer": "unit_cases/2162",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_can_change_its_slide_jump_target",
+        "source_file": "tests/test_action.py",
+        "line": 38,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "unit_cases/2163",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::but_it_clears_the_target_slide_if_None_is_assigned",
+        "source_file": "tests/test_action.py",
+        "line": 55,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "unit_cases/2164",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_raises_on_no_next_prev_slide[target_raise_fixture0]",
+        "source_file": "tests/test_action.py",
+        "line": 63,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.NEXT_SLIDE, 2)",
+      "originalCase": "raises at a missing navigation boundary and on a removed slide owner"
+    },
+    {
+      "inventoryPointer": "unit_cases/2165",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_raises_on_no_next_prev_slide[target_raise_fixture1]",
+        "source_file": "tests/test_action.py",
+        "line": 63,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "(PP_ACTION.PREVIOUS_SLIDE, 0)",
+      "originalCase": "raises at a missing navigation boundary and on a removed slide owner"
+    },
+    {
+      "inventoryPointer": "unit_cases/2166",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_knows_its_slide_index_to_help",
+        "source_file": "tests/test_action.py",
+        "line": 68,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "unit_cases/2167",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_clears_the_click_action_to_help[clear_fixture0]",
+        "source_file": "tests/test_action.py",
+        "line": 74,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation.",
+      "sourceParameters": "('p:cNvPr', None, 'p:cNvPr')"
+    },
+    {
+      "inventoryPointer": "unit_cases/2168",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeActionSetting::it_clears_the_click_action_to_help[clear_fixture1]",
+        "source_file": "tests/test_action.py",
+        "line": 74,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation.",
+      "sourceParameters": "('p:cNvPr{a:b=c,r:s=t}/a:hlinkClick{r:id=rId42}', 'rId42', 'p:cNvPr{a:b=c,r:s=t}')"
+    },
+    {
+      "inventoryPointer": "unit_cases/2169",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_knows_the_target_url_of_the_hyperlink",
+        "source_file": "tests/test_action.py",
+        "line": 256,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "unit_cases/2170",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_knows_when_theres_no_url[p:cNvPr]",
+        "source_file": "tests/test_action.py",
+        "line": 262,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "unit_cases/2171",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_knows_when_theres_no_url[p:cNvPr/a:hlinkClick]",
+        "source_file": "tests/test_action.py",
+        "line": 262,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "unit_cases/2172",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_can_remove_its_url[remove_fixture0]",
+        "source_file": "tests/test_action.py",
+        "line": 266,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference.",
+      "sourceParameters": "('p:cNvPr{a:a=a,r:r=r}', [])"
+    },
+    {
+      "inventoryPointer": "unit_cases/2173",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_can_remove_its_url[remove_fixture1]",
+        "source_file": "tests/test_action.py",
+        "line": 266,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference.",
+      "sourceParameters": "('p:cNvPr{a:a=a,r:r=r}/a:hlinkClick', [])"
+    },
+    {
+      "inventoryPointer": "unit_cases/2174",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_can_remove_its_url[remove_fixture2]",
+        "source_file": "tests/test_action.py",
+        "line": 266,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference.",
+      "sourceParameters": "('p:cNvPr{a:a=a,r:r=r}/a:hlinkClick{r:id=rId3}', [call('rId3')])"
+    },
+    {
+      "inventoryPointer": "unit_cases/2175",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_can_set_its_target_url[update_fixture0]",
+        "source_file": "tests/test_action.py",
+        "line": 274,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "('p:cNvPr{a:a=a,r:r=r}', 'http://foo.com', False, True, 'p:cNvPr{a:a=a,r:r=r}/a:hlinkClick{r:id=rId3}')",
+      "originalCase": "preserves sibling hover links, shared relationships and foreign action metadata; reads hover and table-cell run links without manufacturing a click action"
+    },
+    {
+      "inventoryPointer": "unit_cases/2176",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_can_set_its_target_url[update_fixture1]",
+        "source_file": "tests/test_action.py",
+        "line": 274,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "('p:cNvPr{a:a=a,r:r=r}', 'http://bar.com', True, True, 'p:cNvPr{a:a=a,r:r=r}/a:hlinkHover{r:id=rId3}')",
+      "originalCase": "preserves sibling hover links, shared relationships and foreign action metadata; reads hover and table-cell run links without manufacturing a click action"
+    },
+    {
+      "inventoryPointer": "unit_cases/2177",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_can_set_its_target_url[update_fixture2]",
+        "source_file": "tests/test_action.py",
+        "line": 274,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "('p:cNvPr/a:hlinkClick{r:id=rId6}', 'http://baz.com', False, True, 'p:cNvPr/a:hlinkClick{r:id=rId3}')",
+      "originalCase": "preserves sibling hover links, shared relationships and foreign action metadata; reads hover and table-cell run links without manufacturing a click action"
+    },
+    {
+      "inventoryPointer": "unit_cases/2178",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_can_set_its_target_url[update_fixture3]",
+        "source_file": "tests/test_action.py",
+        "line": 274,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "('p:cNvPr/a:hlinkHover{r:id=rId6}', 'http://zab.com', True, True, 'p:cNvPr/a:hlinkHover{r:id=rId3}')",
+      "originalCase": "preserves sibling hover links, shared relationships and foreign action metadata; reads hover and table-cell run links without manufacturing a click action"
+    },
+    {
+      "inventoryPointer": "unit_cases/2179",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_can_set_its_target_url[update_fixture4]",
+        "source_file": "tests/test_action.py",
+        "line": 274,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "('p:cNvPr/a:hlinkHover{r:id=rId6}', 'http://boo.com', False, True, 'p:cNvPr/(a:hlinkClick{r:id=rId3},a:hlinkHover{r:id=rId6})')",
+      "originalCase": "preserves sibling hover links, shared relationships and foreign action metadata; reads hover and table-cell run links without manufacturing a click action"
+    },
+    {
+      "inventoryPointer": "unit_cases/2180",
+      "source": {
+        "node_id": "tests/test_action.py::DescribeHyperlink::it_can_set_its_target_url[update_fixture5]",
+        "source_file": "tests/test_action.py",
+        "line": 274,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup.",
+      "sourceParameters": "('p:cNvPr{a:a=a,r:r=r}/a:hlinkClick{r:id=rId6}', None, False, False, 'p:cNvPr{a:a=a,r:r=r}')",
+      "originalCase": "preserves sibling hover links, shared relationships and foreign action metadata; reads hover and table-cell run links without manufacturing a click action"
+    },
+    {
+      "inventoryPointer": "unit_cases/2621",
+      "source": {
+        "node_id": "tests/text/test_text.py::Describe_Hyperlink::it_knows_the_target_url_of_the_hyperlink",
+        "source_file": "tests/text/test_text.py",
+        "line": 677,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "unit_cases/2622",
+      "source": {
+        "node_id": "tests/text/test_text.py::Describe_Hyperlink::it_has_None_for_address_when_no_hyperlink_is_present",
+        "source_file": "tests/text/test_text.py",
+        "line": 682,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "unit_cases/2623",
+      "source": {
+        "node_id": "tests/text/test_text.py::Describe_Hyperlink::it_can_set_the_target_url",
+        "source_file": "tests/text/test_text.py",
+        "line": 685,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "unit_cases/2624",
+      "source": {
+        "node_id": "tests/text/test_text.py::Describe_Hyperlink::it_can_remove_the_hyperlink",
+        "source_file": "tests/text/test_text.py",
+        "line": 692,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "unit_cases/2625",
+      "source": {
+        "node_id": "tests/text/test_text.py::Describe_Hyperlink::it_should_remove_the_hyperlink_when_url_set_to_empty_string",
+        "source_file": "tests/text/test_text.py",
+        "line": 698,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "unit_cases/2626",
+      "source": {
+        "node_id": "tests/text/test_text.py::Describe_Hyperlink::it_can_change_the_target_url",
+        "source_file": "tests/text/test_text.py",
+        "line": 704,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "unit_cases/2695",
+      "source": {
+        "node_id": "tests/text/test_text.py::Describe_Run::it_provides_access_to_a_hyperlink_proxy",
+        "source_file": "tests/text/test_text.py",
+        "line": 1151,
+        "markers": [],
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/0",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 13,
+        "name": "Get ActionSetting.action -- @1.1 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.1 Click actions",
+        "template_line": 13,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| none               | NONE              |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/1",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 14,
+        "name": "Get ActionSetting.action -- @1.2 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.2 Click actions",
+        "template_line": 14,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| first slide        | FIRST_SLIDE       |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/2",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 15,
+        "name": "Get ActionSetting.action -- @1.3 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.3 Click actions",
+        "template_line": 15,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| last slide         | LAST_SLIDE        |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/3",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 16,
+        "name": "Get ActionSetting.action -- @1.4 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.4 Click actions",
+        "template_line": 16,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| previous slide     | PREVIOUS_SLIDE    |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/4",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 17,
+        "name": "Get ActionSetting.action -- @1.5 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.5 Click actions",
+        "template_line": 17,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| next slide         | NEXT_SLIDE        |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/5",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 18,
+        "name": "Get ActionSetting.action -- @1.6 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.6 Click actions",
+        "template_line": 18,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| last slide viewed  | LAST_SLIDE_VIEWED |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/6",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 19,
+        "name": "Get ActionSetting.action -- @1.7 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.7 Click actions",
+        "template_line": 19,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| named slide        | NAMED_SLIDE       |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/7",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 20,
+        "name": "Get ActionSetting.action -- @1.8 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.8 Click actions",
+        "template_line": 20,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| end show           | END_SHOW          |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/8",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 21,
+        "name": "Get ActionSetting.action -- @1.9 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.9 Click actions",
+        "template_line": 21,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| hyperlink          | HYPERLINK         |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/9",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 22,
+        "name": "Get ActionSetting.action -- @1.10 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.10 Click actions",
+        "template_line": 22,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| other presentation | PLAY              |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/10",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 23,
+        "name": "Get ActionSetting.action -- @1.11 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.11 Click actions",
+        "template_line": 23,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| open file          | OPEN_FILE         |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/11",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 24,
+        "name": "Get ActionSetting.action -- @1.12 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.12 Click actions",
+        "template_line": 24,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| custom slide show  | NAMED_SLIDE_SHOW  |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/12",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 25,
+        "name": "Get ActionSetting.action -- @1.13 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.13 Click actions",
+        "template_line": 25,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| OLE action         | OLE_VERB          |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/13",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 26,
+        "name": "Get ActionSetting.action -- @1.14 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.14 Click actions",
+        "template_line": 26,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run macro          | RUN_MACRO         |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/14",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 27,
+        "name": "Get ActionSetting.action -- @1.15 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.15 Click actions",
+        "template_line": 27,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run program        | RUN_PROGRAM       |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/15",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 28,
+        "name": "Get ActionSetting.action -- @1.16 Click actions",
+        "template_name": "Get ActionSetting.action -- @1.16 Click actions",
+        "template_line": 28,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-action-matrix",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| play media         | NONE              |",
+      "mapping": "Original 16-entry model action matrix retains all source classifications including absent NONE, empty link HYPERLINK, media NONE and unsupported launch classifications. Package reads separately flag unsafe actions without activation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/16",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 37,
+        "name": "Get ActionSetting.hyperlink -- @1.1 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.1 Click actions",
+        "template_line": 37,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| none               |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/17",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 38,
+        "name": "Get ActionSetting.hyperlink -- @1.2 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.2 Click actions",
+        "template_line": 38,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| first slide        |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/18",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 39,
+        "name": "Get ActionSetting.hyperlink -- @1.3 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.3 Click actions",
+        "template_line": 39,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| last slide         |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/19",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 40,
+        "name": "Get ActionSetting.hyperlink -- @1.4 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.4 Click actions",
+        "template_line": 40,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| previous slide     |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/20",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 41,
+        "name": "Get ActionSetting.hyperlink -- @1.5 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.5 Click actions",
+        "template_line": 41,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| next slide         |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/21",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 42,
+        "name": "Get ActionSetting.hyperlink -- @1.6 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.6 Click actions",
+        "template_line": 42,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| last slide viewed  |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/22",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 43,
+        "name": "Get ActionSetting.hyperlink -- @1.7 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.7 Click actions",
+        "template_line": 43,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| named slide        |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/23",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 44,
+        "name": "Get ActionSetting.hyperlink -- @1.8 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.8 Click actions",
+        "template_line": 44,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| end show           |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/24",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 45,
+        "name": "Get ActionSetting.hyperlink -- @1.9 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.9 Click actions",
+        "template_line": 45,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| hyperlink          |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/25",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 46,
+        "name": "Get ActionSetting.hyperlink -- @1.10 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.10 Click actions",
+        "template_line": 46,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| other presentation |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/26",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 47,
+        "name": "Get ActionSetting.hyperlink -- @1.11 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.11 Click actions",
+        "template_line": 47,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| open file          |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/27",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 48,
+        "name": "Get ActionSetting.hyperlink -- @1.12 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.12 Click actions",
+        "template_line": 48,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| custom slide show  |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/28",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 49,
+        "name": "Get ActionSetting.hyperlink -- @1.13 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.13 Click actions",
+        "template_line": 49,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| OLE action         |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/29",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 50,
+        "name": "Get ActionSetting.hyperlink -- @1.14 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.14 Click actions",
+        "template_line": 50,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run macro          |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/30",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 51,
+        "name": "Get ActionSetting.hyperlink -- @1.15 Click actions",
+        "template_name": "Get ActionSetting.hyperlink -- @1.15 Click actions",
+        "template_line": 51,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run program        |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/31",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 60,
+        "name": "Get ActionSetting.target_slide -- @1.1 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.1 Click actions",
+        "template_line": 60,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| none               |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/32",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 61,
+        "name": "Get ActionSetting.target_slide -- @1.2 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.2 Click actions",
+        "template_line": 61,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| first slide        | slides[0] |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/33",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 62,
+        "name": "Get ActionSetting.target_slide -- @1.3 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.3 Click actions",
+        "template_line": 62,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| last slide         | slides[4] |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/34",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 63,
+        "name": "Get ActionSetting.target_slide -- @1.4 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.4 Click actions",
+        "template_line": 63,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| previous slide     | slides[1] |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/35",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 64,
+        "name": "Get ActionSetting.target_slide -- @1.5 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.5 Click actions",
+        "template_line": 64,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| next slide         | slides[3] |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/36",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 65,
+        "name": "Get ActionSetting.target_slide -- @1.6 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.6 Click actions",
+        "template_line": 65,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| last slide viewed  |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/37",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 66,
+        "name": "Get ActionSetting.target_slide -- @1.7 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.7 Click actions",
+        "template_line": 66,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| named slide        | slides[2] |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/38",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 67,
+        "name": "Get ActionSetting.target_slide -- @1.8 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.8 Click actions",
+        "template_line": 67,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| end show           |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/39",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 68,
+        "name": "Get ActionSetting.target_slide -- @1.9 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.9 Click actions",
+        "template_line": 68,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| hyperlink          |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/40",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 69,
+        "name": "Get ActionSetting.target_slide -- @1.10 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.10 Click actions",
+        "template_line": 69,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| other presentation |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/41",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 70,
+        "name": "Get ActionSetting.target_slide -- @1.11 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.11 Click actions",
+        "template_line": 70,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| open file          |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/42",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 71,
+        "name": "Get ActionSetting.target_slide -- @1.12 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.12 Click actions",
+        "template_line": 71,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| custom slide show  |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/43",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 72,
+        "name": "Get ActionSetting.target_slide -- @1.13 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.13 Click actions",
+        "template_line": 72,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| OLE action         |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/44",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 73,
+        "name": "Get ActionSetting.target_slide -- @1.14 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.14 Click actions",
+        "template_line": 73,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run macro          |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/45",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 74,
+        "name": "Get ActionSetting.target_slide -- @1.15 Click actions",
+        "template_name": "Get ActionSetting.target_slide -- @1.15 Click actions",
+        "template_line": 74,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run program        |   None    |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/46",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 86,
+        "name": "Set ActionSetting.target_slide -- @1.1 Click actions",
+        "template_name": "Set ActionSetting.target_slide -- @1.1 Click actions",
+        "template_line": 86,
+        "tags": [],
+        "step_count": 5,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| NONE        | slide | NAMED_SLIDE | slide |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/47",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 87,
+        "name": "Set ActionSetting.target_slide -- @1.2 Click actions",
+        "template_name": "Set ActionSetting.target_slide -- @1.2 Click actions",
+        "template_line": 87,
+        "tags": [],
+        "step_count": 5,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| NAMED_SLIDE | slide | NAMED_SLIDE | slide |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/48",
+      "source": {
+        "source_file": "features/act-action.feature",
+        "line": 88,
+        "name": "Set ActionSetting.target_slide -- @1.3 Click actions",
+        "template_name": "Set ActionSetting.target_slide -- @1.3 Click actions",
+        "template_line": 88,
+        "tags": [],
+        "step_count": 5,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-owned-navigation",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| NAMED_SLIDE | None  | NONE        | None  |",
+      "mapping": "Model target_slide resolves first/last/next/previous/named identity, returns null for non-slide actions, rejects navigation bounds/cross-owner assignment and supports null removal. Session bridge serializes synchronous assignments. Private slide-index mechanics are replaced by owner membership lookup."
+    },
+    {
+      "inventoryPointer": "bdd_cases/49",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 13,
+        "name": "Get hyperlink URL -- @1.1 Click actions",
+        "template_name": "Get hyperlink URL -- @1.1 Click actions",
+        "template_line": 13,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| none               | None                                 |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/50",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 14,
+        "name": "Get hyperlink URL -- @1.2 Click actions",
+        "template_name": "Get hyperlink URL -- @1.2 Click actions",
+        "template_line": 14,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| first slide        | None                                 |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/51",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 15,
+        "name": "Get hyperlink URL -- @1.3 Click actions",
+        "template_name": "Get hyperlink URL -- @1.3 Click actions",
+        "template_line": 15,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| last slide viewed  | None                                 |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/52",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 16,
+        "name": "Get hyperlink URL -- @1.4 Click actions",
+        "template_name": "Get hyperlink URL -- @1.4 Click actions",
+        "template_line": 16,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| named slide        | slide3.xml                           |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/53",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 17,
+        "name": "Get hyperlink URL -- @1.5 Click actions",
+        "template_name": "Get hyperlink URL -- @1.5 Click actions",
+        "template_line": 17,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| hyperlink          | http://yahoo.com                     |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/54",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 18,
+        "name": "Get hyperlink URL -- @1.6 Click actions",
+        "template_name": "Get hyperlink URL -- @1.6 Click actions",
+        "template_line": 18,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| custom slide show  | None                                 |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/55",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 19,
+        "name": "Get hyperlink URL -- @1.7 Click actions",
+        "template_name": "Get hyperlink URL -- @1.7 Click actions",
+        "template_line": 19,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| OLE action         | None                                 |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/56",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 20,
+        "name": "Get hyperlink URL -- @1.8 Click actions",
+        "template_name": "Get hyperlink URL -- @1.8 Click actions",
+        "template_line": 20,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run macro          | None                                 |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/57",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 21,
+        "name": "Get hyperlink URL -- @1.9 Click actions",
+        "template_name": "Get hyperlink URL -- @1.9 Click actions",
+        "template_line": 21,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run program        | file:////Applications/Calculator.app |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/58",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 31,
+        "name": "Add hyperlink -- @1.1 Click actions",
+        "template_name": "Add hyperlink -- @1.1 Click actions",
+        "template_line": 31,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| none        | http://foobar.com |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/59",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 32,
+        "name": "Add hyperlink -- @1.2 Click actions",
+        "template_name": "Add hyperlink -- @1.2 Click actions",
+        "template_line": 32,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| first slide | http://barfoo.com |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/60",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 33,
+        "name": "Add hyperlink -- @1.3 Click actions",
+        "template_name": "Add hyperlink -- @1.3 Click actions",
+        "template_line": 33,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| named slide | http://barbaz.org |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/61",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 34,
+        "name": "Add hyperlink -- @1.4 Click actions",
+        "template_name": "Add hyperlink -- @1.4 Click actions",
+        "template_line": 34,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| hyperlink   | http://hooya.com  |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/62",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 35,
+        "name": "Add hyperlink -- @1.5 Click actions",
+        "template_name": "Add hyperlink -- @1.5 Click actions",
+        "template_line": 35,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run program | http://booya.com  |",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/63",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 45,
+        "name": "Remove hyperlink -- @1.1 Click actions",
+        "template_name": "Remove hyperlink -- @1.1 Click actions",
+        "template_line": 45,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| none               |",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "bdd_cases/64",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 46,
+        "name": "Remove hyperlink -- @1.2 Click actions",
+        "template_name": "Remove hyperlink -- @1.2 Click actions",
+        "template_line": 46,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| first slide        |",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "bdd_cases/65",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 47,
+        "name": "Remove hyperlink -- @1.3 Click actions",
+        "template_name": "Remove hyperlink -- @1.3 Click actions",
+        "template_line": 47,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| last slide viewed  |",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "bdd_cases/66",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 48,
+        "name": "Remove hyperlink -- @1.4 Click actions",
+        "template_name": "Remove hyperlink -- @1.4 Click actions",
+        "template_line": 48,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| named slide        |",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "bdd_cases/67",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 49,
+        "name": "Remove hyperlink -- @1.5 Click actions",
+        "template_name": "Remove hyperlink -- @1.5 Click actions",
+        "template_line": 49,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| hyperlink          |",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "bdd_cases/68",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 50,
+        "name": "Remove hyperlink -- @1.6 Click actions",
+        "template_name": "Remove hyperlink -- @1.6 Click actions",
+        "template_line": 50,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| custom slide show  |",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "bdd_cases/69",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 51,
+        "name": "Remove hyperlink -- @1.7 Click actions",
+        "template_name": "Remove hyperlink -- @1.7 Click actions",
+        "template_line": 51,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| OLE action         |",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "bdd_cases/70",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 52,
+        "name": "Remove hyperlink -- @1.8 Click actions",
+        "template_name": "Remove hyperlink -- @1.8 Click actions",
+        "template_line": 52,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run macro          |",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "bdd_cases/71",
+      "source": {
+        "source_file": "features/act-hyperlink.feature",
+        "line": 53,
+        "name": "Remove hyperlink -- @1.9 Click actions",
+        "template_name": "Remove hyperlink -- @1.9 Click actions",
+        "template_line": 53,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| run program        |",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    },
+    {
+      "inventoryPointer": "bdd_cases/581",
+      "source": {
+        "source_file": "features/shp-groupshape.feature",
+        "line": 7,
+        "name": "Get GroupShape.click_action raises TypeError",
+        "template_name": "Get GroupShape.click_action raises TypeError",
+        "template_line": 7,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "Scenario: Get GroupShape.click_action raises TypeError",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/708",
+      "source": {
+        "source_file": "features/shp-shared.feature",
+        "line": 13,
+        "name": "Get shape.click_action -- @1.1 Shape types",
+        "template_name": "Get shape.click_action -- @1.1 Shape types",
+        "template_line": 13,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| Shape        |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/709",
+      "source": {
+        "source_file": "features/shp-shared.feature",
+        "line": 14,
+        "name": "Get shape.click_action -- @1.2 Shape types",
+        "template_name": "Get shape.click_action -- @1.2 Shape types",
+        "template_line": 14,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| Picture      |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/710",
+      "source": {
+        "source_file": "features/shp-shared.feature",
+        "line": 15,
+        "name": "Get shape.click_action -- @1.3 Shape types",
+        "template_name": "Get shape.click_action -- @1.3 Shape types",
+        "template_line": 15,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| GraphicFrame |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/711",
+      "source": {
+        "source_file": "features/shp-shared.feature",
+        "line": 16,
+        "name": "Get shape.click_action -- @1.4 Shape types",
+        "template_name": "Get shape.click_action -- @1.4 Shape types",
+        "template_line": 16,
+        "tags": [],
+        "step_count": 2,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-owner-view",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "| Connector    |",
+      "mapping": "LinkShape.click_action binds ordinary shape, picture, connector and graphic frame to session; group access raises. ActionSetting.hyperlink provides a stable live Hyperlink for all 16 classifications. LinkRun.hyperlink edits real table-cell run data. Connecting every earlier isolated shape/text class to the presentation graph remains a separate public graph obligation."
+    },
+    {
+      "inventoryPointer": "bdd_cases/918",
+      "source": {
+        "source_file": "features/txt-font-props.feature",
+        "line": 134,
+        "name": "Add hyperlink",
+        "template_name": "Add hyperlink",
+        "template_line": 134,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "Scenario: Add hyperlink",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/919",
+      "source": {
+        "source_file": "features/txt-font-props.feature",
+        "line": 140,
+        "name": "Add hyperlink in table cell",
+        "template_name": "Add hyperlink in table cell",
+        "template_line": 140,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-bounded-links",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "Scenario: Add hyperlink in table cell",
+      "mapping": "Original session-backed model and operation tests cover exact inert URL reads/writes/replacement on scoped relationships, no address null, text/table links and retained hover actions. Unsafe source overwrite examples map to explicit rejection/sanitization instead of activating or silently discarding data."
+    },
+    {
+      "inventoryPointer": "bdd_cases/920",
+      "source": {
+        "source_file": "features/txt-font-props.feature",
+        "line": 146,
+        "name": "Remove hyperlink",
+        "template_name": "Remove hyperlink",
+        "template_line": 146,
+        "tags": [],
+        "step_count": 3,
+        "adaptation_status": "unmapped_not_implemented"
+      },
+      "status": "adapted-explicit-security-mapping",
+      "originalEvidence": [
+        "packages/pptx/src/links-actions.test.ts",
+        "packages/pptx/src/links-model.test.ts",
+        "packages/pptx/src/links.test.ts"
+      ],
+      "sourceExample": "Scenario: Remove hyperlink",
+      "mapping": "Hyperlink.address null/empty and target_slide null synchronously remove ordinary links and preserve hover siblings; removeLink owns relationship cleanup. Unsafe actions deliberately reject implicit destruction and require explicit sanitization; this is a documented security difference."
+    }
+  ]
+}

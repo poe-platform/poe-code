@@ -105,6 +105,19 @@ export {
   type LinkData
 } from "./links.js";
 
+export {
+  ActionSetting,
+  Hyperlink,
+  _Hyperlink,
+  PP_ACTION,
+  PP_ACTION_TYPE,
+  LinkShape,
+  LinkRun,
+  type ActionValue,
+  type LinkModelOwner,
+  type LinkShapeIdentity
+} from "./links-model.js";
+
 export { duplicateSlides, type DuplicateSlidesOptions } from "./slide-copy.js";
 
 export { importSlides, type ImportSlidesOptions } from "./slide-import.js";

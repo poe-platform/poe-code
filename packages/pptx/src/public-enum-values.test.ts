@@ -7,21 +7,24 @@ import {
   XL_LEGEND_POSITION,
   XL_MARKER_STYLE,
   XL_TICK_LABEL_POSITION,
-  XL_TICK_MARK
-} from "./chart-enums.js";
-import { MSO_LANGUAGE_ID } from "./language-enum.js";
-import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
-import { MSO_FILL_TYPE, MSO_LINE_DASH_STYLE, MSO_PATTERN_TYPE } from "./drawing-enums.js";
-import { PP_MEDIA_TYPE } from "./media-enum.js";
-import { MSO_SHAPE_TYPE } from "./shape-types.js";
-import { PP_PLACEHOLDER_TYPE } from "./shape-placeholder-types.js";
-import { MSO_AUTO_SHAPE_TYPE } from "./shape-presets.js";
-import { MSO_AUTO_SIZE, MSO_VERTICAL_ANCHOR } from "./text-frame-enums.js";
-import { MSO_TEXT_UNDERLINE_TYPE } from "./text-runs.js";
-import { PP_PARAGRAPH_ALIGNMENT } from "./paragraph-alignment.js";
-import { MSO_CONNECTOR_TYPE } from "./connectors.js";
-
-import { PP_ACTION_TYPE } from "./links-model.js";
+  XL_TICK_MARK,
+  MSO_LANGUAGE_ID,
+  MSO_COLOR_TYPE,
+  MSO_THEME_COLOR_INDEX,
+  MSO_FILL_TYPE,
+  MSO_LINE_DASH_STYLE,
+  MSO_PATTERN_TYPE,
+  PP_MEDIA_TYPE,
+  MSO_SHAPE_TYPE,
+  PP_PLACEHOLDER_TYPE,
+  MSO_AUTO_SHAPE_TYPE,
+  MSO_AUTO_SIZE,
+  MSO_VERTICAL_ANCHOR,
+  MSO_TEXT_UNDERLINE_TYPE,
+  PP_PARAGRAPH_ALIGNMENT,
+  MSO_CONNECTOR_TYPE,
+  PP_ACTION_TYPE
+} from "./index.js";
 
 const definitions = {
   XL_AXIS_CROSSES,

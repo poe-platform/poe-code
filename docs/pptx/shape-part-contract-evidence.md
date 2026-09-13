@@ -26,3 +26,7 @@ contracts. `npm run lint --workspace=pptx` passed ESLint and production TypeScri
 test TypeScript was temporarily blocked only by concurrently authored missing
 layout/add-slide members in another worker's red tests. This is not a full lint
 pass claim. `git diff --check` passed.
+
+Final integration supersedes the temporary test-type blocker: the root owner
+reported passing package lint/build and 6,871 maintained package tests, plus
+16 final focused and 239 safe-bash integration cases. No full API claim follows.

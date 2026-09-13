@@ -51,3 +51,8 @@ raise neutral `TypeError` / `invalid-type`, while an unsupported enum number
 raises `ValueError` / `invalid-value`. Raw data records belong to the operation
 API, not this builder-only model method. All failures preserve the saved package.
 The final focused insertion suite passed 4 tests in 214 ms.
+
+Final integration supersedes the temporary test-type blocker: the root owner
+reported passing package lint/build and 6,871 maintained package tests, plus
+16 final focused and 239 safe-bash integration cases. No grouped chart or full
+public API claim follows.

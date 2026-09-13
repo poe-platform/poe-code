@@ -1,4 +1,9 @@
-# Current public API closure assessment
+# Initial public API closure checkpoint
+
+This receipt predates the owner, chart, layout, run-hyperlink and enum work in
+this task. Its counts and missing-member findings below are historical. See
+[the central register](public-api-map.json), [later owner mappings](model-owner-api-reconciliation.md)
+and [integrated verification](public-closure-verification.md) for current evidence.
 
 The register is **not closed**. All 2,409 reconciled inventory identities remain
 inside the 2,426 target rows; the extra 17 bounded-view rows remain additive.

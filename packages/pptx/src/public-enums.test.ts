@@ -1,15 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { MSO_LANGUAGE_ID } from "./language-enum.js";
 import {
+  MSO_LANGUAGE_ID,
   XL_AXIS_CROSSES,
   XL_CHART_TYPE,
   XL_DATA_LABEL_POSITION,
   XL_LABEL_POSITION,
-  XL_LEGEND_POSITION
-} from "./chart-enums.js";
-import { MSO_FILL_TYPE, MSO_LINE, MSO_PATTERN } from "./drawing-enums.js";
-import { MSO, MSO_SHAPE_TYPE } from "./shape-types.js";
-import { PP_MEDIA_TYPE } from "./media-enum.js";
+  XL_LEGEND_POSITION,
+  MSO_FILL_TYPE,
+  MSO_LINE,
+  MSO_PATTERN,
+  MSO,
+  MSO_SHAPE_TYPE,
+  PP_MEDIA_TYPE,
+  MSO_TEXT_UNDERLINE_TYPE,
+  MSO_UNDERLINE,
+  PROG_ID,
+  PP_ACTION,
+  PP_ACTION_TYPE,
+  MSO_FILL,
+  MSO_LINE_DASH_STYLE,
+  MSO_PATTERN_TYPE,
+  MSO_THEME_COLOR,
+  MSO_THEME_COLOR_INDEX,
+  MSO_CONNECTOR,
+  MSO_CONNECTOR_TYPE,
+  MSO_SHAPE,
+  MSO_AUTO_SHAPE_TYPE,
+  PP_PLACEHOLDER,
+  PP_PLACEHOLDER_TYPE,
+  MSO_ANCHOR,
+  MSO_VERTICAL_ANCHOR,
+  PP_ALIGN,
+  PP_PARAGRAPH_ALIGNMENT
+} from "./index.js";
 
 describe("public enum values and bounded conversions", () => {
   it("retains language aliases and canonical XML tokens", () => {
@@ -67,8 +90,6 @@ describe("public enum values and bounded conversions", () => {
   });
 });
 
-import { MSO_TEXT_UNDERLINE_TYPE, MSO_UNDERLINE } from "./text-runs.js";
-import { PROG_ID } from "./ole-enum.js";
 it("converts underline values including explicit none without boolean coercion", () => {
   expect(MSO_UNDERLINE).toBe(MSO_TEXT_UNDERLINE_TYPE);
   expect(MSO_UNDERLINE.from_xml("none")).toBe(0);
@@ -91,14 +112,6 @@ it("provides immutable OLE application metadata without host filenames", () => {
   expect(Object.isFrozen(PROG_ID.XLSX)).toBe(true);
 });
 
-import { PP_ACTION, PP_ACTION_TYPE } from "./links-model.js";
-import { MSO_FILL, MSO_LINE_DASH_STYLE, MSO_PATTERN_TYPE } from "./drawing-enums.js";
-import { MSO_THEME_COLOR, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
-import { MSO_CONNECTOR, MSO_CONNECTOR_TYPE } from "./connectors.js";
-import { MSO_SHAPE, MSO_AUTO_SHAPE_TYPE } from "./shape-presets.js";
-import { PP_PLACEHOLDER, PP_PLACEHOLDER_TYPE } from "./shape-placeholder-types.js";
-import { MSO_ANCHOR, MSO_VERTICAL_ANCHOR } from "./text-frame-enums.js";
-import { PP_ALIGN, PP_PARAGRAPH_ALIGNMENT } from "./paragraph-alignment.js";
 it.each([
   [PP_ACTION, PP_ACTION_TYPE],
   [XL_LABEL_POSITION, XL_DATA_LABEL_POSITION],

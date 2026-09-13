@@ -1,3 +1,4 @@
+import { splitSourceLines as splitLines } from "../error/source-lines.js";
 import { createSourceSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
 
 export type ParseDiagnostic = {
@@ -126,9 +127,6 @@ function parseErrorLocation(message: string): ParseErrorLocation | undefined {
   };
 }
 
-function splitLines(source: string): string[] {
-  return source.split(/\r\n|\n|\r/);
-}
 
 function renderLine(
   lineNumber: number,

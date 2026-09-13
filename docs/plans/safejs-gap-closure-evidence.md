@@ -1756,3 +1756,45 @@ A docs-only successful workflow with no version is a no-release result, not a
 publication. If publication remains unresolved, fetch remote main, verify the
 delivered commit's ancestry in any successor, inspect failed jobs and registry
 receipts, then retry the required workflow through GitHub; never publish locally.
+
+
+### qualify-lexical-and-source-text — eval syntax spans, isolated audit, 2026-09-13
+
+**Acceptance remains open.** [Audit and reproducible checks](qualify-lexical-and-source-text/eval-span-audit/audit.md), [exact grammar cells](qualify-lexical-and-source-text/eval-span-audit/grammar.json), and [completed corpus with every nonpass](qualify-lexical-and-source-text/eval-span-audit/corpus-summary.json). The target remains ECMA-262 edition 16 / ECMA-402 edition 12 and Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, with separately tracked newer APIs unchanged.
+
+Fetched base `bfdd5353120a48dd1a4157241c2aeabf9154c1f6`; Node **22.23.2**, ICU **78.2**, Unicode **17.0**. Isolated candidate source-content SHA-256 `6e4249de79b2ce09e29628e7748dbfa73e7737ba9666b637a3cfb3c1fd7c9b24`, manifest `b700b5fc361c4fc34f85b556a1ed526826c3828dbc5ce30a92ceae8adc8e86c6`. This source excludes the mixed workspace's pending module/tokenizer/CLI changes.
+
+TDD reproduced five missing/misattributed eval spans alongside five valid neighbors. Eval syntax diagnostics now retain the evaluated string's UTF-16 positions, excerpt and `<eval>` label through native-error conversion and caught-error replay, while retaining SyntaxError identity and fatal budgets. Only parser-branded source metadata is admitted; forged host paths/stacks are excluded. The label does not claim caller-filename provenance. The required line-scanning prerequisites were independently reproduced on the fetched source (three span failures, then two LS/PS excerpt failures) before adoption.
+
+**Checks:** 2,931 integration passes / one opt-in fuzz skip; package no-emit TypeScript and exact-candidate ESLint pass. The CLI screenshot was inspected: original eval line/caret, exit 1, no host stack. Initial setup/typecheck failures and corrections are retained in the audit.
+
+Completed corpus at 2026-09-13T07:11:30.515Z, command exit **1**, unchanged 3,000 ms variant / 10,000 ms startup deadlines and no budget overrides. Counts: `{"executionErrors": 0, "failed": 112, "files": 1231, "fixtures": 0, "metadataErrors": 0, "passed": 2267, "unsupported": 2, "variants": 2381}`.
+
+| Category | Variants | Passed | Failed | Unsupported |
+| --- | ---: | ---: | ---: | ---: |
+| language/asi | 204 | 202 | 2 | 0 |
+| language/comments | 46 | 42 | 4 | 0 |
+| language/comments/hashbang | 35 | 34 | 0 | 1 |
+| language/expressions/template-literal | 114 | 114 | 0 | 0 |
+| language/future-reserved-words | 85 | 85 | 0 | 0 |
+| language/identifiers | 535 | 503 | 32 | 0 |
+| language/keywords | 50 | 50 | 0 | 0 |
+| language/line-terminators | 82 | 74 | 8 | 0 |
+| language/literals/bigint | 26 | 26 | 0 | 0 |
+| language/literals/bigint/numeric-separators | 92 | 92 | 0 | 0 |
+| language/literals/boolean | 8 | 8 | 0 | 0 |
+| language/literals/null | 6 | 6 | 0 | 0 |
+| language/literals/numeric | 175 | 175 | 0 | 0 |
+| language/literals/numeric/numeric-separators | 126 | 126 | 0 | 0 |
+| language/literals/regexp | 368 | 302 | 66 | 0 |
+| language/literals/regexp/named-groups | 112 | 112 | 0 | 0 |
+| language/literals/string | 128 | 128 | 0 | 0 |
+| language/reserved-words | 53 | 52 | 0 | 1 |
+| language/source-text | 2 | 2 | 0 | 0 |
+| language/white-space | 134 | 134 | 0 | 0 |
+
+Hashbang/comments, Unicode identifiers/escapes/surrogates, line terminators/ASI, radices/separators, templates/tagged raw/cooked values, regexp lexical goals and reserved/contextual/strict legacy syntax retain their pinned category and variant outcomes. Script grammar matches native in **37/37** selected cases. Native module parsing is an oracle only: the committed runner explicitly excludes module variants, while Agent Script embedding/lint are recorded separately. This is not a whole-edition compatibility claim.
+
+**Open:** confirmed ASI/regexp mismatches and exhaustive-fixture timeouts; Function wrapper positions, eval runtime/caller filenames, imported and restored executable-source origins, full supported-runtime/artifact qualification. Missing module/host authority is not relabeled as an ECMAScript defect. This diagnostic repair is not task completion.
+
+**Delivery at this checkpoint:** local code is the containing commit (`git log -1 --format=%H -- packages/safe-js/src/parse/eval-syntax-positions.test.ts`); remote delivery and publication remain pending. Later receipts must name their actual SHAs, workflows and registry versions. No issue was explicitly associated.

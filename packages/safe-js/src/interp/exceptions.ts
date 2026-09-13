@@ -36,6 +36,7 @@ import { errorPrototypes } from "./error-prototypes.js";
 import { internalSymbols } from "./internal-symbols.js";
 import { containsResumeTarget } from "./resume-target.js";
 import { evaluateResourceScope, resourceSuspension } from "./resource-management.js";
+import { syntaxDiagnostics } from "../parse/syntax-diagnostic.js";
 import type { AsyncSuspensionContext } from "./async.js";
 import { StatementCompletion } from "./statement-completion.js";
 import type { GeneratorExpressionState } from "./generator-expression-state.js";
@@ -322,11 +323,13 @@ export function coerceThrownValue(
   }
 
   if (reason instanceof Error) {
+    const diagnostic = syntaxDiagnostics.get(reason);
     const error = createSubsetErrorValue(reason.name || "Error", reason.message, stackFrames, budget, {
       chargeBudget: false,
       cause: readErrorCause(reason),
-      span
+      span: diagnostic === undefined ? span : readErrorSpan(reason) ?? span
     });
+    if (diagnostic !== undefined) Object.assign(error, diagnostic);
     if (readDOMExceptionCode !== undefined && reason instanceof DOMException)
       Object.defineProperty(error, "code", { value: Reflect.apply(readDOMExceptionCode, reason, []), enumerable: true });
     return error;

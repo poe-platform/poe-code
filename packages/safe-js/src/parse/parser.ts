@@ -4,6 +4,7 @@ import { RESERVED_IDENTIFIER_SPELLINGS, tokenize, type Position, type Token } fr
 import { assignIds } from "./assign-ids.js";
 import { evalFunctionDeclarations, functionSources, functionStrictness, templateSources } from "./function-source.js";
 import { formatParseError } from "./format-error.js";
+import { createSyntaxDiagnostic } from "./syntax-diagnostic.js";
 import {
   createExportDefaultDeclaration,
   createExportNamedDeclaration,
@@ -768,7 +769,7 @@ export function parseEvalScript(
     return {node, strict: grammar.strict};
   } catch (error) {
     if (error instanceof SandboxError) throw error;
-    throw new SyntaxError(error instanceof Error ? error.message : String(error));
+    throw createSyntaxDiagnostic(source, "<eval>", error);
   } finally { compilation.dispose(); }
 }
 

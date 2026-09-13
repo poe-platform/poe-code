@@ -192,7 +192,9 @@ function createSourcePositionFromOffset(source: string, offset: number): ErrorSo
   let column = 1;
 
   for (let index = 0; index < offset; index += 1) {
-    if (source[index] === "\n") {
+    const character = source[index];
+    if (character === "\r" || character === "\n" || character === "\u2028" || character === "\u2029") {
+      if (character === "\r" && source[index + 1] === "\n" && index + 1 < offset) index += 1;
       line += 1;
       column = 1;
     } else {
@@ -221,7 +223,8 @@ function findSourceOffset(source: string, line: number, column: number): number 
       return source.length;
     }
 
-    if (character === "\n") {
+    if (character === "\r" || character === "\n" || character === "\u2028" || character === "\u2029") {
+      if (character === "\r" && source[offset + 1] === "\n") offset += 1;
       currentLine += 1;
       currentColumn = 1;
     } else {

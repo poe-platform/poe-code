@@ -1,0 +1,21 @@
+[
+  "npm",
+  "run",
+  "test:conformance",
+  "--workspace=@poe-code/safe-js",
+  "--",
+  "--corpus",
+  "/tmp/safejs-baseline-test262-419d3e0",
+  "--report",
+  "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/class-modifiers/upstream.jsonl",
+  "--include",
+  "language/statements/class/accessor-name-static-computed-yield-expr.js",
+  "--include",
+  "language/statements/class/async-gen-meth-escaped-async.js",
+  "--include",
+  "language/statements/class/async-meth-escaped-async.js",
+  "--include",
+  "language/statements/class/syntax/class-method-propname-constructor.js",
+  "--include",
+  "language/statements/class/syntax/escaped-static.js"
+]

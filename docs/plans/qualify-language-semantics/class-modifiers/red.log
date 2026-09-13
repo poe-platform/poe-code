@@ -1,0 +1,137 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts (15 tests | 9 failed) 48ms
+   × rejects escaped class grammar terminals: class C { \u0061sync m() {} } 4ms
+   × rejects escaped class grammar terminals: class C { as\u0079nc *m() {} } 0ms
+   × rejects escaped class grammar terminals: class C { st\u0061tic m() {} } 0ms
+   × rejects escaped class grammar terminals: class C { st\u0061tic {} } 0ms
+   × rejects escaped class grammar terminals: class C { st\u0061tic x = 1; } 1ms
+   × rejects escaped class grammar terminals: class C { static \u0061sync m() {} } 0ms
+   × rejects escaped class grammar terminals: class C { \u0061sync ["m"]() {} } 0ms
+   × rejects escaped class grammar terminals: class C { \u0061sync #m() {} } 0ms
+   ✓ accepts escaped names and literal modifiers: class C { \u0061sync() {} st\u0061tic() {} } 1ms
+   ✓ accepts escaped names and literal modifiers: class C { \u0061sync = 1; st\u0061tic = 2; } 0ms
+   ✓ accepts escaped names and literal modifiers: class C { #async() {} #static() {} } 0ms
+   ✓ accepts escaped names and literal modifiers: class C { static async m() {} static async *g() {} } 0ms
+   ✓ accepts escaped names and literal modifiers: class C { st\u0061tic
+m() {} } 0ms
+   ✓ accepts escaped names and literal modifiers: class C { \u0061sync
+*m() {} } 0ms
+   × keeps escaped static across a newline as an instance field 39ms
+FAIL packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { \u0061sync m() {} }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts:16:41
+     14|   String.raw`class C { \u0061sync #m() {} }`
+     15| ])("rejects escaped class grammar terminals: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { as\u0079nc *m() {} }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts:16:41
+     14|   String.raw`class C { \u0061sync #m() {} }`
+     15| ])("rejects escaped class grammar terminals: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { st\u0061tic m() {} }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts:16:41
+     14|   String.raw`class C { \u0061sync #m() {} }`
+     15| ])("rejects escaped class grammar terminals: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { st\u0061tic {} }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts:16:41
+     14|   String.raw`class C { \u0061sync #m() {} }`
+     15| ])("rejects escaped class grammar terminals: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { st\u0061tic x = 1; }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts:16:41
+     14|   String.raw`class C { \u0061sync #m() {} }`
+     15| ])("rejects escaped class grammar terminals: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { static \u0061sync m() {} }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts:16:41
+     14|   String.raw`class C { \u0061sync #m() {} }`
+     15| ])("rejects escaped class grammar terminals: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { \u0061sync ["m"]() {} }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts:16:41
+     14|   String.raw`class C { \u0061sync #m() {} }`
+     15| ])("rejects escaped class grammar terminals: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { \u0061sync #m() {} }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts:16:41
+     14|   String.raw`class C { \u0061sync #m() {} }`
+     15| ])("rejects escaped class grammar terminals: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/class-modifier-spellings.test.ts > keeps escaped static across a newline as an instance field
+TypeError: Attempted to call a non-function value.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { span: { start: { line: 5, column: 39, offset: 108 }, end: { line: 5, column: 44, offset: 113 } } }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { \u0061sync m() {} }
+ FAIL  packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { as\u0079nc *m() {} }
+ FAIL  packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { st\u0061tic m() {} }
+ FAIL  packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { st\u0061tic {} }
+ FAIL  packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { st\u0061tic x = 1; }
+ FAIL  packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { static \u0061sync m() {} }
+ FAIL  packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { \u0061sync ["m"]() {} }
+ FAIL  packages/safe-js/src/parse/class-modifier-spellings.test.ts > rejects escaped class grammar terminals: class C { \u0061sync #m() {} }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/class-modifier-spellings.test.ts:16:41
+     14|   String.raw`class C { \u0061sync #m() {} }`
+     15| ])("rejects escaped class grammar terminals: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  packages/safe-js/src/parse/class-modifier-spellings.test.ts > keeps escaped static across a newline as an instance field
+TypeError: Attempted to call a non-function value.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 6 passed (15)
+   Start at  10:11:28
+   Duration  2.18s (transform 1.58s, setup 36ms, import 1.99s, tests 48ms, environment 0ms)
+

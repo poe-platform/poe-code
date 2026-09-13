@@ -2193,7 +2193,9 @@ class Parser {
   private parseClassElement(derived: boolean): ClassElement {
     const start = this.currentToken();
     let isStatic = false;
-    if (start.type !== "private-identifier" && start.value === "static" && !["(", "=", ";", "}"].includes(this.peekToken(1).value)) {
+    if (start.type !== "private-identifier" && start.value === "static" &&
+        start.end.offset - start.start.offset === start.value.length &&
+        !["(", "=", ";", "}"].includes(this.peekToken(1).value)) {
       this.index++;
       isStatic = true;
       if (this.currentToken().value === "{") {
@@ -2206,7 +2208,9 @@ class Parser {
     }
     const methodStart = this.currentToken();
     let async = false;
-    if (methodStart.type !== "private-identifier" && methodStart.value === "async" && !hasLineBreakBetween(methodStart, this.peekToken(1)) &&
+    if (methodStart.type !== "private-identifier" && methodStart.value === "async" &&
+        methodStart.end.offset - methodStart.start.offset === methodStart.value.length &&
+        !hasLineBreakBetween(methodStart, this.peekToken(1)) &&
         (this.peekToken(1).value === "*" || this.isObjectMethodStart())) {
       this.index++;
       async = true;

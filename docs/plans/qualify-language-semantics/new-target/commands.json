@@ -1,0 +1,139 @@
+[
+  {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v18.18.0/bin/node",
+      "node_modules/tsx/dist/cli.mjs",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/new-target/v18.18.0-upstream.jsonl",
+      "--include",
+      "language/expressions/new.target/asi.js",
+      "--include",
+      "language/expressions/new.target/escaped-new.js",
+      "--include",
+      "language/expressions/new.target/escaped-target.js",
+      "--include",
+      "language/expressions/new.target/value-via-call.js",
+      "--include",
+      "language/expressions/new.target/value-via-new.js"
+    ],
+    "label": "v18.18.0"
+  },
+  {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v18.20.8/bin/node",
+      "--import",
+      "tsx",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/new-target/v18.20.8-upstream.jsonl",
+      "--include",
+      "language/expressions/new.target/asi.js",
+      "--include",
+      "language/expressions/new.target/escaped-new.js",
+      "--include",
+      "language/expressions/new.target/escaped-target.js",
+      "--include",
+      "language/expressions/new.target/value-via-call.js",
+      "--include",
+      "language/expressions/new.target/value-via-new.js"
+    ],
+    "label": "v18.20.8"
+  },
+  {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v20.20.0/bin/node",
+      "--import",
+      "tsx",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/new-target/v20.20.0-upstream.jsonl",
+      "--include",
+      "language/expressions/new.target/asi.js",
+      "--include",
+      "language/expressions/new.target/escaped-new.js",
+      "--include",
+      "language/expressions/new.target/escaped-target.js",
+      "--include",
+      "language/expressions/new.target/value-via-call.js",
+      "--include",
+      "language/expressions/new.target/value-via-new.js"
+    ],
+    "label": "v20.20.0"
+  },
+  {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+      "--import",
+      "tsx",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/new-target/v22.23.2-upstream.jsonl",
+      "--include",
+      "language/expressions/new.target/asi.js",
+      "--include",
+      "language/expressions/new.target/escaped-new.js",
+      "--include",
+      "language/expressions/new.target/escaped-target.js",
+      "--include",
+      "language/expressions/new.target/value-via-call.js",
+      "--include",
+      "language/expressions/new.target/value-via-new.js"
+    ],
+    "label": "v22.23.2"
+  },
+  {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v24.14.0/bin/node",
+      "--import",
+      "tsx",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/new-target/v24.14.0-upstream.jsonl",
+      "--include",
+      "language/expressions/new.target/asi.js",
+      "--include",
+      "language/expressions/new.target/escaped-new.js",
+      "--include",
+      "language/expressions/new.target/escaped-target.js",
+      "--include",
+      "language/expressions/new.target/value-via-call.js",
+      "--include",
+      "language/expressions/new.target/value-via-new.js"
+    ],
+    "label": "v24.14.0"
+  },
+  {
+    "command": [
+      "/tmp/safejs-async-runtimes/node-v26.8.2-darwin-arm64/bin/node",
+      "--import",
+      "tsx",
+      "packages/safe-js/test/conformance/command.ts",
+      "--corpus",
+      "/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/new-target/node-v26.8.2-darwin-arm64-upstream.jsonl",
+      "--include",
+      "language/expressions/new.target/asi.js",
+      "--include",
+      "language/expressions/new.target/escaped-new.js",
+      "--include",
+      "language/expressions/new.target/escaped-target.js",
+      "--include",
+      "language/expressions/new.target/value-via-call.js",
+      "--include",
+      "language/expressions/new.target/value-via-new.js"
+    ],
+    "label": "node-v26.8.2-darwin-arm64"
+  }
+]

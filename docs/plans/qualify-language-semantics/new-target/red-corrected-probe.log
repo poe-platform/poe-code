@@ -1,0 +1,167 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/parse/new-target-spelling.test.ts (12 tests | 6 failed) 164ms
+   × rejects nonterminal spellings in new.target: function f() { new.t\u0061rget; } 5ms
+   × rejects nonterminal spellings in new.target: function f() { return new.\u{74}arget; } 1ms
+   × rejects nonterminal spellings in new.target: function f() { return () => new.targ\u0065t; } 1ms
+   × rejects nonterminal spellings in new.target: class C { constructor() { new.t\u0061rget; } } 1ms
+   × rejects nonterminal spellings in new.target: function f() { new.#target; } 1ms
+   ✓ rejects nonterminal spellings in new.target: function f() { new."target"; } 2ms
+   ✓ accepts literal new.target and ordinary escaped names: function f() { return () => new.target; } 1ms
+   ✓ accepts literal new.target and ordinary escaped names: class C { constructor() { new.target; } } 1ms
+   ✓ accepts literal new.target and ordinary escaped names: function t\u0061rget() {} new t\u0061rget(); 1ms
+   ✓ accepts literal new.target and ordinary escaped names: const x = {t\u0061rget: 1}; x.t\u0061rget; 1ms
+   ✓ accepts literal new.target and ordinary escaped names: function f() { return new /* comment */ . /* comment */ target; } 0ms
+   × retains constructor new.target and eval errors through repeated replay 149ms
+FAIL packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: function f() { new.t\u0061rget; }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/new-target-spelling.test.ts:16:41
+     14|   'function f() { new."target"; }'
+     15| ])("rejects nonterminal spellings in new.target: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: function f() { return new.\u{74}arget; }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/new-target-spelling.test.ts:16:41
+     14|   'function f() { new."target"; }'
+     15| ])("rejects nonterminal spellings in new.target: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: function f() { return () => new.targ\u0065t; }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/new-target-spelling.test.ts:16:41
+     14|   'function f() { new."target"; }'
+     15| ])("rejects nonterminal spellings in new.target: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: class C { constructor() { new.t\u0061rget; } }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/new-target-spelling.test.ts:16:41
+     14|   'function f() { new."target"; }'
+     15| ])("rejects nonterminal spellings in new.target: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: function f() { new.#target; }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/new-target-spelling.test.ts:16:41
+     14|   'function f() { new."target"; }'
+     15| ])("rejects nonterminal spellings in new.target: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+FAIL packages/safe-js/src/parse/new-target-spelling.test.ts > retains constructor new.target and eval errors through repeated replay
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+      true,
+      [
+-       "SyntaxError",
+-       true,
+        "finally",
+-       "SyntaxError",
+-       true,
+        "finally",
+-       "SyntaxError",
+-       true,
+        "finally",
+      ],
+-     "undefined",
++     "number",
+      "function C() { this.read = () => eval(\"new.target\"); }",
+      "undefined,undefined",
+    ],
+  }
+
+ ❯ packages/safe-js/src/parse/new-target-spelling.test.ts:56:29
+     54|     try {
+     55|       const saved = JSON.parse(await dump(pending));
+     56|       expect(await settled).toMatchObject(expected);
+       |                             ^
+     57|       pending = run(source, {snapshot:restore(saved, {source})});
+     58|     } finally { await settled; }
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: function f() { new.t\u0061rget; }
+ FAIL  packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: function f() { return new.\u{74}arget; }
+ FAIL  packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: function f() { return () => new.targ\u0065t; }
+ FAIL  packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: class C { constructor() { new.t\u0061rget; } }
+ FAIL  packages/safe-js/src/parse/new-target-spelling.test.ts > rejects nonterminal spellings in new.target: function f() { new.#target; }
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/new-target-spelling.test.ts:16:41
+     14|   'function f() { new."target"; }'
+     15| ])("rejects nonterminal spellings in new.target: %s", source => {
+     16|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     17|   expect(() => parseEvalScript('"use strict";' + source)).toThrow();
+     18|   expect(() => parseModule(source)).toThrow();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  packages/safe-js/src/parse/new-target-spelling.test.ts > retains constructor new.target and eval errors through repeated replay
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+      true,
+      [
+-       "SyntaxError",
+-       true,
+        "finally",
+-       "SyntaxError",
+-       true,
+        "finally",
+-       "SyntaxError",
+-       true,
+        "finally",
+      ],
+-     "undefined",
++     "number",
+      "function C() { this.read = () => eval(\"new.target\"); }",
+      "undefined,undefined",
+    ],
+  }
+
+ ❯ packages/safe-js/src/parse/new-target-spelling.test.ts:56:29
+     54|     try {
+     55|       const saved = JSON.parse(await dump(pending));
+     56|       expect(await settled).toMatchObject(expected);
+       |                             ^
+     57|       pending = run(source, {snapshot:restore(saved, {source})});
+     58|     } finally { await settled; }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 6 passed (12)
+   Start at  10:18:27
+   Duration  2.48s (transform 1.74s, setup 42ms, import 2.17s, tests 164ms, environment 0ms)
+

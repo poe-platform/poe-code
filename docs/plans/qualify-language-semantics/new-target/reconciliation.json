@@ -1,0 +1,224 @@
+[
+  {
+    "report": "v18.20.8-upstream.jsonl",
+    "sha256": "a83fdad6470ca57943c1e1eb7c7cabba397cfa27b8fddf48a7647cddc48c3bc3",
+    "sourceSha": "a43f01b8b549e02ffd4cff78a637e6e41561600b",
+    "sourceHash": "52adcef3e986f6ea0e77b1462117640313807f33a955c1c9935e93bc0c180a5f",
+    "runtime": {
+      "node": "v18.20.8",
+      "icu": "74.2",
+      "v8": "10.2.154.26-node.39",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "counts": {
+      "files": 5,
+      "fixtures": 0,
+      "metadataErrors": 0,
+      "executionErrors": 0,
+      "variants": 10,
+      "passed": 10,
+      "failed": 0,
+      "unsupported": 0
+    },
+    "complete": true,
+    "originalHashesAndModesVerified": true,
+    "ids": [
+      "language/expressions/new.target/asi.js#sloppy",
+      "language/expressions/new.target/asi.js#strict",
+      "language/expressions/new.target/escaped-new.js#sloppy",
+      "language/expressions/new.target/escaped-new.js#strict",
+      "language/expressions/new.target/escaped-target.js#sloppy",
+      "language/expressions/new.target/escaped-target.js#strict",
+      "language/expressions/new.target/value-via-call.js#sloppy",
+      "language/expressions/new.target/value-via-call.js#strict",
+      "language/expressions/new.target/value-via-new.js#sloppy",
+      "language/expressions/new.target/value-via-new.js#strict"
+    ]
+  },
+  {
+    "report": "v22.23.2-upstream.jsonl",
+    "sha256": "8f5d050966105f9e59beccd0484bb3eaf9416ce8a55b80df5287113a0e6f4d8f",
+    "sourceSha": "a43f01b8b549e02ffd4cff78a637e6e41561600b",
+    "sourceHash": "52adcef3e986f6ea0e77b1462117640313807f33a955c1c9935e93bc0c180a5f",
+    "runtime": {
+      "node": "v22.23.2",
+      "icu": "78.2",
+      "v8": "12.4.254.21-node.56",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "counts": {
+      "files": 5,
+      "fixtures": 0,
+      "metadataErrors": 0,
+      "executionErrors": 0,
+      "variants": 10,
+      "passed": 10,
+      "failed": 0,
+      "unsupported": 0
+    },
+    "complete": true,
+    "originalHashesAndModesVerified": true,
+    "ids": [
+      "language/expressions/new.target/asi.js#sloppy",
+      "language/expressions/new.target/asi.js#strict",
+      "language/expressions/new.target/escaped-new.js#sloppy",
+      "language/expressions/new.target/escaped-new.js#strict",
+      "language/expressions/new.target/escaped-target.js#sloppy",
+      "language/expressions/new.target/escaped-target.js#strict",
+      "language/expressions/new.target/value-via-call.js#sloppy",
+      "language/expressions/new.target/value-via-call.js#strict",
+      "language/expressions/new.target/value-via-new.js#sloppy",
+      "language/expressions/new.target/value-via-new.js#strict"
+    ]
+  },
+  {
+    "report": "v20.20.0-upstream.jsonl",
+    "sha256": "f9dd152d08f192ff4d8f3a8602303d33b607d074157e769d4bcc6f53b746fda8",
+    "sourceSha": "a43f01b8b549e02ffd4cff78a637e6e41561600b",
+    "sourceHash": "52adcef3e986f6ea0e77b1462117640313807f33a955c1c9935e93bc0c180a5f",
+    "runtime": {
+      "node": "v20.20.0",
+      "icu": "77.1",
+      "v8": "11.3.244.8-node.33",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "counts": {
+      "files": 5,
+      "fixtures": 0,
+      "metadataErrors": 0,
+      "executionErrors": 0,
+      "variants": 10,
+      "passed": 10,
+      "failed": 0,
+      "unsupported": 0
+    },
+    "complete": true,
+    "originalHashesAndModesVerified": true,
+    "ids": [
+      "language/expressions/new.target/asi.js#sloppy",
+      "language/expressions/new.target/asi.js#strict",
+      "language/expressions/new.target/escaped-new.js#sloppy",
+      "language/expressions/new.target/escaped-new.js#strict",
+      "language/expressions/new.target/escaped-target.js#sloppy",
+      "language/expressions/new.target/escaped-target.js#strict",
+      "language/expressions/new.target/value-via-call.js#sloppy",
+      "language/expressions/new.target/value-via-call.js#strict",
+      "language/expressions/new.target/value-via-new.js#sloppy",
+      "language/expressions/new.target/value-via-new.js#strict"
+    ]
+  },
+  {
+    "report": "v18.18.0-upstream.jsonl",
+    "sha256": "4d249c59298482c97109945755c6ccf92a786ddc7b3805f6ac959cc99c5dfa0c",
+    "sourceSha": "a43f01b8b549e02ffd4cff78a637e6e41561600b",
+    "sourceHash": "52adcef3e986f6ea0e77b1462117640313807f33a955c1c9935e93bc0c180a5f",
+    "runtime": {
+      "node": "v18.18.0",
+      "icu": "73.2",
+      "v8": "10.2.154.26-node.26",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "counts": {
+      "files": 5,
+      "fixtures": 0,
+      "metadataErrors": 0,
+      "executionErrors": 0,
+      "variants": 10,
+      "passed": 10,
+      "failed": 0,
+      "unsupported": 0
+    },
+    "complete": true,
+    "originalHashesAndModesVerified": true,
+    "ids": [
+      "language/expressions/new.target/asi.js#sloppy",
+      "language/expressions/new.target/asi.js#strict",
+      "language/expressions/new.target/escaped-new.js#sloppy",
+      "language/expressions/new.target/escaped-new.js#strict",
+      "language/expressions/new.target/escaped-target.js#sloppy",
+      "language/expressions/new.target/escaped-target.js#strict",
+      "language/expressions/new.target/value-via-call.js#sloppy",
+      "language/expressions/new.target/value-via-call.js#strict",
+      "language/expressions/new.target/value-via-new.js#sloppy",
+      "language/expressions/new.target/value-via-new.js#strict"
+    ]
+  },
+  {
+    "report": "node-v26.8.2-darwin-arm64-upstream.jsonl",
+    "sha256": "4a19b052988aaf0897895daa0b7aa017e2491c1b4bcb3e3dc002a43b24a2ec31",
+    "sourceSha": "a43f01b8b549e02ffd4cff78a637e6e41561600b",
+    "sourceHash": "52adcef3e986f6ea0e77b1462117640313807f33a955c1c9935e93bc0c180a5f",
+    "runtime": {
+      "node": "v26.8.2",
+      "icu": "78.3",
+      "v8": "14.6.202.34-node.28",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "counts": {
+      "files": 5,
+      "fixtures": 0,
+      "metadataErrors": 0,
+      "executionErrors": 0,
+      "variants": 10,
+      "passed": 10,
+      "failed": 0,
+      "unsupported": 0
+    },
+    "complete": true,
+    "originalHashesAndModesVerified": true,
+    "ids": [
+      "language/expressions/new.target/asi.js#sloppy",
+      "language/expressions/new.target/asi.js#strict",
+      "language/expressions/new.target/escaped-new.js#sloppy",
+      "language/expressions/new.target/escaped-new.js#strict",
+      "language/expressions/new.target/escaped-target.js#sloppy",
+      "language/expressions/new.target/escaped-target.js#strict",
+      "language/expressions/new.target/value-via-call.js#sloppy",
+      "language/expressions/new.target/value-via-call.js#strict",
+      "language/expressions/new.target/value-via-new.js#sloppy",
+      "language/expressions/new.target/value-via-new.js#strict"
+    ]
+  },
+  {
+    "report": "v24.14.0-upstream.jsonl",
+    "sha256": "860f377f542c1948b339cc18cdd3d7b4534993afb80ed9a72401abdff728a147",
+    "sourceSha": "a43f01b8b549e02ffd4cff78a637e6e41561600b",
+    "sourceHash": "52adcef3e986f6ea0e77b1462117640313807f33a955c1c9935e93bc0c180a5f",
+    "runtime": {
+      "node": "v24.14.0",
+      "icu": "78.2",
+      "v8": "13.6.233.17-node.41",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "counts": {
+      "files": 5,
+      "fixtures": 0,
+      "metadataErrors": 0,
+      "executionErrors": 0,
+      "variants": 10,
+      "passed": 10,
+      "failed": 0,
+      "unsupported": 0
+    },
+    "complete": true,
+    "originalHashesAndModesVerified": true,
+    "ids": [
+      "language/expressions/new.target/asi.js#sloppy",
+      "language/expressions/new.target/asi.js#strict",
+      "language/expressions/new.target/escaped-new.js#sloppy",
+      "language/expressions/new.target/escaped-new.js#strict",
+      "language/expressions/new.target/escaped-target.js#sloppy",
+      "language/expressions/new.target/escaped-target.js#strict",
+      "language/expressions/new.target/value-via-call.js#sloppy",
+      "language/expressions/new.target/value-via-call.js#strict",
+      "language/expressions/new.target/value-via-new.js#sloppy",
+      "language/expressions/new.target/value-via-new.js#strict"
+    ]
+  }
+]

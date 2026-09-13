@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v18.18.0/bin/node",
+    "node_modules/tsx/dist/cli.mjs",
+    "packages/safe-js/test/conformance/command.ts",
+    "--corpus",
+    "/tmp/safejs-baseline-test262-419d3e0",
+    "--report",
+    "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/new-target/v18.18.0-upstream.jsonl",
+    "--include",
+    "language/expressions/new.target/asi.js",
+    "--include",
+    "language/expressions/new.target/escaped-new.js",
+    "--include",
+    "language/expressions/new.target/escaped-target.js",
+    "--include",
+    "language/expressions/new.target/value-via-call.js",
+    "--include",
+    "language/expressions/new.target/value-via-new.js"
+  ],
+  "label": "v18.18.0",
+  "exit": 0
+}

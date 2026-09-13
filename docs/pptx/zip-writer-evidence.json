@@ -1,0 +1,490 @@
+{
+  "schema_version": 1,
+  "scope": "zip-writer milestone; internal byte serialization only, not public Presentation or CLI parity",
+  "authorities": [
+    "../specs/pptx.md",
+    "../specs/office-sdk.md",
+    "../specs/office-cli.md",
+    "upstream-test-audit.md",
+    "upstream-api-audit.md"
+  ],
+  "input_sha256": {
+    "upstream-test-inventory.json": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+    "upstream-api-inventory.json": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934",
+    "corpus-manifest.json": "f4c740aa929eb714b4b83ec63cb7d3641f278d5dffbc4c81303e02aee237169f"
+  },
+  "documentation_drift": "The pinned executed inventory locates package writer cases in tests/opc/test_serialized.py. Historical phys_pkg/pkgwriter filenames in older research are not the executed case authority.",
+  "unit_cases": [
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1198",
+        "identity": "tests/opc/test_package.py::DescribeOpcPackage::it_can_save_to_a_pkg_file",
+        "file": "tests/opc/test_package.py",
+        "line": 248,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "f527ea988146f980dc75bf496e22c68b004838daceef7db3298ef06e2be7ad62"
+      },
+      "parameter_variant": false,
+      "status": "pending_graph_or_public_model",
+      "tests": [],
+      "rationale": "Presentation/package save delegates through a live graph and publication surface that are not yet implemented. The internal archive writer and explicit sink tests are prerequisites, not a passing public-save assertion."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1301",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_provides_a_write_interface_classmethod",
+        "file": "tests/opc/test_serialized.py",
+        "line": 96,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "byte_layer_passed_graph_pending",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "rationale": "Original assertions verify exact supplied content-type, relationship and part bytes and all three part/relationship pairs. Automatic XML generation, graph traversal and higher-level writer delegation are pending OPC/model tasks; this is not whole-case parity."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1302",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_package",
+        "file": "tests/opc/test_serialized.py",
+        "line": 107,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "byte_layer_passed_graph_pending",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "rationale": "Original assertions verify exact supplied content-type, relationship and part bytes and all three part/relationship pairs. Automatic XML generation, graph traversal and higher-level writer delegation are pending OPC/model tasks; this is not whole-case parity."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1303",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_content_types_stream",
+        "file": "tests/opc/test_serialized.py",
+        "line": 127,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "byte_layer_passed_graph_pending",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "rationale": "Original assertions verify exact supplied content-type, relationship and part bytes and all three part/relationship pairs. Automatic XML generation, graph traversal and higher-level writer delegation are pending OPC/model tasks; this is not whole-case parity."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1304",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_sequence_of_parts",
+        "file": "tests/opc/test_serialized.py",
+        "line": 143,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "byte_layer_passed_graph_pending",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes three parts and their explicitly supplied relationship streams"
+        }
+      ],
+      "rationale": "Original assertions verify exact supplied content-type, relationship and part bytes and all three part/relationship pairs. Automatic XML generation, graph traversal and higher-level writer delegation are pending OPC/model tasks; this is not whole-case parity."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1305",
+        "identity": "tests/opc/test_serialized.py::DescribePackageWriter::it_can_write_a_pkg_rels_item",
+        "file": "tests/opc/test_serialized.py",
+        "line": 169,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "byte_layer_passed_graph_pending",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        }
+      ],
+      "rationale": "Original assertions verify exact supplied content-type, relationship and part bytes and all three part/relationship pairs. Automatic XML generation, graph traversal and higher-level writer delegation are pending OPC/model tasks; this is not whole-case parity."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1317",
+        "identity": "tests/opc/test_serialized.py::Describe_PhysPkgWriter::it_constructs_ZipPkgWriter_unconditionally",
+        "file": "tests/opc/test_serialized.py",
+        "line": 303,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "original_ts_passed_with_language_mapping",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        },
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes empty archives and entries with %s policy"
+        }
+      ],
+      "rationale": "One always-async byte serialization entry replaces factory/context-manager topology. It returns a complete closed ZIP; explicit writeBinary sink close is tested separately. No ambient path or native archive handle exists. Compression is an explicit store/deflate-if-smaller policy instead of an implicit deflate default."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1318",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::it_has_an__enter__method_for_context_management",
+        "file": "tests/opc/test_serialized.py",
+        "line": 318,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "original_ts_passed_with_language_mapping",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        },
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes empty archives and entries with %s policy"
+        }
+      ],
+      "rationale": "One always-async byte serialization entry replaces factory/context-manager topology. It returns a complete closed ZIP; explicit writeBinary sink close is tested separately. No ambient path or native archive handle exists. Compression is an explicit store/deflate-if-smaller policy instead of an implicit deflate default."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1319",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::and_it_closes_the_zip_archive_on_context__exit__",
+        "file": "tests/opc/test_serialized.py",
+        "line": 322,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "original_ts_passed_with_language_mapping",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "publishes a complete archive through an explicit memfs sink"
+        }
+      ],
+      "rationale": "One always-async byte serialization entry replaces factory/context-manager topology. It returns a complete closed ZIP; explicit writeBinary sink close is tested separately. No ambient path or native archive handle exists. Compression is an explicit store/deflate-if-smaller policy instead of an implicit deflate default."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1320",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::it_can_write_a_blob",
+        "file": "tests/opc/test_serialized.py",
+        "line": 326,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "original_ts_passed_with_language_mapping",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes every supplied part in deterministic name order"
+        },
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes empty archives and entries with %s policy"
+        }
+      ],
+      "rationale": "One always-async byte serialization entry replaces factory/context-manager topology. It returns a complete closed ZIP; explicit writeBinary sink close is tested separately. No ambient path or native archive handle exists. Compression is an explicit store/deflate-if-smaller policy instead of an implicit deflate default."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1321",
+        "identity": "tests/opc/test_serialized.py::Describe_ZipPkgWriter::it_provides_access_to_the_open_zip_file_to_help",
+        "file": "tests/opc/test_serialized.py",
+        "line": 338,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "original_ts_passed_with_language_mapping",
+      "tests": [
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "compresses only when smaller under the explicit automatic policy"
+        },
+        {
+          "file": "packages/pptx/src/package-writer.test.ts",
+          "name": "writes empty archives and entries with %s policy"
+        }
+      ],
+      "rationale": "One always-async byte serialization entry replaces factory/context-manager topology. It returns a complete closed ZIP; explicit writeBinary sink close is tested separately. No ambient path or native archive handle exists. Compression is an explicit store/deflate-if-smaller policy instead of an implicit deflate default."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1322",
+        "identity": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_provides_an_interface_classmethod",
+        "file": "tests/opc/test_serialized.py",
+        "line": 359,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "pending_graph_or_public_model",
+      "tests": [],
+      "rationale": "Content-type XML composition/defaults/overrides require the subsequent OPC identity/content-type task. The ZIP writer preserves supplied bytes and does not synthesize XML."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1323",
+        "identity": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_can_compose_content_types_xml",
+        "file": "tests/opc/test_serialized.py",
+        "line": 368,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "pending_graph_or_public_model",
+      "tests": [],
+      "rationale": "Content-type XML composition/defaults/overrides require the subsequent OPC identity/content-type task. The ZIP writer preserves supplied bytes and does not synthesize XML."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1324",
+        "identity": "tests/opc/test_serialized.py::Describe_ContentTypesItem::it_computes_defaults_and_overrides_to_help",
+        "file": "tests/opc/test_serialized.py",
+        "line": 386,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "764aebfa4ca56917e40c39fd9919547852cbae24dc78f0e41f2a2dd090398cc2"
+      },
+      "parameter_variant": false,
+      "status": "pending_graph_or_public_model",
+      "tests": [],
+      "rationale": "Content-type XML composition/defaults/overrides require the subsequent OPC identity/content-type task. The ZIP writer preserves supplied bytes and does not synthesize XML."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1627",
+        "identity": "tests/parts/test_presentation.py::DescribePresentationPart::it_can_save_the_package_to_a_file",
+        "file": "tests/parts/test_presentation.py",
+        "line": 122,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "01057891d90c60b5d01345387ea0a062c343ee03553ff23c54ff5b3caf9e1128"
+      },
+      "parameter_variant": false,
+      "status": "pending_graph_or_public_model",
+      "tests": [],
+      "rationale": "Presentation/package save delegates through a live graph and publication surface that are not yet implemented. The internal archive writer and explicit sink tests are prerequisites, not a passing public-save assertion."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2232",
+        "identity": "tests/test_presentation.py::DescribePresentation::it_can_save_the_presentation_to_a_file",
+        "file": "tests/test_presentation.py",
+        "line": 74,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file_sha256": "e76994da0bcfa3ba160ac33c8a9998de59ef919d2d7d097ab5120ee171c95123"
+      },
+      "parameter_variant": false,
+      "status": "pending_graph_or_public_model",
+      "tests": [],
+      "rationale": "Presentation/package save delegates through a live graph and publication surface that are not yet implemented. The internal archive writer and explicit sink tests are prerequisites, not a passing public-save assertion."
+    }
+  ],
+  "bdd_cases": [
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/532",
+        "file": "features/prs-coreprops.feature",
+        "line": 16,
+        "name": "added core props part is saved",
+        "template_name": "added core props part is saved",
+        "template_line": 16,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "status": "pending_public_model_acceptance",
+      "rationale": "Creating missing core properties requires the model/OPC graph."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/534",
+        "file": "features/prs-open-save.feature",
+        "line": 6,
+        "name": "Round-trip a basic presentation",
+        "template_name": "Round-trip a basic presentation",
+        "template_line": 6,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "status": "pending_public_model_acceptance",
+      "rationale": "Original byte serialization, exact supplied relationship payloads and explicit memfs sink tests cover prerequisites; live Presentation loading/saving, generated relationships and public CLI acceptance are still required."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/535",
+        "file": "features/prs-open-save.feature",
+        "line": 12,
+        "name": "Start presentation from package stream",
+        "template_name": "Start presentation from package stream",
+        "template_line": 12,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "status": "pending_public_model_acceptance",
+      "rationale": "Original byte serialization, exact supplied relationship payloads and explicit memfs sink tests cover prerequisites; live Presentation loading/saving, generated relationships and public CLI acceptance are still required."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/536",
+        "file": "features/prs-open-save.feature",
+        "line": 18,
+        "name": "Start presentation from package extracted into directory",
+        "template_name": "Start presentation from package extracted into directory",
+        "template_line": 18,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "status": "pending_public_model_acceptance",
+      "rationale": "Directory admission must use an explicit capability; no host-directory interpretation is added."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/537",
+        "file": "features/prs-open-save.feature",
+        "line": 24,
+        "name": "Save presentation to package stream",
+        "template_name": "Save presentation to package stream",
+        "template_line": 24,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "status": "pending_public_model_acceptance",
+      "rationale": "Original byte serialization, exact supplied relationship payloads and explicit memfs sink tests cover prerequisites; live Presentation loading/saving, generated relationships and public CLI acceptance are still required."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/538",
+        "file": "features/prs-open-save.feature",
+        "line": 31,
+        "name": "Round-trip external relationships",
+        "template_name": "Round-trip external relationships",
+        "template_line": 31,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "status": "pending_public_model_acceptance",
+      "rationale": "Original byte serialization, exact supplied relationship payloads and explicit memfs sink tests cover prerequisites; live Presentation loading/saving, generated relationships and public CLI acceptance are still required."
+    },
+    {
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/539",
+        "file": "features/prs-open-save.feature",
+        "line": 37,
+        "name": "Load presentation with invalid image/jpg MIME-type",
+        "template_name": "Load presentation with invalid image/jpg MIME-type",
+        "template_line": 37,
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be"
+      },
+      "status": "pending_public_model_acceptance",
+      "rationale": "Image type admission is not ZIP serialization."
+    }
+  ],
+  "public_api": [
+    {
+      "source": "upstream-api-inventory.json#/objects/1552",
+      "identity": "pptx.presentation.Presentation.save",
+      "signature": "save(file: BinaryOutput): Promise<void>",
+      "status": "pending_public_model_acceptance",
+      "language_security_mapping": "Retain the neutral save spelling; always async; byte sinks/capability-scoped VFS replace ambient paths. Internal writePackageArchive is not a replacement public model method. No class is excluded based on an underscore prefix."
+    }
+  ],
+  "additional_original_evidence": [
+    "classic local/central/end records and independent native CRC/inflate checks",
+    "signed and unsigned descriptors, stored and deflated inputs",
+    "empty archives/entries, exact and one-byte-under ceilings",
+    "UTF-8 name length 65535 accepted / 65536 refused, nonnormalized Unicode and BOM character",
+    "65535-member classic sentinel rejected before member inspection",
+    "cooperative cancellation and input ownership",
+    "retained compressed bytes and rejection of corrupt omitted source entries",
+    "compressed output fitting below decoded member size",
+    "independent assertion corruption controls",
+    "32-bit reserved size metadata rejected without large allocations",
+    "unsafe omitted source names rejected before serialization"
+  ],
+  "legal": "All new implementation, test assets and assertion wording are original. No substantial copied implementation or fixture material; existing standalone MIT research notice remains the provenance authority.",
+  "qa": [
+    {
+      "source": "/Users/kjopek/Workspace/poe-setup-scripts/.cache/pptx-corpus/IXPE-Presentation-Template.pptx",
+      "target": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/pptx-writer-qa-vmbUbu/output-0.pptx",
+      "sourceSha256": "885e923f148cdf4680372abe54496c824ab3a2a2d8a59fd9703d66e0aeb1164c",
+      "outputSha256": "86a983c48f05a139c56d7df175db8c3dd58c2a418b7436ced4cb9a405e0d9a16",
+      "members": 38,
+      "inputBytes": 1202514,
+      "outputBytes": 1202004,
+      "independentVerifiedMembers": 38,
+      "unchangedPayloadsAndCompressedBytes": 37,
+      "oracle": "Python 3.14.7 zipfile; CRC verification and independent raw member extraction"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/poe-setup-scripts/.cache/pptx-corpus/CERN-job-opp-250925.pptx",
+      "target": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/pptx-writer-qa-vmbUbu/output-1.pptx",
+      "sourceSha256": "85cc7b338a11b9d1a9dfcaaaa504bf21ab643e4c30004a478152f390ee9f5f1d",
+      "outputSha256": "a90f83dc24889b07f7e2b203a6b233cc8f11c2a3787f9fb233854f1990e01390",
+      "members": 29,
+      "inputBytes": 43231,
+      "outputBytes": 42720,
+      "independentVerifiedMembers": 29,
+      "unchangedPayloadsAndCompressedBytes": 28,
+      "oracle": "Python 3.14.7 zipfile; CRC verification and independent raw member extraction"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/poe-setup-scripts/.cache/pptx-corpus/WWL-template-1slide.pptx",
+      "target": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/pptx-writer-qa-vmbUbu/output-2.pptx",
+      "sourceSha256": "0c728ea3fd2ab76906247931fcb5c966074d21e804187893d954cc913cc89689",
+      "outputSha256": "f1a4fdf521bd2563ed39b39e0f901ea1aa7537ad8561d0581147d4b38eb9035e",
+      "members": 43,
+      "inputBytes": 213136,
+      "outputBytes": 212625,
+      "independentVerifiedMembers": 43,
+      "unchangedPayloadsAndCompressedBytes": 42,
+      "oracle": "Python 3.14.7 zipfile; CRC verification and independent raw member extraction"
+    }
+  ],
+  "limits": [
+    "No 4-GiB allocation or full 65534-member output stress run; bounded field admission and small independent cases do not imply giant-archive qualification.",
+    "No CLI surface changed or exposed; no visual CLI effect or screenshot acceptance claimed.",
+    "No full API/BDD parity, OPC graph validation, signature validation, rendering or atomic remote publication claim.",
+    "No pipeline execution, push or release."
+  ],
+  "implementation_sha256": {
+    "packages/pptx/src/package-writer.ts": "d6780406196df72c3690b3e76a68988e82bfb6737ecc0f1375abfdbc579b8f14",
+    "packages/pptx/src/package-writer.test.ts": "abbdda981eb33d8e91f7625544e4f75afd5b8568d5eb5e42568e4f1dc4d41af0",
+    "packages/pptx/tests/zip-reader.ts": "345378cdf93c407a0f52dd3109ae2cc23e8fb37401b6a281bfde33330977c94d"
+  },
+  "validation": {
+    "tests": {
+      "command": "npm test --workspace=pptx",
+      "passed": 151,
+      "writer_cases": 36,
+      "writer_duration_ms": 271
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=pptx",
+      "closure": ["@poe-code/office-package", "pptx"]
+    },
+    "lint": [
+      "npm run lint --workspace=pptx",
+      "npm exec --workspace=pptx -- eslint tests/zip-reader.ts"
+    ]
+  }
+}

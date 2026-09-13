@@ -1,3 +1,5 @@
+import { indexed } from "./indexed-collection.js";
+import type { SlideLayout } from "./slide-layout-model.js";
 import { PROG_ID, type OleApplication } from "./ole-enum.js";
 import { Image } from "./image-value.js";
 import type { PartView } from "./package-view.js";
@@ -84,31 +86,6 @@ function shapes(xml: XmlPart, groupId?: number): readonly XmlElement[] {
   return tree(xml, groupId).children.filter((n) =>
     ["sp", "pic", "graphicFrame", "cxnSp", "grpSp"].includes(n.name.localName)
   );
-}
-function indexed<T extends { get(index: number): unknown }>(target: T): T {
-  return new Proxy(target, {
-    get(object, key) {
-      if (typeof key === "string" && key !== "" && String(Number(key)) === key)
-        return object.get(Number(key));
-      const value = Reflect.get(object, key, object);
-      return typeof value === "function" ? value.bind(object) : value;
-    },
-    set(object, key, value) {
-      if (typeof key === "string" && key !== "" && String(Number(key)) === key)
-        throw new ValueError("Collection entries are read-only.");
-      return Reflect.set(object, key, value, object);
-    },
-    defineProperty(object, key, descriptor) {
-      if (typeof key === "string" && key !== "" && String(Number(key)) === key)
-        throw new ValueError("Collection entries are read-only.");
-      return Reflect.defineProperty(object, key, descriptor);
-    },
-    deleteProperty(object, key) {
-      if (typeof key === "string" && key !== "" && String(Number(key)) === key)
-        throw new ValueError("Collection entries are read-only.");
-      return Reflect.deleteProperty(object, key);
-    }
-  });
 }
 
 function descendants(xml: XmlPart): XmlElement[] {
@@ -958,10 +935,18 @@ export class Slide {
 }
 export class Slides implements Iterable<Slide> {
   readonly [index: number]: Slide;
-  readonly #items: readonly Slide[];
-  constructor(items: readonly Slide[]) {
-    this.#items = items;
+  readonly #items: Slide[];
+  readonly #add: ((layout: SlideLayout) => Slide) | undefined;
+  constructor(items: readonly Slide[], add?: (layout: SlideLayout) => Slide) {
+    this.#items = [...items];
+    this.#add = add;
     return indexed(this);
+  }
+  add_slide(slide_layout: SlideLayout): Slide {
+    if (!this.#add) throw new PropertyAccessError("Slide insertion requires a presentation owner.");
+    const slide = this.#add(slide_layout);
+    this.#items.push(slide);
+    return slide;
   }
   get length() {
     return this.#items.length;

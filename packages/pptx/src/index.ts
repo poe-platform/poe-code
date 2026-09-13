@@ -1,3 +1,4 @@
+export { SlideLayout, SlideLayouts } from "./slide-layout-model.js";
 export { addOleObject, type AddOleObjectOptions } from "./ole-insertion.js";
 export { Image, detectImageContentType } from "./image-value.js";
 export { Chart } from "./chart-model.js";

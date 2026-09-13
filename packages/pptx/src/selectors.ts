@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha2.js";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput, Location, Scope } from "./contracts.js";
 import { OfficeError } from "./errors.js";
-import { readPackage, type PackageContext } from "./package-reader.js";
+import { readPackage, type PackageContext, type PackageReader } from "./package-reader.js";
 import { asciiKey, partName } from "./package-uri.js";
 import { readRelationshipGraph, type RelationshipLimits } from "./relationships.js";
 import { parseXmlPart, type XmlElement, type XmlLimits } from "./xml.js";
@@ -166,6 +166,14 @@ export async function readSelectionIndex(
     ""
   );
   const reader = await readPackage(bytes, context);
+  return buildSelectionIndex(reader, fingerprint, context);
+}
+
+export function buildSelectionIndex(
+  reader: PackageReader,
+  fingerprint: string,
+  context: SelectionContext
+): SelectionIndex {
   const graph = readRelationshipGraph(reader, context.relationshipLimits);
   const roots = graph
     .outgoing("/")

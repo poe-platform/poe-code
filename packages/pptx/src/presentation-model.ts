@@ -1,3 +1,5 @@
+import { SlideLayouts, prepareLayoutInsertion } from "./slide-layout-model.js";
+import type { SlideInventory } from "./inventory.js";
 import { Image } from "./image-value.js";
 import { addMedia } from "./media-editing.js";
 import type { OleApplication } from "./ole-enum.js";
@@ -11,7 +13,7 @@ import type { FontMetricsHandle } from "./font-metrics.js";
 import { createPackageView, type PartView } from "./package-view.js";
 import type { XmlElementView } from "./xml-view.js";
 import { Length } from "./length.js";
-import { attr, child, loadShared } from "./masters.js";
+import { attr, child, editContent, loadShared } from "./masters.js";
 import { applyPresentationCanvasSettings } from "./presentation-settings.js";
 import { CoreProperties, createPropertyPart } from "./properties.js";
 import {
@@ -125,6 +127,7 @@ export interface PresentationModel {
   readonly part: PartView;
   readonly core_properties: CoreProperties;
   readonly slides: Slides;
+  readonly slide_layouts: SlideLayouts;
   get slide_width(): Length | null;
   set slide_width(value: Length);
   get slide_height(): Length | null;
@@ -136,6 +139,11 @@ export interface PresentationModel {
 class LivePresentation implements PresentationModel {
   #part: PartView;
   readonly #slides: Slides;
+  readonly #slideLayouts: SlideLayouts;
+  get slide_layouts(): SlideLayouts {
+    void this.#slideLayouts.length;
+    return this.#slideLayouts;
+  }
   get slides(): Slides {
     return this.#slides;
   }
@@ -170,439 +178,386 @@ class LivePresentation implements PresentationModel {
     if (parts.length > 1)
       throw new OfficeError("ambiguous-selection", "Multiple core property parts.", "select");
     this.#propertyPart = parts[0]?.targetPart ?? undefined;
-    this.#slides = new Slides(
-      state.index.inventory.slides.map((record) => {
-        let latestBytes: Uint8Array | undefined;
-        let latestXml: ReturnType<State["doc"]> | undefined;
-        const owner: SlideShapeOwner = {
-          part: this.#part.package.get_part(record.part)!,
-          resource: (id) => {
-            const edge = parseRelationships(
-              state.doc(relPart(record.part)).bytes(),
-              context.relationshipLimits
-            ).find((edge) => edge.id === id);
-            if (!edge || edge.external)
+    this.#slideLayouts = new SlideLayouts(this.#part, (part, value) => {
+      let updated = editContent(
+        state.doc(part),
+        { name: value ?? "" },
+        state.p,
+        state.a,
+        context.xmlLimits.maxBytes,
+        context.xmlLimits.maxNodes
+      );
+      if (value === null)
+        updated = updated.merge(required(updated.root, "cSld"), {
+          attributes: [{ namespace: "", localName: "name", value: null }]
+        });
+      state.save(part, updated);
+      this.#revision++;
+    });
+    const createSlide = (record: SlideInventory): Slide => {
+      let latestBytes: Uint8Array | undefined;
+      let latestXml: ReturnType<State["doc"]> | undefined;
+      const owner: SlideShapeOwner = {
+        part: this.#part.package.get_part(record.part)!,
+        resource: (id) => {
+          const edge = parseRelationships(
+            state.doc(relPart(record.part)).bytes(),
+            context.relationshipLimits
+          ).find((edge) => edge.id === id);
+          if (!edge || edge.external)
+            throw new OfficeError(
+              "unsupported-edit",
+              "Only embedded resources are accessible.",
+              "select"
+            );
+          const name = resolvePartReference(packageUri(record.part).baseURI, edge.target);
+          const part = this.#part.package.get_part(name);
+          if (!part)
+            throw new OfficeError("invalid-opc", "Embedded resource is missing.", "select");
+          return part;
+        },
+        insertAsset: async (kind, options, groupId) => {
+          const revision = this.#revision;
+          const geometry: Record<string, number> = {};
+          for (const key of [
+            "left",
+            "top",
+            "width",
+            "height",
+            "icon_width",
+            "icon_height"
+          ] as const) {
+            const value = options[key];
+            if (value === undefined || value === null) continue;
+            if (!(value instanceof Length))
+              throw new ValueError("Expected explicit Length geometry.");
+            geometry[key] = value.emu;
+          }
+          if (geometry.left === undefined || geometry.top === undefined)
+            throw new ValueError("Expected explicit placement.");
+          const suppliedPoster = kind === "movie" ? options.poster_frame_image : options.icon_file;
+          const posterInput =
+            suppliedPoster instanceof Uint8Array ? new Uint8Array(suppliedPoster) : suppliedPoster;
+          const bytes = await readBinary(options.input as BinaryInput, context);
+          let poster: Image | undefined;
+          if (kind !== "picture")
+            poster = new Image(await readBinary(posterInput as BinaryInput, context));
+          await this.#flushWorkbooks();
+          if (revision !== this.#revision)
+            throw new OfficeError(
+              "stale-selection",
+              "Presentation changed during insertion.",
+              "publish"
+            );
+          const before = owner.read();
+          const ids = new Set(
+            required(required(before.root, "cSld"), "spTree").children.map(
+              (node) => readShape(node).shapeId
+            )
+          );
+          const snapshot = await state.finish(state.main, []);
+          let inserted: Uint8Array;
+          if (kind === "picture") {
+            const image = new Image(bytes);
+            inserted = await addImage(
+              snapshot.bytes,
+              { slide: record.position, bytes, contentType: image.content_type, ...geometry },
+              context
+            );
+          } else if (kind === "movie") {
+            inserted = await addMedia(
+              snapshot.bytes,
+              {
+                slide: record.position,
+                bytes,
+                contentType: options.mime_type as string,
+                kind: "video",
+                poster: { bytes: poster!.blob, contentType: poster!.content_type },
+                left: geometry.left,
+                top: geometry.top,
+                width: geometry.width!,
+                height: geometry.height!
+              },
+              context
+            );
+          } else {
+            const { icon_width, icon_height, ...bounds } = geometry;
+            inserted = await addOleObject(
+              snapshot.bytes,
+              {
+                slide: record.position,
+                bytes,
+                progId: options.prog_id as string | OleApplication,
+                iconBytes: poster!.blob,
+                iconContentType: poster!.content_type,
+                ...bounds,
+                ...(icon_width === undefined ? {} : { iconWidth: icon_width }),
+                ...(icon_height === undefined ? {} : { iconHeight: icon_height })
+              },
+              context
+            );
+          }
+          const updated = await loadShared(inserted, context);
+          if (revision !== this.#revision)
+            throw new OfficeError(
+              "stale-selection",
+              "Presentation changed during insertion.",
+              "publish"
+            );
+          const doc = updated.doc(record.part);
+          const added = required(required(doc.root, "cSld"), "spTree").children.find(
+            (node) => !ids.has(readShape(node).shapeId)
+          );
+          if (!added)
+            throw new OfficeError(
+              "invalid-opc",
+              "Asset insertion produced no shape.",
+              "validate-result"
+            );
+          const final =
+            groupId === undefined
+              ? doc
+              : reparentInsertedAsset(doc, readShape(added).shapeId, groupId);
+          for (const name of updated.reader.names)
+            state.changes.set(name, updated.reader.get(name));
+          owner.write(final);
+          return readShape(added).shapeId;
+        },
+        read: () => {
+          const bytes = state.changes.get(record.part);
+          if (latestXml && bytes === latestBytes) return latestXml;
+          latestBytes = bytes;
+          latestXml = state.doc(record.part);
+          return latestXml;
+        },
+        write: (xml) => {
+          state.save(record.part, xml);
+          latestBytes = state.changes.get(record.part);
+          latestXml = xml;
+          this.#revision++;
+        },
+        inherited: (idx) => {
+          const result: ReturnType<State["doc"]>[] = [];
+          const layout = record.layout ? state.doc(record.layout) : undefined;
+          if (layout) result.push(layout);
+          if (record.master) {
+            const master = state.doc(record.master);
+            const layoutShapes =
+              layout && required(required(layout.root, "cSld"), "spTree").children;
+            const ph = layoutShapes
+              ?.map(readShape)
+              .find((shape) => shape.placeholder?.idx === idx)?.placeholder;
+            const category =
+              ph?.type === "ctrTitle"
+                ? "title"
+                : ["tbl", "obj", "subTitle", "chart", "pic"].includes(ph?.type ?? "")
+                  ? "body"
+                  : ph?.type;
+            const candidates = required(required(master.root, "cSld"), "spTree").children.filter(
+              (node) => readShape(node).placeholder?.type === category
+            );
+            if (candidates.length > 1)
               throw new OfficeError(
-                "unsupported-edit",
-                "Only embedded resources are accessible.",
+                "ambiguous-selection",
+                "Duplicate inherited master placeholder type.",
                 "select"
               );
-            const name = resolvePartReference(packageUri(record.part).baseURI, edge.target);
-            const part = this.#part.package.get_part(name);
-            if (!part)
-              throw new OfficeError("invalid-opc", "Embedded resource is missing.", "select");
-            return part;
-          },
-          insertAsset: async (kind, options, groupId) => {
-            const revision = this.#revision;
-            const geometry: Record<string, number> = {};
-            for (const key of [
-              "left",
-              "top",
-              "width",
-              "height",
-              "icon_width",
-              "icon_height"
-            ] as const) {
-              const value = options[key];
-              if (value === undefined || value === null) continue;
-              if (!(value instanceof Length))
-                throw new ValueError("Expected explicit Length geometry.");
-              geometry[key] = value.emu;
-            }
-            if (geometry.left === undefined || geometry.top === undefined)
-              throw new ValueError("Expected explicit placement.");
-            const suppliedPoster =
-              kind === "movie" ? options.poster_frame_image : options.icon_file;
-            const posterInput =
-              suppliedPoster instanceof Uint8Array
-                ? new Uint8Array(suppliedPoster)
-                : suppliedPoster;
-            const bytes = await readBinary(options.input as BinaryInput, context);
-            let poster: Image | undefined;
-            if (kind !== "picture")
-              poster = new Image(await readBinary(posterInput as BinaryInput, context));
-            await this.#flushWorkbooks();
-            if (revision !== this.#revision)
-              throw new OfficeError(
-                "stale-selection",
-                "Presentation changed during insertion.",
-                "publish"
+            if (candidates[0]) {
+              const original = master.subtree(candidates[0]);
+              const nv = original.root.children.find((node) =>
+                node.name.localName.startsWith("nv")
+              )!;
+              const placeholder = required(required(nv, "nvPr"), "ph");
+              const remapped = original.merge(placeholder, {
+                attributes: [{ namespace: "", localName: "idx", value: String(idx) }]
+              });
+              const tree = required(required(master.root, "cSld"), "spTree");
+              result.push(
+                master.spliceChildren(tree, 0, tree.children.length, [
+                  remapped.markup(remapped.root, true)
+                ])
               );
-            const before = owner.read();
-            const ids = new Set(
-              required(required(before.root, "cSld"), "spTree").children.map(
-                (node) => readShape(node).shapeId
-              )
+            }
+          }
+          return result;
+        },
+        chart: (shapeId) => {
+          let cachedBytes: Uint8Array | undefined, cachedXml: ReturnType<State["doc"]> | undefined;
+          const chartPart = () => {
+            const shape = required(required(owner.read().root, "cSld"), "spTree").children.find(
+              (node) => readShape(node).shapeId === shapeId
             );
-            const snapshot = await state.finish(state.main, []);
-            let inserted: Uint8Array;
-            if (kind === "picture") {
-              const image = new Image(bytes);
-              inserted = await addImage(
-                snapshot.bytes,
-                { slide: record.position, bytes, contentType: image.content_type, ...geometry },
-                context
-              );
-            } else if (kind === "movie") {
-              inserted = await addMedia(
-                snapshot.bytes,
-                {
-                  slide: record.position,
-                  bytes,
-                  contentType: options.mime_type as string,
-                  kind: "video",
-                  poster: { bytes: poster!.blob, contentType: poster!.content_type },
-                  left: geometry.left,
-                  top: geometry.top,
-                  width: geometry.width!,
-                  height: geometry.height!
-                },
-                context
-              );
-            } else {
-              const { icon_width, icon_height, ...bounds } = geometry;
-              inserted = await addOleObject(
-                snapshot.bytes,
-                {
-                  slide: record.position,
-                  bytes,
-                  progId: options.prog_id as string | OleApplication,
-                  iconBytes: poster!.blob,
-                  iconContentType: poster!.content_type,
-                  ...bounds,
-                  ...(icon_width === undefined ? {} : { iconWidth: icon_width }),
-                  ...(icon_height === undefined ? {} : { iconHeight: icon_height })
-                },
-                context
-              );
+            if (!shape || shape.name.localName !== "graphicFrame")
+              throw new OfficeError("invalid-handle", "Chart frame was replaced.", "select");
+            const pending = [shape];
+            let relationId: string | undefined;
+            while (pending.length) {
+              const node = pending.pop()!;
+              if (node.name.localName === "chart")
+                relationId = node.attributes.find(
+                  (a) => a.name.localName === "id" && a.name.namespace === state.r
+                )?.value;
+              pending.push(...node.children);
             }
-            const updated = await loadShared(inserted, context);
-            if (revision !== this.#revision)
-              throw new OfficeError(
-                "stale-selection",
-                "Presentation changed during insertion.",
-                "publish"
-              );
-            const doc = updated.doc(record.part);
-            const added = required(required(doc.root, "cSld"), "spTree").children.find(
-              (node) => !ids.has(readShape(node).shapeId)
+            const relations = parseRelationships(
+              state.doc(relPart(record.part)).bytes(),
+              context.relationshipLimits
             );
-            if (!added)
+            const relation = relations.find(
+              (edge) => edge.id === relationId && edge.type.endsWith("/chart") && !edge.external
+            );
+            if (!relation)
               throw new OfficeError(
-                "invalid-opc",
-                "Asset insertion produced no shape.",
-                "validate-result"
+                "invalid-handle",
+                "Chart relationship is unavailable.",
+                "select"
               );
-            const final =
-              groupId === undefined
-                ? doc
-                : reparentInsertedAsset(doc, readShape(added).shapeId, groupId);
-            for (const name of updated.reader.names)
-              state.changes.set(name, updated.reader.get(name));
-            owner.write(final);
-            return readShape(added).shapeId;
-          },
-          read: () => {
-            const bytes = state.changes.get(record.part);
-            if (latestXml && bytes === latestBytes) return latestXml;
-            latestBytes = bytes;
-            latestXml = state.doc(record.part);
-            return latestXml;
-          },
-          write: (xml) => {
-            state.save(record.part, xml);
-            latestBytes = state.changes.get(record.part);
-            latestXml = xml;
-            this.#revision++;
-          },
-          inherited: (idx) => {
-            const result: ReturnType<State["doc"]>[] = [];
-            const layout = record.layout ? state.doc(record.layout) : undefined;
-            if (layout) result.push(layout);
-            if (record.master) {
-              const master = state.doc(record.master);
-              const layoutShapes =
-                layout && required(required(layout.root, "cSld"), "spTree").children;
-              const ph = layoutShapes
-                ?.map(readShape)
-                .find((shape) => shape.placeholder?.idx === idx)?.placeholder;
-              const category =
-                ph?.type === "ctrTitle"
-                  ? "title"
-                  : ["tbl", "obj", "subTitle", "chart", "pic"].includes(ph?.type ?? "")
-                    ? "body"
-                    : ph?.type;
-              const candidates = required(required(master.root, "cSld"), "spTree").children.filter(
-                (node) => readShape(node).placeholder?.type === category
-              );
-              if (candidates.length > 1)
-                throw new OfficeError(
-                  "ambiguous-selection",
-                  "Duplicate inherited master placeholder type.",
-                  "select"
+            return resolvePartReference(packageUri(record.part).baseURI, relation.target);
+          };
+          return new Chart(
+            () => {
+              const part = chartPart(),
+                bytes = state.changes.get(part);
+              if (cachedXml && cachedBytes === bytes) return cachedXml;
+              cachedBytes = bytes;
+              cachedXml = state.doc(part);
+              return cachedXml;
+            },
+            (xml) => {
+              state.save(chartPart(), xml);
+              cachedXml = xml;
+              cachedBytes = state.changes.get(chartPart());
+              this.#revision++;
+            },
+            {
+              part: () => this.#part.package.get_part(chartPart())!,
+              replaceData: (data) => {
+                cancelled(context);
+                const part = chartPart();
+                const xml = state.doc(part);
+                const externalData = child(xml.root, "externalData");
+                const id = externalData?.attributes.find(
+                  (attribute) =>
+                    attribute.name.localName === "id" && attribute.name.namespace === state.r
+                )?.value;
+                const relations = parseRelationships(
+                  state.doc(relPart(part)).bytes(),
+                  context.relationshipLimits
                 );
-              if (candidates[0]) {
-                const original = master.subtree(candidates[0]);
-                const nv = original.root.children.find((node) =>
-                  node.name.localName.startsWith("nv")
-                )!;
-                const placeholder = required(required(nv, "nvPr"), "ph");
-                const remapped = original.merge(placeholder, {
-                  attributes: [{ namespace: "", localName: "idx", value: String(idx) }]
-                });
-                const tree = required(required(master.root, "cSld"), "spTree");
-                result.push(
-                  master.spliceChildren(tree, 0, tree.children.length, [
-                    remapped.markup(remapped.root, true)
-                  ])
+                const relation = relations.find(
+                  (edge) => edge.id === id && edge.type.endsWith("/package") && !edge.external
                 );
-              }
-            }
-            return result;
-          },
-          chart: (shapeId) => {
-            let cachedBytes: Uint8Array | undefined,
-              cachedXml: ReturnType<State["doc"]> | undefined;
-            const chartPart = () => {
-              const shape = required(required(owner.read().root, "cSld"), "spTree").children.find(
-                (node) => readShape(node).shapeId === shapeId
-              );
-              if (!shape || shape.name.localName !== "graphicFrame")
-                throw new OfficeError("invalid-handle", "Chart frame was replaced.", "select");
-              const pending = [shape];
-              let relationId: string | undefined;
-              while (pending.length) {
-                const node = pending.pop()!;
-                if (node.name.localName === "chart")
-                  relationId = node.attributes.find(
-                    (a) => a.name.localName === "id" && a.name.namespace === state.r
-                  )?.value;
-                pending.push(...node.children);
-              }
-              const relations = parseRelationships(
-                state.doc(relPart(record.part)).bytes(),
-                context.relationshipLimits
-              );
-              const relation = relations.find(
-                (edge) => edge.id === relationId && edge.type.endsWith("/chart") && !edge.external
-              );
-              if (!relation)
-                throw new OfficeError(
-                  "invalid-handle",
-                  "Chart relationship is unavailable.",
-                  "select"
-                );
-              return resolvePartReference(packageUri(record.part).baseURI, relation.target);
-            };
-            return new Chart(
-              () => {
-                const part = chartPart(),
-                  bytes = state.changes.get(part);
-                if (cachedXml && cachedBytes === bytes) return cachedXml;
-                cachedBytes = bytes;
-                cachedXml = state.doc(part);
-                return cachedXml;
-              },
-              (xml) => {
-                state.save(chartPart(), xml);
-                cachedXml = xml;
-                cachedBytes = state.changes.get(chartPart());
-                this.#revision++;
-              },
-              {
-                part: () => this.#part.package.get_part(chartPart())!,
-                replaceData: (data) => {
-                  cancelled(context);
-                  const part = chartPart();
-                  const xml = state.doc(part);
-                  const externalData = child(xml.root, "externalData");
-                  const id = externalData?.attributes.find(
-                    (attribute) =>
-                      attribute.name.localName === "id" && attribute.name.namespace === state.r
-                  )?.value;
-                  const relations = parseRelationships(
-                    state.doc(relPart(part)).bytes(),
-                    context.relationshipLimits
+                if (!relation)
+                  throw new OfficeError(
+                    "unsupported-edit",
+                    "Data replacement requires one owned embedded workbook.",
+                    "validate-intent"
                   );
-                  const relation = relations.find(
-                    (edge) => edge.id === id && edge.type.endsWith("/package") && !edge.external
+                const workbookPart = resolvePartReference(
+                  packageUri(part).baseURI,
+                  relation.target
+                );
+                const owners = this.#part.package.parts.flatMap((ownerPart) =>
+                  ownerPart.rels.filter(
+                    (edge) =>
+                      edge.mode === "internal" &&
+                      resolvePartReference(packageUri(ownerPart.partname).baseURI, edge.target) ===
+                        workbookPart
+                  )
+                );
+                if (owners.length !== 1)
+                  throw new OfficeError(
+                    "unsupported-edit",
+                    "Shared chart workbook ownership is ambiguous.",
+                    "validate-intent"
                   );
-                  if (!relation)
+                const pending = this.#pendingWorkbooks.get(workbookPart);
+                let source: PackageReader;
+                if (pending) {
+                  source = workbookMembersReader(pending);
+                } else {
+                  const cached = this.#workbooks.get(workbookPart);
+                  if (cached instanceof Error) throw cached;
+                  if (!cached)
                     throw new OfficeError(
                       "unsupported-edit",
-                      "Data replacement requires one owned embedded workbook.",
+                      "Workbook was not admitted for synchronous replacement.",
                       "validate-intent"
                     );
-                  const workbookPart = resolvePartReference(
-                    packageUri(part).baseURI,
-                    relation.target
-                  );
-                  const owners = this.#part.package.parts.flatMap((ownerPart) =>
-                    ownerPart.rels.filter(
-                      (edge) =>
-                        edge.mode === "internal" &&
-                        resolvePartReference(
-                          packageUri(ownerPart.partname).baseURI,
-                          edge.target
-                        ) === workbookPart
-                    )
-                  );
-                  if (owners.length !== 1)
+                  const current = state.changes.get(workbookPart) ?? state.reader.get(workbookPart);
+                  if (
+                    current.length !== cached.bytes.length ||
+                    current.some((byte, index) => byte !== cached.bytes[index])
+                  )
                     throw new OfficeError(
-                      "unsupported-edit",
-                      "Shared chart workbook ownership is ambiguous.",
-                      "validate-intent"
+                      "invalid-handle",
+                      "Workbook changed after admission.",
+                      "select"
                     );
-                  const pending = this.#pendingWorkbooks.get(workbookPart);
-                  let source: PackageReader;
-                  if (pending) {
-                    source = workbookMembersReader(pending);
-                  } else {
-                    const cached = this.#workbooks.get(workbookPart);
-                    if (cached instanceof Error) throw cached;
-                    if (!cached)
-                      throw new OfficeError(
-                        "unsupported-edit",
-                        "Workbook was not admitted for synchronous replacement.",
-                        "validate-intent"
-                      );
-                    const current =
-                      state.changes.get(workbookPart) ?? state.reader.get(workbookPart);
-                    if (
-                      current.length !== cached.bytes.length ||
-                      current.some((byte, index) => byte !== cached.bytes[index])
-                    )
-                      throw new OfficeError(
-                        "invalid-handle",
-                        "Workbook changed after admission.",
-                        "select"
-                      );
-                    source = cached.reader;
-                  }
-                  const result = replaceChartData(
-                    xml,
-                    data,
-                    context,
-                    source,
-                    inspectWorkbook(source, context)
-                  );
-                  state.save(part, result.doc);
-                  this.#pendingWorkbooks.set(workbookPart, result.members);
-                  cachedXml = result.doc;
-                  cachedBytes = state.changes.get(part);
-                  this.#revision++;
+                  source = cached.reader;
                 }
+                const result = replaceChartData(
+                  xml,
+                  data,
+                  context,
+                  source,
+                  inspectWorkbook(source, context)
+                );
+                state.save(part, result.doc);
+                this.#pendingWorkbooks.set(workbookPart, result.members);
+                cachedXml = result.doc;
+                cachedBytes = state.changes.get(part);
+                this.#revision++;
               }
-            );
-          },
-          addChart: (options) => {
-            cancelled(context);
-            const workbooks = new Map<string, readonly ArchiveMember[]>();
-            const id = insertChartIntoState(
+            }
+          );
+        },
+        addChart: (options) => {
+          cancelled(context);
+          const workbooks = new Map<string, readonly ArchiveMember[]>();
+          const id = insertChartIntoState(
+            state,
+            { ...options, slide: record.position },
+            context,
+            (part, members) => workbooks.set(part, members)
+          );
+          for (const [part, members] of workbooks) this.#pendingWorkbooks.set(part, members);
+          this.#revision++;
+          return id;
+        },
+        insertChart: (shapeId, options) => {
+          cancelled(context);
+          const old = owner.read(),
+            tree = required(required(old.root, "cSld"), "spTree"),
+            previous = tree.children.find((node) => readShape(node).shapeId === shapeId);
+          if (!previous || previous.name.localName !== "sp")
+            throw new OfficeError("invalid-handle", "Placeholder was replaced.", "select");
+          const changes = new Map(state.changes),
+            workbooks = new Map<string, readonly ArchiveMember[]>();
+          try {
+            insertChartIntoState(
               state,
               { ...options, slide: record.position },
               context,
-              (part, members) => workbooks.set(part, members)
+              (part, members) =>
+                workbooks.set(
+                  part,
+                  members.map((member) => ({
+                    name: member.name,
+                    bytes: new Uint8Array(member.bytes)
+                  }))
+                )
             );
-            for (const [part, members] of workbooks) this.#pendingWorkbooks.set(part, members);
-            this.#revision++;
-            return id;
-          },
-          insertChart: (shapeId, options) => {
-            cancelled(context);
-            const old = owner.read(),
-              tree = required(required(old.root, "cSld"), "spTree"),
-              previous = tree.children.find((node) => readShape(node).shapeId === shapeId);
-            if (!previous || previous.name.localName !== "sp")
-              throw new OfficeError("invalid-handle", "Placeholder was replaced.", "select");
-            const changes = new Map(state.changes),
-              workbooks = new Map<string, readonly ArchiveMember[]>();
-            try {
-              insertChartIntoState(
-                state,
-                { ...options, slide: record.position },
-                context,
-                (part, members) =>
-                  workbooks.set(
-                    part,
-                    members.map((member) => ({
-                      name: member.name,
-                      bytes: new Uint8Array(member.bytes)
-                    }))
-                  )
-              );
-              const doc = state.doc(record.part),
-                newTree = required(required(doc.root, "cSld"), "spTree"),
-                originalIds = new Set(tree.children.map((node) => readShape(node).shapeId));
-              const added = newTree.children.find(
-                (node) => !originalIds.has(readShape(node).shapeId)
-              );
-              if (!added)
-                throw new OfficeError(
-                  "invalid-opc",
-                  "Chart insertion produced no frame.",
-                  "validate-result"
-                );
-              const replacement = preservePlaceholder(old.subtree(previous), doc.subtree(added));
-              let final = doc.spliceChildren(newTree, newTree.children.indexOf(added), 1, []);
-              const finalTree = required(required(final.root, "cSld"), "spTree");
-              final = final.spliceChildren(finalTree, tree.children.indexOf(previous), 1, [
-                replacement.markup(replacement.root, true)
-              ]);
-              owner.write(final);
-              for (const [part, members] of workbooks) this.#pendingWorkbooks.set(part, members);
-            } catch (error) {
-              state.changes.clear();
-              for (const [part, bytes] of changes) state.changes.set(part, bytes);
-              throw error;
-            }
-          },
-          insertRich: async (shapeId, kind, options) => {
-            const revision = this.#revision;
-            const old = owner.read();
-            const tree = required(required(old.root, "cSld"), "spTree");
-            const previous = tree.children.find((node) => readShape(node).shapeId === shapeId);
-            if (!previous || previous.name.localName !== "sp")
-              throw new OfficeError("invalid-handle", "Placeholder was replaced.", "select");
-            if (kind === "picture") {
-              const picture = options as { input: BinaryInput };
-              const bytes = await readBinary(picture.input, context);
-              const contentType = new Image(bytes).content_type;
-              const { input: ignored, ...geometry } = picture;
-              void ignored;
-              options = { ...geometry, bytes, contentType };
-            }
-            await this.#flushWorkbooks();
-            if (revision !== this.#revision)
-              throw new OfficeError(
-                "stale-selection",
-                "Presentation changed during insertion.",
-                "publish"
-              );
-            const snapshot = await this.#state.finish(this.#state.main, []);
-            const inserted = await addImage(
-              snapshot.bytes,
-              { ...(options as Omit<AddImageOptions, "slide">), slide: record.position },
-              context
-            );
-            const updated = await loadShared(inserted, context);
-            if (revision !== this.#revision)
-              throw new OfficeError(
-                "stale-selection",
-                "Presentation changed during insertion.",
-                "publish"
-              );
-            const doc = updated.doc(record.part);
-            const newTree = required(required(doc.root, "cSld"), "spTree");
-            const originalIds = new Set(tree.children.map((node) => readShape(node).shapeId));
+            const doc = state.doc(record.part),
+              newTree = required(required(doc.root, "cSld"), "spTree"),
+              originalIds = new Set(tree.children.map((node) => readShape(node).shapeId));
             const added = newTree.children.find(
               (node) => !originalIds.has(readShape(node).shapeId)
             );
             if (!added)
               throw new OfficeError(
                 "invalid-opc",
-                "Rich insertion produced no shape.",
+                "Chart insertion produced no frame.",
                 "validate-result"
               );
             const replacement = preservePlaceholder(old.subtree(previous), doc.subtree(added));
@@ -611,14 +566,98 @@ class LivePresentation implements PresentationModel {
             final = final.spliceChildren(finalTree, tree.children.indexOf(previous), 1, [
               replacement.markup(replacement.root, true)
             ]);
-            for (const name of updated.reader.names)
-              state.changes.set(name, updated.reader.get(name));
             owner.write(final);
+            for (const [part, members] of workbooks) this.#pendingWorkbooks.set(part, members);
+          } catch (error) {
+            state.changes.clear();
+            for (const [part, bytes] of changes) state.changes.set(part, bytes);
+            throw error;
           }
-        };
-        return new Slide(Number(record.id), owner);
-      })
-    );
+        },
+        insertRich: async (shapeId, kind, options) => {
+          const revision = this.#revision;
+          const old = owner.read();
+          const tree = required(required(old.root, "cSld"), "spTree");
+          const previous = tree.children.find((node) => readShape(node).shapeId === shapeId);
+          if (!previous || previous.name.localName !== "sp")
+            throw new OfficeError("invalid-handle", "Placeholder was replaced.", "select");
+          if (kind === "picture") {
+            const picture = options as { input: BinaryInput };
+            const bytes = await readBinary(picture.input, context);
+            const contentType = new Image(bytes).content_type;
+            const { input: ignored, ...geometry } = picture;
+            void ignored;
+            options = { ...geometry, bytes, contentType };
+          }
+          await this.#flushWorkbooks();
+          if (revision !== this.#revision)
+            throw new OfficeError(
+              "stale-selection",
+              "Presentation changed during insertion.",
+              "publish"
+            );
+          const snapshot = await this.#state.finish(this.#state.main, []);
+          const inserted = await addImage(
+            snapshot.bytes,
+            { ...(options as Omit<AddImageOptions, "slide">), slide: record.position },
+            context
+          );
+          const updated = await loadShared(inserted, context);
+          if (revision !== this.#revision)
+            throw new OfficeError(
+              "stale-selection",
+              "Presentation changed during insertion.",
+              "publish"
+            );
+          const doc = updated.doc(record.part);
+          const newTree = required(required(doc.root, "cSld"), "spTree");
+          const originalIds = new Set(tree.children.map((node) => readShape(node).shapeId));
+          const added = newTree.children.find((node) => !originalIds.has(readShape(node).shapeId));
+          if (!added)
+            throw new OfficeError(
+              "invalid-opc",
+              "Rich insertion produced no shape.",
+              "validate-result"
+            );
+          const replacement = preservePlaceholder(old.subtree(previous), doc.subtree(added));
+          let final = doc.spliceChildren(newTree, newTree.children.indexOf(added), 1, []);
+          const finalTree = required(required(final.root, "cSld"), "spTree");
+          final = final.spliceChildren(finalTree, tree.children.indexOf(previous), 1, [
+            replacement.markup(replacement.root, true)
+          ]);
+          for (const name of updated.reader.names)
+            state.changes.set(name, updated.reader.get(name));
+          owner.write(final);
+        }
+      };
+      return new Slide(Number(record.id), owner);
+    };
+    this.#slides = new Slides(state.index.inventory.slides.map(createSlide), (layout) => {
+      const prepared = prepareLayoutInsertion(
+        state,
+        this.#part,
+        layout,
+        context,
+        state.index.fingerprint
+      );
+      const previousIndex = state.index;
+      const previousChanges = new Map(state.changes);
+      try {
+        for (const [name, bytes] of prepared.changes) state.changes.set(name, bytes);
+        state.index = prepared.index;
+        const record = prepared.index.inventory.slides.find(
+          (slide) => slide.part === prepared.part
+        )!;
+        const slide = createSlide(record);
+        this.#revision++;
+        return slide;
+      } catch (error) {
+        state.index = previousIndex;
+        state.changes.clear();
+        for (const [name, bytes] of previousChanges) state.changes.set(name, bytes);
+        throw error;
+      }
+    });
   }
   get part(): PartView {
     return this.#part;

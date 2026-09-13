@@ -2,7 +2,7 @@ import { readBinary } from "./bytes.js";
 import type { BinaryInput } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { parseContentTypes } from "./content-types.js";
-import { readPackage } from "./package-reader.js";
+import { readPackage, type PackageReader } from "./package-reader.js";
 import { writePackageArchive } from "./package-writer.js";
 import { asciiKey, relativePartReference } from "./package-uri.js";
 import { readRelationshipGraph } from "./relationships.js";
@@ -132,11 +132,7 @@ function relationshipPart(owner: string): string {
   return `${owner.slice(0, slash)}/_rels/${owner.slice(slash + 1)}.rels`;
 }
 
-export async function addSlide(
-  input: BinaryInput,
-  options: AddSlideOptions,
-  context: SelectionContext
-): Promise<Uint8Array> {
+function validateSlideInsertionOptions(options: AddSlideOptions, context: SelectionContext): void {
   fields(options, [
     "layout",
     "position",
@@ -189,8 +185,42 @@ export async function addSlide(
   }
   if ((options.placeholders?.length ?? 0) > context.xmlLimits.maxNodes)
     throw new OfficeError("resource-limit", "Too many placeholder assignments.", "usage");
+}
+
+export async function addSlide(
+  input: BinaryInput,
+  options: AddSlideOptions,
+  context: SelectionContext
+): Promise<Uint8Array> {
+  validateSlideInsertionOptions(options, context);
   const source = await readBinary(input, context);
   const reader = await readPackage(source, context);
+  const prepared = prepareSlideInsertion(reader, options, context);
+  return writePackageArchive(
+    [...reader.names, ...prepared.changes.keys()]
+      .filter((name, index, names) => names.indexOf(name) === index)
+      .map((name) => ({
+        name: name.slice(1),
+        bytes: prepared.changes.get(name) ?? reader.get(name)
+      })),
+    context,
+    { compression: "auto", source }
+  );
+}
+
+export function prepareSlideInsertion(
+  reader: PackageReader,
+  options: AddSlideOptions,
+  context: SelectionContext
+): {
+  readonly changes: ReadonlyMap<string, Uint8Array>;
+  readonly part: string;
+  readonly slideId: number;
+  readonly position: number;
+} {
+  validateSlideInsertionOptions(options, context);
+  if (context.signal?.aborted)
+    throw new OfficeError("cancelled", "Slide insertion cancelled.", "mutate");
   const validationLimits = {
     ...context.xmlLimits,
     ...context.relationshipLimits,
@@ -468,21 +498,23 @@ export async function addSlide(
     ]
   ]);
   for (const bytes of changes.values()) parseXmlPart(bytes, context.xmlLimits);
-  const output = await writePackageArchive(
-    [...reader.names, slide, relationshipPart(slide)].map((name) => ({
-      name: name.slice(1),
-      bytes: changes.get(name) ?? reader.get(name)
-    })),
-    context,
-    { compression: "auto", source }
-  );
-  if (!validatePresentation(await readPackage(output, context), validationLimits).valid)
+  const namesAfter = [...new Set([...reader.names, ...changes.keys()])];
+  const candidate: PackageReader = {
+    names: namesAfter,
+    has: (name) => namesAfter.includes(name),
+    get: (name) => changes.get(name) ?? reader.get(name),
+    relsXmlFor: (name) => {
+      const part = name === "/" ? "/_rels/.rels" : relationshipPart(name);
+      return namesAfter.includes(part) ? (changes.get(part) ?? reader.get(part)) : null;
+    }
+  };
+  if (!validatePresentation(candidate, validationLimits).valid)
     throw new OfficeError(
       "invalid-opc",
       "Inserted slide fails graph validation.",
       "validate-result"
     );
-  return output;
+  return { changes, part: slide, slideId, position };
 }
 
 export async function mutateSlides(

@@ -68,6 +68,33 @@ async function fixture() {
 }
 
 describe("presentation settings commands", () => {
+  it.each(["list", "get", "set"])(
+    "provides settings %s help without document I/O",
+    async (action) => {
+      for (const flag of ["--help", "-h"]) {
+        const readInput = vi.fn(async () => {
+          throw new Error("Unexpected input read");
+        });
+        const publishOutput = vi.fn();
+        const result = await engine.execute({
+          args: ["settings", action, flag, "--json"].map((value) =>
+            new TextEncoder().encode(value)
+          ),
+          signal: new AbortController().signal,
+          readInput,
+          publishOutput
+        });
+        expect(result.exitCode).toBe(0);
+        const envelope = JSON.parse(new TextDecoder().decode(result.stdout));
+        expect(envelope.operation).toBe("help");
+        expect(envelope.data.usage).toContain("Usage: pptx settings list|get|set INPUT");
+        expect(envelope.data.usage).toContain("--notes-width");
+        expect(envelope.data.usage).toContain("Print and view properties");
+        expect(readInput).not.toHaveBeenCalled();
+        expect(publishOutput).not.toHaveBeenCalled();
+      }
+    }
+  );
   it("scales drawing geometry only with an explicit true value", async () => {
     const f = await fixture();
     const changed = await f.run([

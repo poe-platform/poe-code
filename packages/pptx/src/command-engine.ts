@@ -1038,6 +1038,7 @@ function parse(
         operation.startsWith("tables.") ||
         operation.startsWith("connectors.") ||
         operation.startsWith("fields.") ||
+        operation.startsWith("settings.") ||
         operation.startsWith("shapes.") ||
         operation.startsWith("text.runs.") ||
         operation.startsWith("text.paragraphs.") ||
@@ -3897,6 +3898,17 @@ async function execute(
           "Positions are one-based within each source part. Opaque and simple selectors cannot be mixed.\n" +
           "Lists occurrences separately from media parts; --unique groups identical media hashes.\n" +
           "Includes source relationships, crop, geometry, alt text and inheritance. Linked images are never fetched.\n";
+      if (args.schemaPath?.startsWith("settings."))
+        resolvedUsage =
+          "Usage: pptx settings list|get|set INPUT [options]\n" +
+          "Read: list|get INPUT [--json]. Print and view properties are inventoried as stored XML.\n" +
+          "Set: --width LENGTH --height LENGTH --orientation portrait|landscape\n" +
+          "     --notes-width LENGTH --notes-height LENGTH --notes-orientation portrait|landscape\n" +
+          "     --slide-number-start INTEGER --loop true|false --show-type speaker|window|kiosk\n" +
+          "     --scale-content true|false (canvas-only by default)\n" +
+          "Output: --output PATH | --in-place | --dry-run; --force --json --limit NAME=VALUE.\n" +
+          "Lengths require emu/in/cm/mm/pt. Unsupported layout settings remain unchanged.\n" +
+          "No pagination or rendering is performed.\n";
       result = success(operation, { usage: resolvedUsage });
       human = resolvedUsage;
     } else if (args.operation === "version") {

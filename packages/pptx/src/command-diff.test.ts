@@ -2,6 +2,9 @@ import { Volume } from "memfs";
 import { beforeAll, afterAll, vi, it, expect } from "vitest";
 import { compileJsonSchema } from "toolcraft-schema";
 import { createPresentation, createPptxCommandEngine } from "./index.js";
+import type { PptxCommandEngineOptions } from "./command-engine.js";
+import { readPackage } from "./package-reader.js";
+import { writePackageArchive } from "./package-writer.js";
 
 beforeAll(() => {
   const timer = globalThis.setTimeout;
@@ -25,7 +28,7 @@ const context = {
   xmlLimits: { maxBytes: 8192, maxNodes: 1000, maxDepth: 32 },
   relationshipLimits: { maxBytes: 8192, maxParts: 32, maxRelationships: 64 }
 };
-async function fixture() {
+async function fixture(engineContext: PptxCommandEngineOptions["context"] = context) {
   const volume = Volume.fromJSON({});
   for (const [name, text] of [
     ["left", "Harbor"],
@@ -44,7 +47,7 @@ async function fixture() {
   );
   const publishOutput = vi.fn();
   const engine = createPptxCommandEngine({
-    context,
+    context: engineContext,
     maxArgumentBytes: 65536,
     maxOutputBytes: 65536
   });
@@ -61,7 +64,7 @@ async function fixture() {
       error: new TextDecoder().decode(result.stderr)
     };
   };
-  return { run, readInput, publishOutput };
+  return { run, readInput, publishOutput, volume };
 }
 it("represents equal and different comparisons as successful data", async () => {
   const f = await fixture();
@@ -108,6 +111,53 @@ it.each([
   const f = await fixture();
   expect((await f.run(["diff", ...args, "--json"])).exitCode).toBe(2);
   expect(f.readInput).not.toHaveBeenCalled();
+});
+
+it("applies a lowered byte limit to expanded XML during comparison", async () => {
+  const f = await fixture();
+  const authored = await createPresentation(
+    {
+      slides: [
+        {
+          shapes: [
+            {
+              name: "Caption",
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 100,
+              text: "Coastal survey. ".repeat(300)
+            }
+          ]
+        }
+      ]
+    },
+    context
+  );
+  const archive = await readPackage(authored, context);
+  const compressed = await writePackageArchive(
+    archive.names.map((name) => ({ name: name.slice(1), bytes: archive.get(name) })),
+    context,
+    { compression: "auto" }
+  );
+  const limit = compressed.length;
+  expect(limit).toBeLessThan(archive.get("/ppt/slides/slide1.xml").length);
+  f.volume.writeFileSync("/compressed.pptx", compressed);
+  const result = await f.run([
+    "diff",
+    "/compressed.pptx",
+    "/compressed.pptx",
+    "--limit",
+    `maxBytes=${limit}`,
+    "--json"
+  ]);
+  expect(result.exitCode).toBe(2);
+  expect(JSON.parse(result.text)).toMatchObject({
+    ok: false,
+    data: null,
+    errors: [{ code: "resource-limit" }]
+  });
+  expect(f.publishOutput).not.toHaveBeenCalled();
 });
 it("discovers the comparison schema and explicit formatting support", async () => {
   const f = await fixture();
@@ -169,3 +219,34 @@ it("rejects unavailable effective formatting before input admission and accepts 
   expect(f.readInput).not.toHaveBeenCalled();
   expect((await f.run(["diff", "-h"])).text).toContain("Usage: pptx diff");
 });
+
+it.each([
+  { limit: "maxBytes=8193", engineContext: context },
+  ...["maxBytes=8192", "maxNodes=1000", "maxDepth=32"].map((limit) => ({
+    limit,
+    engineContext: {
+      ...context,
+      validationLimits: {
+        maxBytes: 8191,
+        maxNodes: 999,
+        maxDepth: 31,
+        maxParts: 32,
+        maxRelationships: 64
+      }
+    }
+  }))
+])(
+  "rejects comparison limits exceeding trusted XML or validation ceilings: $limit",
+  async ({ limit, engineContext }) => {
+    const f = await fixture(engineContext);
+    const result = await f.run(["diff", "/left.pptx", "/right.pptx", "--limit", limit, "--json"]);
+    expect(result.exitCode).toBe(2);
+    expect(JSON.parse(result.text)).toMatchObject({
+      operation: "diff",
+      ok: false,
+      data: null,
+      errors: [{ code: "invalid-value", context: { phase: "usage" } }]
+    });
+    expect(f.readInput).not.toHaveBeenCalled();
+  }
+);

@@ -121,13 +121,16 @@ export async function executeDiffCommand(
     } else {
       if (positionals.length !== 2 || positionals.every((path) => path === "-"))
         usage("Comparison requires two inputs and at most one stdin consumer.");
+      const validation = options.context.validationLimits;
       const ceilings: Record<string, number> = {
         maxBytes: Math.min(
           options.context.limits.maxBytes,
-          options.context.archiveLimits.maxArchiveBytes
+          options.context.archiveLimits.maxArchiveBytes,
+          options.context.xmlLimits.maxBytes,
+          validation?.maxBytes ?? Infinity
         ),
-        maxNodes: options.context.xmlLimits.maxNodes,
-        maxDepth: options.context.xmlLimits.maxDepth,
+        maxNodes: Math.min(options.context.xmlLimits.maxNodes, validation?.maxNodes ?? Infinity),
+        maxDepth: Math.min(options.context.xmlLimits.maxDepth, validation?.maxDepth ?? Infinity),
         maxOutputBytes
       };
       for (const [name, value] of Object.entries(limits))
@@ -143,6 +146,7 @@ export async function executeDiffCommand(
         },
         xmlLimits: {
           ...options.context.xmlLimits,
+          maxBytes: limits.maxBytes ?? options.context.xmlLimits.maxBytes,
           maxNodes: limits.maxNodes ?? options.context.xmlLimits.maxNodes,
           maxDepth: limits.maxDepth ?? options.context.xmlLimits.maxDepth
         }

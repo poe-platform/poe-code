@@ -87,3 +87,18 @@ export {
   type PresentationSettings,
   type MutatePresentationSettingsOptions
 } from "./presentation-settings.js";
+
+export {
+  readMasters,
+  addMaster,
+  mutateMaster,
+  associateLayout,
+  mutateMasterShape,
+  type MasterRecord,
+  type SharedEditResult,
+  type MasterBackground,
+  type AddMasterOptions,
+  type MutateMasterOptions,
+  type AssociateLayoutOptions,
+  type MutateMasterShapeOptions
+} from "./masters.js";

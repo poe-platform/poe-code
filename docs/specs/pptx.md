@@ -440,8 +440,21 @@ paired `colorSlot/color` or `fontSlot/font`; color slots are `dk1`, `lt1`, `dk2`
 `minorLatin`, `majorEastAsia`, `minorEastAsia`, `majorComplex`, `minorComplex`.
 
 Background `set` requires `kind` plus exactly the relevant payload: solid color,
-gradient stops/angle (angle defaults to zero), or picture file. No inactive fields
-are accepted. Shapes use `text-box` or the documented preset enum; unknown presets
+gradient stops/angle (angle defaults to zero), picture file, or a style reference.
+The operation `angle` is clockwise degrees normalized modulo 360; the documented
+model `gradient_angle` remains counterclockwise and MUST use the inverse mapping
+when that model member is implemented.
+`kind: "style-reference"` requires paired `styleIndex` and `styleColor`; the latter
+is an explicit six-digit sRGB placeholder color. The positive integer index selects
+1-based `fillStyleLst` entries for indices below 1000, or 1-based
+`bgFillStyleLst` entries beginning at 1001. Zero, 1000 and absent/out-of-range
+entries MUST fail before publication. Resolve the owning slide/layout/master's
+applicable theme and format-scheme override; do not rewrite the selected style
+list or flatten it into a local fill. Background style references are the supported
+style-reference editing subset; arbitrary shape/table/chart style editing is not
+implied. No inactive fields are accepted.
+
+Shapes use `text-box` or the documented preset enum; unknown presets
 are preserve-only. Changing preset kind cannot convert tables, media, charts or
 groups. Existing adjustments use the typed model collection, not an unvalidated
 formula string. Basic custom paths are one or more move/line subpaths, with
@@ -1094,7 +1107,7 @@ schemas, not extra undocumented direct flags.
 | --------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `backgrounds list` / `backgrounds.list` | 1      | none                                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; collection; omitted filter means all in scope; none        |
 | `backgrounds get` / `backgrounds.get`   | 1      | none                                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; one; ambiguity fails; none                                 |
-| `backgrounds set` / `backgrounds.set`   | 1      | `--kind?: solid / gradient / picture / inherit`; `--color?: Color`; `--stops?: GradientStop[]`; `--angle?: Degrees`; `--file?: Input` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
+| `backgrounds set` / `backgrounds.set`   | 1      | `--kind?: solid / gradient / picture / inherit / style-reference`; `--color?: Color`; `--stops?: GradientStop[]`; `--angle?: Degrees`; `--file?: Input`; `--style-index?: integer`; `--style-color?: Color` | `--json`, `--limit`, `--part`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 
 ### A. shapes
 

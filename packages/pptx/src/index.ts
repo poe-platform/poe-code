@@ -119,3 +119,13 @@ export {
 } from "./layouts.js";
 
 export type { EffectiveStyleValue, StyleSource, TextStyleRecord } from "./text-style-resolution.js";
+
+export { readThemes, mutateTheme, type ThemeRecord, type MutateThemeOptions } from "./themes.js";
+export {
+  readBackgrounds,
+  mutateBackground,
+  type BackgroundRecord,
+  type BackgroundScope,
+  type GradientStop,
+  type MutateBackgroundOptions
+} from "./backgrounds.js";

@@ -1276,16 +1276,112 @@ const masterOperationFields: Record<string, Record<string, unknown>> = {
   },
   "shapes.add": { ...masterShapeValues, kind: { const: "text-box" } },
   "shapes.set": { ...masterShapeValues, shape: { type: "string", minLength: 1 } },
+  "themes.list": {},
+  "themes.get": {},
+  "themes.set": {
+    name: { type: "string" },
+    colorSlot: {
+      enum: [
+        "dk1",
+        "lt1",
+        "dk2",
+        "lt2",
+        "accent1",
+        "accent2",
+        "accent3",
+        "accent4",
+        "accent5",
+        "accent6",
+        "hlink",
+        "folHlink"
+      ]
+    },
+    color: { type: "string", minLength: 6, maxLength: 6 },
+    fontSlot: {
+      enum: [
+        "majorLatin",
+        "minorLatin",
+        "majorEastAsia",
+        "minorEastAsia",
+        "majorComplex",
+        "minorComplex"
+      ]
+    },
+    font: { type: "string" }
+  },
+  "backgrounds.list": {},
+  "backgrounds.get": {},
   "backgrounds.set": {
-    kind: { enum: ["solid", "inherit"] },
-    color: { type: "string", minLength: 6, maxLength: 6 }
+    kind: { enum: ["solid", "gradient", "picture", "inherit", "style-reference"] },
+    color: { type: "string", minLength: 6, maxLength: 6 },
+    stops: {
+      type: "array",
+      minItems: 2,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["position", "color"],
+        properties: {
+          position: { type: "number", minimum: 0, maximum: 1 },
+          color: { type: "string", minLength: 6, maxLength: 6 },
+          opacity: { type: "number", minimum: 0, maximum: 1 }
+        }
+      }
+    },
+    angle: { type: "number" },
+    file: { type: "string", minLength: 1 },
+    styleIndex: { type: "integer", minimum: 1 },
+    styleColor: { type: "string", minLength: 6, maxLength: 6 }
   }
 };
+
+const themeRecordSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["part", "name", "override", "colors", "fonts", "affectedSlides"],
+  properties: {
+    part: { type: "string" },
+    name: { type: "string" },
+    override: { type: "boolean" },
+    colors: { type: "object", additionalProperties: { type: ["string", "null"] } },
+    fonts: { type: "object", additionalProperties: { type: ["string", "null"] } },
+    affectedSlides: masterRecordSchema.properties.affectedSlides
+  }
+};
+const backgroundRecordSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "part",
+    "kind",
+    "color",
+    "stops",
+    "angle",
+    "imagePart",
+    "styleIndex",
+    "styleColor",
+    "affectedSlides"
+  ],
+  properties: {
+    part: { type: "string" },
+    kind: { type: "string" },
+    color: { type: ["string", "null"] },
+    stops: { type: ["array", "null"], items: { type: "object" } },
+    angle: { type: ["number", "null"] },
+    imagePart: { type: ["string", "null"] },
+    styleIndex: { type: ["integer", "null"] },
+    styleColor: { type: ["string", "null"] },
+    affectedSlides: masterRecordSchema.properties.affectedSlides
+  }
+};
+
 export const masterSchemas = Object.fromEntries(
   Object.entries(masterOperationFields).map(([operation, fields]) => {
     const mutation = !operation.endsWith(".list") && !operation.endsWith(".get");
     const layout = operation.startsWith("layouts.");
     const applying = operation === "layouts.apply";
+    const theme = operation.startsWith("themes.");
+    const background = operation.startsWith("backgrounds.");
     const adding = operation.endsWith(".add");
     const required =
       operation === "masters.add"
@@ -1302,20 +1398,32 @@ export const masterSchemas = Object.fromEntries(
     return [
       operation,
       {
-        description: layout
-          ? "Layout properties and master associations; apply requires explicit placeholder policy, retains local content and rejects ambiguous placeholder mappings. Shared layout mutations require layouts/shared scope."
-          : "Supported master content only. Mutations require explicit shared or resource scope; dependent slides are reported and local overrides retained. Shape creation supports text boxes; background editing supports solid RGB or reset to inheritance.",
+        description: theme
+          ? "Inspect and edit shared palette and font slots, including overrides; unsupported theme content is preserved."
+          : background
+            ? "Inspect and edit slide, layout or master fills and style references, preserving effects. Shared scope requires a concrete owner."
+            : layout
+              ? "Layout properties and master associations; apply requires explicit placeholder policy, retains local content and rejects ambiguous placeholder mappings. Shared layout mutations require layouts/shared scope."
+              : "Supported master content only. Mutations require explicit shared or resource scope; dependent slides are reported and local overrides retained. Shape creation supports text boxes; background editing supports solid RGB or reset to inheritance.",
         input: inspectSchema.input,
         options: {
           $schema: "https://json-schema.org/draft/2020-12/schema",
           type: "object",
           additionalProperties: false,
-          required: [...required, ...(mutation && !applying ? ["scope"] : [])],
+          required: [...required, ...(mutation && !applying && !background ? ["scope"] : [])],
           properties: {
             json: { type: "boolean" },
             limit: xmlSelection.limit,
             scope: {
-              enum: applying ? ["slides"] : layout ? ["layouts", "shared"] : ["masters", "shared"]
+              enum: theme
+                ? ["shared"]
+                : background
+                  ? ["slides", "layouts", "masters", "shared"]
+                  : applying
+                    ? ["slides"]
+                    : layout
+                      ? ["layouts", "shared"]
+                      : ["masters", "shared"]
             },
             ...(!adding
               ? {
@@ -1342,6 +1450,24 @@ export const masterSchemas = Object.fromEntries(
               : {})
           },
           allOf: [
+            ...(background
+              ? [
+                  {
+                    if: { required: ["scope"], properties: { scope: { const: "shared" } } },
+                    then: { anyOf: [{ required: ["part"] }, { required: ["select"] }] }
+                  }
+                ]
+              : []),
+            ...(operation === "backgrounds.set"
+              ? [
+                  {
+                    anyOf: [
+                      ...["part", "select", "slide"].map((key) => ({ required: [key] })),
+                      { required: ["all"], properties: { all: { const: true } } }
+                    ]
+                  }
+                ]
+              : []),
             ...(layout && mutation && !adding
               ? [
                   {
@@ -1357,13 +1483,42 @@ export const masterSchemas = Object.fromEntries(
             ...(applying
               ? [{ if: { required: ["select"] }, then: { not: { required: ["scope"] } } }]
               : []),
+            ...(operation === "themes.set"
+              ? [
+                  { anyOf: ["name", "colorSlot", "fontSlot"].map((key) => ({ required: [key] })) },
+                  {
+                    dependentRequired: {
+                      colorSlot: ["color"],
+                      color: ["colorSlot"],
+                      fontSlot: ["font"],
+                      font: ["fontSlot"]
+                    }
+                  }
+                ]
+              : []),
             ...(operation === "backgrounds.set"
               ? [
-                  {
-                    if: { properties: { kind: { const: "solid" } } },
-                    then: { required: ["color"] },
-                    else: { not: { required: ["color"] } }
-                  }
+                  ...Object.entries({
+                    solid: ["color"],
+                    gradient: ["stops"],
+                    picture: ["file"],
+                    inherit: [],
+                    "style-reference": ["styleIndex", "styleColor"]
+                  }).map(([kind, required]) => ({
+                    if: { properties: { kind: { const: kind } } },
+                    then: {
+                      required,
+                      not: {
+                        anyOf: ["color", "stops", "angle", "file", "styleIndex", "styleColor"]
+                          .filter(
+                            (key) =>
+                              !(required as string[]).includes(key) &&
+                              !(kind === "gradient" && key === "angle")
+                          )
+                          .map((key) => ({ required: [key] }))
+                      }
+                    }
+                  }))
                 ]
               : []),
             { not: { required: ["part", "slide"] } },
@@ -1450,7 +1605,7 @@ export const masterSchemas = Object.fromEntries(
                             properties: {
                               location: { $ref: "#/$defs/location" },
                               action: { enum: ["add", "set", "remove", "apply"] },
-                              feature: { enum: ["F11", "F12", "F14", "F22"] }
+                              feature: { enum: ["F11", "F12", "F13", "F14", "F22"] }
                             }
                           }
                         },
@@ -1472,7 +1627,13 @@ export const masterSchemas = Object.fromEntries(
                     : {
                         records: {
                           type: "array",
-                          items: layout ? layoutRecordSchema : masterRecordSchema
+                          items: theme
+                            ? themeRecordSchema
+                            : background
+                              ? backgroundRecordSchema
+                              : layout
+                                ? layoutRecordSchema
+                                : masterRecordSchema
                         },
                         fingerprint: { type: "string" }
                       }

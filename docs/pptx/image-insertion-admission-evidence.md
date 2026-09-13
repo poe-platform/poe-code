@@ -5,7 +5,7 @@ This receipt covers bounded byte/header admission and its separately verified in
 ## Exact JavaScript and security mapping
 
 - Explicit `Uint8Array` bytes replace ambient path lookup and seekable file handles. Content type is an exact supported MIME string; neither suffixes nor implicit coercion determine format.
-- PNG/GIF/JPEG container signatures and supported dimensions are checked without native runtime or decompression. JPEG entropy markers are scanned for later unsafe frames. Unknown JPEG frame dimensions remain `null`; the insertion caller must require explicit width, height and stretch fit.
+- PNG/GIF/JPEG container signatures and supported dimensions are checked without native runtime or decompression. JPEG entropy markers are scanned for later unsafe frames. Unknown JPEG frame dimensions remain `null`; the insertion caller must supply explicit width and height with default or explicit stretch fit.
 - Width/height are integer pixel counts; normalized DPI uses the existing bounded metadata reader. Strings and non-finite density values do not coerce to numbers. All axes are at most 1,000,000, individual images at most 100,000,000 pixels, animated GIF frame pixels cumulatively at most 100,000,000, and encoded bytes at most 32 MiB.
 - Alpha, palettes and compressed content remain original bytes. Header admission is not proof that compressed pixel data decodes successfully. Unsupported BMP/TIFF/vector insertion is an explicit remaining obligation; read-only inventory support is not insertion parity.
 - This internal admission function does not implement or rename the documented model Image/ImagePart/Picture classes, constructors, inherited methods or properties. No underscore-prefixed type was reclassified as private.
@@ -23,10 +23,10 @@ The complete preexisting [121-row image case ledger](image-inventory-case-map.js
 | presentation-unit-720e948c0952 | Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity. |
 | presentation-unit-4a3220beb224 | Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity. |
 | presentation-unit-3854b6bc0856 | Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity. |
-| presentation-unit-b5504d5046c9 | Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility. |
-| presentation-unit-ad7fd90ba643 | Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility. |
-| presentation-unit-9bda14f4e567 | Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility. |
-| presentation-unit-b86a88b628a1 | Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility. |
+| presentation-unit-b5504d5046c9 | Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only, explicit stretch and default stretch boxes. Both supplied dimensions default to stretch in the bounded operation API. The neutral ImagePart method is still absent; no whole-model parity. |
+| presentation-unit-ad7fd90ba643 | Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only, explicit stretch and default stretch boxes. Both supplied dimensions default to stretch in the bounded operation API. The neutral ImagePart method is still absent; no whole-model parity. |
+| presentation-unit-9bda14f4e567 | Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only, explicit stretch and default stretch boxes. Both supplied dimensions default to stretch in the bounded operation API. The neutral ImagePart method is still absent; no whole-model parity. |
+| presentation-unit-b86a88b628a1 | Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only, explicit stretch and default stretch boxes. Both supplied dimensions default to stretch in the bounded operation API. The neutral ImagePart method is still absent; no whole-model parity. |
 | presentation-unit-a96183408cb0 | Original 204 by 204 JPEG header asserts pixel dimensions and absent-density 72 fallback; dependency internals and raw decoder tuple identity are not replicated. |
 | presentation-unit-d7de68e11d14 | Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity. |
 | presentation-unit-31051f87d8e9 | Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity. |
@@ -146,7 +146,7 @@ Complete machine-readable accounting: [image insertion case map](image-insertion
 
 ## Insertion integration receipt
 
-The 26-case `image-insertion.test.ts` suite passed in root integration verification.
+The 40-case `image-insertion.test.ts` suite passed in focused integration verification.
 `retains an original RGBA PNG compressed payload and transparent pixel` asserts
 unchanged package media bytes, independently inflates the authored payload and
 asserts exact pixels including transparent alpha. `uses JPEG frame dimensions
@@ -156,7 +156,9 @@ geometry cases cover native, width-only, height-only, contain, cover and stretch
 
 Physical sizing uses `(pixelWidth / dpiX) / (pixelHeight / dpiY)`. Existing metadata
 cases independently characterize PNG density 96/48 and JPEG density 102/51; a
-separate end-to-end unequal-DPI insertion test is not claimed. The operation API
-requires explicit fit when both box dimensions are supplied. This deliberate
-operation constraint does not establish compatibility with the neutral model's
-implicit box fit; the neutral model remains an explicit gap.
+separate end-to-end unequal-DPI insertion test is not claimed. Both supplied box
+dimensions default to stretch, including admitted images whose intrinsic dimensions
+are unavailable. Explicit fit requires both dimensions. Independent original cases
+assert signed half-position rounding, derived zero-dimension rejection, both-axis
+contain/cover, and cover values on either side of the empty-source quantization
+boundary. The neutral model remains an explicit API gap.

@@ -4,11 +4,11 @@
   "scope": "All 121 relevant image unit parameter variants and BDD examples, preserving existing evidence and unsupported obligations. New admission/insertion does not implement the neutral public Image/Picture model.",
   "languageMappings": {
     "bytes": "Explicit Uint8Array and declared MIME; no implicit string coercion or host lookup.",
-    "dimensions": "Numbers in pixels and normalized per-axis DPI; integer EMU geometry in insertion. Unknown JPEG dimensions require explicit width, height, stretch.",
+    "dimensions": "Numbers in pixels and normalized per-axis DPI; integer EMU geometry in insertion. Unknown JPEG dimensions require explicit width and height with default or explicit stretch.",
     "decode": "Container/header checks only; no decoded pixel validation, native runtime or decompression.",
     "model": "Inherited/public underscore-prefixed members remain inventoried in image-inventory-api-map.json, still planned; operation APIs do not replace them.",
     "physicalRatio": "Insertion uses physical aspect (pixelWidth / dpiX) / (pixelHeight / dpiY), converting inches at 914400 EMU per inch. Existing metadata cases independently assert non-square DPI (PNG 96/48, JPEG 102/51). No dedicated end-to-end unequal-DPI insertion test is claimed.",
-    "explicitFit": "Supplying both width and height requires an explicit contain/cover/stretch fit in the bounded operation API. The neutral model default-box behavior remains a compatibility gap; operation behavior is intentional and not model parity."
+    "explicitFit": "Supplying both width and height defaults to stretch; explicit contain, cover and stretch remain supported. A supplied fit requires both dimensions. This bounded operation behavior does not implement the neutral public ImagePart model."
   },
   "counts": {
     "model-or-mutation-gap": 69,
@@ -145,7 +145,7 @@
         }
       ],
       "status": "adapted-insertion-behavior",
-      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility.",
+      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only, explicit stretch and default stretch boxes. Both supplied dimensions default to stretch in the bounded operation API. The neutral ImagePart method is still absent; no whole-model parity.",
       "evidence": [
         {
           "kind": "insertion",
@@ -176,7 +176,7 @@
         }
       ],
       "status": "adapted-insertion-behavior",
-      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility.",
+      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only, explicit stretch and default stretch boxes. Both supplied dimensions default to stretch in the bounded operation API. The neutral ImagePart method is still absent; no whole-model parity.",
       "evidence": [
         {
           "kind": "insertion",
@@ -207,7 +207,7 @@
         }
       ],
       "status": "adapted-insertion-behavior",
-      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility.",
+      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only, explicit stretch and default stretch boxes. Both supplied dimensions default to stretch in the bounded operation API. The neutral ImagePart method is still absent; no whole-model parity.",
       "evidence": [
         {
           "kind": "insertion",
@@ -238,7 +238,7 @@
         }
       ],
       "status": "adapted-insertion-behavior",
-      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility.",
+      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only, explicit stretch and default stretch boxes. Both supplied dimensions default to stretch in the bounded operation API. The neutral ImagePart method is still absent; no whole-model parity.",
       "evidence": [
         {
           "kind": "insertion",

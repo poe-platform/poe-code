@@ -90,7 +90,7 @@ const imageLength = {
 export const imageSchemas = {
   "images.add": {
     description:
-      "Insert explicit PNG/JPEG/GIF bytes on one slide. A supported extension supplies the content type unless explicit; bytes must match. Intrinsic sizing uses admitted dimensions and DPI. One dimension preserves aspect; two dimensions require fit. No image decoding or network access.",
+      "Insert explicit PNG/JPEG/GIF bytes on one slide. A supported extension supplies the content type unless explicit; bytes must match. Intrinsic sizing uses admitted dimensions and DPI. One dimension preserves aspect; two dimensions default to stretch. No image decoding or network access.",
     input: textGetSchema.input,
     options: {
       type: "object",
@@ -115,7 +115,6 @@ export const imageSchemas = {
       },
       allOf: [
         { if: { required: ["fit"] }, then: { required: ["width", "height"] } },
-        { if: { required: ["width", "height"] }, then: { required: ["fit"] } },
         { not: { required: ["output", "inPlace"] } },
         {
           if: { required: ["force"], properties: { force: { const: true } } },

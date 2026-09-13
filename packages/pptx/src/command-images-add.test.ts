@@ -152,3 +152,45 @@ describe("image insertion command", () => {
     expect(f.volume.readdirSync("/")).toEqual(["deck.pptx", "dot.GIF"]);
   });
 });
+
+it("defaults an explicit insertion box to stretch in command and schema", async () => {
+  const f = await fixture();
+  const result = await f.run([
+    "images",
+    "add",
+    "/deck.pptx",
+    "--slide",
+    "1",
+    "--file",
+    "/dot.GIF",
+    "--width",
+    "2in",
+    "--height",
+    "1in",
+    "--output",
+    "/out.pptx",
+    "--json"
+  ]);
+  expect(result.exitCode, JSON.stringify(result.value)).toBe(0);
+  const images = await readImages(
+    new Uint8Array(f.volume.readFileSync("/out.pptx") as Buffer),
+    {},
+    context
+  );
+  expect(images.occurrences[0]!.geometry!.corners).toEqual([
+    { x: 0, y: 0 },
+    { x: 1828800, y: 0 },
+    { x: 1828800, y: 914400 },
+    { x: 0, y: 914400 }
+  ]);
+  const schema = await f.run(["schema", "images", "add", "--json"]);
+  expect(
+    compileJsonSchema(schema.value.data.operations["images.add"].options).validate({
+      slide: 1,
+      file: "/dot.GIF",
+      width: { value: 2, unit: "in" },
+      height: { value: 1, unit: "in" },
+      dryRun: true
+    }).ok
+  ).toBe(true);
+});

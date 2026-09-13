@@ -59,6 +59,14 @@ it.each([
   [{}, [0, 0, 50800, 25400], [0, 0, 0, 0]],
   [{ width: 100 }, [0, 0, 100, 50], [0, 0, 0, 0]],
   [{ height: 100 }, [0, 0, 200, 100], [0, 0, 0, 0]],
+  [{ width: 103, height: 77 }, [0, 0, 103, 77], [0, 0, 0, 0]],
+  [{ width: 3 }, [0, 0, 3, 2], [0, 0, 0, 0]],
+  [{ width: 6, height: 8, top: -3, fit: "contain" as const }, [0, -1, 6, 3], [0, 0, 0, 0]],
+  [{ width: 8, height: 3, left: -2, fit: "contain" as const }, [-1, 0, 6, 3], [0, 0, 0, 0]],
+  [{ width: 8, height: 2, fit: "contain" as const }, [2, 0, 4, 2], [0, 0, 0, 0]],
+  [{ width: 8, height: 2, fit: "cover" as const }, [0, 0, 8, 2], [0, 25000, 0, 25000]],
+  [{ width: 8, height: 4, fit: "cover" as const }, [0, 0, 8, 4], [0, 0, 0, 0]],
+  [{ width: 2, height: 99999, fit: "cover" as const }, [0, 0, 2, 99999], [49999, 0, 49999, 0]],
   [{ width: 100, height: 100, fit: "contain" as const }, [0, 25, 100, 50], [0, 0, 0, 0]],
   [{ width: 100, height: 100, fit: "cover" as const }, [0, 0, 100, 100], [25000, 0, 25000, 0]],
   [{ width: 100, height: 100, fit: "stretch" as const }, [0, 0, 100, 100], [0, 0, 0, 0]]
@@ -98,6 +106,26 @@ it.each([
       expect(entries.get(name)).toEqual(bytes);
   expect((await readImages(output, {}, context)).occurrences).toHaveLength(1);
 });
+it.each([
+  [2, 4, "25000"],
+  [4, 6, "16667"]
+])("covers a square with portrait pixels %i by %i", async (pixelWidth, pixelHeight, crop) => {
+  const bytes = new Uint8Array(tile);
+  bytes[6] = pixelWidth;
+  bytes[8] = pixelHeight;
+  const input = await createPresentation({ slides: [{}] }, context);
+  const output = await addImage(
+    input,
+    { slide: 1, bytes, contentType: "image/gif", width: 120, height: 120, fit: "cover" },
+    context
+  );
+  const entries = parts(output);
+  const slide = entries.get("ppt/slides/slide1.xml")!;
+  expect(entries.get("ppt/media/image1.gif")).toEqual(bytes);
+  expect(attrs(slide, "off").at(-1)).toEqual({ x: "0", y: "0" });
+  expect(attrs(slide, "ext").at(-1)).toEqual({ cx: "120", cy: "120" });
+  expect(attrs(slide, "srcRect")).toEqual([{ l: "0", t: crop, r: "0", b: crop }]);
+});
 it("allocates independent picture, relationship and media identities", async () => {
   const input = await createPresentation({ slides: [{}] }, context);
   const options = { slide: 1, bytes: tile, contentType: "image/gif" };
@@ -117,14 +145,17 @@ it("allocates independent picture, relationship and media identities", async () 
 });
 it.each([
   { width: 0 },
+  { height: 0 },
+  { width: 0, height: 100, fit: "stretch" },
   { height: -1 },
   { width: NaN },
   { width: 1e30 },
   { left: Infinity },
   { slide: 0 },
   { fit: "bad" },
-  { width: 100, height: 200 },
   { fit: "cover" },
+  { width: 100, fit: "cover" },
+  { height: 100, fit: "stretch" },
   { bytes: new Uint8Array([1, 2]) },
   { contentType: "image/png" },
   { extra: true }
@@ -147,7 +178,16 @@ it("owns supplied image bytes before asynchronous package acquisition", async ()
   bytes.fill(0);
   expect(parts(await promise).get("ppt/media/image1.gif")).toEqual(tile);
 });
-it("requires explicit stretch sizing for a supported container without dimensions", async () => {
+it("rejects derived dimensions that round to zero EMUs", async () => {
+  const input = await createPresentation({ slides: [{}] }, context);
+  const bytes = new Uint8Array(tile);
+  bytes[6] = 6;
+  for (const sizing of [{ width: 1 }, { width: 1, height: 7, fit: "contain" as const }])
+    await expect(
+      addImage(input, { slide: 1, bytes, contentType: "image/gif", ...sizing }, context)
+    ).rejects.toMatchObject({ code: "invalid-value" });
+});
+it("uses an explicit box with default stretch for a supported container without dimensions", async () => {
   const input = await createPresentation({ slides: [{}] }, context);
   const bytes = new Uint8Array([255, 216, 255, 217]);
   const base = { slide: 1, bytes, contentType: "image/jpeg" };
@@ -161,13 +201,22 @@ it("requires explicit stretch sizing for a supported container without dimension
     context
   );
   expect(parts(output).get("ppt/media/image1.jpg")).toEqual(bytes);
+  const defaultOutput = await addImage(input, { ...base, width: 301, height: 203 }, context);
+  expect(attrs(parts(defaultOutput).get("ppt/slides/slide1.xml")!, "ext").at(-1)).toEqual({
+    cx: "301",
+    cy: "203"
+  });
 });
-it("rejects cover crops that round to an empty source rectangle", async () => {
+it.each([
+  { width: 1, height: 1000000 },
+  { width: 1000000, height: 1 },
+  { width: 2, height: 100001 }
+])("rejects cover crops that round to an empty source rectangle %j", async (box) => {
   const input = await createPresentation({ slides: [{}] }, context);
   await expect(
     addImage(
       input,
-      { slide: 1, bytes: tile, contentType: "image/gif", width: 1, height: 1000000, fit: "cover" },
+      { slide: 1, bytes: tile, contentType: "image/gif", ...box, fit: "cover" },
       context
     )
   ).rejects.toMatchObject({ code: "invalid-value" });

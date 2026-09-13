@@ -65,8 +65,8 @@ export async function addImage(
     invalid("Image alt text requires text.");
   if (options.fit !== undefined && !["contain", "cover", "stretch"].includes(options.fit))
     invalid("Unknown image fit.");
-  if ((options.width !== undefined && options.height !== undefined) !== (options.fit !== undefined))
-    invalid("Two image dimensions require an explicit fit; fit requires both dimensions.");
+  if (options.fit !== undefined && (options.width === undefined || options.height === undefined))
+    invalid("Image fit requires both dimensions.");
   const metadata = admitImage(options.bytes, options.contentType);
   if (
     options.bytes.byteLength >
@@ -82,8 +82,8 @@ export async function addImage(
   let cropX = 0,
     cropY = 0;
   if (metadata.pixelWidth === null || metadata.pixelHeight === null) {
-    if (width === undefined || height === undefined || options.fit !== "stretch")
-      invalid("Unavailable image dimensions require explicit width, height and stretch fit.");
+    if (width === undefined || height === undefined || (options.fit ?? "stretch") !== "stretch")
+      invalid("Unavailable image dimensions require explicit width and height with stretch fit.");
   } else {
     const naturalWidth = (metadata.pixelWidth * 914400) / metadata.dpiX;
     const naturalHeight = (metadata.pixelHeight * 914400) / metadata.dpiY;

@@ -2127,7 +2127,7 @@ function parse(
       result.imageAdd = { ...result.imageAdd, contentType };
     }
     const both = result.imageAdd.width !== undefined && result.imageAdd.height !== undefined;
-    if (both !== (result.imageAdd.fit !== undefined))
+    if (!both && result.imageAdd.fit !== undefined)
       usage("Both dimensions and explicit fit must be supplied together.");
     if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
     if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
@@ -3286,7 +3286,7 @@ async function execute(
           "Usage: pptx images add INPUT --slide N --file PATH [--content-type image/png|image/jpeg|image/gif]\n" +
           "  [--left LENGTH --top LENGTH] [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
           "  [--alt-text TEXT] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-          "Lengths require emu, in, cm, mm or pt. Both dimensions require fit; one dimension preserves aspect.\n";
+          "Lengths require emu, in, cm, mm or pt. Both dimensions default to stretch; one dimension preserves aspect.\n";
       if (args.schemaPath === "images.list")
         resolvedUsage =
           "Usage: pptx images list INPUT [--slide N --image N | --select TOKEN]\n" +

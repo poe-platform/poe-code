@@ -12,11 +12,14 @@ Options are `slide` (one-based), `bytes` (`Uint8Array`), `contentType` (exact
 `width`, `height`, `fit`, and `altText`. Defaults for position are zero.
 
 With no dimensions, header pixels and DPI determine size (72 DPI fallback).
-One dimension scales the other proportionally. Both dimensions require explicit
-`contain`, `cover`, or `stretch`. Contain centers the image inside the requested
-box; cover retains the box and crops equally on opposite edges. A JPEG container
-with no supported intrinsic dimensions requires both dimensions and `stretch`.
-An extreme crop that rounds to an empty source rectangle fails.
+One dimension scales the other proportionally. Both dimensions default to
+`stretch`; an explicit `contain`, `cover`, or `stretch` requires both dimensions.
+Contain centers the image inside the requested box; cover retains the box and
+crops equally on opposite edges. A JPEG container
+with no supported intrinsic dimensions requires both dimensions and default or
+explicit `stretch`. Geometry rounds to integer EMUs, with halfway values rounded
+away from zero. Supplied or rounded zero dimensions fail. An extreme cover crop
+that rounds to an empty source rectangle also fails.
 
 ```javascript
 const output = await addImage(input, {

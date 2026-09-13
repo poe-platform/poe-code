@@ -1,3 +1,4 @@
+import { ShapeIdAllocator } from "./shape-id.js";
 import type { BinaryInput, Scope } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import {
@@ -5,7 +6,7 @@ import {
   validateTableStructureOperation,
   type TableStructureOperation
 } from "./table-spans.js";
-import { attr, child, loadShared, required } from "./masters.js";
+import { child, loadShared, required } from "./masters.js";
 import { nodeFor, selected } from "./shape-operations.js";
 import { SelectionError, type SelectionContext, type SelectionRecord } from "./selectors.js";
 import {
@@ -199,24 +200,7 @@ export async function addTable(
   const record = records[0]!,
     doc = s.doc(record.part),
     tree = required(required(doc.root, "cSld"), "spTree");
-  const used = new Set<number>(),
-    pending = [tree];
-  while (pending.length) {
-    const node = pending.pop()!;
-    if (node.name.namespace === s.p && node.name.localName === "cNvPr") {
-      const id = Number(attr(node, "id"));
-      if (!Number.isInteger(id) || id < 0 || id > 4294967295 || used.has(id))
-        throw new OfficeError(
-          "invalid-value",
-          "Drawing identities must be unique unsigned integers.",
-          "validate-intent"
-        );
-      used.add(id);
-    }
-    pending.push(...node.children);
-  }
-  let id = 1;
-  while (used.has(id)) id++;
+  const id = new ShapeIdAllocator(() => doc).next();
   const ext = child(tree, "extLst");
   s.save(
     record.part,

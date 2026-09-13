@@ -1,7 +1,8 @@
+import { ShapeIdAllocator } from "./shape-id.js";
 import type { BinaryInput } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { admitImage } from "./image-admission.js";
-import { attr, child, escape, loadShared, nextRel, relPart, required } from "./masters.js";
+import { child, escape, loadShared, nextRel, relPart, required } from "./masters.js";
 import { relativePartReference } from "./package-uri.js";
 import { SelectionError, type SelectionContext } from "./selectors.js";
 import { parseXmlPart } from "./xml.js";
@@ -127,17 +128,7 @@ export async function addImage(
   if (!target) throw new SelectionError("missing-selection");
   const doc = s.doc(target.part),
     tree = required(required(doc.root, "cSld"), "spTree");
-  const used = new Set<number>();
-  const pending = [tree];
-  while (pending.length) {
-    const node = pending.pop()!;
-    if (node.name.namespace === s.p && node.name.localName === "cNvPr")
-      used.add(Number(attr(node, "id")));
-    pending.push(...node.children);
-  }
-  let id = 1;
-  while (used.has(id)) id++;
-  if (id > 4294967295) invalid("No available picture identity.");
+  const id = new ShapeIdAllocator(() => doc).next();
   let mediaIndex = 1;
   while (
     s.reader.names.some(

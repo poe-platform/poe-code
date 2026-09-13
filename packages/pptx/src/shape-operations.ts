@@ -1,3 +1,4 @@
+import { ShapeIdAllocator } from "./shape-id.js";
 import type { BinaryInput, Scope } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { attr, child, loadShared, required } from "./masters.js";
@@ -217,24 +218,7 @@ export async function addShape(
   const target = targets[0]!;
   const doc = s.doc(target.part);
   const tree = required(required(doc.root, "cSld"), "spTree");
-  let id = 1;
-  const used = new Set<number>();
-  const pending = [tree];
-  while (pending.length) {
-    const node = pending.pop()!;
-    if (node.name.namespace === doc.root.name.namespace && node.name.localName === "cNvPr") {
-      const value = Number(attr(node, "id"));
-      used.add(value);
-      id = Math.max(id, value + 1);
-    }
-    pending.push(...node.children);
-  }
-  if (id > 4294967295) {
-    id = 1;
-    while (used.has(id)) id++;
-  }
-  if (!Number.isSafeInteger(id) || id > 4294967295)
-    throw new OfficeError("invalid-value", "No available shape identity.", "validate-intent");
+  const id = new ShapeIdAllocator(() => doc).next();
   const extension = child(tree, "extLst");
   s.save(
     target.part,

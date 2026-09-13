@@ -1,3 +1,4 @@
+import { ShapeIdAllocator } from "./shape-id.js";
 import type { BinaryInput } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { attr, child, escape, loadShared, nextRel, relPart, required } from "./masters.js";
@@ -424,17 +425,8 @@ export async function addChart(
     target = s.index.inventory.slides.find((x) => x.position === slide);
   if (!target) throw new SelectionError("missing-selection");
   const doc = s.doc(target.part),
-    tree = required(required(doc.root, "cSld"), "spTree"),
-    used = new Set<number>(),
-    pending = [tree];
-  while (pending.length) {
-    const n = pending.pop()!;
-    if (n.name.namespace === s.p && n.name.localName === "cNvPr") used.add(Number(attr(n, "id")));
-    pending.push(...n.children);
-  }
-  let id = 1;
-  while (used.has(id)) id++;
-  if (id > 4294967295) invalid("No chart shape identity available.");
+    tree = required(required(doc.root, "cSld"), "spTree");
+  const id = new ShapeIdAllocator(() => doc).next();
   let n = 1;
   while (
     s.reader.names.some(

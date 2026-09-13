@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "cases": [
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_knows_if_turbo_add_is_enabled[turbo_fixture0]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_knows_if_turbo_add_is_enabled[turbo_fixture1]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture0]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture1]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture2]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_change_turbo_add_enabled[turbo_set_fixture3]",
+      "status": "security-mapped",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Reject malformed or duplicate numeric IDs as invalid-opc before allocation; source tolerance is deliberately not reproduced."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture0]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture1]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture2]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture3]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture4]",
+      "status": "implemented",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Original small drawing IDs, boolean toggle and cache reservation tests preserve observable behavior; no private cache injection API."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture5]",
+      "status": "security-mapped",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Reject malformed or duplicate numeric IDs as invalid-opc before allocation; source tolerance is deliberately not reproduced."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture6]",
+      "status": "security-mapped",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Reject malformed or duplicate numeric IDs as invalid-opc before allocation; source tolerance is deliberately not reproduced."
+    },
+    {
+      "source_case": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_finds_the_next_shape_id_to_help[next_id_fixture7]",
+      "status": "security-mapped",
+      "target": "ShapeIdAllocator.next()/turbo_add_enabled",
+      "original_tests": [
+        "packages/pptx/src/shape-id.test.ts"
+      ],
+      "mapping": "Reject malformed or duplicate numeric IDs as invalid-opc before allocation; source tolerance is deliberately not reproduced."
+    }
+  ]
+}

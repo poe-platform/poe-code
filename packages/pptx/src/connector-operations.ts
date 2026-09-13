@@ -1,6 +1,7 @@
+import { ShapeIdAllocator } from "./shape-id.js";
 import type { BinaryInput } from "./contracts.js";
 import { OfficeError } from "./errors.js";
-import { attr, child, loadShared, required } from "./masters.js";
+import { child, loadShared, required } from "./masters.js";
 import { nodeFor, selected, validateSelection, type ShapeSelection } from "./shape-operations.js";
 import { SelectionError, type SelectionContext, type SelectionRecord } from "./selectors.js";
 import {
@@ -122,26 +123,7 @@ export async function addConnector(
   const record = records[0]!,
     doc = s.doc(record.part),
     tree = required(required(doc.root, "cSld"), "spTree");
-  const used = new Set<number>(),
-    pending = [tree];
-  while (pending.length) {
-    const n = pending.pop()!;
-    if (n.name.namespace === doc.root.name.namespace && n.name.localName === "cNvPr") {
-      const id = Number(attr(n, "id"));
-      if (!Number.isInteger(id) || id < 0 || id > 4294967295 || used.has(id))
-        throw new OfficeError(
-          "invalid-value",
-          "Drawing identities must be unique unsigned integers.",
-          "validate-intent"
-        );
-      used.add(id);
-    }
-    pending.push(...n.children);
-  }
-  let id = 1;
-  while (used.has(id)) id++;
-  if (id > 4294967295)
-    throw new OfficeError("invalid-value", "No available drawing identity.", "validate-intent");
+  const id = new ShapeIdAllocator(() => doc).next();
   const extension = child(tree, "extLst");
   let next = doc.spliceChildren(
     tree,

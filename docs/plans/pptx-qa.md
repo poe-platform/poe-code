@@ -294,6 +294,96 @@ no network, downloads, disk writes or LLM calls. Preserve relevant parameter
 variants and boundary values; do not reproduce private mock plumbing. Retain
 required standalone legal notices for substantial derived material.
 
+### Reduction procedure and defect-preservation gate
+
+Execute these steps only when product reproduction is authorized and available.
+This documentation task specifies the procedure; it does not prove a failing
+product test or a fix.
+
+1. Freeze the failure predicate before reducing: the exact public operation,
+   selected owner, expected result, observed violation and independent oracle.
+   Record the implementation revision plus any owned patch hash, explicit context
+   and limits. Reproduce on an immutable manifest input's disposable copy. A crash
+   in setup, stale selector or unrelated validation error is not the same failure.
+2. Isolate the smallest slide/part graph that still exhibits that predicate.
+   Remove unrelated slides first, then unrelated shapes, paragraphs and parts,
+   testing one change at a time against the same faulty implementation. Retain
+   required presentation/content-type records, owner relationships and dependency
+   closure: layouts/masters/themes, notes, shared media, chart workbooks and
+   timing/connector targets where causal. Record why each remaining node/edge is
+   needed. Refresh fingerprint-bound selectors for each candidate and verify that
+   they still address the intended owner; record any ID remapping.
+3. Record each trial's parent and candidate SHA-256, removed/replaced nodes or
+   edges, graph counts, exact assertion and result. Accept a structural
+   simplification only if the candidate reaches the same operation and fails the
+   same predicate. If it passes, changes error category, fails admission first or
+   becomes invalid for an unrelated reason, reject that candidate and retain the
+   previous reproducer. Record the trial as defect-removing or inconclusive, never
+   as evidence that the product was fixed. For an invalid-input finding, preserve
+   the specific invalid condition without introducing a different one.
+4. Rebuild the retained structure with original XML and replace every external
+   text/media payload, including hidden notes, metadata, alt text, workbook labels,
+   thumbnails, posters and embedded assets. Use authored text/images and generated
+   local media; inert external targets use original reserved-domain values. Do not
+   copy source templates, XML snippets, compressed payloads or reference identities
+   into permanent fixtures. Preserve causal properties such as run boundaries,
+   Unicode categories, resource sharing, relationship direction, namespace meaning,
+   media dimensions and explicit timing values. Verify the predicate after each
+   substitution. If substitution removes it, investigate that dependency and author
+   an equivalent trigger; keep the finding open until an original reproducer exists.
+5. Prove the original reproducer fails on the faulty revision using a permanent
+   TypeScript unit test with an independently derived assertion. Keep fixture
+   construction in memory; use memfs for VFS mutations. Record its test path,
+   neutral case name, runner command, revision, fixture-builder hash and generated
+   input hash. A placeholder expectation, skipped test, compilation failure or
+   missing implementation is not red evidence. Where practical, add an original
+   control that removes only the suspected trigger and passes on that revision.
+6. In a separately authorized implementation task, fix the cause without weakening
+   the frozen assertion or replacing its input. Run the identical regression on
+   the fixed revision and record green evidence and the narrow maintained checks.
+   Preserve relevant parameter/BDD variants and independent public API cases.
+   Re-run the affected disposable fixture and external evidence tracks before
+   closure. A green control or simplified deck alone cannot establish the fix.
+
+“Smallest” means no further attempted safe removal retains the predicate within
+the recorded reduction scope, not an unproved global minimum. For resource-limit
+or performance findings, record the causal size/cardinality threshold; use a tiny
+explicit-budget boundary case only when it exercises the same cause. Keep the
+large-input performance/playback evidence separate when it cannot be represented
+faithfully by a fast unit test.
+
+| Candidate change   | Structural simplification if verified                                                       | Defect-removing change that cannot replace the regression                              |
+| ------------------ | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Shared image graph | Remove unrelated slides while keeping two occurrences and their shared relationship target  | Give each occurrence a separate media part and thereby hide unintended shared mutation |
+| Split text span    | Replace words with original text while keeping the matching span across styled runs         | Collapse the runs and stop exercising cross-run replacement                            |
+| Notes/timing graph | Remove unrelated objects while preserving placeholder kinds, target IDs and dependent edges | Remove the affected placeholder/effect or flatten away the target relationship         |
+| Extension payload  | Author neutral payload with the same namespace/branch/dependency structure                  | Strip the unknown branch whose preservation was failing                                |
+
+### Permanent finding-to-test evidence
+
+Keep one record per meaningful finding in the campaign Markdown under `docs/plans`.
+The following fields are required for closure; use `not-run`, `blocked` or an
+explicit absence reason while evidence is missing. Never fill missing results
+with proposed commands or invented hashes.
+
+| Field                   | Required evidence                                                                                                                                                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identity and provenance | Neutral finding ID; manifest document pointer, immutable source SHA-256 and manifest hash; source/output artifact hashes and evidence-track receipts. Source names/links remain in this research record only.                                                    |
+| Reproduction            | Faulty revision and owned patch hash, explicit profile/context, operation/selector, expected versus observed result, oracle and reproduction status.                                                                                                             |
+| Reduction history       | Parent/candidate hashes, graph changes/counts, assertion result and accepted/rejected/inconclusive disposition for each trial; retained causal structure and original-content substitutions.                                                                     |
+| Permanent regression    | Original unit-test path and case name, fixture-builder and generated-input hashes, precise assertion and parameter cases; no third-party asset dependency. Link the finding to all relevant case/API/feature obligations, including APIs with no upstream tests. |
+| Red and green           | Same regression/input/assertion on faulty and fixed revisions; commands, exit statuses, exact failed assertion, passing result, fix commit and maintained-check receipts. Distinguish execution failures from assertion failures.                                |
+| External verification   | Affected source fixture hash, output hash, renderer/application/profile versions and results; retain unresolved visual/playback/performance gaps explicitly.                                                                                                     |
+| Rights and closure      | Original asset authorship, required standalone notice path where applicable, retained/disposable evidence locations and final open/closed disposition.                                                                                                           |
+
+Every meaningful finding must join to at least one permanent regression before
+closure; one regression may cover multiple findings only with an explicit causal
+equivalence for each. Multiple tests for one finding list all required variants.
+Keep source fixture hashes and provenance in research, not executable fixture
+identifiers or test names. A documentation or census finding may have a proposed
+case and a resolved documentation correction while product regression execution
+remains `not-run`; neither status establishes a fixed product defect.
+
 Examples of reductions are two slides sharing one image, one notes body plus a
 slide-number placeholder, one table merge origin/follower, one chart and a tiny
 owned data sheet, or one timing target and two dependent effects. A font/rendering
@@ -346,3 +436,34 @@ The corpus cache is ignored; the owned plan is not. Some linked contracts/audit
 inputs are preexisting untracked workspace files and are intentionally not staged
 by this task; link checks establish local availability, not committed availability.
 All future product execution steps above remain unrun.
+
+### Reduction-procedure review receipt
+
+Inspected documentation baseline: `cb6e8d947776dbf7d82d7fe3858793de5cb035a5`.
+The existing reduction paragraph required red/green results but did not require
+per-candidate defect preservation, rejected-trial evidence or an explicit
+finding-to-test closure record. The added procedure supplies those gates without
+claiming a product defect, executed regression or implementation fix.
+
+Read-only accounting checks passed for all 3,673 unique inventory pointers and
+matching unit/BDD identities, 2,407 API identities represented in 2,424 target and
+obligation rows, all J01–J10 mapping keys, 14 unique manifest paths with SHA-256
+syntax and 13 locally available links. The ledger still has 167 specified and
+894 provisional designs, 2,611 rows needing semantic review and one deferred
+public behavior; none is an executed TypeScript test. Input hashes for this review:
+
+| Research input                 | SHA-256                                                            |
+| ------------------------------ | ------------------------------------------------------------------ |
+| `upstream-test-inventory.json` | `702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d` |
+| `test-case-map.json`           | `e9f113b5aee839dfe34353f2db726885eb0226bedb90798bb5718e133bd37706` |
+| `upstream-api-inventory.json`  | `cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934` |
+| `public-api-map.json`          | `705907588d468a7711a8451a74a578ca24dc247e3bcbe88ea894bc099d2e0340` |
+| `corpus-manifest.json`         | `f4c740aa929eb714b4b83ec63cb7d3641f278d5dffbc4c81303e02aee237169f` |
+
+Passed: scoped maintained Prettier check, `git diff --check` and the write-spec
+checker on the unchanged presentation specification (zero warnings). No product
+or visual CLI behavior changed, so runtime tests and screenshots were not run.
+No corpus bytes were read or modified; hash checks above identify research files,
+not a fresh fixture-integrity verification. Existing untracked inputs and unrelated
+edits remain outside this commit. All reduction execution and fix evidence remain
+future work under the procedure's entry gate.

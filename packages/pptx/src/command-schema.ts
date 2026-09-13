@@ -1646,3 +1646,119 @@ export const masterSchemas = Object.fromEntries(
     ];
   })
 );
+
+export const textGetSchema = {
+  description:
+    "Read structural text order. Cached fields are not evaluated. Fine-grained table/cell/paragraph/run selectors are unavailable.",
+  input: inspectSchema.input,
+  options: {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      json: { type: "boolean" },
+      limit: xmlSelection.limit,
+      select: inspectSchema.options.properties.select,
+      slide: inspectSchema.options.properties.slide,
+      shape: inspectSchema.options.properties.shape,
+      scope: { enum: ["slides", "notes", "layouts", "masters", "notes-master", "handout-master"] }
+    },
+    allOf: [
+      {
+        if: { required: ["slide"] },
+        then: { properties: { scope: { enum: ["slides", "notes", "layouts", "masters"] } } }
+      },
+      {
+        if: { required: ["select"] },
+        then: { not: { anyOf: ["scope", "slide", "shape"].map((key) => ({ required: [key] })) } }
+      },
+      { if: { required: ["shape"] }, then: { required: ["slide"] } }
+    ]
+  },
+  result: {
+    ...inspectSchema.result,
+    properties: {
+      ...inspectSchema.result.properties,
+      operation: { const: "text.get" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["text", "order", "segments"],
+            properties: {
+              text: { type: "string" },
+              order: { const: "structural" },
+              segments: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["location", "text", "paragraphs"],
+                  properties: {
+                    location: { $ref: "#/$defs/location" },
+                    text: { type: "string" },
+                    cell: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: ["coordinateSystem", "row", "column"],
+                      properties: {
+                        coordinateSystem: { const: "zero-based" },
+                        row: { type: "integer", minimum: 0 },
+                        column: { type: "integer", minimum: 0 }
+                      }
+                    },
+                    paragraphs: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        additionalProperties: false,
+                        required: ["index", "coordinateSystem", "text", "inlines"],
+                        properties: {
+                          index: { type: "integer", minimum: 0 },
+                          coordinateSystem: { const: "zero-based" },
+                          text: { type: "string" },
+                          inlines: {
+                            type: "array",
+                            items: {
+                              oneOf: [
+                                {
+                                  type: "object",
+                                  additionalProperties: false,
+                                  required: ["kind", "text"],
+                                  properties: { kind: { const: "run" }, text: { type: "string" } }
+                                },
+                                {
+                                  type: "object",
+                                  additionalProperties: false,
+                                  required: ["kind", "text"],
+                                  properties: { kind: { const: "break" }, text: { const: "\v" } }
+                                },
+                                {
+                                  type: "object",
+                                  additionalProperties: false,
+                                  required: ["kind", "cachedText", "fieldId", "fieldType"],
+                                  properties: {
+                                    kind: { const: "field" },
+                                    cachedText: { type: "string" },
+                                    fieldId: { type: ["string", "null"] },
+                                    fieldType: { type: ["string", "null"] }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+};

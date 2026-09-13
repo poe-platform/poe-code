@@ -129,3 +129,13 @@ export {
   type GradientStop,
   type MutateBackgroundOptions
 } from "./backgrounds.js";
+
+export {
+  readPresentationText,
+  type ReadPresentationTextOptions,
+  type TextScope,
+  type TextInline,
+  type TextParagraph,
+  type TextSegment,
+  type PresentationText
+} from "./text-reading.js";

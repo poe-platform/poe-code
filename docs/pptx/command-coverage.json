@@ -228305,6 +228305,12 @@
           "type": "array",
           "items": {
             "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "location",
+              "text",
+              "paragraphs"
+            ],
             "properties": {
               "location": {
                 "$ref": "#/$defs/Location"
@@ -228312,16 +228318,137 @@
               "text": {
                 "type": "string",
                 "maxLength": 1048576
+              },
+              "cell": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "coordinateSystem",
+                  "row",
+                  "column"
+                ],
+                "properties": {
+                  "coordinateSystem": {
+                    "const": "zero-based"
+                  },
+                  "row": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "column": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "paragraphs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "index",
+                    "coordinateSystem",
+                    "text",
+                    "inlines"
+                  ],
+                  "properties": {
+                    "index": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "coordinateSystem": {
+                      "const": "zero-based"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "inlines": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "kind",
+                              "text"
+                            ],
+                            "properties": {
+                              "kind": {
+                                "const": "run"
+                              },
+                              "text": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "kind",
+                              "text"
+                            ],
+                            "properties": {
+                              "kind": {
+                                "const": "break"
+                              },
+                              "text": {
+                                "const": "\u000b"
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "kind",
+                              "cachedText",
+                              "fieldId",
+                              "fieldType"
+                            ],
+                            "properties": {
+                              "kind": {
+                                "const": "field"
+                              },
+                              "cachedText": {
+                                "type": "string"
+                              },
+                              "fieldId": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "fieldType": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
               }
-            },
-            "required": ["location", "text"],
-            "additionalProperties": false
+            }
           },
           "minItems": 0,
           "maxItems": 250000
+        },
+        "order": {
+          "const": "structural"
         }
       },
-      "required": ["text", "segments"],
+      "required": [
+        "text",
+        "order",
+        "segments"
+      ],
       "additionalProperties": false
     },
     "ValidationData": {

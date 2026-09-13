@@ -6,6 +6,7 @@ import {
   type MutateThemeOptions
 } from "./themes.js";
 import { readBackgrounds, mutateBackground, type MutateBackgroundOptions } from "./backgrounds.js";
+import { readPresentationText, type TextScope } from "./text-reading.js";
 import { OfficeError } from "./errors.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { packageUri, partName } from "./package-uri.js";
@@ -24,6 +25,7 @@ import {
   settingsSchemas,
   createSchema,
   inspectSchema,
+  textGetSchema,
   slidesAddSchema,
   slidesMoveSchema,
   slidesDuplicateSchema,
@@ -141,6 +143,12 @@ const help =
   "       pptx slides set INPUT [--name TEXT] [--hidden true|false] [--position N]\n" +
   "                       [--slide N | --select TOKEN | --all] [--allow-empty]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx text get INPUT [--slide N] [--shape NAME] [--scope SCOPE] [--json]\n" +
+  "       pptx text INPUT | pptx text get INPUT --select TOKEN [--json]\n" +
+  "       pptx schema text get [--json]\n" +
+  "       Text uses structural shape-tree order, including hidden slides, cached fields and empty paragraphs.\n" +
+  "       Text --slide follows notes/layout/master owners within the explicit scope.\n" +
+  "       Text notes-master/handout-master scopes are deck-level and reject --slide.\n" +
   "       pptx xml get INPUT --part URI [--scope SCOPE] [--pretty] [--json]\n" +
   "       pptx xml set INPUT --part URI --file XML [--scope SCOPE]\n" +
   "                    [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
@@ -239,6 +247,7 @@ interface Arguments {
     | "slides.import"
     | "slides.merge"
     | "slides.split"
+    | "text.get"
     | "inspect"
     | "xml.get"
     | "xml.set"
@@ -403,6 +412,7 @@ function parse(
           : argument === "--version"
             ? "version"
             : argument;
+      if (command === "text") output.operation = "text.get";
       if (["create", "inspect", "schema", "capabilities", "help", "version"].includes(command))
         output.operation = command;
     } else if (index === 1 && args[0] === "xml" && ["get", "set"].includes(argument)) {
@@ -431,7 +441,9 @@ function parse(
     }
   }
   if (invalidUtf8) usage("Arguments must be UTF-8.");
+  if (args[0] === "text" && args[1] !== "get") args.splice(1, 0, "get");
   const command = [
+    "text",
     "xml",
     "slides",
     "sections",
@@ -466,6 +478,7 @@ function parse(
       "slides.merge",
       "slides.split",
       "inspect",
+      "text.get",
       "xml.get",
       "xml.set",
       "schema",
@@ -1043,6 +1056,25 @@ function parse(
     operation === "slides.set" ||
     operation === "slides.remove";
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
+  if (operation === "text.get") {
+    const allowed = ["--json", "--limit", "--select", "--scope", "--slide", "--shape"];
+    if ([...seen].some((flag) => !allowed.includes(flag)))
+      usage("Option does not apply to text get.");
+    if (positionals.length !== 1 || !positionals[0]) usage("Text get requires one input.");
+    if (result.scope === "presentation" || result.scope === "shared")
+      usage("Text get requires a text-bearing scope.");
+    if (result.token && ["--scope", "--slide", "--shape"].some((flag) => seen.has(flag)))
+      usage("Opaque and simple selectors cannot be combined.");
+    if (
+      result.slide !== undefined &&
+      (result.scope === "notes-master" || result.scope === "handout-master")
+    )
+      usage("Deck-level text master scopes do not accept slide selection.");
+    if (result.shape && result.slide === undefined)
+      usage("Shape selection requires an owning slide.");
+    result.input = positionals[0];
+    return result;
+  }
   if (Object.hasOwn(masterSchemas, operation)) {
     const schema = masterSchemas[operation]!;
     const mutation = !operation.endsWith(".list") && !operation.endsWith(".get");
@@ -1437,6 +1469,7 @@ function parse(
         "slides.import",
         "slides.merge",
         "slides.split",
+        "text.get",
         "xml.get",
         "xml.set"
       ].includes(positionals.join("."))
@@ -1697,6 +1730,7 @@ async function execute(
             ...masterSchemas,
             create: createSchema,
             inspect: inspectSchema,
+            "text.get": textGetSchema,
             "slides.add": slidesAddSchema,
             "slides.move": slidesMoveSchema,
             "slides.set": slidesSetSchema,
@@ -1713,6 +1747,11 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          text: {
+            level: "read",
+            subset:
+              "Paragraphs, runs, soft breaks and cached fields in structural slide-list and shape-tree order, including groups, table cells, hidden slides and empty strings. Explicit notes, layouts and masters scopes do not imply visual reading order. Fine-grained table/cell/paragraph/run selectors and text mutation are unavailable."
+          },
           layouts: {
             level: "edit",
             subset:
@@ -1786,7 +1825,37 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (Object.hasOwn(masterSchemas, args.operation)) {
+    else if (args.operation === "text.get") {
+      const context = { ...options.context, signal: request.signal };
+      const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const data = await readPresentationText(
+        bytes,
+        {
+          ...(scope === undefined ? {} : { scope: scope as TextScope }),
+          ...(args.token
+            ? { select: { token: args.token } }
+            : args.slide === undefined
+              ? {}
+              : {
+                  select: {
+                    kind: "slide",
+                    position: { coordinateSystem: "one-based", value: args.slide }
+                  }
+                }),
+          ...(args.shape === undefined ? {} : { shape: args.shape })
+        },
+        context
+      );
+      result = {
+        ...success(operation, data),
+        locations: data.segments.map((segment) => segment.location)
+      };
+      human = data.text;
+    } else if (Object.hasOwn(masterSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(
         args.input!,

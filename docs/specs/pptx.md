@@ -2219,6 +2219,15 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
 
 ### C. TextData
 
+`order: "structural"` describes slide-list order, depth-first shape-tree order,
+row-major table cells, and paragraph/inline XML order, never visual reading order.
+Each segment is a shape text body or table-cell text body; `cell` identifies a
+table cell with explicit zero-based coordinates. Paragraph indexes are zero-based
+within that body. Empty bodies, paragraphs, runs and field caches remain explicit.
+Plain `text` joins paragraphs and segments with U+000A and represents a soft break
+as U+000B. A field contributes its cached string to this projection but remains a
+`field` inline with nullable ID/type metadata; no field evaluation occurs.
+
 ```json
 {
   "type": "object",
@@ -2231,6 +2240,12 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
       "type": "array",
       "items": {
         "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "location",
+          "text",
+          "paragraphs"
+        ],
         "properties": {
           "location": {
             "$ref": "#/$defs/Location"
@@ -2238,16 +2253,137 @@ and owner-checked handles; it is not an untyped SDK escape hatch.
           "text": {
             "type": "string",
             "maxLength": 1048576
+          },
+          "cell": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "coordinateSystem",
+              "row",
+              "column"
+            ],
+            "properties": {
+              "coordinateSystem": {
+                "const": "zero-based"
+              },
+              "row": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "column": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "paragraphs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "index",
+                "coordinateSystem",
+                "text",
+                "inlines"
+              ],
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "coordinateSystem": {
+                  "const": "zero-based"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "inlines": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "text"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "const": "run"
+                          },
+                          "text": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "text"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "const": "break"
+                          },
+                          "text": {
+                            "const": "\u000b"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "cachedText",
+                          "fieldId",
+                          "fieldType"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "const": "field"
+                          },
+                          "cachedText": {
+                            "type": "string"
+                          },
+                          "fieldId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "fieldType": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
           }
-        },
-        "required": ["location", "text"],
-        "additionalProperties": false
+        }
       },
       "minItems": 0,
       "maxItems": 250000
+    },
+    "order": {
+      "const": "structural"
     }
   },
-  "required": ["text", "segments"],
+  "required": [
+    "text",
+    "order",
+    "segments"
+  ],
   "additionalProperties": false
 }
 ```

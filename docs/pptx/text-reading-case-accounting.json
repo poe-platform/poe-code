@@ -1,0 +1,1873 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "purpose": "Research-only case accounting for read-text extraction. Each source parametrization and expanded scenario remains a separate row. This does not certify live model API parity.",
+  "selection": {
+    "unitFiles": [
+      "tests/text/test_text.py",
+      "tests/shapes/test_autoshape.py",
+      "tests/shapes/test_base.py",
+      "tests/shapes/test_group.py",
+      "tests/shapes/test_shapetree.py",
+      "tests/test_slide.py",
+      "tests/test_table.py"
+    ],
+    "unitReadNameTerms": [
+      "text",
+      "paragraphs",
+      "runs",
+      "sub_shapes",
+      "notes",
+      "placeholders",
+      "slide_layout",
+      "slide_master",
+      "iterat",
+      "indexed_access",
+      "how_many_shapes",
+      "how_many_slides",
+      "access_to_its_shapes",
+      "access_to_its_cells",
+      "access_to_its_rows",
+      "access_to_its_columns",
+      "find_the_title"
+    ],
+    "excludedMutationNameTerms": [
+      "change",
+      "set_",
+      "replace",
+      "add_",
+      "clone",
+      "remove",
+      "clear",
+      "resize",
+      "best_fit",
+      "applies_fit",
+      "finds_the_next",
+      "turbo"
+    ],
+    "chartTextFrameReads": "included as separately unsupported public graph obligations",
+    "bdd": "Text getter examples, selected owner/collection reads and chart text-frame reads; setters, formatting and metrics remain in the global inventory.",
+    "unselectedInventory": "upstream-test-inventory.json; no excluded row is counted as implemented",
+    "graphicFrameReads": "Table detection and access retained as unsupported public model obligations."
+  },
+  "statusDefinitions": {
+    "pending_original_assertions": "A relevant read behavior awaiting concrete original test mapping; never counts as passing.",
+    "live_model_not_implemented": "Extraction may observe related XML, but the public live model accessor/protocol/error behavior has not been implemented.",
+    "extraction_semantics_asserted": "Original extraction assertions cover stated observable semantics only; the row live-model status remains not implemented."
+  },
+  "unitCases": [
+    {
+      "sourceId": "tests/shapes/test_autoshape.py::DescribeAdjustmentCollection::it_provides_normalized_effective_value_on_indexed_access[indexed_access_fixture_0]",
+      "sourceFile": "tests/shapes/test_autoshape.py",
+      "sourceLine": 108,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_autoshape.py::DescribeAdjustmentCollection::it_provides_normalized_effective_value_on_indexed_access[indexed_access_fixture_1]",
+      "sourceFile": "tests/shapes/test_autoshape.py",
+      "sourceLine": 108,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_autoshape.py::DescribeAdjustmentCollection::it_provides_normalized_effective_value_on_indexed_access[indexed_access_fixture_2]",
+      "sourceFile": "tests/shapes/test_autoshape.py",
+      "sourceLine": 108,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_autoshape.py::DescribeShape::it_knows_it_has_a_text_frame",
+      "sourceFile": "tests/shapes/test_autoshape.py",
+      "sourceLine": 323,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_autoshape.py::DescribeShape::it_knows_what_text_it_contains",
+      "sourceFile": "tests/shapes/test_autoshape.py",
+      "sourceLine": 352,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "ordinary shape text",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ]
+    },
+    {
+      "sourceId": "tests/shapes/test_autoshape.py::DescribeShape::it_provides_access_to_its_text_frame",
+      "sourceFile": "tests/shapes/test_autoshape.py",
+      "sourceLine": 369,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_it_doesnt_have_a_text_frame",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 150,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_group.py::DescribeGroupShape::it_provides_access_to_its_sub_shapes",
+      "sourceFile": "tests/shapes/test_group.py",
+      "sourceLine": 37,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_knows_how_many_shapes_it_contains",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 115,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_can_iterate_over_the_shapes_it_contains",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 119,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_iterates_shape_elements_to_help__iter__",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 124,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseShapes::it_supports_indexed_access",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 128,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_adds_a_textbox_sp_element_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 483,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeNotesSlideShapes::it_knows_notes_slide_placeholder_basenames[basename_fixture0]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 931,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeNotesSlideShapes::it_knows_notes_slide_placeholder_basenames[basename_fixture1]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 931,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_can_iterate_over_its_placeholders[iter_fixture0]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 986,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture0]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 995,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture1]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 995,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture2]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 995,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlidePlaceholders::it_knows_how_many_placeholders_it_contains[len_fixture3]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 995,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_find_the_title_placeholder[title_fixture0]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1236,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_find_the_title_placeholder[title_fixture1]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1236,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::Describe_BaseMaster::it_provides_access_to_its_placeholders",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 116,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::Describe_BaseMaster::it_provides_access_to_its_shapes",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 122,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_shapes",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 182,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_placeholders",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 188,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_placeholder[notes_ph_fixture0]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 199,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_placeholder[notes_ph_fixture1]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 199,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_text_frame[True]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 204,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeNotesSlide::it_provides_access_to_its_notes_text_frame[False]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 204,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlide::it_knows_whether_it_has_a_notes_slide",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 317,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_shapes",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 325,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_placeholders",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 331,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_slide_layout",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 337,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlide::it_provides_access_to_its_notes_slide",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 341,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlides::it_supports_indexed_access",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 449,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlides::it_can_iterate_its_slides",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 470,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture0]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 600,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture1]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 600,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture2]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 600,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayout::it_can_iterate_its_clonable_placeholders[cloneable_fixture3]",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 600,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayout::it_provides_access_to_its_placeholders",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 605,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayout::it_provides_access_to_its_shapes",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 615,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayout::it_provides_access_to_its_slide_master",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 625,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayouts::it_can_iterate_its_slide_layouts",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 753,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayouts::it_supports_indexed_access",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 769,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayouts::it_can_find_a_slide_layout_by_name",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 784,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayouts::it_knows_the_index_of_each_of_its_slide_layouts",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 808,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideLayouts::but_it_raises_on_slide_layout_not_in_collection",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 818,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideMaster::it_provides_access_to_its_slide_layouts",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 908,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideMasters::it_can_iterate_the_slide_masters",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 945,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_slide.py::DescribeSlideMasters::it_supports_indexed_access",
+      "sourceFile": "tests/test_slide.py",
+      "sourceLine": 951,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::DescribeTable::it_provides_access_to_its_cells",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 33,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::DescribeTable::it_provides_access_to_its_columns",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 45,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::DescribeTable::it_can_iterate_its_grid_cells",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 58,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::DescribeTable::it_provides_access_to_its_rows",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 71,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_Cell::it_knows_what_text_it_contains",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 320,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testName": "reads table cells in row-major order at their shape-tree position",
+          "claim": "ordinary cell cached text extraction; not the live _Cell.text getter"
+        }
+      ]
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_CellCollection::it_can_iterate_over_the_cells_it_contains[a:tr]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 520,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_CellCollection::it_can_iterate_over_the_cells_it_contains[a:tr/a:tc]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 520,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_CellCollection::it_can_iterate_over_the_cells_it_contains[a:tr/(a:tc, a:tc, a:tc)]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 520,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_CellCollection::it_supports_indexed_access",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 528,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_CellCollection::it_raises_on_indexed_access_out_of_range",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 539,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_ColumnCollection::it_can_iterate_over_the_columns_it_contains[a:tbl/a:tblGrid]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 625,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_ColumnCollection::it_can_iterate_over_the_columns_it_contains[a:tbl/a:tblGrid/a:gridCol]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 625,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_ColumnCollection::it_can_iterate_over_the_columns_it_contains[a:tbl/a:tblGrid/(a:gridCol, a:gridCol, a:gridCol)]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 625,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_ColumnCollection::it_supports_indexed_access[a:tbl/a:tblGrid]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 634,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_ColumnCollection::it_supports_indexed_access[a:tbl/a:tblGrid/a:gridCol]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 634,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_ColumnCollection::it_supports_indexed_access[a:tbl/a:tblGrid/(a:gridCol, a:gridCol, a:gridCol)]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 634,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_ColumnCollection::it_raises_on_indexed_access_out_of_range",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 641,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_Row::it_provides_access_to_its_cells",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 704,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_RowCollection::it_can_iterate_over_the_rows_it_contains[a:tbl]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 755,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_RowCollection::it_can_iterate_over_the_rows_it_contains[a:tbl/a:tr]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 755,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_RowCollection::it_can_iterate_over_the_rows_it_contains[a:tbl/(a:tr, a:tr, a:tr)]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 755,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_RowCollection::it_supports_indexed_access[a:tbl]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 764,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_RowCollection::it_supports_indexed_access[a:tbl/a:tr]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 764,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_RowCollection::it_supports_indexed_access[a:tbl/(a:tr, a:tr, a:tr)]",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 764,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/test_table.py::Describe_RowCollection::it_raises_on_indexed_access_out_of_range",
+      "sourceFile": "tests/test_table.py",
+      "sourceLine": 771,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_autosize_setting[autosize_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 43,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_autosize_setting[autosize_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 43,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_autosize_setting[autosize_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 43,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_autosize_setting[autosize_get_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 43,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_margin_settings[margin_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 85,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_margin_settings[margin_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 85,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_margin_settings[margin_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 85,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_margin_settings[margin_get_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 85,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_margin_settings[margin_get_fixture4]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 85,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_margin_settings[margin_get_fixture5]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 85,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_margin_settings[margin_get_fixture6]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 85,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_margin_settings[margin_get_fixture7]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 85,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_vertical_alignment[p:txBody/a:bodyPr-None]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 95,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_vertical_alignment[p:txBody/a:bodyPr{anchor=t}-TOP (1)]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 95,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_vertical_alignment[p:txBody/a:bodyPr{anchor=b}-BOTTOM (4)]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 95,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_word_wrap_setting[wrap_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 131,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_word_wrap_setting[wrap_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 131,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_its_word_wrap_setting[wrap_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 131,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_provides_access_to_its_paragraphs[p:txBody]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 140,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains %i paragraph frames",
+          "variant": "0 paragraph(s)",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "zero, one or two paragraph nodes, as identified by this parameter"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_provides_access_to_its_paragraphs[p:txBody/a:p]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 140,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains %i paragraph frames",
+          "variant": "1 paragraph(s)",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "zero, one or two paragraph nodes, as identified by this parameter"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_provides_access_to_its_paragraphs[p:txBody/(a:p,a:p)]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 140,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains %i paragraph frames",
+          "variant": "2 paragraph(s)",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "zero, one or two paragraph nodes, as identified by this parameter"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_the_part_it_belongs_to",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 153,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_what_text_it_contains[text_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 158,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains %i paragraph frames",
+          "variant": "1 paragraph(s)",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "one paragraph unchanged"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_knows_what_text_it_contains[text_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 158,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains %i paragraph frames",
+          "variant": "3 paragraph(s)",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "three paragraphs joined with U+000A"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_calculates_its_effective_size_to_help_fit_text",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 211,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_sets_its_font_to_help_fit_text[set_font_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 230,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_sets_its_font_to_help_fit_text[set_font_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 230,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeTextFrame::it_sets_its_font_to_help_fit_text[set_font_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 230,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_bold_setting[bold_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 474,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_bold_setting[bold_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 474,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_bold_setting[bold_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 474,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_italic_setting[italic_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 483,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_italic_setting[italic_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 483,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_italic_setting[italic_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 483,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_language_id[language_id_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 492,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_language_id[language_id_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 492,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_language_id[language_id_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 492,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_language_id[language_id_get_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 492,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_underline_setting[underline_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 501,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_underline_setting[underline_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 501,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_underline_setting[underline_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 501,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_underline_setting[underline_get_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 501,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_size[size_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 510,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_size[size_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 510,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_latin_typeface[name_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 519,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_knows_its_latin_typeface[name_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 519,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_provides_access_to_its_color",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 528,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::DescribeFont::it_provides_access_to_its_fill",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 531,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Hyperlink::it_knows_the_target_url_of_the_hyperlink",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 677,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Hyperlink::it_has_None_for_address_when_no_hyperlink_is_present",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 682,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_horizontal_alignment[alignment_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 801,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_horizontal_alignment[alignment_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 801,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_horizontal_alignment[alignment_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 801,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_provides_access_to_the_default_paragraph_font",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 815,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_indentation_level[level_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 820,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_indentation_level[level_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 820,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 829,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 829,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 829,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 829,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_line_spacing[spacing_get_fixture4]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 829,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_provides_access_to_its_runs",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 838,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "three ordinary runs in child order",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "three ordinary runs in child order"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_after[after_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 846,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_after[after_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 846,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_after[after_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 846,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_after[after_get_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 846,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_before[before_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 855,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_before[before_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 855,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_before[before_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 855,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_its_space_before[before_get_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 855,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture0]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 864,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "one run unchanged",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "one run unchanged"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture1]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 864,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "two runs concatenated in child order",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "two runs concatenated in child order"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture2]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 864,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "run / soft break / run using U+000B",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "run / soft break / run using U+000B"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture3]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 864,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "run / cached field / run retaining cache",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "run / cached field / run retaining cache"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture4]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 864,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "leading whitespace then break and cached field",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "leading whitespace then break and cached field"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture5]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 864,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "ignore paragraph and end-paragraph formatting nodes",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "ignore paragraph and end-paragraph formatting nodes"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture6]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 864,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "cached field alone",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "cached field alone"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Paragraph::it_knows_what_text_it_contains[text_get_fixture7]",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 864,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "soft break alone",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "soft break alone"
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Run::it_provides_access_to_its_font",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 1145,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Run::it_provides_access_to_a_hyperlink_proxy",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 1151,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/text/test_text.py::Describe_Run::it_can_get_the_text_of_the_run",
+      "sourceFile": "tests/text/test_text.py",
+      "sourceLine": 1157,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "one Unicode run; decoded text unchanged",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ],
+      "extractionSemantics": "ordinary run string unchanged"
+    },
+    {
+      "sourceId": "tests/chart/test_axis.py::DescribeAxisTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture0]",
+      "sourceFile": "tests/chart/test_axis.py",
+      "sourceLine": 692,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_axis.py::DescribeAxisTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture1]",
+      "sourceFile": "tests/chart/test_axis.py",
+      "sourceLine": 692,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_axis.py::DescribeAxisTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture2]",
+      "sourceFile": "tests/chart/test_axis.py",
+      "sourceLine": 692,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_axis.py::DescribeAxisTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture3]",
+      "sourceFile": "tests/chart/test_axis.py",
+      "sourceLine": 692,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_axis.py::DescribeAxisTitle::it_provides_access_to_its_text_frame",
+      "sourceFile": "tests/chart/test_axis.py",
+      "sourceLine": 708,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_chart.py::DescribeChartTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture0]",
+      "sourceFile": "tests/chart/test_chart.py",
+      "sourceLine": 448,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_chart.py::DescribeChartTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture1]",
+      "sourceFile": "tests/chart/test_chart.py",
+      "sourceLine": 448,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_chart.py::DescribeChartTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture2]",
+      "sourceFile": "tests/chart/test_chart.py",
+      "sourceLine": 448,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_chart.py::DescribeChartTitle::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture3]",
+      "sourceFile": "tests/chart/test_chart.py",
+      "sourceLine": 448,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_chart.py::DescribeChartTitle::it_provides_access_to_its_text_frame",
+      "sourceFile": "tests/chart/test_chart.py",
+      "sourceLine": 458,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_datalabel.py::DescribeDataLabel::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture0]",
+      "sourceFile": "tests/chart/test_datalabel.py",
+      "sourceLine": 32,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_datalabel.py::DescribeDataLabel::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture1]",
+      "sourceFile": "tests/chart/test_datalabel.py",
+      "sourceLine": 32,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_datalabel.py::DescribeDataLabel::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture2]",
+      "sourceFile": "tests/chart/test_datalabel.py",
+      "sourceLine": 32,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_datalabel.py::DescribeDataLabel::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture3]",
+      "sourceFile": "tests/chart/test_datalabel.py",
+      "sourceLine": 32,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_datalabel.py::DescribeDataLabel::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture4]",
+      "sourceFile": "tests/chart/test_datalabel.py",
+      "sourceLine": 32,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_datalabel.py::DescribeDataLabel::it_knows_whether_it_has_a_text_frame[has_tf_get_fixture5]",
+      "sourceFile": "tests/chart/test_datalabel.py",
+      "sourceLine": 32,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/chart/test_datalabel.py::DescribeDataLabel::it_provides_access_to_its_text_frame",
+      "sourceFile": "tests/chart/test_datalabel.py",
+      "sourceLine": 42,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_it_doesnt_contain_a_table",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 173,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_chart[http://schemas.openxmlformats.org/drawingml/2006/table-False]",
+      "sourceFile": "tests/shapes/test_graphfrm.py",
+      "sourceLine": 56,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_table[http://schemas.openxmlformats.org/drawingml/2006/chart-False]",
+      "sourceFile": "tests/shapes/test_graphfrm.py",
+      "sourceLine": 68,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_table[http://schemas.openxmlformats.org/presentationml/2006/ole-False]",
+      "sourceFile": "tests/shapes/test_graphfrm.py",
+      "sourceLine": 68,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_table[http://schemas.openxmlformats.org/drawingml/2006/table-True]",
+      "sourceFile": "tests/shapes/test_graphfrm.py",
+      "sourceLine": 68,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http://schemas.openxmlformats.org/drawingml/2006/table-None-TABLE (19)]",
+      "sourceFile": "tests/shapes/test_graphfrm.py",
+      "sourceLine": 114,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    }
+  ],
+  "bddCases": [
+    {
+      "sourceId": "features/cht-axistitle-props.feature:20:Get AxisTitle.has_text_frame -- @1.1 text frame presence cases",
+      "sourceFile": "features/cht-axistitle-props.feature",
+      "sourceLine": 20,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-axistitle-props.feature:21:Get AxisTitle.has_text_frame -- @1.2 text frame presence cases",
+      "sourceFile": "features/cht-axistitle-props.feature",
+      "sourceLine": 21,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-axistitle-props.feature:31:Set AxisTitle.has_text_frame -- @1.1 axis_title.has_text_frame assignment cases",
+      "sourceFile": "features/cht-axistitle-props.feature",
+      "sourceLine": 31,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-axistitle-props.feature:32:Set AxisTitle.has_text_frame -- @1.2 axis_title.has_text_frame assignment cases",
+      "sourceFile": "features/cht-axistitle-props.feature",
+      "sourceLine": 32,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-axistitle-props.feature:33:Set AxisTitle.has_text_frame -- @1.3 axis_title.has_text_frame assignment cases",
+      "sourceFile": "features/cht-axistitle-props.feature",
+      "sourceLine": 33,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-axistitle-props.feature:34:Set AxisTitle.has_text_frame -- @1.4 axis_title.has_text_frame assignment cases",
+      "sourceFile": "features/cht-axistitle-props.feature",
+      "sourceLine": 34,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-axistitle-props.feature:43:Get AxisTitle.text_frame -- @1.1 text frame presence cases",
+      "sourceFile": "features/cht-axistitle-props.feature",
+      "sourceLine": 43,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-axistitle-props.feature:44:Get AxisTitle.text_frame -- @1.2 text frame presence cases",
+      "sourceFile": "features/cht-axistitle-props.feature",
+      "sourceLine": 44,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-charttitle-props.feature:20:Get ChartTitle.has_text_frame -- @1.1 text frame presence cases",
+      "sourceFile": "features/cht-charttitle-props.feature",
+      "sourceLine": 20,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-charttitle-props.feature:21:Get ChartTitle.has_text_frame -- @1.2 text frame presence cases",
+      "sourceFile": "features/cht-charttitle-props.feature",
+      "sourceLine": 21,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-charttitle-props.feature:31:Set ChartTitle.has_text_frame -- @1.1 chart_title.has_text_frame assignment cases",
+      "sourceFile": "features/cht-charttitle-props.feature",
+      "sourceLine": 31,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-charttitle-props.feature:32:Set ChartTitle.has_text_frame -- @1.2 chart_title.has_text_frame assignment cases",
+      "sourceFile": "features/cht-charttitle-props.feature",
+      "sourceLine": 32,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-charttitle-props.feature:33:Set ChartTitle.has_text_frame -- @1.3 chart_title.has_text_frame assignment cases",
+      "sourceFile": "features/cht-charttitle-props.feature",
+      "sourceLine": 33,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-charttitle-props.feature:34:Set ChartTitle.has_text_frame -- @1.4 chart_title.has_text_frame assignment cases",
+      "sourceFile": "features/cht-charttitle-props.feature",
+      "sourceLine": 34,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-charttitle-props.feature:43:Get ChartTitle.text_frame -- @1.1 text frame presence cases",
+      "sourceFile": "features/cht-charttitle-props.feature",
+      "sourceLine": 43,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-charttitle-props.feature:44:Get ChartTitle.text_frame -- @1.2 text frame presence cases",
+      "sourceFile": "features/cht-charttitle-props.feature",
+      "sourceLine": 44,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-datalabels.feature:162:DataLabel.has_text_frame getter -- @1.1 text frame presence cases",
+      "sourceFile": "features/cht-datalabels.feature",
+      "sourceLine": 162,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-datalabels.feature:163:DataLabel.has_text_frame getter -- @1.2 text frame presence cases",
+      "sourceFile": "features/cht-datalabels.feature",
+      "sourceLine": 163,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-datalabels.feature:207:DataLabel.text_frame -- @1.1 text frame presence cases",
+      "sourceFile": "features/cht-datalabels.feature",
+      "sourceLine": 207,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/cht-datalabels.feature:208:DataLabel.text_frame -- @1.2 text frame presence cases",
+      "sourceFile": "features/cht-datalabels.feature",
+      "sourceLine": 208,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-autoshape.feature:18:Shape.text getter",
+      "sourceFile": "features/shp-autoshape.feature",
+      "sourceLine": 18,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "ordinary shape text",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ]
+    },
+    {
+      "sourceId": "features/shp-groupshape.feature:17:GroupShape.shapes",
+      "sourceFile": "features/shp-groupshape.feature",
+      "sourceLine": 17,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shapes.feature:19:GroupShapes is a sequence",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 19,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shapes.feature:75:LayoutPlaceholders is a sequence",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 75,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shapes.feature:83:LayoutShapes is a sequence",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 83,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shapes.feature:90:MasterPlaceholders is a sequence",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 90,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shapes.feature:98:MasterShapes is a sequence",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 98,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shapes.feature:105:SlideShapes is a sequence",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 105,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shapes.feature:344:SlidePlaceholders is a sequence",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 344,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shared.feature:49:Get shape.has_text_frame -- @1.1 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 49,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shared.feature:50:Get shape.has_text_frame -- @1.2 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 50,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shared.feature:51:Get shape.has_text_frame -- @1.3 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 51,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shared.feature:52:Get shape.has_text_frame -- @1.4 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 52,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/shp-shared.feature:53:Get shape.has_text_frame -- @1.5 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 53,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:33:Slide.has_notes_slide -- @1.1 Slide.has_notes_slide states",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 33,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:34:Slide.has_notes_slide -- @1.2 Slide.has_notes_slide states",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 34,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:54:Slide.notes_slide -- @1.1 Slide.notes_slide states",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 54,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:55:Slide.notes_slide -- @1.2 Slide.notes_slide states",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 55,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:58:Slide.shapes",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 58,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:83:SlideLayout.shapes",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 83,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:114:SlideMaster.shapes",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 114,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:129:NotesSlide.placeholders",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 129,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:135:NotesSlide.notes_placeholder",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 135,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/sld-slide.feature:140:NotesSlide.notes_text_frame",
+      "sourceFile": "features/sld-slide.feature",
+      "sourceLine": 140,
+      "status": "live_model_not_implemented",
+      "extractionTests": []
+    },
+    {
+      "sourceId": "features/tbl-cell.feature:82:_Cell.text getter",
+      "sourceFile": "features/tbl-cell.feature",
+      "sourceLine": 82,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testName": "reads table cells in row-major order at their shape-tree position",
+          "claim": "cell string unchanged; live _Cell.text getter not implemented"
+        }
+      ]
+    },
+    {
+      "sourceId": "features/txt-paragraph.feature:81:_Paragraph.text getter -- @1.1 _Paragraph line break combinations",
+      "sourceFile": "features/txt-paragraph.feature",
+      "sourceLine": 81,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "one ordinary run",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ]
+    },
+    {
+      "sourceId": "features/txt-paragraph.feature:82:_Paragraph.text getter -- @1.2 _Paragraph line break combinations",
+      "sourceFile": "features/txt-paragraph.feature",
+      "sourceLine": 82,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "three runs separated by two soft breaks",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ]
+    },
+    {
+      "sourceId": "features/txt-text.feature:7:_Run.text getter",
+      "sourceFile": "features/txt-text.feature",
+      "sourceLine": 7,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains paragraph inline values %#",
+          "variant": "leading and trailing spaces around run text",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ]
+    },
+    {
+      "sourceId": "features/txt-textframe.feature:51:TextFrame.text getter -- @1.1 Textframe paragraph and line break combinations",
+      "sourceFile": "features/txt-textframe.feature",
+      "sourceLine": 51,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains %i paragraph frames",
+          "variant": "1 paragraph(s)",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ]
+    },
+    {
+      "sourceId": "features/txt-textframe.feature:52:TextFrame.text getter -- @1.2 Textframe paragraph and line break combinations",
+      "sourceFile": "features/txt-textframe.feature",
+      "sourceLine": 52,
+      "status": "live_model_not_implemented",
+      "extractionTests": [
+        {
+          "file": "packages/pptx/src/text-reading.test.ts",
+          "testNameTemplate": "retains %i paragraph frames",
+          "variant": "3 paragraph(s)",
+          "claim": "extraction semantics only; live getter/protocol parity not claimed"
+        }
+      ]
+    }
+  ],
+  "apiScope": {
+    "inventory": "upstream-api-inventory.json",
+    "implementation": "The operation-level extraction does not implement TextFrame, _Paragraph, _Run, _Cell or any inherited live owner/collection members. Existing API register statuses are not promoted.",
+    "mappingDocument": "api-language-mappings.md"
+  },
+  "sourceCaseCounts": {
+    "unit": 181,
+    "bdd": 50
+  },
+  "validation": {
+    "assertionReview": "Source edge variants compared with independently authored test inputs and explicit expected inline records. Linked assertions do not promote live-model parity.",
+    "execution": "npm run test:unit --workspace=pptx passed 1,250 tests in 48 files, including 32 structural text cases, 15 text command cases and 41 compatibility cases. npm run lint --workspace=pptx passed ESLint and both TypeScript checks. No reference pass counted as TypeScript success."
+  }
+}

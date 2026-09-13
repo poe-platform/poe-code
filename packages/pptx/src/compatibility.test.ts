@@ -14,6 +14,39 @@ const alternatives =
   '<mc:AlternateContent><mc:Choice Requires="x"><x:item value="new"/></mc:Choice><mc:Fallback><p:item value="old"/></mc:Fallback></mc:AlternateContent>';
 
 describe("namespace compatibility views", () => {
+  it("expands selected opaque containers with their inherited compatibility rules", () => {
+    const part = parse(
+      wrap(
+        '<p:container kind="table"><p:item x:flag="yes"/><p:ext><x:details/></p:ext></p:container><p:container kind="other"><x:foreign/></p:container>',
+        'mc:Ignorable="x"'
+      )
+    );
+    const opaque = [
+      { namespace: strict, localName: "container" },
+      { namespace: strict, localName: "ext" }
+    ];
+    const view = interpretCompatibility(
+      part,
+      [strict],
+      opaque,
+      (element) =>
+        element.name.localName === "container" &&
+        element.attributes.some(
+          (attribute) => attribute.name.localName === "kind" && attribute.value === "table"
+        )
+    );
+    const [table, other] = view.children(part.root);
+    expect(view.children(table!).map((element) => element.name.localName)).toEqual(["item", "ext"]);
+    expect(view.attributes(table!.children[0]!)).toEqual([]);
+    expect(view.children(other!)).toEqual([]);
+    expect(view.children(table!.children[1]!)).toEqual([]);
+    const updated = view.merge(table!.children[0]!, {
+      attributes: [{ namespace: "", localName: "name", value: "updated" }]
+    });
+    expect(
+      updated.children(updated.part.root.children[0]!).map((element) => element.name.localName)
+    ).toEqual(["item", "ext"]);
+  });
   it("preserves explicitly opaque extension payloads without understanding their namespaces", () => {
     const source = wrap(
       '<p:extLst><p:ext uri="urn:detail"><x:details><x:entry/></x:details></p:ext></p:extLst>'

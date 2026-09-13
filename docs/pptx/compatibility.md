@@ -8,6 +8,14 @@ not prefix spellings. No environment variables, host I/O, network or native
 runtime are used. The existing byte/node/depth limits apply during XML admission
 and re-admission after merges.
 
+The optional third argument lists opaque element names. A fourth trusted
+TypeScript predicate, `expandOpaque(element)`, can opt selected opaque containers
+back into traversal while retaining their inherited compatibility rules. Text
+extraction uses this for table graphic data; unrelated graphic data and extension
+payloads remain opaque. The predicate is retained across `merge` re-admission.
+It is package implementation configuration, not a serialized command option or
+an expression evaluated from document content.
+
 `dialect` reports `strict`, `transitional`, or `null` from the original root's
 PresentationML/DrawingML main namespace. It does not infer a whole-package
 dialect from filenames or convert namespaces. Other part roots are neutral.
@@ -49,9 +57,9 @@ view and package-level relationship/publication checks.
 
 This is partial F03/F04 infrastructure. It is not schema validation, full MCE
 conformance, extension semantic support, whole-deck validation, SDK/CLI parity,
-public J09 view completion or visual-fidelity evidence. Application-defined
-extension-element suspension and model-specific synchronized alternate edits
-remain future work. The complete public API and BDD obligations remain open.
+public J09 view completion or visual-fidelity evidence. Model-specific synchronized
+alternate edits remain future work. The complete public API and BDD obligations
+remain open.
 
 Research used the pinned ECMA-376 Part 3 fifth-edition text, sections 7.1–7.7
 and 9.2–9.4, recorded by `standards-sources.json`. The official

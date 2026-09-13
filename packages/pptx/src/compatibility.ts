@@ -63,10 +63,12 @@ interface Rules {
 export function interpretCompatibility(
   part: XmlPart,
   understoodNamespaces: readonly string[],
-  opaqueElements: readonly XmlName[] = []
+  opaqueElements: readonly XmlName[] = [],
+  expandOpaque?: (element: XmlElement) => boolean
 ): CompatibilityView {
   if (
     !Array.isArray(understoodNamespaces) ||
+    (expandOpaque !== undefined && typeof expandOpaque !== "function") ||
     understoodNamespaces.some((uri) => typeof uri !== "string" || !uri)
   )
     throw new OfficeError("invalid-value", "Expected understood namespace URIs.", "usage");
@@ -277,7 +279,8 @@ export function interpretCompatibility(
       opaque.some(
         (name) =>
           name.namespace === element.name.namespace && name.localName === element.name.localName
-      )
+      ) &&
+      !expandOpaque?.(element)
     )
       continue;
     for (const child of [...element.children].reverse())
@@ -325,7 +328,7 @@ export function interpretCompatibility(
           "Alternate representations require synchronized editing.",
           "validate-intent"
         );
-      return interpretCompatibility(edited, supplied, opaque);
+      return interpretCompatibility(edited, supplied, opaque, expandOpaque);
     }
   });
 }

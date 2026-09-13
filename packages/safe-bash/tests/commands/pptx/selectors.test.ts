@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, readSelectionIndex } from "pptx";
+import { createPptxCommandEngine, createPresentation, mutateSlides, readPresentationText, readSelectionIndex } from "pptx";
 import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
 import { FsError, toByteSource, type FileSystem, type PluginHost } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -539,4 +539,30 @@ test("pptx accepts bounded stdin and virtual script workflows", async () => {
   const over = await shell.exec("pptx inspect - --json", { stdin: toByteSource(new Uint8Array(65537)) });
   assert.equal(over.exitCode, 4);
   assert.equal(JSON.parse(over.stdout).errors[0].code, "resource-limit");
+});
+
+
+test("pptx text reads Unicode, empty bodies and hidden slides through the registered command", async () => {
+  const { shell, volume } = fixture();
+  const created = await createPresentation({ slides: [
+    { shapes: [{ name: "Caption", x: 0, y: 0, width: 100, height: 100, text: "雪 café\nNext paragraph" }, { name: "Empty", x: 0, y: 0, width: 100, height: 100, text: "" }] },
+    { shapes: [{ name: "Hidden caption", x: 0, y: 0, width: 100, height: 100, text: "Hidden content" }] }
+  ] }, context);
+  const source = await mutateSlides(created, { selection: {kind: "slide", position: {coordinateSystem: "one-based", value: 2}}, hidden: true }, context);
+  volume.writeFileSync("/work/text.pptx", source);
+  const result = await shell.exec("pptx text get text.pptx --json");
+  assert.equal(result.exitCode, 0, result.stdout);
+  assert.equal(result.stderr, "");
+  const data = JSON.parse(result.stdout).data;
+  assert.equal(data.text, "雪 café\nNext paragraph\n\nHidden content");
+  assert.equal(data.order, "structural");
+  assert.deepEqual(data.segments.map((segment: {text: string}) => segment.text), ["雪 café\nNext paragraph", "", "Hidden content"]);
+  assert.deepEqual(data, await readPresentationText(source, {}, context));
+  const stdin = await shell.exec("pptx text get - --json", {stdin: toByteSource(source)});
+  assert.equal(stdin.exitCode, 0, stdin.stdout);
+  assert.deepEqual(JSON.parse(stdin.stdout).data, data);
+  const selected = await shell.exec("pptx text text.pptx --slide 1 --shape Caption");
+  assert.equal(selected.exitCode, 0, selected.stderr);
+  assert.equal(selected.stdout, "雪 café\nNext paragraph");
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/text.pptx") as Buffer), source);
 });

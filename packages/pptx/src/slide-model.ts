@@ -590,6 +590,7 @@ export class SlideShapes implements Iterable<Shape | Connector> {
     return shapes(this.#owner.read(), this.#groupId).length;
   }
   at(index: number): Shape | Connector {
+    if (!Number.isSafeInteger(index)) throw new IndexError();
     return this.get(index < 0 ? this.length + index : index);
   }
   get_by_id(id: number): Shape | Connector | null {
@@ -919,6 +920,7 @@ export class Slides implements Iterable<Slide> {
     return this.#items[index]!;
   }
   at(index: number): Slide {
+    if (!Number.isSafeInteger(index)) throw new IndexError();
     return this.get(index < 0 ? this.length + index : index);
   }
   get_by_id(id: number): Slide | null {

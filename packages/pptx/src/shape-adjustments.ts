@@ -149,6 +149,7 @@ export class AdjustmentCollection implements Iterable<number> {
     return this.#values().length;
   }
   at(index: number): number {
+    if (!Number.isSafeInteger(index)) throw new IndexError();
     return this.#value(index < 0 ? this.length + index : index);
   }
   *[Symbol.iterator](): IterableIterator<number> {

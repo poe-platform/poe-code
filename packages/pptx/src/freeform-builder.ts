@@ -135,6 +135,7 @@ export class FreeformBuilder<T> implements Iterable<DrawingOperation> {
     );
   }
   at(position: number): DrawingOperation {
+    if (!Number.isSafeInteger(position)) throw new IndexError();
     return this.#operations[index(position < 0 ? this.length + position : position, this.length)]!;
   }
   *[Symbol.iterator](): IterableIterator<DrawingOperation> {

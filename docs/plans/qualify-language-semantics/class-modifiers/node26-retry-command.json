@@ -1,0 +1,20 @@
+[
+  "/tmp/safejs-async-runtimes/node-v26.8.2-darwin-arm64/bin/node",
+  "--import",
+  "tsx",
+  "packages/safe-js/test/conformance/command.ts",
+  "--corpus",
+  "/tmp/safejs-baseline-test262-419d3e0",
+  "--report",
+  "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/class-modifiers/node26-space-retry-upstream.jsonl",
+  "--include",
+  "language/statements/class/accessor-name-static-computed-yield-expr.js",
+  "--include",
+  "language/statements/class/async-gen-meth-escaped-async.js",
+  "--include",
+  "language/statements/class/async-meth-escaped-async.js",
+  "--include",
+  "language/statements/class/syntax/class-method-propname-constructor.js",
+  "--include",
+  "language/statements/class/syntax/escaped-static.js"
+]

@@ -1,0 +1,9 @@
+{
+  "unrelatedStagedUnchanged": true,
+  "initialHead": "7d645b4cb6261dba2d3cbf06208efd800fc8b989",
+  "parserBeforeSha256": "ccedfe9812be553bd71352491dcad1669c581f3cb9ebd53acf663cd74d7dffd6",
+  "parserAfterSha256": "e612f09effff5a07e017da438e5ba41c08f530817f53897bfe33926be8688706",
+  "onlyOwnedProductionPatch": "repair.patch",
+  "remoteMainDelivery": false,
+  "published": false
+}

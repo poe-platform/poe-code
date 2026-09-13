@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/parse/class-modifier-spellings.test.ts (16 tests) 389ms
+   ✓ preserves eval errors, private closures and source across repeated replay  339ms
+
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+   Start at  10:11:58
+   Duration  2.44s (transform 1.54s, setup 36ms, import 1.94s, tests 389ms, environment 0ms)
+

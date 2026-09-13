@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/parse/classes.test.ts (37 tests) 22ms
+ ✓ packages/safe-js/src/parse/escaped-keywords.test.ts (20 tests) 18ms
+ ✓ packages/safe-js/src/parse/private-classes.test.ts (23 tests) 18ms
+ ✓ packages/safe-js/src/parse/class-modifier-spellings.test.ts (16 tests) 568ms
+   ✓ preserves eval errors, private closures and source across repeated replay  490ms
+
+ Test Files  4 passed (4)
+      Tests  96 passed (96)
+   Start at  10:12:19
+   Duration  3.39s (transform 2.34s, setup 129ms, import 2.91s, tests 626ms, environment 0ms)
+

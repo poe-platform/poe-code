@@ -1,0 +1,1 @@
+const read=Function("eval('delete x;var x');return ()=>{try{return x}catch(e){return e.name}}")();await 0;return [read(),Object.hasOwn(globalThis,"x")];

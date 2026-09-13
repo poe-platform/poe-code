@@ -1,0 +1,17 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/test/conformance/realm.test.ts (15 tests) 1470ms
+   ✓ shares the test's work allowance across child realms  477ms
+ ✓ packages/safe-js/test/conformance/execute.test.ts (40 tests) 2094ms
+ ✓ packages/safe-js/src/interp/globals/eval-global-declarations.test.ts (14 tests) 969ms
+ ✓ packages/safe-js/test/conformance/result.test.ts (19 tests) 718ms
+ ✓ packages/safe-js/test/conformance/script-declaration-errors.test.ts (10 tests) 468ms
+ ✓ packages/safe-js/src/interp/globals/eval-global-block-functions.test.ts (6 tests) 515ms
+ ✓ packages/safe-js/src/interp/global-scope.test.ts (3 tests) 5ms
+
+ Test Files  7 passed (7)
+      Tests  107 passed (107)
+   Start at  11:33:41
+   Duration  15.55s (transform 12.33s, setup 329ms, import 22.22s, tests 6.24s, environment 0ms)
+

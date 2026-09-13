@@ -470,7 +470,14 @@ export async function interpret(
         else if (statement.type === "VariableDeclaration" && statement.kind !== "var")
           for (const name of getDeclarationBindingNames(statement)) lexical.add(name);
       }
-      scope.validateScriptDeclarations(lexical, names, functions);
+      try {
+        scope.validateScriptDeclarations(lexical, names, functions);
+      } catch (error) {
+        if (isFatalSandboxError(error)) throw error;
+        const value = coerceThrownValue(error, budget, [], node.span, true);
+        throw options.surfaceUnhandledThrows === true
+          ? surfaceThrownValue(value, budget, [], node.span) : value;
+      }
     }
     hoistVarDeclarations(node, scope);
     if (options.script?.strict === false && node.type === "BlockStatement")

@@ -2418,3 +2418,14 @@ cases/one control become197 focused passes. Existing descriptor regressions ensu
 prototype remains immutable. Final lint/build and all original upstream contexts pass.
 Seven runtime SDK replay/source/host-escape checks and inspected CLI output pass. Residual
 arithmetic is128 nonpasses; remaining language categories and publication remain open.
+
+### qualify-language-semantics — Script declaration errors, 2026-09-13
+
+[Atomic repair and evidence](qualify-language-semantics/script-declaration-errors/audit.md)
+keep declaration-validation SyntaxError/TypeError constructors in the guest realm. Nine
+red cases/one negative control become107 focused passes after sibling-workspace isolation;
+lint/build pass. All five original/neighbor variants pass. Seven-runtime built Script
+identity and public SDK replay/authority controls pass; CLI screenshot inspected. Residual
+arithmetic is126 nonpasses. Earlier shared-sibling evidence remains qualified; the dependency
+link receipt records the corrected resolution and matching external lock entries. Integrated
+replay, remaining language categories and publication remain open.

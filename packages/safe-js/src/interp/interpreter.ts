@@ -1213,9 +1213,7 @@ async function evaluateAssignmentExpression(
       const global = getRealmGlobalObject(context.budget);
       await setSandboxProperty(global, node.left.name, value, context.budget, true, createCoercionContext(context), false);
     } else if (reference.kind === "object") {
-      if (context.strict !== false && !await bindingOperations(context).has(reference.object, reference.name))
-        throw new ReferenceError(`Cannot assign to undeclared binding '${reference.name}'.`);
-      await setSandboxProperty(reference.object, reference.name, value, context.budget, true, createCoercionContext(context), context.strict !== false);
+      await setObjectReferenceValue(reference, value, context);
     } else if (reference.kind === "binding") {
       reference.scope.assignOwnBinding(reference.name, value, context.strict !== false);
     } else throw new ReferenceError(`Cannot assign to undeclared binding '${node.left.name}'.`);
@@ -1493,6 +1491,17 @@ async function getObjectReferenceValue(
     return undefined;
   }
   return getPropertyValue(reference.object, reference.name, context);
+}
+
+async function setObjectReferenceValue(
+  reference: Extract<BindingReference, {kind: "object"}>,
+  value: SandboxValue,
+  context: EvaluationContext
+): Promise<void> {
+  const stillExists = await bindingOperations(context).has(reference.object, reference.name);
+  if (!stillExists && context.strict !== false)
+    throw new ReferenceError(`Cannot assign to undeclared binding '${reference.name}'.`);
+  await setSandboxProperty(reference.object, reference.name, value, context.budget, true, createCoercionContext(context), context.strict !== false);
 }
 
 async function evaluateThisExpression(
@@ -3140,7 +3149,7 @@ async function evaluateIdentifierUpdateExpression(
     ? bigIntOperation(node.operator === "++" ? "+" : "-", current, 1n, context.budget)
     : node.operator === "++" ? current + 1 : current - 1;
   if (reference.kind === "object") {
-    await setSandboxProperty(reference.object, reference.name, next, context.budget, true, createCoercionContext(context), context.strict !== false);
+    await setObjectReferenceValue(reference, next, context);
   } else {
     reference.scope.assignOwnBinding(reference.name, next, context.strict !== false);
   }

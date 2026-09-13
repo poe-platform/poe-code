@@ -2390,3 +2390,12 @@ lookup sequence; the discrepancy and corrected maintained oracle remain visible.
 runtime SDK replay/source/host-escape controls and inspected CLI output pass. Residual
 arithmetic is148 nonpasses; full acceptance and publication remain open. This append also
 undoes only the prior commit's incidental formatting of existing ledger prose.
+
+### qualify-language-semantics — object-environment writes, 2026-09-13
+
+[Atomic repair and evidence](qualify-language-semantics/object-binding-write/audit.md)
+restore mandatory binding-existence checks for assignments and updates. Eleven red
+regressions become56 focused passes; lint/build pass. Ten original failures and recorded
+neighbors pass17/17 variants. Seven runtime SDK replay/source/host-escape checks pass;
+CLI screenshot inspected. Residual arithmetic is138 nonpasses; remaining categories,
+including typed-array prototype assignment, and publication gates remain unresolved.

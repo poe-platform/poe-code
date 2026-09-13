@@ -1,0 +1,568 @@
+[
+  {
+    "id": "language/expressions/postfix-decrement/operator-x-postfix-decrement-calls-putvalue-lhs-newvalue--1.js#sloppy",
+    "filename": "language/expressions/postfix-decrement/operator-x-postfix-decrement-calls-putvalue-lhs-newvalue--1.js",
+    "sourceHash": "128193f2334f9a9c7e48f8a32996765e3b9c4a49cff0c34a146efe7bfea7dc6f",
+    "variantSourceHash": "128193f2334f9a9c7e48f8a32996765e3b9c4a49cff0c34a146efe7bfea7dc6f",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+      "type": "Test262Error"
+    },
+    "report": "39750-39999.jsonl",
+    "reportSha256": "f9075ee2cde858d79aab193173f34891491e6fec8e336aff83c9fe7c9b585c1e",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/postfix-decrement/operator-x-postfix-decrement-calls-putvalue-lhs-newvalue--1.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/postfix-decrement/line-terminator-paragraph-separator.js#sloppy",
+      "sourceHash": "510f3ea7f649d2fc3d48411fcd5c11e9ae6e4ea35bee9e4ecc57aeb4f9417488",
+      "variantSourceHash": "510f3ea7f649d2fc3d48411fcd5c11e9ae6e4ea35bee9e4ecc57aeb4f9417488",
+      "report": "39750-39999.jsonl",
+      "reportSha256": "f9075ee2cde858d79aab193173f34891491e6fec8e336aff83c9fe7c9b585c1e"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "sourceHash": "128193f2334f9a9c7e48f8a32996765e3b9c4a49cff0c34a146efe7bfea7dc6f"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/postfix-decrement/operator-x-postfix-decrement-calls-putvalue-lhs-newvalue-.js#sloppy",
+    "filename": "language/expressions/postfix-decrement/operator-x-postfix-decrement-calls-putvalue-lhs-newvalue-.js",
+    "sourceHash": "cce941fa3b5fb50748218aaf91d2de6c3d4681c9aa8683ef1b364407a802be31",
+    "variantSourceHash": "cce941fa3b5fb50748218aaf91d2de6c3d4681c9aa8683ef1b364407a802be31",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+      "type": "Test262Error"
+    },
+    "report": "39750-39999.jsonl",
+    "reportSha256": "f9075ee2cde858d79aab193173f34891491e6fec8e336aff83c9fe7c9b585c1e",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/postfix-decrement/operator-x-postfix-decrement-calls-putvalue-lhs-newvalue-.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/postfix-decrement/line-terminator-paragraph-separator.js#sloppy",
+      "sourceHash": "510f3ea7f649d2fc3d48411fcd5c11e9ae6e4ea35bee9e4ecc57aeb4f9417488",
+      "variantSourceHash": "510f3ea7f649d2fc3d48411fcd5c11e9ae6e4ea35bee9e4ecc57aeb4f9417488",
+      "report": "39750-39999.jsonl",
+      "reportSha256": "f9075ee2cde858d79aab193173f34891491e6fec8e336aff83c9fe7c9b585c1e"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "sourceHash": "cce941fa3b5fb50748218aaf91d2de6c3d4681c9aa8683ef1b364407a802be31"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/postfix-increment/operator-x-postfix-increment-calls-putvalue-lhs-newvalue--1.js#sloppy",
+    "filename": "language/expressions/postfix-increment/operator-x-postfix-increment-calls-putvalue-lhs-newvalue--1.js",
+    "sourceHash": "4c0753a4b6b4ea5e9acf48a4982b20a7fc4e05e7a8e47ff14621369be056e17f",
+    "variantSourceHash": "4c0753a4b6b4ea5e9acf48a4982b20a7fc4e05e7a8e47ff14621369be056e17f",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+      "type": "Test262Error"
+    },
+    "report": "40000-40249.jsonl",
+    "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/postfix-increment/operator-x-postfix-increment-calls-putvalue-lhs-newvalue--1.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/postfix-increment/line-terminator-paragraph-separator.js#sloppy",
+      "sourceHash": "a4b53608ec4f9b08e6c69ae3a948340ec9e61135d9ba211c1a2c521c4a04bb3e",
+      "variantSourceHash": "a4b53608ec4f9b08e6c69ae3a948340ec9e61135d9ba211c1a2c521c4a04bb3e",
+      "report": "39750-39999.jsonl",
+      "reportSha256": "f9075ee2cde858d79aab193173f34891491e6fec8e336aff83c9fe7c9b585c1e"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "sourceHash": "4c0753a4b6b4ea5e9acf48a4982b20a7fc4e05e7a8e47ff14621369be056e17f"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/postfix-increment/operator-x-postfix-increment-calls-putvalue-lhs-newvalue-.js#sloppy",
+    "filename": "language/expressions/postfix-increment/operator-x-postfix-increment-calls-putvalue-lhs-newvalue-.js",
+    "sourceHash": "db8083685884656d55576cec133dc0774d1b27fbcbef1d777a87804e133dfb21",
+    "variantSourceHash": "db8083685884656d55576cec133dc0774d1b27fbcbef1d777a87804e133dfb21",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+      "type": "Test262Error"
+    },
+    "report": "40000-40249.jsonl",
+    "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/postfix-increment/operator-x-postfix-increment-calls-putvalue-lhs-newvalue-.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/postfix-increment/line-terminator-paragraph-separator.js#sloppy",
+      "sourceHash": "a4b53608ec4f9b08e6c69ae3a948340ec9e61135d9ba211c1a2c521c4a04bb3e",
+      "variantSourceHash": "a4b53608ec4f9b08e6c69ae3a948340ec9e61135d9ba211c1a2c521c4a04bb3e",
+      "report": "39750-39999.jsonl",
+      "reportSha256": "f9075ee2cde858d79aab193173f34891491e6fec8e336aff83c9fe7c9b585c1e"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "sourceHash": "db8083685884656d55576cec133dc0774d1b27fbcbef1d777a87804e133dfb21"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/prefix-decrement/operator-prefix-decrement-x-calls-putvalue-lhs-newvalue--1.js#sloppy",
+    "filename": "language/expressions/prefix-decrement/operator-prefix-decrement-x-calls-putvalue-lhs-newvalue--1.js",
+    "sourceHash": "d346fc04c713399729d3888b6aeabad25e2b89b94c194c490f8d7f9eda91e084",
+    "variantSourceHash": "d346fc04c713399729d3888b6aeabad25e2b89b94c194c490f8d7f9eda91e084",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+      "type": "Test262Error"
+    },
+    "report": "40000-40249.jsonl",
+    "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/prefix-decrement/operator-prefix-decrement-x-calls-putvalue-lhs-newvalue--1.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/prefix-decrement/eval-nostrict.js#sloppy",
+      "sourceHash": "f5de51de7053b257dce2561dc0183e05349eae1670748427fc56930feeb5c171",
+      "variantSourceHash": "f5de51de7053b257dce2561dc0183e05349eae1670748427fc56930feeb5c171",
+      "report": "40000-40249.jsonl",
+      "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "sourceHash": "d346fc04c713399729d3888b6aeabad25e2b89b94c194c490f8d7f9eda91e084"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/prefix-decrement/operator-prefix-decrement-x-calls-putvalue-lhs-newvalue-.js#sloppy",
+    "filename": "language/expressions/prefix-decrement/operator-prefix-decrement-x-calls-putvalue-lhs-newvalue-.js",
+    "sourceHash": "c6eb165820b2c9fc8c5f736dfe75c817bd887dc11c88e9b090ffb133c9b9b644",
+    "variantSourceHash": "c6eb165820b2c9fc8c5f736dfe75c817bd887dc11c88e9b090ffb133c9b9b644",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+      "type": "Test262Error"
+    },
+    "report": "40000-40249.jsonl",
+    "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/prefix-decrement/operator-prefix-decrement-x-calls-putvalue-lhs-newvalue-.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/prefix-decrement/eval-nostrict.js#sloppy",
+      "sourceHash": "f5de51de7053b257dce2561dc0183e05349eae1670748427fc56930feeb5c171",
+      "variantSourceHash": "f5de51de7053b257dce2561dc0183e05349eae1670748427fc56930feeb5c171",
+      "report": "40000-40249.jsonl",
+      "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "sourceHash": "c6eb165820b2c9fc8c5f736dfe75c817bd887dc11c88e9b090ffb133c9b9b644"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/prefix-increment/operator-prefix-increment-x-calls-putvalue-lhs-newvalue--1.js#sloppy",
+    "filename": "language/expressions/prefix-increment/operator-prefix-increment-x-calls-putvalue-lhs-newvalue--1.js",
+    "sourceHash": "8e8b02e57d4d04101d9312a23d34a4d870ca02353f673b46a569430615200199",
+    "variantSourceHash": "8e8b02e57d4d04101d9312a23d34a4d870ca02353f673b46a569430615200199",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+      "type": "Test262Error"
+    },
+    "report": "40000-40249.jsonl",
+    "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/prefix-increment/operator-prefix-increment-x-calls-putvalue-lhs-newvalue--1.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/prefix-increment/eval-nostrict.js#sloppy",
+      "sourceHash": "90849390dcc99701a49589836606c4a9dc95db8f0c0d849b16d9115e6c2ef1e2",
+      "variantSourceHash": "90849390dcc99701a49589836606c4a9dc95db8f0c0d849b16d9115e6c2ef1e2",
+      "report": "40000-40249.jsonl",
+      "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "sourceHash": "8e8b02e57d4d04101d9312a23d34a4d870ca02353f673b46a569430615200199"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/prefix-increment/operator-prefix-increment-x-calls-putvalue-lhs-newvalue-.js#sloppy",
+    "filename": "language/expressions/prefix-increment/operator-prefix-increment-x-calls-putvalue-lhs-newvalue-.js",
+    "sourceHash": "ee9ade964047bc5ae530977dbcfd8d208757ffe95cdb6546827e1fdf060b0ff0",
+    "variantSourceHash": "ee9ade964047bc5ae530977dbcfd8d208757ffe95cdb6546827e1fdf060b0ff0",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+      "type": "Test262Error"
+    },
+    "report": "40000-40249.jsonl",
+    "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/prefix-increment/operator-prefix-increment-x-calls-putvalue-lhs-newvalue-.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/prefix-increment/eval-nostrict.js#sloppy",
+      "sourceHash": "90849390dcc99701a49589836606c4a9dc95db8f0c0d849b16d9115e6c2ef1e2",
+      "variantSourceHash": "90849390dcc99701a49589836606c4a9dc95db8f0c0d849b16d9115e6c2ef1e2",
+      "report": "40000-40249.jsonl",
+      "reportSha256": "445542e985c8a70825e8bef3242732d5302952ae2b0eb91a6fdebd2da5da06be"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "sourceHash": "ee9ade964047bc5ae530977dbcfd8d208757ffe95cdb6546827e1fdf060b0ff0"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a ReferenceError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/statements/with/set-mutable-binding-idref-compound-assign-with-proxy-env.js#sloppy",
+    "filename": "language/statements/with/set-mutable-binding-idref-compound-assign-with-proxy-env.js",
+    "sourceHash": "9124381fbc149b74ea343af7089150d41896425db5d82ca7b8af70102a0ff003",
+    "variantSourceHash": "9124381fbc149b74ea343af7089150d41896425db5d82ca7b8af70102a0ff003",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [
+      "Proxy",
+      "Reflect"
+    ],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Actual [has:p, get:Symbol(Symbol.unscopables), get:p, set:p, getOwnPropertyDescriptor:p, defineProperty:p] and expected [has:p, get:Symbol(Symbol.unscopables), has:p, get:p, has:p, set:p, getOwnPropertyDescriptor:p, defineProperty:p] should have the same contents. ",
+      "type": "Test262Error"
+    },
+    "report": "52000-52249.jsonl",
+    "reportSha256": "c2df7f0be3ac0b23c028ad79a7cf75d4e3aa723691133d20eb5a70e720be5c4f",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/statements/with/set-mutable-binding-idref-compound-assign-with-proxy-env.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "statements semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/statements/with/set-mutable-binding-binding-deleted-with-typed-array-in-proto-chain-strict-mode.js#sloppy",
+      "sourceHash": "9d130255780c1b557606655d834e33acd1e8b39f2a67f27665f172f6ba75dd4d",
+      "variantSourceHash": "9d130255780c1b557606655d834e33acd1e8b39f2a67f27665f172f6ba75dd4d",
+      "report": "52000-52249.jsonl",
+      "reportSha256": "c2df7f0be3ac0b23c028ad79a7cf75d4e3aa723691133d20eb5a70e720be5c4f"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Actual [has:p, get:Symbol(Symbol.unscopables), get:p, set:p, getOwnPropertyDescriptor:p, defineProperty:p] and expected [has:p, get:Symbol(Symbol.unscopables), has:p, get:p, has:p, set:p, getOwnPropertyDescriptor:p, defineProperty:p] should have the same contents. ",
+        "type": "Test262Error"
+      },
+      "sourceHash": "9124381fbc149b74ea343af7089150d41896425db5d82ca7b8af70102a0ff003"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Actual [has:p, get:Symbol(Symbol.unscopables), get:p, set:p, getOwnPropertyDescriptor:p, defineProperty:p] and expected [has:p, get:Symbol(Symbol.unscopables), has:p, get:p, has:p, set:p, getOwnPropertyDescriptor:p, defineProperty:p] should have the same contents. ",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/statements/with/set-mutable-binding-idref-with-proxy-env.js#sloppy",
+    "filename": "language/statements/with/set-mutable-binding-idref-with-proxy-env.js",
+    "sourceHash": "00e6243422e9515735417ebd02f79c48eac900e386fe168d47a9039145e16a70",
+    "variantSourceHash": "00e6243422e9515735417ebd02f79c48eac900e386fe168d47a9039145e16a70",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [
+      "Proxy",
+      "Reflect"
+    ],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Actual [has:p, get:Symbol(Symbol.unscopables), set:p, getOwnPropertyDescriptor:p, defineProperty:p] and expected [has:p, get:Symbol(Symbol.unscopables), has:p, set:p, getOwnPropertyDescriptor:p, defineProperty:p] should have the same contents. ",
+      "type": "Test262Error"
+    },
+    "report": "52000-52249.jsonl",
+    "reportSha256": "c2df7f0be3ac0b23c028ad79a7cf75d4e3aa723691133d20eb5a70e720be5c4f",
+    "esid": "sec-object-environment-records-setmutablebinding-n-v-s",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/statements/with/set-mutable-binding-idref-with-proxy-env.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "statements semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/statements/with/set-mutable-binding-binding-deleted-with-typed-array-in-proto-chain-strict-mode.js#sloppy",
+      "sourceHash": "9d130255780c1b557606655d834e33acd1e8b39f2a67f27665f172f6ba75dd4d",
+      "variantSourceHash": "9d130255780c1b557606655d834e33acd1e8b39f2a67f27665f172f6ba75dd4d",
+      "report": "52000-52249.jsonl",
+      "reportSha256": "c2df7f0be3ac0b23c028ad79a7cf75d4e3aa723691133d20eb5a70e720be5c4f"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Actual [has:p, get:Symbol(Symbol.unscopables), set:p, getOwnPropertyDescriptor:p, defineProperty:p] and expected [has:p, get:Symbol(Symbol.unscopables), has:p, set:p, getOwnPropertyDescriptor:p, defineProperty:p] should have the same contents. ",
+        "type": "Test262Error"
+      },
+      "sourceHash": "00e6243422e9515735417ebd02f79c48eac900e386fe168d47a9039145e16a70"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Actual [has:p, get:Symbol(Symbol.unscopables), set:p, getOwnPropertyDescriptor:p, defineProperty:p] and expected [has:p, get:Symbol(Symbol.unscopables), has:p, set:p, getOwnPropertyDescriptor:p, defineProperty:p] should have the same contents. ",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  }
+]

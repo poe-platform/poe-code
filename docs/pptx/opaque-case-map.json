@@ -1,0 +1,2253 @@
+{
+  "schemaVersion": 1,
+  "scope": "F53 opaque object inventory/extraction and F54 font parts; source OLE/embedded behavioral obligations",
+  "sourceRevision": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "selection": "Complete DescribeProgId, embedded package part, OLE factory/format/shape cases plus every expanded BDD scenario with an OLE object. Includes primitive false enum-membership variants and embedded graphic-frame type scenario.",
+  "counts": {
+    "unit": 60,
+    "bdd": 8,
+    "wholeRowParity": 0
+  },
+  "rows": [
+    {
+      "id": "presentation-unit-867b3bcde5ac",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1156",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 13,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_has_members_for_the_OLE_embeddings_known_to_work_on_Windows",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_has_members_for_the_OLE_embeddings_known_to_work_on_Windows"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1156/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-722da4efa4fa",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1157",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 18,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_its_height[PROG_ID.DOCX-609600]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_its_height[PROG_ID.DOCX-609600]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1157/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "member": "PROG_ID.DOCX",
+            "expected_value": "609600"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-39306acd678a",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1158",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 18,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_its_height[PROG_ID.PPTX-609600]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_its_height[PROG_ID.PPTX-609600]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1158/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "member": "PROG_ID.PPTX",
+            "expected_value": "609600"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-5ec14b562c13",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1159",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 18,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_its_height[PROG_ID.XLSX-609600]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_its_height[PROG_ID.XLSX-609600]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1159/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "member": "PROG_ID.XLSX",
+            "expected_value": "609600"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-c1a789af5adb",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1160",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 25,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_its_icon_filename",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_its_icon_filename"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1160/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-65d4584f73cd",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1161",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 28,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_its_progId",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_its_progId"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1161/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-f9166a78b6b6",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1162",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 31,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_its_width",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_its_width"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1162/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-b325060697ec",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1163",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 34,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[PROG_ID.DOCX-True]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[PROG_ID.DOCX-True]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1163/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "value": "PROG_ID.DOCX",
+            "expected_value": "True"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-1f3b22529ac1",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1164",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 34,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[PROG_ID.PPTX-True]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[PROG_ID.PPTX-True]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1164/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "value": "PROG_ID.PPTX",
+            "expected_value": "True"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-123e2bfbef27",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1165",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 34,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[PROG_ID.XLSX-True]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[PROG_ID.XLSX-True]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1165/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "value": "PROG_ID.XLSX",
+            "expected_value": "True"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-601dfed2ce47",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1166",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 34,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[17-False]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[17-False]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1166/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "value": "17",
+            "expected_value": "False"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-109d80b4503e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1167",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/enum/test_shapes.py",
+        "line": 34,
+        "file_sha256": "41349f989e3d5736b73b3a938dfd793ea269918eb766f69dc868c24d383a7113",
+        "identity": "tests/enum/test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[XLSX-False]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1enum~1test_shapes.py::DescribeProgId::it_knows_each_of_its_members_is_an_instance[XLSX-False]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1167/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "value": "'XLSX'",
+            "expected_value": "False"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-0e6fe207d059",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1580",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_embeddedpackage.py",
+        "line": 23,
+        "file_sha256": "199e1ce1775ad61ca7015b92a0e4c526ed49eb234cfa1489b566d2c3b4d317c5",
+        "identity": "tests/parts/test_embeddedpackage.py::DescribeEmbeddedPackagePart::it_provides_a_factory_that_creates_a_package_part_for_MS_Office_files[PROG_ID.DOCX-EmbeddedDocxPart]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_embeddedpackage.py::DescribeEmbeddedPackagePart::it_provides_a_factory_that_creates_a_package_part_for_MS_Office_files[PROG_ID.DOCX-EmbeddedDocxPart]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1580/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "prog_id": "PROG_ID.DOCX",
+            "EmbeddedPartCls": "EmbeddedDocxPart"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-bcfe55caac96",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1581",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_embeddedpackage.py",
+        "line": 23,
+        "file_sha256": "199e1ce1775ad61ca7015b92a0e4c526ed49eb234cfa1489b566d2c3b4d317c5",
+        "identity": "tests/parts/test_embeddedpackage.py::DescribeEmbeddedPackagePart::it_provides_a_factory_that_creates_a_package_part_for_MS_Office_files[PROG_ID.PPTX-EmbeddedPptxPart]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_embeddedpackage.py::DescribeEmbeddedPackagePart::it_provides_a_factory_that_creates_a_package_part_for_MS_Office_files[PROG_ID.PPTX-EmbeddedPptxPart]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1581/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "prog_id": "PROG_ID.PPTX",
+            "EmbeddedPartCls": "EmbeddedPptxPart"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-82a488fdc14b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1582",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_embeddedpackage.py",
+        "line": 23,
+        "file_sha256": "199e1ce1775ad61ca7015b92a0e4c526ed49eb234cfa1489b566d2c3b4d317c5",
+        "identity": "tests/parts/test_embeddedpackage.py::DescribeEmbeddedPackagePart::it_provides_a_factory_that_creates_a_package_part_for_MS_Office_files[PROG_ID.XLSX-EmbeddedXlsxPart]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_embeddedpackage.py::DescribeEmbeddedPackagePart::it_provides_a_factory_that_creates_a_package_part_for_MS_Office_files[PROG_ID.XLSX-EmbeddedXlsxPart]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1582/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "prog_id": "PROG_ID.XLSX",
+            "EmbeddedPartCls": "EmbeddedXlsxPart"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-1689d51f45ac",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1583",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_embeddedpackage.py",
+        "line": 47,
+        "file_sha256": "199e1ce1775ad61ca7015b92a0e4c526ed49eb234cfa1489b566d2c3b4d317c5",
+        "identity": "tests/parts/test_embeddedpackage.py::DescribeEmbeddedPackagePart::but_it_creates_a_generic_object_part_for_non_MS_Office_files",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_embeddedpackage.py::DescribeEmbeddedPackagePart::but_it_creates_a_generic_object_part_for_non_MS_Office_files"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1583/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-769e186aff0c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1584",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_embeddedpackage.py",
+        "line": 61,
+        "file_sha256": "199e1ce1775ad61ca7015b92a0e4c526ed49eb234cfa1489b566d2c3b4d317c5",
+        "identity": "tests/parts/test_embeddedpackage.py::DescribeEmbeddedPackagePart::it_provides_a_contructor_classmethod_for_subclasses",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_embeddedpackage.py::DescribeEmbeddedPackagePart::it_provides_a_contructor_classmethod_for_subclasses"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1584/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-0f3b3f22e513",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1649",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_slide.py",
+        "line": 320,
+        "file_sha256": "20fa3a1af23d3796326f750d42d61f299b8056507ef6deffb67d1793a9eca29b",
+        "identity": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.DOCX-http://schemas.openxmlformats.org/officeDocument/2006/relationships/package]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.DOCX-http:~1~1schemas.openxmlformats.org~1officeDocument~12006~1relationships~1package]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1649/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "prog_id": "PROG_ID.DOCX",
+            "rel_type": "RT.PACKAGE"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-a4367c1ecf4e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1650",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_slide.py",
+        "line": 320,
+        "file_sha256": "20fa3a1af23d3796326f750d42d61f299b8056507ef6deffb67d1793a9eca29b",
+        "identity": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.PPTX-http://schemas.openxmlformats.org/officeDocument/2006/relationships/package]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.PPTX-http:~1~1schemas.openxmlformats.org~1officeDocument~12006~1relationships~1package]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1650/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "prog_id": "PROG_ID.PPTX",
+            "rel_type": "RT.PACKAGE"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-ff8ad5372f7d",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1651",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_slide.py",
+        "line": 320,
+        "file_sha256": "20fa3a1af23d3796326f750d42d61f299b8056507ef6deffb67d1793a9eca29b",
+        "identity": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.XLSX-http://schemas.openxmlformats.org/officeDocument/2006/relationships/package]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[PROG_ID.XLSX-http:~1~1schemas.openxmlformats.org~1officeDocument~12006~1relationships~1package]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1651/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "prog_id": "PROG_ID.XLSX",
+            "rel_type": "RT.PACKAGE"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-726f97033666",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1652",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/parts/test_slide.py",
+        "line": 320,
+        "file_sha256": "20fa3a1af23d3796326f750d42d61f299b8056507ef6deffb67d1793a9eca29b",
+        "identity": "tests/parts/test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[Foo.Bar.18-http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1parts~1test_slide.py::DescribeSlidePart::it_can_add_an_embedded_ole_object_part[Foo.Bar.18-http:~1~1schemas.openxmlformats.org~1officeDocument~12006~1relationships~1oleObject]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1652/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "prog_id": "'Foo.Bar.18'",
+            "rel_type": "RT.OLE_OBJECT"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-1f07a10a00f8",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1880",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_graphfrm.py",
+        "line": 56,
+        "file_sha256": "c14344f91659f48d735d2508e82f4ee6a03ea8a8bade7e373fec175d241c5cbe",
+        "identity": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_chart[http://schemas.openxmlformats.org/presentationml/2006/ole-False]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_chart[http:~1~1schemas.openxmlformats.org~1presentationml~12006~1ole-False]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1880/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "graphicData_uri": "GRAPHIC_DATA_URI_OLEOBJ",
+            "expected_value": "False"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-c87b128e2d20",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1883",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_graphfrm.py",
+        "line": 68,
+        "file_sha256": "c14344f91659f48d735d2508e82f4ee6a03ea8a8bade7e373fec175d241c5cbe",
+        "identity": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_table[http://schemas.openxmlformats.org/presentationml/2006/ole-False]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_graphfrm.py::DescribeGraphicFrame::it_knows_whether_it_contains_a_table[http:~1~1schemas.openxmlformats.org~1presentationml~12006~1ole-False]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1883/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "graphicData_uri": "GRAPHIC_DATA_URI_OLEOBJ",
+            "expected_value": "False"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-1bf368c8132e",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1885",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_graphfrm.py",
+        "line": 80,
+        "file_sha256": "c14344f91659f48d735d2508e82f4ee6a03ea8a8bade7e373fec175d241c5cbe",
+        "identity": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_provides_access_to_the_OleFormat_object",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_graphfrm.py::DescribeGraphicFrame::it_provides_access_to_the_OleFormat_object"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1885/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-289471318092",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1886",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_graphfrm.py",
+        "line": 97,
+        "file_sha256": "c14344f91659f48d735d2508e82f4ee6a03ea8a8bade7e373fec175d241c5cbe",
+        "identity": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::but_it_raises_on_ole_format_when_this_is_not_an_OLE_object",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_graphfrm.py::DescribeGraphicFrame::but_it_raises_on_ole_format_when_this_is_not_an_OLE_object"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1886/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-9b26ccf993ac",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1889",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_graphfrm.py",
+        "line": 114,
+        "file_sha256": "c14344f91659f48d735d2508e82f4ee6a03ea8a8bade7e373fec175d241c5cbe",
+        "identity": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http://schemas.openxmlformats.org/presentationml/2006/ole-embed-EMBEDDED_OLE_OBJECT (7)]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http:~1~1schemas.openxmlformats.org~1presentationml~12006~1ole-embed-EMBEDDED_OLE_OBJECT (7)]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1889/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "uri": "GRAPHIC_DATA_URI_OLEOBJ",
+            "oleObj_child": "'embed'",
+            "expected_value": "MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-b8d8cf5d50b7",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1890",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_graphfrm.py",
+        "line": 114,
+        "file_sha256": "c14344f91659f48d735d2508e82f4ee6a03ea8a8bade7e373fec175d241c5cbe",
+        "identity": "tests/shapes/test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http://schemas.openxmlformats.org/presentationml/2006/ole-link-LINKED_OLE_OBJECT (10)]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_graphfrm.py::DescribeGraphicFrame::it_knows_its_shape_type[http:~1~1schemas.openxmlformats.org~1presentationml~12006~1ole-link-LINKED_OLE_OBJECT (10)]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1890/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "uri": "GRAPHIC_DATA_URI_OLEOBJ",
+            "oleObj_child": "'link'",
+            "expected_value": "MSO_SHAPE_TYPE.LINKED_OLE_OBJECT"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-df5655dfcdb0",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1893",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_graphfrm.py",
+        "line": 150,
+        "file_sha256": "c14344f91659f48d735d2508e82f4ee6a03ea8a8bade7e373fec175d241c5cbe",
+        "identity": "tests/shapes/test_graphfrm.py::Describe_OleFormat::it_provides_access_to_the_OLE_object_blob",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_graphfrm.py::Describe_OleFormat::it_provides_access_to_the_OLE_object_blob"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1893/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-f0865e6c14a6",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1894",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_graphfrm.py",
+        "line": 162,
+        "file_sha256": "c14344f91659f48d735d2508e82f4ee6a03ea8a8bade7e373fec175d241c5cbe",
+        "identity": "tests/shapes/test_graphfrm.py::Describe_OleFormat::it_knows_the_OLE_object_prog_id",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_graphfrm.py::Describe_OleFormat::it_knows_the_OLE_object_prog_id"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1894/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-629fe40ba394",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/1895",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_graphfrm.py",
+        "line": 166,
+        "file_sha256": "c14344f91659f48d735d2508e82f4ee6a03ea8a8bade7e373fec175d241c5cbe",
+        "identity": "tests/shapes/test_graphfrm.py::Describe_OleFormat::it_knows_whether_to_show_the_OLE_object_as_an_icon",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_graphfrm.py::Describe_OleFormat::it_knows_whether_to_show_the_OLE_object_as_an_icon"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/1895/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-81031efd142b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2013",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 359,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_BaseGroupShapes::it_can_add_an_ole_object",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_BaseGroupShapes::it_can_add_an_ole_object"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2013/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-54057fb060fb",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2099",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2066,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_provides_a_graphicFrame_interface_method",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_provides_a_graphicFrame_interface_method"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2099/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-2189f2cde529",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2100",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2108,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_creates_the_graphicFrame_element",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_creates_the_graphicFrame_element"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2100/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-12f4c950ca79",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2101",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2171,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[999999-None-999999]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[999999-None-999999]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2101/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "cx_arg": "Emu(999999)",
+            "prog_id": "None",
+            "expected_value": "Emu(999999)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-333107d97c89",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2102",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2171,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-PROG_ID.DOCX-965200]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-PROG_ID.DOCX-965200]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2102/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "cx_arg": "None",
+            "prog_id": "PROG_ID.DOCX",
+            "expected_value": "Emu(965200)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-57eefbf0c90c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2103",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2171,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-PROG_ID.PPTX-965200]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-PROG_ID.PPTX-965200]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2103/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "cx_arg": "None",
+            "prog_id": "PROG_ID.PPTX",
+            "expected_value": "Emu(965200)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-39c95b4ca230",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2104",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2171,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-PROG_ID.XLSX-965200]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-PROG_ID.XLSX-965200]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2104/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "cx_arg": "None",
+            "prog_id": "PROG_ID.XLSX",
+            "expected_value": "Emu(965200)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-3f0708251005",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2105",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2171,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-Foo.Bar.6-965200]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_width_to_help[None-Foo.Bar.6-965200]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2105/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "cx_arg": "None",
+            "prog_id": "'Foo.Bar.6'",
+            "expected_value": "Emu(965200)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-3bd5303d235c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2106",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2187,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[666666-None-666666]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[666666-None-666666]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2106/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "cy_arg": "Emu(666666)",
+            "prog_id": "None",
+            "expected_value": "Emu(666666)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-0b55c1de1eb3",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2107",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2187,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-PROG_ID.DOCX-609600]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-PROG_ID.DOCX-609600]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2107/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "cy_arg": "None",
+            "prog_id": "PROG_ID.DOCX",
+            "expected_value": "Emu(609600)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-887ab17f33d4",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2108",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2187,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-PROG_ID.PPTX-609600]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-PROG_ID.PPTX-609600]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2108/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "cy_arg": "None",
+            "prog_id": "PROG_ID.PPTX",
+            "expected_value": "Emu(609600)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-a54aae972826",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2109",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2187,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-PROG_ID.XLSX-609600]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-PROG_ID.XLSX-609600]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2109/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "cy_arg": "None",
+            "prog_id": "PROG_ID.XLSX",
+            "expected_value": "Emu(609600)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-6217176825aa",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2110",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2187,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-Foo.Bar.6-609600]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_shape_height_to_help[None-Foo.Bar.6-609600]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2110/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "cy_arg": "None",
+            "prog_id": "'Foo.Bar.6'",
+            "expected_value": "Emu(609600)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-43d6b2948d6c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2111",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2203,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_height_to_help[666666-666666]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_height_to_help[666666-666666]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2111/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "icon_height_arg": "Emu(666666)",
+            "expected_value": "Emu(666666)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-c80ed8a07034",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2112",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2203,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_height_to_help[None-609600]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_height_to_help[None-609600]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2112/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "icon_height_arg": "None",
+            "expected_value": "Emu(609600)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-fc4d8853bbdb",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2113",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2216,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[user-icon.png-PROG_ID.XLSX-user-icon.png]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[user-icon.png-PROG_ID.XLSX-user-icon.png]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2113/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "icon_file_arg": "'user-icon.png'",
+            "prog_id": "PROG_ID.XLSX",
+            "expected_value": "'user-icon.png'"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-22afbed1a294",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2114",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2216,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-Foo.Bar.18-generic-icon.emf]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-Foo.Bar.18-generic-icon.emf]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2114/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "icon_file_arg": "None",
+            "prog_id": "'Foo.Bar.18'",
+            "expected_value": "'generic-icon.emf'"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-f06dfac59411",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2115",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2216,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-PROG_ID.DOCX-docx-icon.emf]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-PROG_ID.DOCX-docx-icon.emf]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2115/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "icon_file_arg": "None",
+            "prog_id": "PROG_ID.DOCX",
+            "expected_value": "'docx-icon.emf'"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-de5778f29f0b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2116",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2216,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-PROG_ID.PPTX-pptx-icon.emf]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-PROG_ID.PPTX-pptx-icon.emf]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2116/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "icon_file_arg": "None",
+            "prog_id": "PROG_ID.PPTX",
+            "expected_value": "'pptx-icon.emf'"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-1a5ef0c3b28c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2117",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2216,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-PROG_ID.XLSX-xlsx-icon.emf]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_icon_image_file_to_help[None-PROG_ID.XLSX-xlsx-icon.emf]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2117/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "icon_file_arg": "None",
+            "prog_id": "PROG_ID.XLSX",
+            "expected_value": "'xlsx-icon.emf'"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-8252bd9d81dd",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2118",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2232,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_adds_and_relates_the_icon_image_part_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_adds_and_relates_the_icon_image_part_to_help"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2118/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-c6edcec3f37f",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2119",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2252,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_width_to_help[666666-666666]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_width_to_help[666666-666666]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2119/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "icon_width_arg": "Emu(666666)",
+            "expected_value": "Emu(666666)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-07dfd5bda69c",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2120",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2252,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_width_to_help[None-965200]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_determines_the_icon_width_to_help[None-965200]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2120/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "icon_width_arg": "None",
+            "expected_value": "Emu(965200)"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-879fdd338b86",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2121",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2262,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_adds_and_relates_the_ole_object_part_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_adds_and_relates_the_ole_object_part_to_help"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2121/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-f6fa7a7ba3b1",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2122",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2289,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[PROG_ID.DOCX-Word.Document.12]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[PROG_ID.DOCX-Word.Document.12]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2122/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "prog_id_arg": "PROG_ID.DOCX",
+            "expected_value": "'Word.Document.12'"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-6e00344ec219",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2123",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2289,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[PROG_ID.PPTX-PowerPoint.Show.12]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[PROG_ID.PPTX-PowerPoint.Show.12]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2123/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "prog_id_arg": "PROG_ID.PPTX",
+            "expected_value": "'PowerPoint.Show.12'"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-8a7c39eb1143",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2124",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2289,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[PROG_ID.XLSX-Excel.Sheet.12]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[PROG_ID.XLSX-Excel.Sheet.12]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2124/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "prog_id_arg": "PROG_ID.XLSX",
+            "expected_value": "'Excel.Sheet.12'"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-ba59b74efd40",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2125",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2289,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[Something.Else.42-Something.Else.42]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_resolves_the_progId_str_to_help[Something.Else.42-Something.Else.42]"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2125/original_behavior",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "prog_id_arg": "'Something.Else.42'",
+            "expected_value": "'Something.Else.42'"
+          }
+        }
+      ],
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-9d8584507a1b",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2126",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2304,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_computes_the_shape_name_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_computes_the_shape_name_to_help"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2126/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-unit-a9617da869bd",
+      "kind": "unit",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2127",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/shapes/test_shapetree.py",
+        "line": 2311,
+        "file_sha256": "74b0adbd3e75371c8a02f09a540472feb52cac421267ca6077a052dc8bd5c0e0",
+        "identity": "tests/shapes/test_shapetree.py::Describe_OleObjectElementCreator::it_provides_access_to_the_slide_part_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1shapes~1test_shapetree.py::Describe_OleObjectElementCreator::it_provides_access_to_the_slide_part_to_help"
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/2127/original_behavior",
+      "selectedParameters": {},
+      "expandedExample": null,
+      "originalCase": null,
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-bdd-2a1e15670e87",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/574",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-graphicframe.feature",
+        "line": 22,
+        "file_sha256": "2afd437f9a661d8f0ee381c1609b2d5fe3147f81d9f203a8bd56c2672ef768b6",
+        "identity": "GraphicFrame.ole_format",
+        "scenario_line": 22,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 23,
+            "text": "Given a GraphicFrame object containing an OLE object as shape"
+          },
+          {
+            "line": 24,
+            "text": "Then shape.ole_format is an _OleFormat object"
+          }
+        ]
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3274/original_behavior",
+      "selectedParameters": [],
+      "expandedExample": null,
+      "originalCase": {
+        "title": "Observe presentation workflow 2a1e15670e87",
+        "arrange": {
+          "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
+          "conditions": [
+            "Prepare a GraphicFrame object containing an OLE object as shape."
+          ]
+        },
+        "act": [
+          "Read the declared public model values and collections."
+        ],
+        "expected": [
+          "Verify shape.ole_format is an _OleFormat object."
+        ],
+        "language_mapping": "Apply J01\u2013J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
+        "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-bdd-72d730c1e9a4",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/575",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-graphicframe.feature",
+        "line": 33,
+        "file_sha256": "2afd437f9a661d8f0ee381c1609b2d5fe3147f81d9f203a8bd56c2672ef768b6",
+        "identity": "GraphicFrame.shape_type -- @1.1 Shape types",
+        "scenario_line": 27,
+        "example_line": 33,
+        "example": {
+          "graphical-object": "an OLE object",
+          "expected-value": "MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT"
+        },
+        "expanded_steps": [
+          {
+            "line": 28,
+            "text": "Given a GraphicFrame object containing an OLE object as shape"
+          },
+          {
+            "line": 29,
+            "text": "Then shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT"
+          }
+        ]
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3275/original_behavior",
+      "selectedParameters": [],
+      "expandedExample": {
+        "graphical-object": "an OLE object",
+        "expected-value": "MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT"
+      },
+      "originalCase": {
+        "title": "Observe presentation workflow 72d730c1e9a4",
+        "arrange": {
+          "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
+          "conditions": [
+            "Prepare a GraphicFrame object containing an OLE object as shape."
+          ]
+        },
+        "act": [
+          "Read the declared public model values and collections."
+        ],
+        "expected": [
+          "Verify shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT."
+        ],
+        "language_mapping": "Apply J01\u2013J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
+        "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-bdd-a05c577a6df5",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/578",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-graphicframe.feature",
+        "line": 38,
+        "file_sha256": "2afd437f9a661d8f0ee381c1609b2d5fe3147f81d9f203a8bd56c2672ef768b6",
+        "identity": "_OleFormat.blob",
+        "scenario_line": 38,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 39,
+            "text": "Given an _OleFormat object for an embedded XLSX as ole_format"
+          },
+          {
+            "line": 40,
+            "text": "Then len(ole_format.blob) == 8287"
+          }
+        ]
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3278/original_behavior",
+      "selectedParameters": [],
+      "expandedExample": null,
+      "originalCase": {
+        "title": "Observe presentation workflow a05c577a6df5",
+        "arrange": {
+          "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
+          "conditions": [
+            "Prepare an _OleFormat object for an embedded XLSX as ole_format."
+          ]
+        },
+        "act": [
+          "Read the declared public model values and collections."
+        ],
+        "expected": [
+          "Verify len(ole_format.blob) == 8287."
+        ],
+        "language_mapping": "Apply J01\u2013J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
+        "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-bdd-1dc097ca74be",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/579",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-graphicframe.feature",
+        "line": 43,
+        "file_sha256": "2afd437f9a661d8f0ee381c1609b2d5fe3147f81d9f203a8bd56c2672ef768b6",
+        "identity": "_OleFormat.prog_id",
+        "scenario_line": 43,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 44,
+            "text": "Given an _OleFormat object for an embedded XLSX as ole_format"
+          },
+          {
+            "line": 45,
+            "text": "Then ole_format.prog_id == \"Excel.Sheet.12\""
+          }
+        ]
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3279/original_behavior",
+      "selectedParameters": [],
+      "expandedExample": null,
+      "originalCase": {
+        "title": "Observe presentation workflow 1dc097ca74be",
+        "arrange": {
+          "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
+          "conditions": [
+            "Prepare an _OleFormat object for an embedded XLSX as ole_format."
+          ]
+        },
+        "act": [
+          "Read the declared public model values and collections."
+        ],
+        "expected": [
+          "Verify ole_format.prog_id == \"Excel.Sheet.12\"."
+        ],
+        "language_mapping": "Apply J01\u2013J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
+        "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-bdd-137ae2704568",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/580",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-graphicframe.feature",
+        "line": 48,
+        "file_sha256": "2afd437f9a661d8f0ee381c1609b2d5fe3147f81d9f203a8bd56c2672ef768b6",
+        "identity": "_OleFormat.show_as_icon",
+        "scenario_line": 48,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 49,
+            "text": "Given an _OleFormat object for an OLE object as ole_format"
+          },
+          {
+            "line": 50,
+            "text": "Then ole_format.show_as_icon is True"
+          }
+        ]
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3280/original_behavior",
+      "selectedParameters": [],
+      "expandedExample": null,
+      "originalCase": {
+        "title": "Observe presentation workflow 137ae2704568",
+        "arrange": {
+          "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
+          "conditions": [
+            "Prepare an _OleFormat object for an OLE object as ole_format."
+          ]
+        },
+        "act": [
+          "Read the declared public model values and collections."
+        ],
+        "expected": [
+          "Verify ole_format.show_as_icon is true."
+        ],
+        "language_mapping": "Apply J01\u2013J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
+        "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-bdd-891515214267",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/670",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-shapes.feature",
+        "line": 248,
+        "file_sha256": "0c95352447a4990aa7d5b140a06b372f0c0ff645d600f88e62b9c0705a836a2c",
+        "identity": "SlideShapes.add_ole_object() -- @1.1 add_ole_object() variations",
+        "scenario_line": 233,
+        "example_line": 248,
+        "example": {
+          "prog-id": "DOCX",
+          "progId": "\"Word.Document.12\""
+        },
+        "expanded_steps": [
+          {
+            "line": 234,
+            "text": "Given a SlideShapes object as shapes"
+          },
+          {
+            "line": 235,
+            "text": "And a DOCX file as ole_object_file"
+          },
+          {
+            "line": 236,
+            "text": "When I assign shapes.add_ole_object(ole_object_file) to shape"
+          },
+          {
+            "line": 237,
+            "text": "And I assign shape.ole_format to ole_format"
+          },
+          {
+            "line": 238,
+            "text": "Then shapes[-1] == shape"
+          },
+          {
+            "line": 239,
+            "text": "And shape is a GraphicFrame object"
+          },
+          {
+            "line": 240,
+            "text": "And shape.ole_format is an _OleFormat object"
+          },
+          {
+            "line": 241,
+            "text": "And shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT"
+          },
+          {
+            "line": 242,
+            "text": "And ole_format.blob matches ole_object_file byte-for-byte"
+          },
+          {
+            "line": 243,
+            "text": "And ole_format.prog_id == \"Word.Document.12\""
+          },
+          {
+            "line": 244,
+            "text": "And ole_format.show_as_icon is True"
+          }
+        ]
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3370/original_behavior",
+      "selectedParameters": [],
+      "expandedExample": {
+        "prog-id": "DOCX",
+        "progId": "\"Word.Document.12\""
+      },
+      "originalCase": {
+        "title": "Observe presentation workflow 891515214267",
+        "arrange": {
+          "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
+          "conditions": [
+            "Prepare a SlideShapes object as shapes.",
+            "Prepare a DOCX file as ole_object_file."
+          ]
+        },
+        "act": [
+          "Assign shapes.add_ole_object(ole_object_file) to shape.",
+          "Assign shape.ole_format to ole_format."
+        ],
+        "expected": [
+          "Verify shapes[-1] == shape.",
+          "Verify shape is a GraphicFrame object.",
+          "Verify shape.ole_format is an _OleFormat object.",
+          "Verify shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT.",
+          "Verify ole_format.blob matches ole_object_file byte-for-byte.",
+          "Verify ole_format.prog_id == \"Word.Document.12\".",
+          "Verify ole_format.show_as_icon is true."
+        ],
+        "language_mapping": "Apply J01\u2013J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
+        "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-bdd-51dfab819918",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/671",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-shapes.feature",
+        "line": 249,
+        "file_sha256": "0c95352447a4990aa7d5b140a06b372f0c0ff645d600f88e62b9c0705a836a2c",
+        "identity": "SlideShapes.add_ole_object() -- @1.2 add_ole_object() variations",
+        "scenario_line": 233,
+        "example_line": 249,
+        "example": {
+          "prog-id": "PPTX",
+          "progId": "\"PowerPoint.Show.12\""
+        },
+        "expanded_steps": [
+          {
+            "line": 234,
+            "text": "Given a SlideShapes object as shapes"
+          },
+          {
+            "line": 235,
+            "text": "And a PPTX file as ole_object_file"
+          },
+          {
+            "line": 236,
+            "text": "When I assign shapes.add_ole_object(ole_object_file) to shape"
+          },
+          {
+            "line": 237,
+            "text": "And I assign shape.ole_format to ole_format"
+          },
+          {
+            "line": 238,
+            "text": "Then shapes[-1] == shape"
+          },
+          {
+            "line": 239,
+            "text": "And shape is a GraphicFrame object"
+          },
+          {
+            "line": 240,
+            "text": "And shape.ole_format is an _OleFormat object"
+          },
+          {
+            "line": 241,
+            "text": "And shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT"
+          },
+          {
+            "line": 242,
+            "text": "And ole_format.blob matches ole_object_file byte-for-byte"
+          },
+          {
+            "line": 243,
+            "text": "And ole_format.prog_id == \"PowerPoint.Show.12\""
+          },
+          {
+            "line": 244,
+            "text": "And ole_format.show_as_icon is True"
+          }
+        ]
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3371/original_behavior",
+      "selectedParameters": [],
+      "expandedExample": {
+        "prog-id": "PPTX",
+        "progId": "\"PowerPoint.Show.12\""
+      },
+      "originalCase": {
+        "title": "Observe presentation workflow 51dfab819918",
+        "arrange": {
+          "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
+          "conditions": [
+            "Prepare a SlideShapes object as shapes.",
+            "Prepare a PPTX file as ole_object_file."
+          ]
+        },
+        "act": [
+          "Assign shapes.add_ole_object(ole_object_file) to shape.",
+          "Assign shape.ole_format to ole_format."
+        ],
+        "expected": [
+          "Verify shapes[-1] == shape.",
+          "Verify shape is a GraphicFrame object.",
+          "Verify shape.ole_format is an _OleFormat object.",
+          "Verify shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT.",
+          "Verify ole_format.blob matches ole_object_file byte-for-byte.",
+          "Verify ole_format.prog_id == \"PowerPoint.Show.12\".",
+          "Verify ole_format.show_as_icon is true."
+        ],
+        "language_mapping": "Apply J01\u2013J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
+        "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    },
+    {
+      "id": "presentation-bdd-4019bc001330",
+      "kind": "bdd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/672",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/shp-shapes.feature",
+        "line": 250,
+        "file_sha256": "0c95352447a4990aa7d5b140a06b372f0c0ff645d600f88e62b9c0705a836a2c",
+        "identity": "SlideShapes.add_ole_object() -- @1.3 add_ole_object() variations",
+        "scenario_line": 233,
+        "example_line": 250,
+        "example": {
+          "prog-id": "XLSX",
+          "progId": "\"Excel.Sheet.12\""
+        },
+        "expanded_steps": [
+          {
+            "line": 234,
+            "text": "Given a SlideShapes object as shapes"
+          },
+          {
+            "line": 235,
+            "text": "And a XLSX file as ole_object_file"
+          },
+          {
+            "line": 236,
+            "text": "When I assign shapes.add_ole_object(ole_object_file) to shape"
+          },
+          {
+            "line": 237,
+            "text": "And I assign shape.ole_format to ole_format"
+          },
+          {
+            "line": 238,
+            "text": "Then shapes[-1] == shape"
+          },
+          {
+            "line": 239,
+            "text": "And shape is a GraphicFrame object"
+          },
+          {
+            "line": 240,
+            "text": "And shape.ole_format is an _OleFormat object"
+          },
+          {
+            "line": 241,
+            "text": "And shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT"
+          },
+          {
+            "line": 242,
+            "text": "And ole_format.blob matches ole_object_file byte-for-byte"
+          },
+          {
+            "line": 243,
+            "text": "And ole_format.prog_id == \"Excel.Sheet.12\""
+          },
+          {
+            "line": 244,
+            "text": "And ole_format.show_as_icon is True"
+          }
+        ]
+      },
+      "behaviorEvidence": "test-case-map.json#/rows/3372/original_behavior",
+      "selectedParameters": [],
+      "expandedExample": {
+        "prog-id": "XLSX",
+        "progId": "\"Excel.Sheet.12\""
+      },
+      "originalCase": {
+        "title": "Observe presentation workflow 4019bc001330",
+        "arrange": {
+          "fixture": "Original minimal presentation named Harbor survey; independently authored content and binary metadata matching the stated conditions.",
+          "conditions": [
+            "Prepare a SlideShapes object as shapes.",
+            "Prepare a XLSX file as ole_object_file."
+          ]
+        },
+        "act": [
+          "Assign shapes.add_ole_object(ole_object_file) to shape.",
+          "Assign shape.ole_format to ole_format."
+        ],
+        "expected": [
+          "Verify shapes[-1] == shape.",
+          "Verify shape is a GraphicFrame object.",
+          "Verify shape.ole_format is an _OleFormat object.",
+          "Verify shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT.",
+          "Verify ole_format.blob matches ole_object_file byte-for-byte.",
+          "Verify ole_format.prog_id == \"Excel.Sheet.12\".",
+          "Verify ole_format.show_as_icon is true."
+        ],
+        "language_mapping": "Apply J01\u2013J10 in api-language-mappings.md and exact public-api-map.json declarations: length/iteration, explicit at() for negative lookup, readonly arrays, typed units/enums/errors, owner equality and always-async I/O. These sentences are acceptance descriptions, not executable Python or JavaScript.",
+        "negative_assertion": "No host I/O, network, implicit metrics/time, native runtime or downloaded fixtures. No unrelated object mutation."
+      },
+      "status": "pending-original-model-adaptation",
+      "wholeRowParity": false,
+      "originalTests": [],
+      "reason": "Inventory and extraction do not implement object creation, live model handles, program enum behavior or its ownership protocols. Exact source variants remain required; bounded observations below do not close a full source row."
+    }
+  ],
+  "supplementalOriginalTests": [
+    {
+      "file": "packages/pptx/src/opaque-objects.test.ts",
+      "title": "inventories opaque %s bytes without parsing payloads",
+      "variants": 6,
+      "assertion": "Exact original byte extraction for OLE/package/control/web-extension/font/model3d with conservative activity flags."
+    },
+    {
+      "file": "packages/pptx/src/opaque-objects.test.ts",
+      "title": "extracts cyclic dependency closure and original relationship bytes with safe unique names",
+      "assertion": "Cycle closure, inert external links, independent source relationship bytes and safe distinct generated basenames."
+    },
+    {
+      "file": "packages/pptx/src/opaque-objects.test.ts",
+      "title": "detects unlabelled executable or compound signatures %j",
+      "variants": 3,
+      "assertion": "Executable and compound prefixes classified without executing or parsing the payload."
+    },
+    {
+      "file": "packages/pptx/src/opaque-objects.test.ts",
+      "title": "reports dangling closure and refuses incomplete extraction"
+    },
+    {
+      "file": "packages/pptx/src/opaque-objects.test.ts",
+      "title": "rejects invalid extraction selector %s",
+      "variants": 4
+    },
+    {
+      "file": "packages/pptx/src/opaque-objects.test.ts",
+      "title": "reads font declarations and embedded variants without interpreting font bytes"
+    },
+    {
+      "file": "packages/pptx/src/command-opaque.test.ts",
+      "title": "lists opaque object activity and font resources through the command SDK"
+    },
+    {
+      "file": "packages/pptx/src/command-opaque.test.ts",
+      "title": "extracts an exact opaque relationship closure with safe deterministic names",
+      "assertion": "Independent Node crypto name/hash and fixture-byte assertions through SDK command publication."
+    },
+    {
+      "file": "packages/pptx/src/command-opaque.test.ts",
+      "title": "requires explicit partial publication and rejects irrelevant selectors and unsafe parts"
+    },
+    {
+      "file": "packages/pptx/src/command-opaque.test.ts",
+      "title": "reports only completed files after an explicitly partial publication failure"
+    },
+    {
+      "file": "packages/pptx/src/command-opaque.test.ts",
+      "title": "admits complete manifest output budgets before publishing any file"
+    },
+    {
+      "file": "packages/pptx/src/command-opaque.test.ts",
+      "title": "publishes schemas that validate object and font inventory envelopes"
+    },
+    {
+      "file": "packages/pptx/src/opaque-objects.test.ts",
+      "title": "detects a macro relationship even when its content type is generic"
+    },
+    {
+      "file": "packages/pptx/src/opaque-objects.test.ts",
+      "title": "returns owned byte copies and rejects accessor selectors without invoking them"
+    },
+    {
+      "file": "packages/pptx/src/command-opaque.test.ts",
+      "title": "enforces an explicit output count ceiling before extraction publication"
+    }
+  ],
+  "notice": "Research/provenance only. Existing upstream-license-notice.txt retained; no reference implementation or binary fixture is copied into product tests.",
+  "verification": {
+    "pptxPackageTests": 4303,
+    "pptxPackageTestFiles": 172,
+    "opaqueDomainTests": 22,
+    "unsupportedImportTests": 8,
+    "opaqueCommandTests": 7,
+    "safeBashTests": 5,
+    "wholePublicApiCoverage": false
+  }
+}

@@ -45,6 +45,8 @@ import { animationBatchSchema, animationBatchUsage } from "./animation-batch-sch
 import { readTransitions, mutateTransitions, validateTransitionOptions, type MutateTransitionsOptions } from "./transitions.js";
 import { equationSchemas, equationsUsage } from "./equations-schema.js";
 import { validateEquationCommand, executeEquationCommand } from "./command-equations.js";
+import { opaqueSchemas, opaqueUsage } from "./opaque-schema.js";
+import { validateOpaqueCommand, executeOpaqueCommand, type OpaqueManifestItem } from "./command-opaque.js";
 import { readImages } from "./images.js";
 import { extractImages, type ExtractedImage } from "./image-extraction.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
@@ -456,6 +458,9 @@ interface Arguments {
     | `links.${"list" | "get" | "add" | "set" | "remove"}`
     | "batch"
     | `equations.${"list" | "get" | "add"}`
+    | "objects.list"
+    | "objects.extract"
+    | "fonts.list"
     | `tables.${"list" | "get" | "add" | "set" | "merge" | "split" | "rows.add" | "rows.remove" | "columns.add" | "columns.remove"}`
     | `connectors.${"list" | "get" | "add" | "set" | "remove"}`
     | `fields.${"list" | "get" | "set" | "add" | "remove"}`
@@ -890,6 +895,8 @@ function parse(
         "accessibility",
         "transitions",
         "equations",
+        "objects",
+        "fonts",
         "links",
         "notes",
         "properties",
@@ -975,6 +982,8 @@ function parse(
     "transitions",
     "media",
     "equations",
+    "objects",
+    "fonts",
         "links",
         "notes",
     "comments",
@@ -1011,6 +1020,7 @@ function parse(
       ...Object.keys(mediaSchemas),
       ...Object.keys(imageSchemas),
       ...Object.keys(equationSchemas),
+      ...Object.keys(opaqueSchemas),
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
       ...Object.keys(metadataSchemas),
@@ -1075,6 +1085,7 @@ function parse(
         operation.startsWith("transitions.") ||
         operation.startsWith("images.") ||
         operation.startsWith("equations.") ||
+        Object.hasOwn(opaqueSchemas, operation) ||
         operation.startsWith("links.") ||
         operation.startsWith("notes.") ||
         Object.hasOwn(metadataSchemas, operation) ||
@@ -1467,7 +1478,7 @@ function parse(
       continue;
     }
     if (argument === "--allow-partial-output") {
-      if (!["slides.split", "images.extract", "media.extract"].includes(operation))
+      if (!["slides.split", "images.extract", "media.extract", "objects.extract"].includes(operation))
         usage("Partial output requires a multi-file operation.");
       result.allowPartialOutput = true;
       continue;
@@ -2129,7 +2140,7 @@ function parse(
     if (argument === "--output-dir" || argument === "--slides") {
       if (
         operation !== "slides.split" &&
-        !(["images.extract", "media.extract"].includes(operation) && argument === "--output-dir")
+        !(["images.extract", "media.extract", "objects.extract"].includes(operation) && argument === "--output-dir")
       )
         usage("Option requires a multi-file operation.");
       if (argument === "--output-dir") result.outputDir = value;
@@ -2431,7 +2442,7 @@ function parse(
           "maxNodes",
           "maxDepth",
           "maxOutputBytes",
-          ...(["images.extract", "media.extract"].includes(operation) ? ["maxOutputs"] : [])
+          ...(["images.extract", "media.extract", "objects.extract"].includes(operation) ? ["maxOutputs"] : [])
         ].includes(name)
       )
         usage("Unknown limit name.");
@@ -2446,6 +2457,8 @@ function parse(
       result.slide = Number(value);
     } else if (argument === "--shape") result.shape = value;
     else if (argument === "--part") {
+      if (operation === "objects.list" || operation === "fonts.list")
+        usage("Part selection requires object extraction.");
       try {
         result.part = partName(value, false);
       } catch {
@@ -2593,6 +2606,10 @@ function parse(
   }
   if (Object.hasOwn(equationSchemas, operation)) {
     validateEquationCommand(result, positionals, seen);
+    return result;
+  }
+  if (Object.hasOwn(opaqueSchemas, operation)) {
+    validateOpaqueCommand(result, positionals, seen);
     return result;
   }
   if (["charts.add", "charts.set", "charts.replace"].includes(operation)) {
@@ -3501,6 +3518,7 @@ function parse(
         ...Object.keys(mediaSchemas),
         ...Object.keys(imageSchemas),
         ...Object.keys(equationSchemas),
+        ...Object.keys(opaqueSchemas),
       ...Object.keys(linkSchemas),
       ...Object.keys(noteSchemas),
       ...Object.keys(metadataSchemas),
@@ -3739,6 +3757,7 @@ async function execute(
     sourceLocation: SelectionRecord["location"];
   }[] = [];
   let mediaManifest: readonly (Omit<ExtractedMedia, "bytes"> & {path:string;bytes:number})[] | undefined;
+  let opaqueManifest: readonly OpaqueManifestItem[] | undefined;
   let imageManifest:
     | readonly (Omit<ExtractedImage, "bytes"> & { path: string; bytes: number })[]
     | undefined;
@@ -3789,7 +3808,9 @@ async function execute(
     const operation = args.operation;
     if (args.operation === "help") {
       const usage =
-        args.schemaPath?.startsWith("equations.")
+        args.schemaPath && Object.hasOwn(opaqueSchemas, args.schemaPath)
+          ? opaqueUsage
+          : args.schemaPath?.startsWith("equations.")
           ? equationsUsage
           : args.schemaPath === "text.fit"
           ? "Usage: pptx text fit INPUT --metrics JSON [selection] [output]\n" +
@@ -4033,6 +4054,7 @@ async function execute(
             ...chartSchemas,
             ...mediaSchemas,
             ...equationSchemas,
+            ...opaqueSchemas,
             ...linkSchemas,
             ...noteSchemas,
             ...metadataSchemas,
@@ -4295,6 +4317,16 @@ async function execute(
             operations: Object.keys(equationSchemas),
             subset: "F41: inspect and extract OMML; insert one validated caller-authored equation into a selected text body. Existing equations and fallbacks remain preserved. Set/remove, rendering and evaluation are unavailable."
           },
+          objects: {
+            level: "preserve",
+            operations: ["objects.list", "objects.extract"],
+            subset: "Shared package-part inventory and exact-byte extraction with relationship closure for OLE, embedded packages, controls, web extensions and 3D models. Active payload indicators are metadata, not a safety verdict. No activation, recursive parsing, creation or unsupported object-reference import."
+          },
+          fonts: {
+            level: "preserve",
+            operations: ["fonts.list"],
+            subset: "Presentation font declarations and opaque embedded font parts; objects extract addresses font parts by part URI. No installation, rendering or license interpretation."
+          },
           shapes: {
             level: "edit",
             subset:
@@ -4497,6 +4529,13 @@ async function execute(
     } else if (Object.hasOwn(linkSchemas, args.operation)) {
       const links = await executeLinkCommand(args, request, options);
       result = links.result; human = links.human; binary = links.binary; publication = links.publication;
+    } else if (Object.hasOwn(opaqueSchemas, args.operation)) {
+      const opaque = await executeOpaqueCommand(args, request, options);
+      result = opaque.result;
+      human = opaque.human;
+      publications = opaque.publications;
+      opaqueManifest = opaque.opaqueManifest;
+      allowPartialOutput = opaque.allowPartialOutput ?? false;
     } else if (Object.hasOwn(equationSchemas, args.operation)) {
       const equation = await executeEquationCommand(args, request, options);
       result = equation.result;
@@ -6252,7 +6291,7 @@ async function execute(
     exitCode = limit
       ? 4
       : unsupported
-        ? ["images.extract", "media.extract"].includes(output.operation)
+        ? ["images.extract", "media.extract", "objects.extract"].includes(output.operation)
           ? 3
           : 1
         : office?.code === "cancelled"
@@ -6306,7 +6345,7 @@ async function execute(
       ok: false,
       affected: allowPartialOutput ? published : 0,
       locations: allowPartialOutput
-        ? mediaManifest ? [] : imageManifest
+        ? opaqueManifest || mediaManifest ? [] : imageManifest
           ? imageManifest
               .slice(0, published)
               .flatMap((item) => item.occurrences.map((occurrence) => occurrence.location))
@@ -6314,7 +6353,7 @@ async function execute(
         : [],
       data:
         allowPartialOutput && published > 0
-          ? mediaManifest ? {outputs:mediaManifest.slice(0,published),dryRun:false} : imageManifest
+          ? opaqueManifest ? { ...result.data as object, outputs: opaqueManifest.slice(0, published), dryRun: false } : mediaManifest ? {outputs:mediaManifest.slice(0,published),dryRun:false} : imageManifest
             ? { outputs: imageManifest.slice(0, published), dryRun: false }
             : {
                 outputs: splitManifest
@@ -6331,12 +6370,12 @@ async function execute(
       new TextEncoder().encode(
         JSON.stringify({
           ...partialFailure("publication-unsupported", "publish"),
-          locations: mediaManifest ? [] : imageManifest
+          locations: opaqueManifest || mediaManifest ? [] : imageManifest
             ? imageManifest.flatMap((item) =>
                 item.occurrences.map((occurrence) => occurrence.location)
               )
             : splitManifest.map((item) => item.sourceLocation),
-          data: mediaManifest ? {outputs:mediaManifest,dryRun:false} : imageManifest
+          data: opaqueManifest ? { ...result.data as object, outputs: opaqueManifest, dryRun: false } : mediaManifest ? {outputs:mediaManifest,dryRun:false} : imageManifest
             ? { outputs: imageManifest, dryRun: false }
             : {
                 outputs: splitManifest.map(({ path, sha256, bytes }) => ({ path, sha256, bytes })),
@@ -6384,7 +6423,7 @@ async function execute(
             ? 130
             : code === "resource-limit"
               ? 4
-              : (code === "publication-unsupported" && !["images.extract", "media.extract"].includes(operation)) ||
+              : (code === "publication-unsupported" && !["images.extract", "media.extract", "objects.extract"].includes(operation)) ||
                   code === "stale-input"
                 ? 1
                 : 3,

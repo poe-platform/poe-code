@@ -482,3 +482,15 @@ export {
   type MutatePropertyOptions
 } from "./properties.js";
 export { readTags, mutateTags, type TagRecord, type TagOptions } from "./tags.js";
+export {
+  readObjects,
+  extractObject,
+  readFonts,
+  type OpaqueObjectKind,
+  type OpaqueObjectPart,
+  type OpaqueObjectInventory,
+  type ExtractedObjectPart,
+  type ExtractedObject,
+  type EmbeddedFontDeclaration,
+  type FontInventory
+} from "./opaque-objects.js";

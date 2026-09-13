@@ -12,6 +12,27 @@ const attribute = (localName: string, value: string | null, namespace = "") => (
 const text = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
 
 describe("preserving XML parts", () => {
+  it("reorders owned children without rewriting markup or intervening content", () => {
+    const part = parseXmlPart(
+      encode("<d xmlns:q=\"urn:q\"><q:a x='1'/> <!--gap--><q:b/>\n<q:c><q:n/></q:c></d>"),
+      limits
+    );
+    const [a, b, c] = part.root.children;
+    expect(text(part.reorderChildren(part.root, [c!, a!, b!]).bytes())).toBe(
+      "<d xmlns:q=\"urn:q\"><q:c><q:n/></q:c> <!--gap--><q:a x='1'/>\n<q:b/></d>"
+    );
+  });
+
+  it("rejects missing, repeated, foreign and nested children in permutations", () => {
+    const part = parseXmlPart(encode("<d><a><n/></a><b/></d>"), limits);
+    const [a, b] = part.root.children;
+    const foreign = parseXmlPart(encode("<a/>"), limits).root;
+    for (const order of [[a!], [a!, a!], [foreign, b!], [a!.children[0]!, b!]])
+      expect(() => part.reorderChildren(part.root, order)).toThrow();
+    expect(() => part.reorderChildren(foreign, [])).toThrow();
+    expect(text(part.reorderChildren(part.root, [a!, b!]).bytes())).toBe("<d><a><n/></a><b/></d>");
+  });
+
   it.each([0, 1, 2])(
     "inserts a direct child at boundary %s without rewriting neighbors",
     (index) => {

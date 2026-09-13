@@ -33,6 +33,7 @@ export interface XmlPart {
   bytes(): Uint8Array;
   markup(element: XmlElement): string;
   resolveNamespace(element: XmlElement, prefix: string): string | undefined;
+  reorderChildren(element: XmlElement, children: readonly XmlElement[]): XmlPart;
   spliceChildren(
     element: XmlElement,
     index: number,
@@ -315,6 +316,21 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
       const span = spans.get(element);
       if (!span) fail("invalid-value");
       return span.bindings.get(prefix);
+    },
+    reorderChildren(element: XmlElement, children: readonly XmlElement[]): XmlPart {
+      const owned = new Set(element.children);
+      if (!spans.has(element) || !Array.isArray(children) || children.length !== owned.size)
+        fail("invalid-value");
+      for (const child of children) if (!owned.delete(child)) fail("invalid-value");
+      const patches = element.children.map((child, index) => {
+        const old = spans.get(child)!;
+        const next = spans.get(children[index]!)!;
+        return { start: old.start, end: old.end, value: source.slice(next.start, next.end) };
+      });
+      return parseXmlPart(
+        encode(apply(source, 0, source.length, patches, limits.maxBytes)),
+        limits
+      );
     },
     spliceChildren(
       element: XmlElement,

@@ -54,7 +54,7 @@ export const metadataSchemas = Object.fromEntries(
           ] : [])
         ]
       },
-      result: { ...textGetSchema.result, properties: { ...textGetSchema.result.properties, operation: { const: operation }, data: { oneOf: [{ type: "null" }, {
+      result: { ...textGetSchema.result, properties: { ...textGetSchema.result.properties, affected: mutation ? { type: "integer", minimum: 0 } : { const: 0 }, operation: { const: operation }, data: { oneOf: [{ type: "null" }, {
         type: "object", additionalProperties: false,
         required: mutation ? sanitize ? ["dryRun", "remaining"] : ["dryRun"] : [tags ? "tags" : "properties"],
         properties: mutation ? { dryRun: { type: "boolean" }, ...(sanitize ? { remaining: { type: "array", items: property } } : {}) } : tags ? { tags: { type: "array", items: tag } } : { properties: { type: "array", items: property } }

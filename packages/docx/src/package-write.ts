@@ -2,12 +2,16 @@ import { InputTypeError, InvalidValueError, type DocumentArchive } from "./archi
 import { DocumentXmlEditor } from "./xml-write.js";
 import { documentXmlSettings, type DocumentXmlLimits } from "./package-xml.js";
 
+import { compatibilitySettings, documentCompatibilityProfile, type CompatibilityProfile } from "./compatibility.js";
+
 export class DocumentArchiveEditor {
+  readonly #profile: CompatibilityProfile;
   readonly #archive: DocumentArchive;
   readonly #editors = new Map<string, DocumentXmlEditor>();
   readonly #limits: DocumentXmlLimits;
 
-  constructor(archive: DocumentArchive, limits: DocumentXmlLimits = {}) {
+  constructor(archive: DocumentArchive, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile) {
+    this.#profile = compatibilitySettings(profile);
     if (!archive || !Array.isArray(archive.members) || !(archive.comment instanceof Uint8Array))
       throw new InputTypeError("Expected an owned document archive.");
     this.#limits = documentXmlSettings(limits);
@@ -34,7 +38,7 @@ export class DocumentArchiveEditor {
     if (existing) return existing;
     const member = this.#archive.members.find(member => member.name === name && !member.directory);
     if (!member) throw new InvalidValueError("Archive part was not found.");
-    const editor = new DocumentXmlEditor(member.bytes, this.#limits);
+    const editor = new DocumentXmlEditor(member.bytes, this.#limits, this.#profile);
     this.#editors.set(name, editor);
     return editor;
   }

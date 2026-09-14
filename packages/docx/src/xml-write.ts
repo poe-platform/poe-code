@@ -4,6 +4,8 @@ import {
   type XmlContent, type XmlElement, type XmlAttribute
 } from "./package-xml.js";
 
+import { MarkupCompatibility, compatibilitySettings, documentCompatibilityProfile, hasCompatibilityMarkup, type CompatibilityProfile } from "./compatibility.js";
+
 type Token = XmlContent | XmlAttribute;
 interface Span { start: number; end: number; owner: XmlContent; }
 
@@ -107,6 +109,9 @@ function escapeValue(value: string, attribute: boolean): string {
 }
 
 export class DocumentXmlEditor {
+  readonly #profile: CompatibilityProfile;
+  #compatibility: MarkupCompatibility | undefined;
+  #guardCompatibility = false;
   readonly #document: DocumentXml;
   readonly #source: string;
   readonly #limits: DocumentXmlLimits;
@@ -115,7 +120,8 @@ export class DocumentXmlEditor {
   readonly #namespaces = new Map<ReadonlyMap<string, string>, Map<string, string>>();
   readonly #elements = new Set<XmlElement>();
 
-  constructor(bytes: Uint8Array, limits: DocumentXmlLimits = {}) {
+  constructor(bytes: Uint8Array, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile) {
+    this.#profile = compatibilitySettings(profile);
     this.#document = parseDocumentXml(bytes, limits);
     this.#limits = { ...limits };
     this.#source = new TextDecoder(this.#document.encoding, { fatal: true, ignoreBOM: true }).decode(this.#document.bytes);
@@ -125,6 +131,7 @@ export class DocumentXmlEditor {
       const node = stack.pop()!;
       if (node.kind === "element") {
         this.#elements.add(node);
+        if (hasCompatibilityMarkup(node, this.#profile)) this.#guardCompatibility = true;
         if (!this.#namespaces.has(node.namespaces))
           this.#namespaces.set(node.namespaces, new Map(node.namespaces));
         for (const attribute of node.attributes) Object.freeze(attribute);
@@ -136,6 +143,10 @@ export class DocumentXmlEditor {
       }
       Object.freeze(node);
     }
+  }
+
+  get compatibility(): MarkupCompatibility {
+    return this.#compatibility ??= new MarkupCompatibility(this.root, this.#profile);
   }
 
   get root(): XmlElement { return this.#document.root; }
@@ -174,6 +185,7 @@ export class DocumentXmlEditor {
         (point >= 0x10000 && point <= 0x10ffff)))
         throw new InvalidXmlError("Invalid XML character in replacement value.");
     }
+    if (value !== original && this.#guardCompatibility && !this.compatibility.canEdit(token)) unsupported();
     const before = new Map(this.#patches);
     if (value === original) this.#patches.delete(token);
     else {

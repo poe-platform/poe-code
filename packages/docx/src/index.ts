@@ -41,3 +41,9 @@ export {
 } from "./package-xml.js";
 export { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 export { DocumentArchiveEditor } from "./package-write.js";
+
+export {
+  MarkupCompatibility, documentCompatibilityProfile,
+  type CompatibilityProfile, type CompatibilityElement, type CompatibilityContent,
+  type CompatibilityBranch, type ExpandedXmlName
+} from "./compatibility.js";

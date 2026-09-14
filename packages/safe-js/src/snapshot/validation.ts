@@ -119,7 +119,7 @@ export function validateDumpEnvelope(
   const semantics = semanticsDescriptor?.value;
   if (
     options.resume === true &&
-    semantics !== EXECUTION_SEMANTICS && semantics !== "jobs-v6" && semantics !== "jobs-v7" &&
+    semantics !== EXECUTION_SEMANTICS && semantics !== "jobs-v6" && semantics !== "jobs-v7" && semantics !== "jobs-v8" &&
     (semantics !== undefined || ["promiseReplay", "replay", "initialInputs"].some(key => {
       const descriptor = Object.getOwnPropertyDescriptor(root, key);
       return descriptor !== undefined && (!("value" in descriptor) || descriptor.value !== undefined);

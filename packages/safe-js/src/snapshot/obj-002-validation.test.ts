@@ -36,7 +36,7 @@ function capture(bindings: Record<string, RuntimeSnapshotValue>, format: string)
       })
     );
     expect(envelope.version).toBe(2);
-    expect(envelope.executionSemantics).toBe("jobs-v8");
+    expect(envelope.executionSemantics).toBe("jobs-v9");
     const validated = restoreDump(envelope, { source });
     encoded = {
       ...serialize(snapshotInput({})),

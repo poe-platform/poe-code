@@ -31,7 +31,7 @@ vi.mock("node:fs/promises", async () => {
 });
 
 const expectedFresh =
-  process.env.SAFEJS_PPR2_ADJUDICATION_PHASE === "ordered" ? "jobs-v6" : "jobs-v8";
+  process.env.SAFEJS_PPR2_ADJUDICATION_PHASE === "ordered" ? "jobs-v6" : "jobs-v9";
 
 afterEach(() => {
   vi.restoreAllMocks();

@@ -38,7 +38,7 @@ export function inspectSnapshotMigration(snapshot: SafeJSSnapshot, options: { so
   const sourceHash = hashSource(
     options.source,
     undefined,
-    snapshot.executionSemantics === EXECUTION_SEMANTICS
+    snapshot.executionSemantics === "jobs-v8" || snapshot.executionSemantics === EXECUTION_SEMANTICS
   );
   if (snapshot.sourceHash !== sourceHash)
     throw new TypeError(

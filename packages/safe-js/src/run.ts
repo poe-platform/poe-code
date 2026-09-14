@@ -223,10 +223,13 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
               : restore(options.snapshot, { source }, operation.owner);
           const executionSemantics =
             restoredSnapshot?.executionSemantics === "jobs-v6" ||
-            restoredSnapshot?.executionSemantics === "jobs-v7"
+            restoredSnapshot?.executionSemantics === "jobs-v7" ||
+            restoredSnapshot?.executionSemantics === "jobs-v8"
               ? restoredSnapshot.executionSemantics
               : EXECUTION_SEMANTICS;
-          runResources.getStore()!.functionSourceText = executionSemantics === EXECUTION_SEMANTICS;
+          const functionSourceText = executionSemantics === "jobs-v8" || executionSemantics === EXECUTION_SEMANTICS;
+          runResources.getStore()!.functionSourceText = functionSourceText;
+          runResources.getStore()!.hostDataMetadata = executionSemantics === EXECUTION_SEMANTICS;
           const convertInitialInput = <TValue>(convert: () => TValue): TValue =>
             executionSemantics === "jobs-v6" ? convert() : promiseReplayContext.exit(convert);
           if (restoredSnapshot !== undefined) {
@@ -238,8 +241,8 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
           promiseReplay.validateNodes(module);
           const sourceHash =
             findRegexLiteral(module) === undefined
-              ? hashSource(source, operation.owner, executionSemantics === EXECUTION_SEMANTICS)
-              : hashParsedAst(module, executionSemantics === EXECUTION_SEMANTICS);
+              ? hashSource(source, operation.owner, functionSourceText)
+              : hashParsedAst(module, functionSourceText);
           const hostCalls = new HostCallJournal(
             sourceHash,
             readHostCallSnapshot(restoredSnapshot),
@@ -754,7 +757,7 @@ function createExecutableNode(module: Module): ParseResult {
 }
 
 function createRunSnapshot(input: {
-  executionSemantics: "jobs-v6" | "jobs-v7" | typeof EXECUTION_SEMANTICS;
+  executionSemantics: "jobs-v6" | "jobs-v7" | "jobs-v8" | typeof EXECUTION_SEMANTICS;
   migration?: SafeJSSnapshot["migration"];
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock: RunClock | undefined;

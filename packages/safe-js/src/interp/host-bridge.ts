@@ -1,3 +1,7 @@
+import { readNativeMap, readNativeSet } from "./native-collections.js";
+import { copyCollectionProperties, getCollectionProperties } from "./collection-properties.js";
+import { runResources } from "./resources.js";
+import { nativeConstructorName } from "./native-constructor-name.js";
 import { types } from "node:util";
 import { nativePromiseDataProperties } from "./native-promise-properties.js";
 import { readNativeRegExp } from "./native-regexp.js";
@@ -19,7 +23,7 @@ import { createSandboxTemporalPlainDate, hostTemporalPlainDateFields } from "./t
 import { createSandboxTemporalPlainMonthDay, hostTemporalPlainMonthDayFields } from "./temporal-plain-month-day.js";
 import { createSandboxTemporalPlainYearMonth, hostTemporalPlainYearMonthFields } from "./temporal-plain-year-month.js";
 import { createSandboxTemporalZonedDateTime, hostTemporalZonedDateTimeFields } from "./temporal-zoned-date-time.js";
-import { setSandboxPrototype } from "./object-model.js";
+import { hasExplicitSandboxPrototype, hasNullObjectPrototype, setSandboxPrototype } from "./object-model.js";
 import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { exportHostCapability, importHostCapability, isLiveCapability } from "./host-capabilities.js";
 import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
@@ -50,6 +54,8 @@ import {
   type HostCallRecord
 } from "./host-call.js";
 import {
+  assertNativeProxyCopyable,
+  copiedPlainObjects,
   createSandboxClosure,
   createSandboxMap,
   createSandboxPromise,
@@ -912,6 +918,8 @@ function isAsyncFunction(value: (...args: readonly unknown[]) => unknown): boole
 }
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
+  if (isLiveCapability(value)) return false;
+  assertNativeProxyCopyable(value);
   return typeof value === "object" && value !== null && "then" in value;
 }
 
@@ -984,6 +992,8 @@ export function copyHostValueToSandbox(
     if (options.realm === undefined || options.errorData || options.hostCalls !== undefined) throw new TypeError("Live capabilities are not portable replay or error data.");
     return importHostCapability(value as object, options.realm.owner);
   }
+
+  assertNativeProxyCopyable(value);
 
   if (
     value === null ||
@@ -1115,14 +1125,21 @@ export function copyHostValueToSandbox(
     const copy = createSandboxBox(primitive);
     state.seen.set(original, copy);
     budget.chargeDataUsage(measureSandboxData([copy]));
-    for (const [key, descriptor] of boxedDataProperties(original)) {
-      if (!("value" in descriptor)) throw new TypeError(`Unsupported sandbox value at ${joinPath(path, key)}: accessor property`);
-      Object.defineProperty(copy, budget.allocateString(key), {
+    const descriptors = runResources.getStore()?.hostDataMetadata === false
+      ? boxedDataProperties(original) : boxedDataProperties(original, true);
+    const hasSymbols = descriptors.some(([key]) => typeof key === "symbol");
+    for (const [index, [key, descriptor]] of descriptors.entries()) {
+      const segment = hasSymbols
+        ? JSON.stringify(typeof key === "symbol" ? ["symbol", index] : ["property", key]) : key as string;
+      if (!("value" in descriptor)) throw new TypeError(`Unsupported sandbox value at ${joinPath(path, segment)}: accessor property`);
+      if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
+      Object.defineProperty(copy, typeof key === "string" ? budget.allocateString(key) : key, {
         ...descriptor,
         value: copyHostValueToSandbox(descriptor.value, stackFrames,
-          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key))
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, segment))
       });
     }
+    if (runResources.getStore()?.hostDataMetadata !== false && !Object.isExtensible(original)) Object.preventExtensions(copy);
     return copy;
   }
 
@@ -1318,20 +1335,27 @@ export function copyHostValueToSandbox(
     state.seen.set(value, copy);
     budget.allocateArrayLength(value.length);
 
-    for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
-      const indexed = isArrayIndexKey(key);
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    const keys = runResources.getStore()?.hostDataMetadata === false ? Object.keys(descriptors) : Reflect.ownKeys(descriptors);
+    const hasSymbols = keys.some(key => typeof key === "symbol");
+    for (const [index, key] of keys.entries()) {
+      const descriptor = Object.getOwnPropertyDescriptor(descriptors, key)!.value as PropertyDescriptor;
+      const indexed = typeof key === "string" && isArrayIndexKey(key);
       if (key === "length" || (!descriptor.enumerable && !indexed)) continue;
-      const entryPath = indexed ? `${path}[${key}]` : joinPath(path, key);
+      const segment = hasSymbols
+        ? JSON.stringify(typeof key === "symbol" ? ["symbol", index] : ["property", key]) : key as string;
+      const entryPath = indexed ? `${path}[${key}]` : joinPath(path, segment);
       if (!("value" in descriptor)) {
         throw new TypeError(`Unsupported sandbox value at ${entryPath}: accessor property`);
       }
+      if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
       defineOwnDataProperty(
         copy,
-        indexed ? key : budget.allocateString(key),
+        typeof key === "symbol" || indexed ? key : budget.allocateString(key),
         copyHostValueToSandbox(
           descriptor.value,
           stackFrames,
-          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] },
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] },
           state,
           entryPath
         )
@@ -1342,15 +1366,26 @@ export function copyHostValueToSandbox(
   }
 
   if (isSandboxMap(value) || value instanceof Map) {
-    const entries = isSandboxMap(value) ? value.entries : value;
     const existing = state.seen.get(value);
     if (existing !== undefined) {
       return existing;
     }
 
+    const native = isSandboxMap(value) ? undefined : readNativeMap(value);
+    const entries = isSandboxMap(value) ? value.entries : native!.entries;
     const copy = createSandboxMap();
     state.seen.set(value, copy);
-    budget.allocateCollectionEntries(entries.size);
+    budget.allocateCollectionEntries(isSandboxMap(value) ? value.entries.size : native!.size);
+    if (runResources.getStore()?.hostDataMetadata !== false) {
+      let propertyIndex = 0;
+      copyCollectionProperties(value, getCollectionProperties(copy), (entry, key) => {
+        if (typeof key === "string") budget.allocateString(key);
+        else if (key.description !== undefined) budget.allocateString(key.description);
+        const segment = JSON.stringify(["property", typeof key === "symbol" ? ["symbol", propertyIndex++] : ["string", key]]);
+        return copyHostValueToSandbox(entry, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, segment));
+      });
+    }
     for (const [key, entry] of entries) {
       const ordinal = copy.entries.size;
       copy.entries.set(
@@ -1374,15 +1409,26 @@ export function copyHostValueToSandbox(
   }
 
   if (isSandboxSet(value) || value instanceof Set) {
-    const entries = isSandboxSet(value) ? value.values : value;
     const existing = state.seen.get(value);
     if (existing !== undefined) {
       return existing;
     }
 
+    const native = isSandboxSet(value) ? undefined : readNativeSet(value);
+    const entries = isSandboxSet(value) ? value.values : native!.entries;
     const copy = createSandboxSet();
     state.seen.set(value, copy);
-    budget.allocateCollectionEntries(entries.size);
+    budget.allocateCollectionEntries(isSandboxSet(value) ? value.values.size : native!.size);
+    if (runResources.getStore()?.hostDataMetadata !== false) {
+      let propertyIndex = 0;
+      copyCollectionProperties(value, getCollectionProperties(copy), (entry, key) => {
+        if (typeof key === "string") budget.allocateString(key);
+        else if (key.description !== undefined) budget.allocateString(key.description);
+        const segment = JSON.stringify(["property", typeof key === "symbol" ? ["symbol", propertyIndex++] : ["string", key]]);
+        return copyHostValueToSandbox(entry, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, segment));
+      });
+    }
     for (const entry of entries) {
       copy.values.add(
         copyHostValueToSandbox(
@@ -1407,31 +1453,36 @@ export function copyHostValueToSandbox(
     }
 
     const copy = Object.getPrototypeOf(value) === null ? Object.create(null) : {};
+    if (runResources.getStore()?.hostDataMetadata !== false &&
+        (hasNullObjectPrototype(value) || (!copiedPlainObjects.has(value) && !hasExplicitSandboxPrototype(value) && Object.getPrototypeOf(value) === null)))
+      setSandboxPrototype(copy, null);
+    copiedPlainObjects.add(copy);
     state.seen.set(value, copy);
 
-    for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
-      if (!descriptor.enumerable) {
-        continue;
-      }
-
-      if ("get" in descriptor || "set" in descriptor) {
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    const keys = runResources.getStore()?.hostDataMetadata === false ? Object.keys(descriptors) : Reflect.ownKeys(descriptors);
+    const hasSymbols = keys.some(key => typeof key === "symbol");
+    for (const [index, key] of keys.entries()) {
+      const descriptor = Object.getOwnPropertyDescriptor(descriptors, key)!.value as PropertyDescriptor;
+      if (!descriptor.enumerable) continue;
+      const segment = hasSymbols
+        ? JSON.stringify(typeof key === "symbol" ? ["symbol", index] : ["property", key]) : key as string;
+      if (!("value" in descriptor)) {
         throw new TypeError(
-          `Unsupported sandbox value at ${joinPath(path, key)}: accessor property`
+          `Unsupported sandbox value at ${joinPath(path, segment)}: accessor property`
         );
       }
-
-      // Charged like any other string the copy carries in: a key is as readable to the sandbox
-      // as the value under it, so the same limit answers for both.
-      Object.defineProperty(copy, budget.allocateString(key), {
+      if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
+      Object.defineProperty(copy, typeof key === "string" ? budget.allocateString(key) : key, {
         enumerable: true,
         configurable: true,
         writable: true,
         value: copyHostValueToSandbox(
           descriptor.value,
           stackFrames,
-          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] },
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] },
           state,
-          joinPath(path, key)
+          joinPath(path, segment)
         )
       });
     }
@@ -1585,7 +1636,7 @@ function describeValue(value: unknown): string {
   }
 
   if (typeof value === "object") {
-    const name = value.constructor?.name;
+    const name = nativeConstructorName(value) ?? "Object";
     return name && name.length > 0 ? name : "object";
   }
 

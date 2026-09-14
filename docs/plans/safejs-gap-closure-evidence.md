@@ -2800,3 +2800,52 @@ Final clean-main checks: **29,687 package tests passed / zero failed / 47 skippe
 The [reproducible clean-main matrix QA](qualify-realms-and-recovery/rr8-remote-matrix-20260914.md) still has **215 passes / 59 failures** at this RR-8 revision: 38 transport and 19 rejection failures belong to inherited repairs not yet integrated, while two jobs-v9 admission expectations are unavailable on jobs-v8. The queued-history witness still observes **7/0** and pending effects **[7,0]**. Uncaptured/legacy shared histories, Bun shared storage and the remaining transport delivery prevent task completion. No arbitrary live-realm interoperability, deterministic native weak lifetime or exactly-once external effects are claimed.
 
 This increment's local commit SHA will be recorded after creation. **Remote-main task delivery and publication are not yet verified; no release receipt is claimed in this pre-push entry.** Subsequent receipts must distinguish ancestry, required workflows, scoped SafeFS/SafeJS/Safe Bash publication and poe-code publication, including installed-artifact integrity/provenance checks. No explicitly associated GitHub issue was supplied.
+
+
+## qualify-realms-and-recovery — versioned host transport delivery, 2026-09-14
+
+**Task acceptance remains incomplete because SM-REPLAY-1/2 is still reproduced.**
+The [integrated report](qualify-realms-and-recovery/transport-delivery-20260914.md)
+records RR-1 through RR-7 on delivered RR-8 `5ad2344edc13cd11508cb0b4cee1828c8b9e2c26`.
+New jobs-v9 runs preserve copied metadata and symbol graph identity; genuine
+v6/v7/v8 replay retains its original representation. Unsupported proxies, foreign
+subclasses and poisoned diagnostics reject without arbitrary getters. Explicit
+host capabilities remain a separate authority path. The full report maps 39
+maintained files to source/realm ownership, classes/private fields, dynamic eval,
+literals/templates/intrinsics, suspended frames, iterators, errors, promises,
+Temporal, weak/shared graphs, malformed records, budgets, rollback and cancellation.
+
+Clean-main TDD: 227 passes/85 failures before integration; all 312 selected controls
+pass after repair, including 156 supported, 100 rejection and 18 version cells.
+RR-8/harness integration passes 369 tests; exact current-marker consumer checks
+pass 12 tests after reproducing the old expectation failure. The full uncached
+`npm run build`, `CI=1 npm test`, `npm run lint`, `npm run smoke -- --prebuilt`
+route passes. It includes 29,995 SafeJS passes / 47 skips, 22,603 shared-root/workspace
+passes / 2 skips,29 Python,313 Bash-runner,31,604 native Bash/86 skips,288 Terminal
+Pilot and 2 lint-stress passes, with zero failed tests. Optional isolated comparator
+absence remains pending, not qualified. No budget, assertion, runtime support or
+timeout was weakened. Node 22.23.2 / ICU 78.2; ECMA-262 edition 16/ECMA-402 edition 12
+and the published Test262/Temporal pins remain unchanged.
+
+Built host-transport QA passes 84 unique runtime/path checks across six Node
+versions and Bun 1.3.11, and seven actual Workerd 2026-09-01 controls. Source hashes,
+commands, skips and raw outputs are retained in the report's receipt directory.
+The [fresh queued-write witness](qualify-realms-and-recovery/shared-history-integrated-20260914.md)
+still observes 7 originally / 0 recovered and resumed effects [7,0]. No arbitrary
+live-realm interoperability or exactly-once side effects are claimed. The separate
+Bun shared-wrapper repair is under verification and is not part of this commit.
+
+**Earlier RR-8 delivery is fully verified:** local/remote-main commit
+`5ad2344edc13cd11508cb0b4cee1828c8b9e2c26`; scoped workflow 34832903400,
+root workflow 34832903636 and schema workflow 34832903317 all succeeded.
+Actual published SafeJS/SafeFS/Safe Bash versions are 0.1.596 each; poe-code 15.0.39.
+All four registry integrities and SLSA source/run identities verify. Independent
+installed SafeJS/root ten-shape graph smokes, SafeFS/Safe Bash controls, root CLI
+version and legacy/current export identity pass. Consumer audit verifies 212
+signatures / 41 attestations. Initial SafeJS registry propagation failures were
+retried successfully. [Separate receipt](qualify-realms-and-recovery/transport-delivery-20260914/rr8-delivery-receipt.json).
+
+This v9 increment's local commit, remote ancestry and publication receipts will be
+recorded after delivery; the earlier release does not publish this pending change.
+Original staging and unrelated dirty work remain preserved. No associated issue
+number was supplied.

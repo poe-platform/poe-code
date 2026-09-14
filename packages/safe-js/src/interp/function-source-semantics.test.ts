@@ -7,7 +7,7 @@ describe("versioned function source semantics", () => {
     expect(await run("function fn(){}return String(fn)")).toMatchObject({
       ok: true,
       returnValue: "function fn(){}",
-      snapshot: { executionSemantics: "jobs-v8" }
+      snapshot: { executionSemantics: "jobs-v9" }
     });
   });
 
@@ -33,7 +33,7 @@ describe("versioned function source semantics", () => {
       expect(await run("function fn(){}return String(fn)")).toMatchObject({
         ok: true,
         returnValue: "function fn(){}",
-        snapshot: { executionSemantics: "jobs-v8" }
+        snapshot: { executionSemantics: "jobs-v9" }
       });
     }
   );

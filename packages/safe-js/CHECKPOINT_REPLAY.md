@@ -373,7 +373,7 @@ runtime returns true. Managed MCP clients use those stable capabilities and
 run-scoped cleanup. Unsupported replay markers are rejected before effects, not
 silently migrated.
 
-New runs carry `executionSemantics: "jobs-v8"`. Guest function stringification
+New runs carry `executionSemantics: "jobs-v9"`. Guest function stringification
 preserves the original function source, so source hashes include that observable
 text (including comments and whitespace inside functions). Formatting outside
 functions remains hash-insignificant. Host and bound functions expose native
@@ -383,9 +383,31 @@ The restore path also accepts genuine `jobs-v6` and `jobs-v7` snapshots and keep
 their execution semantics and original source-hash rules, including on subsequent
 dumps. Their default function conversion remains opaque and does not gain the
 new `toString` method; explicit guest conversion hooks still work. Accepting an
-older marker is not an upgrade to v8. Explicit migration emits a fresh v8
-continuation with its own source hash. Never rewrite a checkpoint's marker or
-hash to opt into new behavior.
+older marker is not an upgrade to v9. Genuine `jobs-v8` snapshots retain their
+function-source hashing and original host-data transport behavior. New v9 runs
+add supported host null-prototype, symbol-keyed data, and boxed/collection metadata
+preservation. Resuming v6/v7/v8 does not silently apply those transport changes.
+Explicit migration emits a fresh v9 continuation with its own source hash. Never
+rewrite a checkpoint's marker or hash to opt into new behavior.
+
+Current host data admission rejects unsupported native Map/Set subclasses and
+opaque or revoked native Proxies, including Proxy-bearing prototype chains,
+before reflecting on them. Rejection diagnostics do not invoke constructor/name
+getters. Supported data-symbol edges, collection/boxed descriptors and
+extensibility follow their explicit copy paths; this is not arbitrary live-realm
+interoperability. Guest custom descriptors and prototypes are not generally
+admitted by plain host argument projection.
+
+Shared host argument records can carry `sharedGraph: true` to identify coverage
+of exported collection and named/symbol property edges beyond the historical
+argument digest. Older records without that coverage reject unless their shared
+registry already covered those blocks. This does not establish ownership of
+future writes through retained raw shared storage. Uncaptured asynchronous
+shared histories still have a known recovery gap: replay can observe stale bytes
+and issue a later host effect before detecting a mismatch. The qualification
+ledger tracks this unresolved admission/history defect; exactly-once effects
+and arbitrary shared histories are not guaranteed.
+
 
 New run snapshots in poe-code 11.0.32 carried `executionSemantics: "jobs-v7"`.
 Packaged working v6 histories have compatibility coverage,

@@ -159,9 +159,10 @@ export function synchronizeCommentExtensions(state: State, selected: State["reco
       const visit = (node: XmlElement) => {
         state.budget.charge("work", 1);
         if (selectedNodes.has(node)) return;
-        const author = node.namespace === state.w && attribute(node, "author", state.w);
-        if (author !== undefined && author !== false) {
-          const verified = ["comment", "ins", "del", "moveFrom", "moveTo", "rPrChange", "pPrChange", "sectPrChange", "tblPrChange", "trPrChange", "tcPrChange", "tblGridChange", "numberingChange", "cellIns", "cellDel", "cellMerge", "tblPrExChange"].includes(node.localName);
+        const author = attribute(node, "author", state.w);
+        if (author !== undefined) {
+          const verified = node.namespace === state.w && ["comment", "ins", "del", "moveFrom", "moveTo", "rPrChange", "pPrChange", "sectPrChange", "tblPrChange", "trPrChange", "tcPrChange", "tblGridChange", "numberingChange", "cellIns", "cellDel", "cellMerge", "tblPrExChange"].includes(node.localName) ||
+            node.namespace === commentParagraphNamespace && ["conflictIns", "conflictDel"].includes(node.localName);
           (verified ? authors : unverifiedAuthors).add(author);
         }
         node.children.forEach(visit);

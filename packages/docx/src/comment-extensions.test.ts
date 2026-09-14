@@ -194,3 +194,25 @@ it("refuses text edits requiring an unimplemented paragraph-version update", asy
   const input = await fixture({ comments: comment(4, "000000A1", "Parent") + comment(9, "000000B2", "Reply").split('<w:p ').join('<w:p x:textId="00000003" ') });
   await expect(docx.editDocumentComments(input, { operation: "comments.set", options: { comment: 2, text: "Changed", dryRun: true } }, context)).rejects.toMatchObject({ code: "unsupported-edit" });
 });
+
+it.each(["conflictIns", "conflictDel"])("retains people owned by an extension revision (%s)", async kind => {
+  const input = await fixture({ body: `<w:p><x:${kind} xmlns:x="${w14}" w:id="12" w:author="Mira" w:date="2026-01-01T00:00:00Z">${run("Review observation")}</x:${kind}></w:p>` });
+  const output = await command(input, ["comments", "remove", "/input.docx", "--all", "--output", "-"]);
+  expect(output.result.exitCode, output.error).toBe(0);
+  const before = await parts(input), after = await parts(output.bytes);
+  expect((await read(output.bytes)).items).toEqual([]);
+  expect(after.get("word/authors.xml")).toBe(before.get("word/authors.xml"));
+  expect(after.get("word/document.xml")).toBe(before.get("word/document.xml"));
+});
+
+it("refuses people cleanup when an unknown extension carries an annotation author", async () => {
+  const input = await fixture({ body: '<w:p><future:review xmlns:future="urn:future:review" w:author="Mira">' + run("Retained observation") + '</future:review></w:p>' });
+  const volume = Volume.fromJSON({ "/out": "" });
+  for (let i = 0; i < 2; i++) await expect(docx.editDocumentComments(input, { operation: "comments.remove", options: { all: true, output: "-" } }, {
+    ...context, stdout: { async write(b) { volume.appendFileSync("/out", b); } }
+  })).rejects.toMatchObject({ code: "unsupported-edit" });
+  expect(volume.readFileSync("/out").length).toBe(0);
+  const output = await command(input, ["comments", "remove", "/input.docx", "--all", "--dry-run", "--json"]);
+  expect(output.result.exitCode).toBe(1);
+  expect(JSON.parse(new TextDecoder().decode(output.bytes))).toMatchObject({ ok: false, affected: 0, data: null, errors: [{ code: "unsupported-edit" }] });
+});

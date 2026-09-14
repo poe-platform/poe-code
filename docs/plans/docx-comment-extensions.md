@@ -179,3 +179,59 @@ Verified on 2026-09-14:
 
 Local commit only. No push, release, full document model, native layout fidelity,
 thread authoring, paragraph-version reassignment or later task is claimed.
+
+## Bounded verification correction — extension revision authors
+
+Review of `ebf6a4140` on 2026-09-14 reproduced a people-cleanup defect:
+the author census ignored annotation-author attributes on nonclassic elements.
+Deleting the final comments removed the person still referenced by a surviving
+w14:conflictIns or w14:conflictDel. An unknown extension carrying w:author was
+also silently ignored. The pinned MS-DOCX PDF hash was reverified; §§2.6.1.3–6
+define these conflict revisions using the classic track-change types, and
+§2.5.3.5 retains the comment/revision author association.
+
+Three original memfs regressions failed before the correction in
+`/tmp/docx-comment-review-owner-red.log`: both conflict revisions lost their
+person, and unknown ownership incorrectly published successfully. The census
+now retains known conflict-revision authors and refuses cleanup for an unknown
+element carrying the classic annotation-author attribute. This changes neither
+revision content nor the understood-namespace profile. All 32 extension cases
+then passed in `/tmp/docx-comment-review-owner-green.log`. The tests inspect
+serialized people/document XML and empty publication on deterministic SDK
+refusal, plus the shared CLI error envelope. Original tests remain unchanged.
+
+The existing API mappings and historical inventory remain accurate for this
+correction; no new model API or alias is introduced. Retained boundary, author,
+ID and version red logs and later green logs were inspected. The earliest
+admission/inventory red outputs described above are session-only evidence and
+were not independently recovered during this review. The retained terminal
+image and transcript were inspected; this is review of prior workflow QA,
+not a new native-application or layout pass.
+
+Final correction checks:
+
+- `npm run test --workspace=docx`: 75 files / 1,866 tests passed;
+  `/tmp/docx-comment-review-final-tests.log`.
+- `npm run lint --workspace=docx`: ESLint and both TypeScript checks passed;
+  `/tmp/docx-comment-review-final-lint.log`.
+- `npm run build:workspaces -- --workspace=docx`: maintained five-workspace
+  closure and lifecycle stages passed; `/tmp/docx-comment-review-final-build.log`.
+- Existing DOCX registration and six adapter test files: 52 passed, zero skips,
+  using `node --import tsx --test --test-concurrency=1`. These are integration
+  checks; they do not independently cover comment extensions.
+- `npx vitest run scripts/docx-exports.test.ts`: 2 passed. Export wiring is
+  unchanged by the correction.
+- New inline source-imported Shell/memfs QA verified both conflict revision
+  cases through binary output and a comments-list pipe, retaining exact people
+  and document bytes. Unknown extension ownership refused twice with exit 1,
+  identical human diagnostics and zero binary output. Inputs stayed unchanged.
+  Actual output and the inspected complete terminal screenshot are retained at
+  `/tmp/docx-comment-review-qa.txt` and `/tmp/docx-comment-review-qa.png`.
+- `git diff --check` passed. Only this plan, the extension census and its
+  regression test file belong to the correction; no downloaded fixtures,
+  unrelated pipeline-plan edits or README changes are included.
+
+No native document renderer, repair-warning check, new downloaded-corpus
+qualification or whole-public-model conformance was run or claimed. The earlier
+session-only red evidence gap remains explicit above. Local commit only;
+no push or release.

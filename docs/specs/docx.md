@@ -83,6 +83,13 @@ Rich bodies reuse scoped story editors; whole-note text assignment rejects
 affected tables/images/fields/opaque content. This is utility coverage, not a
 new live model or note batch executor.
 
+The bounded [classic-comment milestone](../plans/docx-comments.md) implements
+comments.list/get/add/set/remove with explicit identity/time, run-boundary body
+anchors, consistency checks and targeted marker/body deletion. Its snapshot
+CommentReadData uses comment_id and stored timestamp strings; the proposed live
+Comment model retains its Date-valued timestamp. Modern metadata is preserve-only.
+Comment batches, cross-paragraph anchor creation and live model owners remain pending.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong

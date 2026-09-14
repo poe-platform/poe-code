@@ -70,6 +70,12 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
   checkLengths(options);
   const has = (name: string) => options[name] !== undefined;
   const reject = (message: string): never => { throw new DocxUsageError(message); };
+  if (operation.startsWith("comments.")) {
+    const adding = operation === "comments.add";
+    const invalid = adding ? ["run", "image", "comment", "note", "link", "control", "revision", "shape", "field", "bookmark", "all"] : ["paragraph", "run", "table", "cell", "image", "section", "note", "link", "control", "revision", "shape", "field", "bookmark"];
+    if (invalid.some(has)) reject("Unsupported comment selection.");
+    if (has("scope") && !(adding ? ["body"] : ["comments", "all-stories"]).includes(String(options.scope))) reject("Invalid comment scope.");
+  }
   if (operation.startsWith("notes.")) {
     if (has("reference") && has("references")) reject("Choose one reference or all references.");
     if (has("reference") && options.all === true) reject("A reference ordinal requires one selected note.");

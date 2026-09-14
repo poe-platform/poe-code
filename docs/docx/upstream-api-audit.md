@@ -132,6 +132,14 @@ inherited, collection/helper and public underscore-prefixed obligations remain
 tracked at their existing statuses. Later tasks and whole-public-API coverage
 remain pending.
 
+The bounded [classic-comment utility milestone](../plans/docx-comments.md) records
+executed comments.list/get/add/set/remove, exact JS/security mappings and the
+distinction between JSON timestamp text and the planned live Date-valued member.
+Comment/Comments, Document/Run anchors, inherited package/block members and public
+collections retain their inventoried obligations. Utility tests neither promote
+those live APIs nor hide public underscore-prefixed types. The existing
+id/date/paragraphs/add_run documentation-error dispositions remain unchanged.
+
 The bounded [cached-field utility milestone](../plans/docx-fields.md) adds
 fields.list/set and records exact JS/security mappings, preserved instruction
 bytes and scoped CLI/SDK discovery. The pinned inventory has no field-specific

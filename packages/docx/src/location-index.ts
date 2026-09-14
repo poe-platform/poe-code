@@ -245,7 +245,7 @@ export class LocationIndex {
       if (node.namespace !== this.#w) { unsupported = true; return; }
       const name = node.localName;
       if (name === "pPr" || name === "rPr" || name === "lastRenderedPageBreak") return;
-      if (["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "proofErr", "permStart", "permEnd"].includes(name) && !node.children.length && !node.text.trim()) return;
+      if (["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "commentReference", "proofErr", "permStart", "permEnd"].includes(name) && !node.children.length && !node.text.trim()) return;
       if (name === "t") {
         this.#budget.charge("work", node.text.length);
         for (let i = 0; i < node.text.length; length++) i += node.text.codePointAt(i)! > 0xffff ? 2 : 1;

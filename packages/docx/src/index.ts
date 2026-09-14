@@ -133,3 +133,5 @@ export { inspectDocumentBookmarks, editDocumentBookmarks, type BookmarkListData,
 
 export { inspectDocumentFields, editDocumentFields, type FieldListData, type FieldEditRequest, type FieldEditData, type FieldEditOperation } from "./fields.js";
 export { inspectDocumentNotes, editDocumentNotes, type NoteInfo, type NoteReadRequest, type NoteEditRequest, type NoteReadData, type NoteEditData } from "./notes.js";
+export { inspectDocumentComments, editDocumentComments } from "./comments.js";
+export type { CommentReadRequest, CommentEditRequest, CommentInfo, CommentAnchor, CommentReadData, CommentEditData } from "./comments.js";

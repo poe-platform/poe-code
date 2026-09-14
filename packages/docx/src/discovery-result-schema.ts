@@ -101,6 +101,9 @@ const noteReadData = object({
   numbering: object({ document: noteNumberingKinds, sections: array(object({ section: number, ...noteNumberingKinds.properties })) })
 });
 const noteEditData = object({ ...mutationData.properties, changes: array(object({ kind: { enum: ["insert", "replace", "remove"] }, before: location, after: { oneOf: [location, { type: "null" }] } })) });
+const commentAnchor = object({ part: string, path: array(number) });
+const commentReadData = object({ items: array(object({ comment_id: number, author: string, initials: nullableString, timestamp: nullableString, text: string, location,
+  range: { oneOf: [object({ start: commentAnchor, end: commentAnchor, reference: commentAnchor }), { type: "null" }] }, issues: strings })), issues: strings, modern: { enum: ["preserve", null] } });
 const styleMutationData = object({ ...mutationData.properties, changes: array(object({ kind: { const: "style" }, id: string })) });
 const styleNumber: DocxJsonSchema = { oneOf: [{ type: "number" }, { type: "null" }] };
 const styleProperties = object({
@@ -122,6 +125,11 @@ const styleInspectionData = object({
   diagnostics: array(object({ code: string, part: string, location: string, message: string }))
 });
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
+  ["comments.list", "List classic comment bodies separately from visible text, with range consistency diagnostics; no parts are created.", ["F25"], commentReadData],
+  ["comments.get", "Read one comment using a whole comment token or one-based --comment ordinal in numeric ID order.", ["F25"], commentReadData],
+  ["comments.add", "Anchor a nonempty body paragraph range at existing run boundaries, with explicit author and UTC timestamp. Overlapping comments and field boundaries reject.", ["F25"], noteEditData],
+  ["comments.set", "Replace one simple comment body text, preserving author, initials, timestamp and anchors. Rich blocks require scoped editors.", ["F25"], noteEditData],
+  ["comments.remove", "Remove selected classic comment bodies and their markers, including deleted-anchor bodies. Preserve unrelated annotations and modern metadata.", ["F25"], noteEditData],
   ["notes.list", "Read both footnotes and endnotes, references, separators and effective numbering without creating parts.", ["F24"], noteReadData],
   ["notes.get", "Read a selected note, its references and preserved numbering; selection defaults to footnotes.", ["F24"], noteReadData],
   ["notes.add", "Insert a footnote or endnote reference with a scoped allocated ID and required separators.", ["F24"], noteEditData],

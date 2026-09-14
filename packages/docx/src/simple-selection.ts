@@ -8,7 +8,7 @@ import type { DocumentScope } from "./location-index.js";
 
 const resourceKinds: Readonly<Record<string, LocationKind>> = {
   lists: "paragraph", paragraphs: "paragraph", runs: "run", tables: "table", images: "image",
-  headers: "story", footers: "story", text: "paragraph", links: "link", bookmarks: "bookmark", fields: "field", toc: "field", captions: "field"
+  headers: "story", footers: "story", comments: "story", text: "paragraph", links: "link", bookmarks: "bookmark", fields: "field", toc: "field", captions: "field"
 };
 
 /** Resolve admitted input only; feature editors consume these revision-bound targets. */
@@ -18,7 +18,7 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   const { operation, options } = invocation;
   const resource = operation.split(".")[0]!;
   const inserting = operation.endsWith(".add") && !operation.startsWith("tables.rows.") && !operation.startsWith("tables.columns.");
-  const targetKind = inserting && ["images", "runs", "links", "bookmarks", "fields", "toc", "captions"].includes(resource) ? "paragraph"
+  const targetKind = inserting && ["images", "runs", "links", "bookmarks", "comments", "fields", "toc", "captions"].includes(resource) ? "paragraph"
     : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? "story"
     : operation === "text.get" && options.section === undefined ? "story" : resourceKinds[resource];
   if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "bookmark" && ["links", "bookmarks"].includes(resource)) && !(key === "field" && ["fields", "toc", "captions"].includes(resource))) || resource !== "links" && options.link !== undefined)
@@ -37,7 +37,7 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
       : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? ["story", "cell", "paragraph"]
       : operation === "runs.set" && location.value.range !== null ? ["run", "paragraph"]
       : resource === "tables" ? ["table", "cell"] : [targetKind];
-    if (!text && !["runs.set", "runs.add", "paragraphs.add", "tables.add", "bookmarks.add"].includes(operation) && location.value.range !== null) throw new InvalidValueError("Whole resource operations require a resource token, not a text range.");
+    if (!text && !["runs.set", "runs.add", "paragraphs.add", "tables.add", "bookmarks.add", "comments.add"].includes(operation) && location.value.range !== null) throw new InvalidValueError("Whole resource operations require a resource token, not a text range.");
     if (!acceptable.includes(location.kind)) throw new SelectionError("missing-selection");
     if ((resource === "headers" || resource === "footers") &&
       !document.list("story", { scope: resource }).some(story => story.token === location.token))

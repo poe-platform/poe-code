@@ -1,5 +1,14 @@
 # Disposable DOCX corpus audit
 
+Current acquisition supplement, 2026-09-14: **23 real downloaded documents**
+and **two separately counted original QA examples**. Four additions establish
+actual insertion/deletion markup, Arabic RTL prose and Chinese Han prose. The
+[gap report](corpus-feature-gaps.md) and [receipt](corpus-feature-gaps.json)
+record remaining gaps, unsuccessful candidates, restrictions and authored
+examples. The sections below retain the earlier **19-file audit snapshot**;
+their zero counts and acquisition-pending statements describe that baseline.
+Product qualification remains not run.
+
 Reverified on 2026-09-14: **19 cached files, 142,217,570 compressed bytes,
 238,710,812 expanded bytes and 655 stored media parts**. All source SHA-256
 values, sizes, acquisition receipt fields and all 655 media hashes match.
@@ -163,9 +172,10 @@ publication of derived output still needs its applicable item/asset review.
 | Large documents                | One file exceeds 20 MiB compressed; maximum expanded file is 47,777,441 bytes             | Only one meets the earlier 20-MiB-or-100-MiB-expanded size target; a second qualifying real input remains missing. Zero successful product round-trips or targeted edits under any profile. |
 | Product and rendering          | Integrity/census only                                                                     | All create/read/edit, cancellation, failure atomicity, output hashes, public SDK/CLI, rendering and original regression outcomes remain pending.                                            |
 
-Acquiring additional examples belongs to the later `fill-corpus-feature-gaps`
-task and was not started. Generated stress inputs must remain explicitly original
-and cannot increase the real-download count.
+The subsequent `fill-corpus-feature-gaps` acquisition is recorded in the
+[gap report](corpus-feature-gaps.md). Its four real downloads and two original
+examples are separate from this baseline audit. Generated inputs cannot increase
+the real-download count, and acquisition does not establish product support.
 
 ## Shared command and SDK alignment
 

@@ -3356,3 +3356,7 @@ also pass. Node 22.23.2 / ICU 78.2. This configuration-only correction introduce
 no test relaxation, budget change or guest authority. It is a separate atomic
 commit after the approved README repair `da63c75eb`, which has been pushed through
 normal hooks. Required publication is still pending successor verification.
+
+## Resource/timing remote-main scan reproduction — 2026-09-14
+
+[Fresh continuation](qualify-resource-and-timing-behavior/remote-scan-20260914/qualification.md): fetched remote 775253e664c8c14502178cf9dcb74e6a656aacb0 reproduces 18/20 deterministic scan failures. Minimal caller-budget propagation passes 1,031 regex/string-split tests; scoped lint and normal build pass. Node 22.23.2 / ICU 78.2, commands and exact hashes retained. First maintained concurrency attempt fails in terminal-pilot generated-declaration pretest build; both Promise-symbol regressions also reproduce. Target, budgets, assertions, deadlines and host grants are unchanged. Acceptance/delivery/publication remain incomplete; no task release claimed.

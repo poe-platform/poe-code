@@ -1,4 +1,4 @@
-import { allocateRegexSteps } from "../budget.js";
+import { allocateRegexSteps, type Budget } from "../budget.js";
 import type { CharacterClassItem, CharacterSet, RegexFlags, RegexNode, RegexPattern } from "./parse.js";
 
 export type RegexMatch = {
@@ -12,17 +12,18 @@ export type RegexMatch = {
 
 type Capture = { start: number; end: number } | undefined;
 type MatchState = { position: number; captures: Capture[] };
-type MatchContext = { input: string; flags: RegexFlags; groups?: Record<string, number[]>; direction: 1 | -1; work: { steps: number } };
+type MatchContext = { input: string; flags: RegexFlags; groups?: Record<string, number[]>; direction: 1 | -1; work: { steps: number }; budget?: Budget };
 
-export function matchRegex(pattern: RegexPattern, input: string, lastIndex = 0): RegexMatch | null {
+export function matchRegex(pattern: RegexPattern, input: string, lastIndex = 0, budget?: Budget): RegexMatch | null {
   const startIndex = pattern.flags.global || pattern.flags.sticky ? normalizeLastIndex(lastIndex) : 0;
-  return matchRegexFrom(pattern, input, startIndex);
+  return matchRegexFrom(pattern, input, startIndex, budget);
 }
 
 export function matchRegexFrom(
   pattern: RegexPattern,
   input: string,
-  startIndex: number
+  startIndex: number,
+  budget?: Budget
 ): RegexMatch | null {
   if (startIndex > input.length) {
     return null;
@@ -33,7 +34,7 @@ export function matchRegexFrom(
       input.charCodeAt(startIndex) >= 0xdc00 && input.charCodeAt(startIndex) <= 0xdfff &&
       input.charCodeAt(startIndex - 1) >= 0xd800 && input.charCodeAt(startIndex - 1) <= 0xdbff) startIndex--;
   for (let attempt = startIndex; attempt <= input.length; attempt = advanceStringIndex(input, attempt, unicode)) {
-    const context: MatchContext = { input, flags: pattern.flags, groups: pattern.groups, direction: 1, work: { steps: 0 } };
+    const context: MatchContext = { input, flags: pattern.flags, groups: pattern.groups, direction: 1, work: { steps: 0 }, budget };
     charge(context);
     const initialState: MatchState = {
       position: attempt,
@@ -436,6 +437,7 @@ function clearNodeCaptures(node: RegexNode, captures: Capture[]): void {
 }
 
 function charge(context: MatchContext): void {
+  context.budget?.visitNode();
   context.work.steps += 1;
   allocateRegexSteps(context.work.steps);
 }

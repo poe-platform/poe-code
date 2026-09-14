@@ -1,0 +1,254 @@
+[
+  {
+    "name": "final-node-20.20.0-workers-2-1",
+    "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v20.20.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/run.completed-replay.test.ts",
+      "packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "packages/safe-js/src/interp/float32-camera.test.ts",
+      "packages/safe-js/src/interp/methods/string-split.independent.test.ts",
+      "packages/safe-js/src/interp/methods/string-replacement-validation.test.ts",
+      "packages/safe-js/src/snapshot/restore-function-kind.test.ts",
+      "packages/agent-harness/src/testing/replay-equivalence.test.ts",
+      "--maxWorkers=2",
+      "--reporter=json",
+      "--outputFile=/Users/kjopek/Workspace/poe-code/docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/final-node-20.20.0-workers-2-1.json"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 25.895109176635742,
+    "startUnix": 1789427082.24887,
+    "environment": {
+      "node": "v20.20.0",
+      "icu": "77.1",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  {
+    "name": "final-node-20.20.0-workers-2-2",
+    "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v20.20.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/run.completed-replay.test.ts",
+      "packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "packages/safe-js/src/interp/float32-camera.test.ts",
+      "packages/safe-js/src/interp/methods/string-split.independent.test.ts",
+      "packages/safe-js/src/interp/methods/string-replacement-validation.test.ts",
+      "packages/safe-js/src/snapshot/restore-function-kind.test.ts",
+      "packages/agent-harness/src/testing/replay-equivalence.test.ts",
+      "--maxWorkers=2",
+      "--reporter=json",
+      "--outputFile=/Users/kjopek/Workspace/poe-code/docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/final-node-20.20.0-workers-2-2.json"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 28.972960948944092,
+    "startUnix": 1789427108.173304,
+    "environment": {
+      "node": "v20.20.0",
+      "icu": "77.1",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  {
+    "name": "final-node-20.20.0-workers-2-3",
+    "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v20.20.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/run.completed-replay.test.ts",
+      "packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "packages/safe-js/src/interp/float32-camera.test.ts",
+      "packages/safe-js/src/interp/methods/string-split.independent.test.ts",
+      "packages/safe-js/src/interp/methods/string-replacement-validation.test.ts",
+      "packages/safe-js/src/snapshot/restore-function-kind.test.ts",
+      "packages/agent-harness/src/testing/replay-equivalence.test.ts",
+      "--maxWorkers=2",
+      "--reporter=json",
+      "--outputFile=/Users/kjopek/Workspace/poe-code/docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/final-node-20.20.0-workers-2-3.json"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 24.657005786895752,
+    "startUnix": 1789427137.1787882,
+    "environment": {
+      "node": "v20.20.0",
+      "icu": "77.1",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  {
+    "name": "final-node-22.23.2-workers-2-1",
+    "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/run.completed-replay.test.ts",
+      "packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "packages/safe-js/src/interp/float32-camera.test.ts",
+      "packages/safe-js/src/interp/methods/string-split.independent.test.ts",
+      "packages/safe-js/src/interp/methods/string-replacement-validation.test.ts",
+      "packages/safe-js/src/snapshot/restore-function-kind.test.ts",
+      "packages/agent-harness/src/testing/replay-equivalence.test.ts",
+      "--maxWorkers=2",
+      "--reporter=json",
+      "--outputFile=/Users/kjopek/Workspace/poe-code/docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/final-node-22.23.2-workers-2-1.json"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 17.795547008514404,
+    "startUnix": 1789427161.860621,
+    "environment": {
+      "node": "v22.23.2",
+      "icu": "78.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  {
+    "name": "final-node-22.23.2-workers-2-2",
+    "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/run.completed-replay.test.ts",
+      "packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "packages/safe-js/src/interp/float32-camera.test.ts",
+      "packages/safe-js/src/interp/methods/string-split.independent.test.ts",
+      "packages/safe-js/src/interp/methods/string-replacement-validation.test.ts",
+      "packages/safe-js/src/snapshot/restore-function-kind.test.ts",
+      "packages/agent-harness/src/testing/replay-equivalence.test.ts",
+      "--maxWorkers=2",
+      "--reporter=json",
+      "--outputFile=/Users/kjopek/Workspace/poe-code/docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/final-node-22.23.2-workers-2-2.json"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 18.49788999557495,
+    "startUnix": 1789427179.686929,
+    "environment": {
+      "node": "v22.23.2",
+      "icu": "78.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  {
+    "name": "final-node-22.23.2-workers-2-3",
+    "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/run.completed-replay.test.ts",
+      "packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "packages/safe-js/src/interp/float32-camera.test.ts",
+      "packages/safe-js/src/interp/methods/string-split.independent.test.ts",
+      "packages/safe-js/src/interp/methods/string-replacement-validation.test.ts",
+      "packages/safe-js/src/snapshot/restore-function-kind.test.ts",
+      "packages/agent-harness/src/testing/replay-equivalence.test.ts",
+      "--maxWorkers=2",
+      "--reporter=json",
+      "--outputFile=/Users/kjopek/Workspace/poe-code/docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/final-node-22.23.2-workers-2-3.json"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 18.09506607055664,
+    "startUnix": 1789427198.214729,
+    "environment": {
+      "node": "v22.23.2",
+      "icu": "78.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  {
+    "name": "final-node-24.14.0-workers-2-1",
+    "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v24.14.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/run.completed-replay.test.ts",
+      "packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "packages/safe-js/src/interp/float32-camera.test.ts",
+      "packages/safe-js/src/interp/methods/string-split.independent.test.ts",
+      "packages/safe-js/src/interp/methods/string-replacement-validation.test.ts",
+      "packages/safe-js/src/snapshot/restore-function-kind.test.ts",
+      "packages/agent-harness/src/testing/replay-equivalence.test.ts",
+      "--maxWorkers=2",
+      "--reporter=json",
+      "--outputFile=/Users/kjopek/Workspace/poe-code/docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/final-node-24.14.0-workers-2-1.json"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 16.413572072982788,
+    "startUnix": 1789427216.3386738,
+    "environment": {
+      "node": "v24.14.0",
+      "icu": "78.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  {
+    "name": "final-node-24.14.0-workers-2-2",
+    "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v24.14.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/run.completed-replay.test.ts",
+      "packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "packages/safe-js/src/interp/float32-camera.test.ts",
+      "packages/safe-js/src/interp/methods/string-split.independent.test.ts",
+      "packages/safe-js/src/interp/methods/string-replacement-validation.test.ts",
+      "packages/safe-js/src/snapshot/restore-function-kind.test.ts",
+      "packages/agent-harness/src/testing/replay-equivalence.test.ts",
+      "--maxWorkers=2",
+      "--reporter=json",
+      "--outputFile=/Users/kjopek/Workspace/poe-code/docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/final-node-24.14.0-workers-2-2.json"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 16.19327688217163,
+    "startUnix": 1789427232.7783191,
+    "environment": {
+      "node": "v24.14.0",
+      "icu": "78.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  {
+    "name": "final-node-24.14.0-workers-2-3",
+    "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v24.14.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/run.completed-replay.test.ts",
+      "packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "packages/safe-js/src/interp/float32-camera.test.ts",
+      "packages/safe-js/src/interp/methods/string-split.independent.test.ts",
+      "packages/safe-js/src/interp/methods/string-replacement-validation.test.ts",
+      "packages/safe-js/src/snapshot/restore-function-kind.test.ts",
+      "packages/agent-harness/src/testing/replay-equivalence.test.ts",
+      "--maxWorkers=2",
+      "--reporter=json",
+      "--outputFile=/Users/kjopek/Workspace/poe-code/docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/final-node-24.14.0-workers-2-3.json"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 16.348867654800415,
+    "startUnix": 1789427248.9974232,
+    "environment": {
+      "node": "v24.14.0",
+      "icu": "78.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  }
+]

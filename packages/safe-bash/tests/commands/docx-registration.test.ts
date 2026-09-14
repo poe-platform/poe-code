@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createDocumentArchive, readDocumentArchive, writeDocumentArchive } from "../../../docx/src/index.js";
+import { createDocumentArchive, readDocumentArchive, writeDocumentArchive, createDocxCommandEngine } from "../../../docx/src/index.js";
 import { createDocxCommand, docxCommands, type DocxCommandEngine } from "../../src/commands/docx/index.js";
 import { collectBytes, writeBytes } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
@@ -111,4 +111,77 @@ test("docx cancellation waits for registered cleanup and rejects invalid exit st
   assert.equal(failures.length, 1);
   assert.ok(failures[0] instanceof RangeError);
   await invalid.dispose();
+});
+
+test("docx shared grammar rejects invalid byte text and conflicting stdin before handler I/O", async () => {
+  let calls = 0;
+  let reads = 0;
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(docxCommands({ engine: createDocxCommandEngine({
+    async execute() { calls++; return { exitCode: 0 }; },
+  }) }));
+  try {
+    for (const command of [
+      "docx text $'\\xff'",
+      "docx text $'\\xc0\\xaf'",
+      "docx batch - --ops-file - --in-place",
+      "docx images replace - --image 1 --file - --output result.docx",
+      "docx text replace - --find old --with new --all --output - --json",
+      "docx text --unknown missing.docx",
+    ]) {
+      const result = await shell.exec(command, { stdin: { [Symbol.asyncIterator]() {
+        return { next: async () => { reads++; return { done: true, value: undefined }; } };
+      } } });
+      assert.equal(result.exitCode, 2, command);
+      if (command.endsWith("--json")) {
+        const envelope = JSON.parse(result.stdout) as { ok: boolean; affected: number; errors: { code: string }[] };
+        assert.equal(envelope.ok, false);
+        assert.equal(envelope.affected, 0);
+        assert.equal(envelope.errors[0]?.code, "usage");
+      } else {
+        assert.equal(result.stdout, "", command);
+        assert.notEqual(result.stderr, "", command);
+      }
+    }
+    assert.equal(calls, 0);
+    assert.equal(reads, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("docx grammar dispatch keeps quoted JSON Unicode and shell syntax literal", async () => {
+  const calls: unknown[] = [];
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(docxCommands({ engine: createDocxCommandEngine({
+    async execute(invocation) { calls.push(invocation); return { exitCode: 0 }; },
+  }) }));
+  try {
+    const input = "-coastal café 日本語.docx";
+    const result = await shell.exec(`docx template apply --data-json '{"values":[{"binding":"title","value":"$(touch forbidden); \\"quoted\\" 🌊"}]}' --output result.docx -- '${input}'`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(calls.length, 1);
+    const invocation = calls[0] as { operation: string; inputs: string[]; options: Record<string, unknown> };
+    assert.equal(invocation.operation, "template.apply");
+    assert.deepEqual(invocation.inputs, [input]);
+    assert.deepEqual(invocation.options.data, { values: [{ binding: "title", value: '$(touch forbidden); "quoted" 🌊' }] });
+  } finally { await shell.dispose(); }
+});
+
+test("docx parsed invocation preserves binary stdin stdout without text conversion", async () => {
+  const payload = new Uint8Array([0, 255, 254, 128, 80, 75, 13, 10]);
+  const engine: DocxCommandEngine = createDocxCommandEngine({
+    async execute(invocation, request) {
+      assert.equal(invocation.operation, "text.replace");
+      assert.deepEqual(invocation.inputs, ["-"]);
+      assert.equal(invocation.options.with, "");
+      assert.equal(invocation.options.output, "-");
+      const bytes = await collectBytes(request.stdin, { maxBytes: 100, signal: request.signal });
+      await writeBytes(request.stdout, bytes, request.signal);
+      return { exitCode: 0 };
+    },
+  });
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(docxCommands({ engine }));
+  try {
+    const result = await shell.exec("docx text replace - --find old --with '' --all --output -", { stdin: payload });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, payload);
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
 });

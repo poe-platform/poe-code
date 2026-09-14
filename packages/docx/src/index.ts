@@ -76,3 +76,22 @@ export {
   type LocationQuery, type MatchOptions, type LocationMutationOptions, type LocationAddress, type LocationUpdate,
   type LocationMutationResult, type LocationStage
 } from "./locations.js";
+
+export { DocxUsageError, parseDocxJson } from "./argument-json.js";
+export {
+  docxOperationSchemas, docxCommonOptions, validateDocxValue, assertDocxFields,
+  type DocxOperationSchema, type DocxFieldSchema, type DocxOperationId
+} from "./operation-schema.js";
+export { docxValueSchema, getDocxOperationSchema, type DocxJsonSchema } from "./operation-json-schema.js";
+export type {
+  DocxOperationArguments, DocxOperationArgumentMap, DocxValidatedOperation,
+  DocxBatchArgumentMap, DocxBatchItemMap, DocxBatchItem, DocxBatchOperationId,
+  DocxBinaryInput, DocxVfsPath, DocxLength, DocxDirectLength, DocxModelHandle,
+  DocxBindingRecord, DocxRunInput, DocxBlock, DocxContent, DocxTransportContext,
+  DocxXmlNode, DocxEnumValue, DocxEnumNames
+} from "./operation-types.js";
+export {
+  parseDocxArguments, validateDocxInvocation, validateDocxBatch, createDocxCommandEngine, SourceError,
+  type DocxInvocation, type DocxBatch, type DocxBatchOperation, type DocxArgumentSource,
+  type DocxCommandRequest
+} from "./command.js";

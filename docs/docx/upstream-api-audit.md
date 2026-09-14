@@ -191,3 +191,11 @@ retains the audit-time state. The [status correction record](../plans/docx-corpu
 documents the later evidence comparison. Corpus acquisition, including the
 [gap supplement](corpus-feature-gaps.md), neither changes these mapping rules nor
 supplies product conformance evidence.
+
+The bounded [revision read milestone](../plans/docx-revision-read-views.md) adds
+final/original/all utility interpretation, stored revision metadata and unsafe
+edit boundaries. Its exact JS/security mappings distinguish string snapshot IDs
+and timestamps from model values and document-generation identity. It does not
+promote `CoreProperties.revision` or any text/traversal, inherited, collection,
+enum/helper or public underscore-prefixed model member. Tracked creation,
+accept/reject and later tasks remain pending; the pinned inventory is unchanged.

@@ -80,12 +80,15 @@ const tableDetails = object({ kind: { const: "tables" }, rows: number, columns: 
   cells: array(object({ row: number, column: number, rowSpan: number, columnSpan: number, location, text: string })),
   omitted: array(object({ row: number, before: number, after: number })) });
 const tableReadData = object({ item: object({ kind: { const: "tables" }, location, properties: empty, references: empty, support: { const: "read" }, details: tableDetails }) });
-const textData = object({ text: string, view: { enum: ["final", "original", "all"] }, hiddenText: { const: "include" },
-  segments: array(object({ text: string, location, revision: { enum: ["insert", "delete", "unchanged"] },
+const revisionInfo = object({ id: nullableString, author: nullableString, timestamp: nullableString, markup: string, namespace: string, name: nullableString,
+  type: { enum: ["insert", "delete", "format", "move", "table", "section", "unsupported"] }, support: { enum: ["supported", "opaque"] } });
+const textFormatting = object({ bold: nullableBoolean, italic: nullableBoolean, rtl: nullableBoolean, hidden: nullableBoolean, style: nullableString,
+  language: { type: "object", additionalProperties: true }, fonts: { type: "object", additionalProperties: true },
+  paragraph: object({ style: nullableString, bidi: nullableBoolean }) });
+const textData = object({ revisions: array(revisionInfo), warnings: array(diagnostic), text: string, view: { enum: ["final", "original", "all"] }, hiddenText: { const: "include" },
+  segments: array(object({ text: string, location, revisions: array(revisionInfo), revision: { enum: ["insert", "delete", "unchanged"] },
     kind: { enum: ["text", "tab", "line-break", "page-break", "column-break", "paragraph", "cell", "row", "story"] },
-    formatting: object({ bold: nullableBoolean, italic: nullableBoolean, rtl: nullableBoolean, hidden: nullableBoolean, style: nullableString,
-      language: { type: "object", additionalProperties: true }, fonts: { type: "object", additionalProperties: true },
-      paragraph: object({ style: nullableString, bidi: nullableBoolean }) }) })) });
+    formatting: textFormatting, originalFormatting: { anyOf: [textFormatting, { type: "null" }] } })) });
 const sectionBinding = object({ linkedToPrevious: boolean, sourceSection: { oneOf: [number, { type: "null" }] }, part: nullableString });
 const sectionBindings = object({ default: sectionBinding, first: sectionBinding, even: sectionBinding });
 const sectionDirect = object({ ...Object.fromEntries(["pageWidth", "pageHeight", "topMargin", "bottomMargin", "leftMargin", "rightMargin", "gutter", "headerDistance", "footerDistance", "columns", "columnGap", "pageNumberStart"].map(name => [name, { oneOf: [{ type: "integer" }, { type: "null" }] }])), orientation: string, startType: string, pageNumberFormat: string, differentFirstPage: boolean, columnSeparator: boolean, equalWidth: boolean });
@@ -125,6 +128,7 @@ const styleInspectionData = object({
   diagnostics: array(object({ code: string, part: string, location: string, message: string }))
 });
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
+  ["revisions.list", "Inspect revision IDs, authors, stored timestamps and supported versus opaque read types; view defaults to all. Acceptance and rejection remain unsupported.", ["F26", "F27"], object({ view: { enum: ["final", "original", "all"] }, items: array(object({ ...revisionInfo.properties, location })) })],
   ["comments.list", "List classic comment bodies separately from visible text, with range consistency diagnostics; no parts are created.", ["F25"], commentReadData],
   ["comments.get", "Read one comment using a whole comment token or one-based --comment ordinal in numeric ID order.", ["F25"], commentReadData],
   ["comments.add", "Anchor a nonempty body paragraph range at existing run boundaries, with explicit author and UTC timestamp. Overlapping comments and field boundaries reject.", ["F25"], noteEditData],
@@ -185,7 +189,7 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["create", "Create an original DOCX/DOTX or append typed blocks to an admitted template; explicit dialect and content settings.", ["F01", "F02", "F03", "F11", "F15"], mutationData],
   ["inspect", "Inventory package parts, metadata, theme schemes, font-table entries, embedding metadata and unresolved references without rendering or linked-resource access. Font availability and licensing are unknown; embedded font mutation is unsupported.", ["F06", "F14", "F42"], inspectionData],
   ["validate", "Validate document bytes against the partial core-v1 profile without repairs.", ["F49"], validationData],
-  ["text.get", "Extract logical story text with locations, direct formatting and revision views.", ["F08", "F09"], textData],
+  ["text.get", "Extract logical story text with locations, direct formatting and revision views.", ["F08", "F09", "F26"], textData],
   ["xml.get", "Read one absolute XML part as raw bytes or bounded display serialization.", ["F04", "F07"], xmlData],
   ["xml.set", "Replace one complete XML part with validated bytes; preserve opaque content and unrelated parts.", ["F04", "F07"], mutationData]
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({

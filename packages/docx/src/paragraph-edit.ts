@@ -1,3 +1,4 @@
+import { assertOutsideRevisionRanges } from "./revision-markup.js";
 import { renderInsertedTable } from "./table-insertion.js";
 import { archiveSettings, InvalidValueError } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
@@ -96,6 +97,7 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     const props = node.children.find(c => c.namespace === w && c.localName === "pPr");
     const originalProps = props ? xml.sourceXml(props) : "";
     if (request.operation === "paragraphs.set") {
+      if (opts.text !== undefined) assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
       const properties = paragraphProperties(xml, node, opts, styleId);
       const original = xml.sourceXml(node);
       const replacement = opts.text !== undefined ? replaceParagraphContent(xml, node, properties, opts.text ?? "")

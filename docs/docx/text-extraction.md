@@ -49,7 +49,11 @@ the direct `vanish` property: true, explicit false, or null when absent. It does
 not claim to resolve inherited style visibility. Bold, italic and RTL have the
 same three-state direct mapping. Run style, language and font attributes, plus
 paragraph style and bidi, provide source formatting context. They are not
-computed font metrics, a style cascade, or an original-view formatting rollback.
+computed font metrics or a style cascade. The later
+[revision read milestone](../plans/docx-revision-read-views.md) adds original-view
+rollback for supported direct run/paragraph snapshots, `originalFormatting` in
+all view, segment/top-level revision metadata and explicit opaque warnings.
+That bounded milestone supersedes the earlier absence of property-history reads.
 
 Strings retain logical Unicode order, including combining characters, Arabic,
 Hebrew, CJK and supplementary characters. There is no normalization or visual

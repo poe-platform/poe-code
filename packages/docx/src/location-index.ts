@@ -1,3 +1,4 @@
+import { revisionInfo } from "./revision-markup.js";
 import { DocumentBudget } from "./budget.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
@@ -74,6 +75,7 @@ export class LocationIndex {
     this.#w = w;
     const graph = new DocumentPackage(archive, limits, budget);
     const roots = new Map<string, XmlElement>();
+    const branches = new Map<XmlElement, XmlElement | undefined>();
     const contentTypes = archive.members.find(member => member.name.toLowerCase() === "[content_types].xml")!;
     const parts = [...graph.parts, { ...contentTypes, partname: "/[Content_Types].xml", content_type: "application/xml" }];
     for (const part of parts.sort((a, b) => a.partname < b.partname ? -1 : a.partname > b.partname ? 1 : 0)) {
@@ -99,12 +101,14 @@ export class LocationIndex {
           }
           return result;
         };
-        effective(new MarkupCompatibility(root, { ...documentCompatibilityProfile,
+        const compatibility = new MarkupCompatibility(root, { ...documentCompatibilityProfile,
           understoodNamespaces: [...documentCompatibilityProfile.understoodNamespaces,
             "urn:schemas-microsoft-com:vml",
             "http://schemas.microsoft.com/office/word/2010/wordprocessingShape",
             "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"]
-        }, budget).content);
+        }, budget);
+        effective(compatibility.content);
+        for (const branch of compatibility.branches) branches.set(branch.alternateContent, branch.selected);
       }
       this.#add({ kind: "part", part: part.partname, story: part.partname, path: [], positions: {}, ...(root ? { node: root } : {}) });
     }
@@ -119,6 +123,7 @@ export class LocationIndex {
       if (seen.has(id)) return;
       seen.add(id);
       this.#add({ kind: "story", part, story: id, path: this.#paths.get(node)!, node, scope, positions });
+      const entryStart = this.entries.length;
       const counts = { paragraph: 0, table: 0, image: 0, run: 0, link: 0, bookmark: 0, field: 0 };
       let bodySection = 1;
       const visit = (current: XmlElement, inherited: LocationPositions) => {
@@ -138,7 +143,7 @@ export class LocationIndex {
           else if (current.localName === "tbl") { kind = "table"; pos = { ...inherited, table: ++counts.table }; }
           else if (current.localName === "tc") kind = "cell";
           else if (current.localName === "bookmarkStart") { kind = "bookmark"; pos = { ...inherited, bookmark: ++counts.bookmark }; }
-          else if (["comment", "commentRangeStart", "ins", "del", "moveFrom", "moveTo", "footnoteReference", "endnoteReference"].includes(current.localName)) kind = "annotation";
+          else if (["comment", "commentRangeStart", "footnoteReference", "endnoteReference"].includes(current.localName)) kind = "annotation";
         }
         if ((current.namespace === a && current.localName === "blip") ||
           (current.namespace === "urn:schemas-microsoft-com:vml" && current.localName === "imagedata")) {
@@ -153,6 +158,32 @@ export class LocationIndex {
         }
       };
       visit(node, positions);
+      const owners = this.entries.slice(entryStart);
+      budget.charge("work", owners.length);
+      budget.charge("retainedBytes", owners.length * 64);
+      const indexed = new Set(owners.filter(e => e.kind === "annotation").map(e => e.node));
+      const ownerPositions = new Map(owners.map(e => [e.node, e.positions]));
+      const inventory = (current: XmlElement, inherited: LocationPositions) => {
+        budget.charge("work", 1);
+        if (current !== node && current.namespace === w && current.localName === "txbxContent") return;
+        const positions = ownerPositions.get(current) ?? inherited;
+        if (revisionInfo(current) && !indexed.has(current)) this.#add({ kind: "annotation", part, story: id, path: this.#paths.get(current)!, node: current, scope, positions });
+        if (branches.has(current)) {
+          const selected = branches.get(current);
+          if (selected) inventory(selected, positions);
+        } else for (const child of current.children) inventory(child, positions);
+      };
+      inventory(node, positions);
+      const ordered = this.entries.splice(entryStart);
+      budget.charge("retainedBytes", ordered.length * 8);
+      ordered.sort((a, b) => {
+        budget.charge("work", a.path.length + b.path.length + 1);
+        for (let i = 0; i < Math.min(a.path.length, b.path.length); i++) {
+          if (a.path[i] !== b.path[i]) return a.path[i]! - b.path[i]!;
+        }
+        return a.path.length - b.path.length;
+      });
+      for (const entry of ordered) this.entries.push(entry);
     };
     story(main, body, "body", "body");
     const walk = (node: XmlElement): XmlElement[] => {

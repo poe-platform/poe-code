@@ -94,6 +94,15 @@ removal. Opaque affected metadata and orphaned replies reject; thread authoring
 remains unsupported.
 Comment batches, cross-paragraph anchor creation and live model owners remain pending.
 
+The bounded [revision read milestone](../plans/docx-revision-read-views.md) adds
+revision inventory, direct run/paragraph property snapshots for original view,
+current/original formatting context in all view, and explicit opaque metadata.
+Its snapshot IDs/authors/times retain nullable stored strings. Ordinary unrelated
+edits preserve review markup; affected unsafe range/removal boundaries reject.
+Tracked creation, acceptance/rejection, revision batches and live owners remain
+pending. This supersedes the earlier text-read limitation on property history
+only for the supported direct snapshots.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong

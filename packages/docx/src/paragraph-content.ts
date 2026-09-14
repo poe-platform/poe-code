@@ -1,3 +1,4 @@
+import { containsRevision } from "./revision-markup.js";
 import { xmlValue } from "./create-content.js";
 import type { XmlElement } from "./package-xml.js";
 import { runElementOpen } from "./run-properties.js";
@@ -19,6 +20,7 @@ const markers = new Set(["bookmarkStart", "bookmarkEnd", "commentRangeStart", "c
 
 /** Text assignment intentionally removes runs; annotations and paragraph ownership survive. */
 export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, properties: string, text: string): string {
+  if (containsRevision(p)) throw new UnsupportedEditError("Whole paragraph text cannot discard review history.");
   const patches = new Map<XmlElement, string>();
   let inserted = false;
   for (const child of p.children) {

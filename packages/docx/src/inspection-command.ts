@@ -1,3 +1,4 @@
+import { inspectDocumentRevisions } from "./revisions.js";
 import { executeCommentsCommand } from "./comments-command.js";
 import { executeFieldsCommand } from "./fields-command.js";
 import { executeNotesCommand } from "./notes-command.js";
@@ -74,10 +75,10 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           output = await executeCreateCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
-        if (!commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
+        if (invocation.operation !== "revisions.list" && !commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
-        if (!fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined)) {
+        if (invocation.operation !== "revisions.list" && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined)) {
           throw Object.assign(new Error("This inspection selector is not implemented."), { code: "unsupported-profile" });
         }
         const input = invocation.inputs[0]!;
@@ -110,6 +111,11 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
             : invocation.operation === "runs.set" ? await executeRunFormatCommand(invocation, bytes, inputIdentity, request, context)
             : invocation.operation === "text.replace" ? await executeTextReplaceCommand(invocation, bytes, inputIdentity, request, context)
             : await executeXmlCommand(invocation, bytes, inputIdentity, request, context, io);
+          budget.check("serializedOutput", output.length);
+        } else if (invocation.operation === "revisions.list") {
+          const data = await inspectDocumentRevisions(bytes, invocation.options as DocxOperationArguments<"revisions.list">, context);
+          const human = data.items.map((item, i) => `${i + 1}. ${escapeTerminalText(item.markup)} (ID ${escapeTerminalText(item.id ?? "unknown")}): ${item.support}; ${escapeTerminalText(item.author ?? "unknown")}; ${escapeTerminalText(item.timestamp ?? "unknown")}`).join("\n") + (data.items.length ? "\n" : "");
+          output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: invocation.operation, ok: true, data, affected: 0, locations: data.items.map(i => i.location), warnings: [], errors: [] }) + "\n" : human);
           budget.check("serializedOutput", output.length);
         } else if (invocation.operation === "fields.list") {
           const data = await inspectDocumentFields(bytes, invocation.options as DocxOperationArguments<"fields.list">, context);

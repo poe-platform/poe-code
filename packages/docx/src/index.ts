@@ -137,3 +137,6 @@ export { inspectDocumentComments, editDocumentComments } from "./comments.js";
 export type { CommentReadRequest, CommentEditRequest, CommentInfo, CommentAnchor, CommentReadData, CommentEditData } from "./comments.js";
 
 export type { CommentExtensionInfo } from "./comment-extensions.js";
+
+export { inspectDocumentRevisions, type RevisionListData } from "./revisions.js";
+export type { RevisionInfo } from "./revision-markup.js";

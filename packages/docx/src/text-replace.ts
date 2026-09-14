@@ -1,3 +1,4 @@
+import { containsRevision, revisionInfo } from "./revision-markup.js";
 import { archiveSettings } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
@@ -56,6 +57,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
   const editor = new DocumentArchiveEditor(archive, {}, undefined, budget);
   const matches: Match[] = [];
   const fields = new Map<string, boolean[]>();
+  const reviewRanges = new Map<string, Set<string>>();
   for (const paragraph of document.list("paragraph", { scope: "all-stories" })) {
     budget.charge("work", selected.length + paragraph.value.path.length);
     const targets = selected.filter(target => target.value.story === paragraph.value.story &&
@@ -71,7 +73,9 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
     const field = fields.get(paragraph.value.story) ?? [];
     fields.set(paragraph.value.story, field);
     let pieces: Leaf[] = [], logicalOffset = 0;
-    let unsupported = ancestors.some(n => ["moveFrom", "moveTo"].includes(n.localName));
+    const ranges = reviewRanges.get(paragraph.value.story) ?? new Set<string>();
+    reviewRanges.set(paragraph.value.story, ranges);
+    let unsupported = ancestors.some(n => !!revisionInfo(n) && !["ins", "del"].includes(n.localName));
     const flush = () => {
       const text = pieces.map(piece => piece.text).join("");
       budget.charge("work", text.length + 1);
@@ -91,7 +95,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
         }
         budget.check("matches", matches.length + 1);
         budget.charge("retainedBytes", 256 + leaves.length * 64);
-        matches.push({ paragraph, leaves, unsupported });
+        matches.push({ paragraph, leaves, unsupported: unsupported || ranges.size > 0 });
         offset = end;
       }
       pieces = [];
@@ -101,6 +105,13 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
       budget.charge("work", targets.length + 1);
       if (current.namespace !== w) { flush(); return; }
       const name = current.localName;
+      const review = revisionInfo(current);
+      if (review && (name.endsWith("RangeStart") || name.endsWith("RangeEnd"))) {
+        flush();
+        const key = name.slice(0, name.lastIndexOf("Range")) + ":" + (review.id ?? "");
+        if (name.endsWith("RangeStart")) ranges.add(key); else ranges.delete(key);
+        return;
+      }
       if (["rPr", "pPr", "sdtPr", "sdtEndPr", "lastRenderedPageBreak"].includes(name)) return;
       if (name === "fldChar") {
         flush();
@@ -134,7 +145,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
       }
       const container = ["hyperlink", "sdt", "sdtContent", "fldSimple", "ins", "del", "moveTo", "moveFrom"].includes(name);
       const changedProperties = ["p", "r"].includes(name) && current.children.some(props => props.namespace === w &&
-        props.localName === name + "Pr" && props.children.some(change => change.namespace === w && change.localName === name + "PrChange"));
+        props.localName === name + "Pr" && containsRevision(props));
       if (container || changedProperties) flush();
       if (!visible(name)) return;
       if (!["p", "r"].includes(name) && !container) { flush(); return; }

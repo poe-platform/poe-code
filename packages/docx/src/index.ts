@@ -39,3 +39,5 @@ export {
   type XmlContent,
   type XmlAttribute
 } from "./package-xml.js";
+export { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+export { DocumentArchiveEditor } from "./package-write.js";

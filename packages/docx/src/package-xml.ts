@@ -27,8 +27,7 @@ export interface DocumentXml {
   readonly root: XmlElement;
 }
 
-export function parseDocumentXml(input: Uint8Array, options: DocumentXmlLimits = {}): DocumentXml {
-  if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected XML bytes.");
+export function documentXmlSettings(options: DocumentXmlLimits) {
   if (!options || typeof options !== "object" || Array.isArray(options))
     throw new InvalidValueError("Expected an XML limits object.");
   const limits = {
@@ -49,6 +48,12 @@ export function parseDocumentXml(input: Uint8Array, options: DocumentXmlLimits =
       throw new InvalidValueError("XML limits must be positive safe integers.");
     limits[key as keyof typeof limits] = value;
   }
+  return limits;
+}
+
+export function parseDocumentXml(input: Uint8Array, options: DocumentXmlLimits = {}): DocumentXml {
+  if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected XML bytes.");
+  const limits = documentXmlSettings(options);
   if (input.byteLength > limits.maxBytes || input.byteLength > limits.maxWork)
     throw new ResourceLimitError("XML byte or work limit exceeded.");
   const bytes = new Uint8Array(input);

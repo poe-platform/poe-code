@@ -43,6 +43,13 @@ inherited members and returned collections. Advanced level-definition setters
 and live numbering owners remain pending; this utility evidence does not promote
 the historical model inventory to complete coverage.
 
+The [table construction milestone](../plans/docx-table-construction.md) implements
+bounded utility insertion and typed table/row/cell formatting. Its exact mappings
+retain Table, _Cell, _Row, _Column, _Rows, _Columns and inherited members, collection
+protocols, enum aliases and add_table/iter_inner_content obligations. Those live
+owners remain pending; D03 does not introduce a model direction alias. The pinned
+inventory remains historical and is not promoted by utility test passes.
+
 ## Sources and baseline
 
 The later [theme/font resource milestone](font-resources.md) adds utility

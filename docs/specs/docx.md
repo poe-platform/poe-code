@@ -45,7 +45,10 @@ The bounded section utility and its ownership/inheritance limits are recorded in
 not complete the live section model or pagination. The later bounded
 [header/footer story evidence](../plans/docx-header-footer-stories.md) records
 noncreating reads, explicit local/shared edits and binding removal. General
-table/image editors and the complete live model remain pending.
+image editors and the complete live model remain pending. The bounded
+[table construction milestone](../plans/docx-table-construction.md) now adds
+rectangular table insertion and typed table/row/cell formatting; cell updates,
+row/column edits, merges and live table owners remain pending.
 
 ## Normative language
 
@@ -536,7 +539,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `lists add`             | selectedEdit | `kind!`: bullet / decimal / lowerLetter / upperLetter / lowerRoman / upperRoman; `level?`: integer 0..8; `start?`: integer; `text?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                | MutationData     | F18                                                                                                |
 | `lists set`             | selectedEdit | `level?`: integer 0..8; `start?`: integer; `restart?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | MutationData     | F18                                                                                                |
 | `tables get`            | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceData     | F19, F20                                                                                           |
-| `tables add`            | selectedEdit | `rows!`: positive integer; `cols!`: positive integer; `width?`: Length (explicit emu/in/cm/mm/pt)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F06, F11, F16, F17, F19, F20, F25                                                                  |
+| `tables add` | selectedEdit | `rows!`, `cols!`: positive integers; `width?`, `rowHeight?`, `cellMargin?`: Length; `style?`: string; `autofit?`, `repeatHeader?`, `allowRowSplit?`, `before?`: boolean; `headerRows?`: nonnegative integer; `heightRule?`: WD_ROW_HEIGHT_RULE; `columnWidthsJson?`: Length[]; `bordersJson?`: TableBorders; `shadingJson?`: Shading; `rowOptionsJson?`: TableRowOptions[]; `contentFile?` / `contentJson?`: OriginalDocumentContentV1 | MutationData | F19 |
 | `tables set`            | selectedEdit | `text?`: string; `style?`: string; `width?`: Length (explicit emu/in/cm/mm/pt); `autofit?`: boolean; `alignment?`: WD_TABLE_ALIGNMENT / null; `direction?`: WD_TABLE_DIRECTION / null; `repeatHeader?`: boolean; `allowRowSplit?`: boolean; `cellMargin?`: Length (explicit emu/in/cm/mm/pt)                                                                                                                                                                                                                                                                                                               | MutationData     | F19, F20                                                                                           |
 | `tables rows add`       | selectedEdit | `index?`: positive integer; `width?`: Length (explicit emu/in/cm/mm/pt)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F19                                                                                                |
 | `tables rows remove`    | selectedEdit | `index!`: positive integer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | MutationData     | F19                                                                                                |
@@ -794,6 +797,36 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   split needs a cell and positive rows/cols that divide its existing spans
   exactly. Existing nonempty anchor content stays in first split cell; added
   cells are empty. Partial merges, omitted slots and over-limit grids reject.
+  Construction admits at most one story/cell/paragraph insertion owner. A collapsed
+  paragraph range splits at a Unicode scalar caret, retaining section properties
+  on the suffix; `before` requires a whole paragraph. Existing cell insertion
+  requires stored dxa width; explicit cell margins override table-level margins.
+  `columnWidths` must match cols and sum to explicit width when both are given;
+  without width their sum supplies the preferred width. Widths must fit the stored
+  container. Both autofit modes store explicit preferred/grid/cell widths;
+  autofit is a layout hint, not a pagination/rendering guarantee. Section columns
+  constrain body insertion to the smallest stored column width.
+  `repeatHeader: true` repeats the first row; `headerRows` selects consecutive
+  leading rows and is exclusive with repeatHeader. Per-row overrides must retain
+  this leading consecutive invariant. `rowOptions` has exactly rows entries,
+  each admitting repeatHeader, allowRowSplit, height and heightRule. Omitted height
+  rule with a supplied height uses AT_LEAST; AUTO may omit height and stores zero;
+  AT_LEAST/EXACTLY require a nonnegative height. Lengths round to twips, half away
+  from zero. Borders use eighth-points (2–96, or 0 for none), spacing 0–31 points;
+  RGB colors use six hex digits. Margins are nonnegative and must leave content
+  width positive. No null formatting reset is part of construction.
+  TableBorders admits top/left/bottom/right/insideH/insideV Border fields;
+  Shading admits fill, optional color and pattern as for paragraph shading.
+  Typed table blocks accept width/style and the same formatting fields, with
+  semantic columnWidths/borders/shading/rowOptions names. Typed cells admit
+  blocks, borders, shading and per-side margins. Every cell ends in a paragraph.
+  For tables.add, content contains exactly one matching table, no document
+  settings/styles/theme; formatting cannot be supplied both directly and in that
+  table. Nested paragraphs may reuse styles or create collision-safe headings.
+  SDK options use content/columnWidths/borders/shading/rowOptions; command JSON
+  transport suffixes and source files normalize to those same fields. Aggregate
+  newly constructed cells share the invocation budget. Cell updates, merges,
+  row/column changes and live model batches are later tasks.
 - **Links/bookmarks/fields.** Link add/set requires exactly one target or bookmark;
   external target accepts absolute https/http/mailto only and is never fetched;
   bookmark must exist. Removing a link unwraps its visible content. Bookmark
@@ -979,8 +1012,29 @@ type CreationTheme = {
 };
 type Block =
   | { kind: "paragraph"; text?: string; style?: string; level?: number; runs?: RunInput[] }
-  | { kind: "table"; rows: CellInput[][]; width?: Length; style?: string };
-type CellInput = { blocks: Block[] };
+  | ({ kind: "table"; rows: CellInput[][]; width?: Length; style?: string } & TableConstructionFormat);
+type TableConstructionFormat = {
+  columnWidths?: Length[]; autofit?: boolean;
+  repeatHeader?: boolean; headerRows?: number; allowRowSplit?: boolean;
+  rowHeight?: Length; heightRule?: EnumInput; cellMargin?: Length;
+  borders?: TableBorders; shading?: Shading; rowOptions?: TableRowOptions[];
+};
+type TableRowOptions = {
+  repeatHeader?: boolean; allowRowSplit?: boolean; height?: Length; heightRule?: EnumInput;
+};
+type Border = {
+  style: "none" | "single" | "double" | "dotted" | "dashed";
+  width: Length; color: string; space?: Length;
+};
+type Shading = {
+  fill: string; color?: string;
+  pattern: "clear" | "solid" | "pct5" | "pct10" | "pct20" | "pct25" | "pct50" | "pct75";
+};
+type TableBorders = Partial<Record<"top" | "left" | "bottom" | "right" | "insideH" | "insideV", Border>>;
+type CellInput = {
+  blocks: Block[]; borders?: TableBorders; shading?: Shading;
+  margins?: Partial<Record<"top" | "left" | "bottom" | "right", Length>>;
+};
 type RunInput = {
   text: string;
   bold?: boolean | null;
@@ -1048,6 +1102,8 @@ code. These settings do not establish live model, style-cascade or layout suppor
 
 Style and level are exclusive. Table rows must be nonempty, rectangular and
 within table budgets; zero blocks in a cell becomes one required empty paragraph.
+The additive TableConstructionFormat and cell-format fields are defined in the
+construction contract in section 6.5; they apply to nested table blocks too.
 No implicit merges or binary fixtures are embedded in content. Each binding entry
 ID must match exactly one declared control tag; scalar type comes from its
 admitted control/custom-XML declaration, including date represented as a validated

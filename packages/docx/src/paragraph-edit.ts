@@ -1,3 +1,4 @@
+import { renderInsertedTable } from "./table-insertion.js";
 import { archiveSettings, InvalidValueError } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation } from "./command.js";
@@ -18,7 +19,7 @@ import { resolveDocxSelection } from "./simple-selection.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 
-export type ParagraphEditOperation = "paragraphs.set" | "paragraphs.add" | "runs.add";
+export type ParagraphEditOperation = "paragraphs.set" | "paragraphs.add" | "runs.add" | "tables.add";
 export type ParagraphEditRequest = { [K in ParagraphEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[ParagraphEditOperation];
 export interface ParagraphEditData {
   readonly changed: boolean;
@@ -30,10 +31,10 @@ export interface ParagraphEditData {
 /** Paragraph edits and inline insertion share selection, XML preservation and publication. */
 export async function editDocumentParagraphs(input: Uint8Array, request: ParagraphEditRequest, context: PublicationContext): Promise<ParagraphEditData> {
   closedRecord(request, ["operation", "options", "input"]);
-  if (!["paragraphs.set", "paragraphs.add", "runs.add"].includes(request.operation)) throw new DocxUsageError("Expected a paragraph editing operation.");
+  if (!["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(request.operation)) throw new DocxUsageError("Expected a block or inline editing operation.");
   const settings = archiveSettings(context);
   const invocation = validateDocxInvocation({ operation: request.operation, inputs: [request.input?.path ?? "document"], options: request.options }, settings.budget);
-  const opts = invocation.options as DocxOperationArguments<"paragraphs.set"> & DocxOperationArguments<"paragraphs.add"> & DocxOperationArguments<"runs.add">;
+  const opts = invocation.options as DocxOperationArguments<"paragraphs.set"> & DocxOperationArguments<"paragraphs.add"> & DocxOperationArguments<"runs.add"> & DocxOperationArguments<"tables.add">;
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
   const document = await openDocumentLocations(input, { ...settings, budget });
   const selected = resolveDocxSelection(document, invocation);
@@ -47,7 +48,7 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
   const stylesEdge = graph.relationships("/" + main).find(edge => edge.reltype === documentDialects[dialect].r + "/styles");
   const styles = stylesEdge && !stylesEdge.is_external ? parseDocumentXml(stylesEdge.target_part.bytes, {}, budget).root : undefined;
   let styleId: string | undefined;
-  if (opts.style !== undefined) {
+  if (opts.style !== undefined && request.operation !== "tables.add") {
     const found = styles?.children.filter(node => node.namespace === w && node.localName === "style" && node.attributes.some(a => a.namespace === w && a.localName === "type" && a.value === (request.operation === "runs.add" ? "character" : "paragraph")) && node.children.some(c => c.namespace === w && c.localName === "name" && c.attributes.some(a => a.namespace === w && a.localName === "val" && a.value === opts.style))) ?? [];
     if (found.length !== 1) throw new InvalidValueError("Expected one existing style of the selected kind.");
     styleId = found[0]!.attributes.find(a => a.namespace === w && a.localName === "styleId")?.value;
@@ -60,6 +61,19 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     const paragraph = parseDocumentXml(new TextEncoder().encode(rendered.body), {}, budget).root;
     styleId = paragraph.children[0]!.children[0]!.attributes.find(a => a.namespace === w && a.localName === "val")!.value;
     headingStyles = rendered.styles;
+    if (headingStyles && !stylesEdge) {
+      archive = addDocumentStylesPart(archive, { package: graph, mainPart: main, dialect }, headingStyles, budget).archive;
+      headingStyles = "";
+    }
+  }
+  let tableMarkup: string | undefined;
+  if (request.operation === "tables.add") {
+    const anchor = selected[0];
+    const mainRoot = parseDocumentXml(archive.members.find(m => m.name === main)!.bytes, {}, budget).root;
+    const root = anchor && anchor.value.part !== "/" + main ? parseDocumentXml(archive.members.find(m => m.name === anchor.value.part.slice(1))!.bytes, {}, budget).root : mainRoot;
+    const rendered = renderInsertedTable(opts, anchor, root, mainRoot, styles, budget);
+    tableMarkup = rendered.body;
+    headingStyles = selected.length ? rendered.styles : "";
     if (headingStyles && !stylesEdge) {
       archive = addDocumentStylesPart(archive, { package: graph, mainPart: main, dialect }, headingStyles, budget).archive;
       headingStyles = "";
@@ -105,7 +119,7 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
       updates.push({ before, path: before.value.path, kind: "insert" });
       continue;
     }
-    const markup = `<pi:p xmlns:pi="${w}">${styleId === undefined ? "" : `<pi:pPr><pi:pStyle pi:val="${xmlValue(styleId)}"/></pi:pPr>`}${opts.text === undefined ? "" : run}</pi:p>`;
+    const markup = tableMarkup ?? `<pi:p xmlns:pi="${w}">${styleId === undefined ? "" : `<pi:pPr><pi:pStyle pi:val="${xmlValue(styleId)}"/></pi:pPr>`}${opts.text === undefined ? "" : run}</pi:p>`;
     if (before.kind === "paragraph") {
       const position = before.value.path.at(-1)!;
       if (!["body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent", "sdtContent"].includes(parent.localName) || parent.namespace !== w)
@@ -118,14 +132,15 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
         updates.push({ before, path: [...before.value.path.slice(0, -1), position + 1], kind: "insert" });
       } else {
         const original = xml.sourceXml(node);
-        xml.replaceElement(node, opts.before ? markup + original : original + markup);
+        const terminal = tableMarkup && parent.localName === "tc" && parent.children.at(-1) === node && !opts.before ? `<w:p xmlns:w="${w}"/>` : "";
+        xml.replaceElement(node, opts.before ? markup + original : original + markup + terminal);
         updates.push({ before, path: [...before.value.path.slice(0, -1), position + (opts.before ? 0 : 1)], kind: "insert" });
       }
     } else {
       if (!["body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName) || node.namespace !== w)
         throw new UnsupportedEditError("Block insertion requires a story or cell container.");
       const section = node.children.find(c => c.namespace === w && c.localName === "sectPr");
-      xml.insertChildren(node, markup, section);
+      xml.insertChildren(node, markup + (tableMarkup && node.localName === "tc" ? `<w:p xmlns:w="${w}"/>` : ""), section);
       updates.push({ before, path: [...before.value.path, section ? node.children.indexOf(section) : node.children.length], kind: "insert" });
     }
   }
@@ -133,10 +148,11 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
   const candidate = editor.snapshot();
   const index = new LocationIndex(candidate, settings.limits, main, dialect, budget);
   const changes = updates.map(({ before, path, kind }) => {
-    const entry = index.byAddress.get(addressKey({ ...before.value, path }))?.find(e => e.kind === "paragraph");
+    const kindOfResult = tableMarkup ? "table" : "paragraph";
+    const entry = index.byAddress.get(addressKey({ ...before.value, path }))?.find(e => e.kind === kindOfResult);
     if (!entry) throw new UnsupportedEditError("Paragraph edit could not resolve its resulting location.");
     const value = { ...before.value, generation: 1, path, range: null };
-    const after: Location = { kind: "paragraph", value, token: encodeLocation(value), positions: entry.positions };
+    const after: Location = { kind: kindOfResult, value, token: encodeLocation(value), positions: entry.positions };
     return { kind, before, after };
   });
   const publication = { ...(request.input ? { input: request.input } : {}), ...(opts.output === undefined ? {} : { output: opts.output }), ...(opts.inPlace === undefined ? {} : { inPlace: opts.inPlace }), ...(opts.force === undefined ? {} : { force: opts.force }), ...(opts.dryRun === undefined ? {} : { dryRun: opts.dryRun }), ...(opts.json === undefined ? {} : { json: opts.json }) };
@@ -145,3 +161,7 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
   const result = await publishDocumentArchive(candidate, publication, { ...context, budget });
   return { changed: changes.length > 0, changes, dryRun: opts.dryRun ?? false, output: result.published.length ? { path: result.published[0]!.path, bytes: result.published[0]!.bytes, sha256: result.archiveSha256! } : null };
 }
+
+export type TableConstructionRequest = Extract<ParagraphEditRequest, { operation: "tables.add" }>;
+/** The table utility uses the same transaction and insertion engine as paragraphs. */
+export const editDocumentTables: (input: Uint8Array, request: TableConstructionRequest, context: PublicationContext) => Promise<ParagraphEditData> = editDocumentParagraphs;

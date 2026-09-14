@@ -26,3 +26,12 @@ it("allows explicit optional undefined and closes empty model arguments", () => 
   expectTypeOf(absent).toMatchTypeOf<DocxOperationArguments<"paragraphs.set">>();
   expectTypeOf(extra).toMatchTypeOf<DocxOperationArguments<"model.text.run.Run.bold.get">>();
 });
+
+it("keeps direct table lengths aligned with the admitted unit schema", () => {
+  // @ts-expect-error Direct row-height flags exclude twips; nested content accepts them.
+  const rowHeight: DocxOperationArguments<"tables.add"> = { rows: 1, cols: 1, rowHeight: { value: 1, unit: "twip" } };
+  // @ts-expect-error Direct cell-margin flags exclude twips; nested content accepts them.
+  const cellMargin: DocxOperationArguments<"tables.add"> = { rows: 1, cols: 1, cellMargin: { value: 1, unit: "twip" } };
+  expectTypeOf(rowHeight).toMatchTypeOf<DocxOperationArguments<"tables.add">>();
+  expectTypeOf(cellMargin).toMatchTypeOf<DocxOperationArguments<"tables.add">>();
+});

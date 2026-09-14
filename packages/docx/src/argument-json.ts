@@ -136,6 +136,21 @@ function length(value: unknown): boolean {
     ["emu", "in", "cm", "mm", "pt", "twip"].includes(value.unit as string);
 }
 
+const tableKeys = ["width", "style", "columnWidths", "autofit", "repeatHeader", "headerRows", "allowRowSplit", "rowHeight", "heightRule", "borders", "shading", "cellMargin", "rowOptions"];
+const color = (value: unknown) => typeof value === "string" && value.length === 6 && [...value].every(c => "0123456789abcdefABCDEF".includes(c));
+const heightRule = (value: unknown) => record(value, ["enum", "name"], ["enum", "name"]) && value.enum === "WD_ROW_HEIGHT_RULE" && ["AUTO", "AT_LEAST", "EXACTLY"].includes(value.name as string);
+const shading = (value: unknown) => record(value, ["fill", "color", "pattern"], ["fill", "pattern"]) && color(value.fill) && optional(value, "color", color) && ["clear", "solid", "pct5", "pct10", "pct20", "pct25", "pct50", "pct75"].includes(value.pattern as string);
+const borders = (value: unknown) => record(value, ["top", "left", "bottom", "right", "insideH", "insideV"]) && Object.values(value).every(v => v === undefined || record(v, ["style", "width", "color", "space"], ["style", "width", "color"]) && ["none", "single", "double", "dotted", "dashed"].includes(v.style as string) && length(v.width) && color(v.color) && optional(v, "space", length));
+const rowOptions = (value: unknown) => record(value, ["repeatHeader", "allowRowSplit", "height", "heightRule"]) && optional(value, "repeatHeader", v => typeof v === "boolean") && optional(value, "allowRowSplit", v => typeof v === "boolean") && optional(value, "height", length) && optional(value, "heightRule", heightRule);
+function tableFormat(value: RecordValue): boolean {
+  return optional(value, "width", length) && optional(value, "style", identifier) &&
+    optional(value, "columnWidths", v => array(v) && v.every(length)) &&
+    ["autofit", "repeatHeader", "allowRowSplit"].every(key => optional(value, key, v => typeof v === "boolean")) &&
+    optional(value, "headerRows", v => Number.isSafeInteger(v) && Number(v) >= 0) &&
+    optional(value, "rowHeight", length) && optional(value, "heightRule", heightRule) && optional(value, "borders", borders) &&
+    optional(value, "shading", shading) && optional(value, "cellMargin", length) && optional(value, "rowOptions", v => array(v) && v.every(rowOptions));
+}
+
 export function validateOriginalDocumentContent(value: unknown): boolean {
   const ancestors = new Set<object>();
   function blocks(value: unknown): boolean {
@@ -146,7 +161,7 @@ export function validateOriginalDocumentContent(value: unknown): boolean {
     return result;
   }
   function block(value: unknown): boolean {
-    if (!record(value, ["kind", "text", "style", "level", "runs", "rows", "width"], ["kind"]) || ancestors.has(value)) return false;
+    if (!record(value, ["kind", "text", "level", "runs", "rows", ...tableKeys], ["kind"]) || ancestors.has(value)) return false;
     ancestors.add(value);
     let result = false;
     if (value.kind === "paragraph") result = record(value, ["kind", "text", "style", "level", "runs"], ["kind"]) &&
@@ -156,10 +171,9 @@ export function validateOriginalDocumentContent(value: unknown): boolean {
       optional(value, "runs", item => array(item) && item.every(run));
     if (value.kind === "table") {
       const rows = value.rows;
-      result = record(value, ["kind", "rows", "width", "style"], ["kind", "rows"]) &&
-        optional(value, "width", length) && optional(value, "style", identifier) && array(rows) && rows.length > 0 &&
+      result = record(value, ["kind", "rows", ...tableKeys], ["kind", "rows"]) && tableFormat(value) && array(rows) && rows.length > 0 &&
         array(rows[0]) && rows[0].length > 0 && rows.every(row => array(row) && row.length === (rows[0] as unknown[]).length &&
-          row.every(cell => record(cell, ["blocks"], ["blocks"]) && blocks(cell.blocks)));
+          row.every(cell => record(cell, ["blocks", "borders", "shading", "margins"], ["blocks"]) && optional(cell, "borders", borders) && optional(cell, "shading", shading) && optional(cell, "margins", v => record(v, ["top", "left", "bottom", "right"]) && Object.values(v).every(n => n === undefined || length(n))) && blocks(cell.blocks)));
     }
     ancestors.delete(value);
     return result;

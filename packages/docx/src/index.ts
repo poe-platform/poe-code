@@ -122,3 +122,6 @@ export { editDocumentSections, inspectDocumentSections, type SectionInfo, type S
 export { editDocumentStories, inspectDocumentStories, type StoryInfo, type StoryReadRequest, type StoryReadData, type StoryEditRequest, type StoryEditData } from "./stories.js";
 
 export { editDocumentLists, type ListEditRequest, type ListEditOperation, type ListEditData } from "./lists.js";
+
+export { editDocumentTables, type TableConstructionRequest } from "./paragraph-edit.js";
+export type { DocxTableInput, DocxTableFormat, DocxTableBorders, DocxTableRowOptions, DocxCellInput, DocxCellMargins } from "./operation-types.js";

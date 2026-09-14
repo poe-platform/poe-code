@@ -50,12 +50,15 @@ function contentDefinitions(definitions: Record<string, DocxJsonSchema>): void {
   if (definitions.Block) return;
   definitions.Block = {};
   definitions.RunInput = objectSchema({ text: "string", bold: "?boolean | null", italic: "?boolean | null", underline: "?boolean | WD_UNDERLINE | null", style: "?identifier" }, definitions);
-  definitions.CellInput = { type: "object", properties: { blocks: { type: "array", items: { $ref: "#/$defs/Block" } } }, required: ["blocks"], additionalProperties: false };
+  const borders = objectSchema(Object.fromEntries(["top", "left", "bottom", "right", "insideH", "insideV"].map(k => [k, "?Border"])), definitions);
+  const shading = objectSchema({ fill: "RGBColor", color: "?RGBColor", pattern: "ShadingPattern" }, definitions);
+  const margins = objectSchema(Object.fromEntries(["top", "left", "bottom", "right"].map(k => [k, "?Length"])), definitions);
+  definitions.CellInput = { type: "object", properties: { borders, shading, margins, blocks: { type: "array", items: { $ref: "#/$defs/Block" } } }, required: ["blocks"], additionalProperties: false };
   const paragraph = objectSchema({ kind: "identifier", text: "?string", style: "?identifier", level: "?integer 0..9" }, definitions);
-  const table = objectSchema({ kind: "identifier", width: "?Length", style: "?identifier" }, definitions);
+  const table = objectSchema({ kind: "identifier", width: "?Length", style: "?identifier", columnWidths: "?ReadonlyArray<Length>", autofit: "?boolean", repeatHeader: "?boolean", headerRows: "?nonnegative integer", allowRowSplit: "?boolean", rowHeight: "?Length", heightRule: "?WD_ROW_HEIGHT_RULE", cellMargin: "?Length", rowOptions: "?ReadonlyArray<{repeatHeader?: boolean; allowRowSplit?: boolean; height?: Length; heightRule?: WD_ROW_HEIGHT_RULE}>" }, definitions);
   definitions.Block = { oneOf: [
     { ...paragraph, properties: { ...paragraph.properties, kind: { const: "paragraph" }, runs: { type: "array", items: { $ref: "#/$defs/RunInput" } } }, allOf: [{ not: { required: ["text", "runs"] } }, { not: { required: ["style", "level"] } }] },
-    { ...table, properties: { ...table.properties, kind: { const: "table" }, rows: { type: "array", minItems: 1, items: { type: "array", minItems: 1, items: { $ref: "#/$defs/CellInput" } } } }, required: ["kind", "rows"], description: "Rows have equal cell counts; width, when present, is positive." }
+    { ...table, properties: { ...table.properties, borders, shading, kind: { const: "table" }, rows: { type: "array", minItems: 1, items: { type: "array", minItems: 1, items: { $ref: "#/$defs/CellInput" } } } }, required: ["kind", "rows"], description: "Rows have equal cell counts; width, when present, is positive." }
   ] };
 }
 function receiverSchema(type: string | undefined, definitions: Record<string, DocxJsonSchema>): DocxJsonSchema {

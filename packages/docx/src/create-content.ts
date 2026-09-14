@@ -1,3 +1,4 @@
+import { tableBorders, tableGeometry, tableMargins, tableShading } from "./table-content.js";
 import { InvalidValueError } from "./archive.js";
 import type { DocumentBudget } from "./budget.js";
 import type { DocxBlock, DocxContent, DocxLength, DocxRunInput, DocxThemeSettings } from "./operation-types.js";
@@ -133,11 +134,15 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
       }
       const rows = block.rows.length, columns = block.rows[0]!.length;
       budget.check("tableRows", rows); budget.check("tableColumns", columns); budget.charge("tableCells", rows * columns);
-      const tableWidth = block.width ? twips(block.width) : width;
-      if (tableWidth < columns || tableWidth > width) throw new InvalidValueError("Table width must fit its container.");
-      const widths = Array.from({ length: columns }, (_, i) => Math.floor(tableWidth / columns) + (i < tableWidth % columns ? 1 : 0));
-      const style = block.style ? `<w:tblStyle w:val="${xmlValue(resolve(block.style, "table"))}"/>` : "";
-      return `<w:tbl xmlns:w="${w}"><w:tblPr>${style}<w:tblW w:w="${tableWidth}" w:type="dxa"/></w:tblPr><w:tblGrid>${widths.map(value => `<w:gridCol w:w="${value}"/>`).join("")}</w:tblGrid>${block.rows.map(row => `<w:tr>${row.map((cell, i) => `<w:tc><w:tcPr><w:tcW w:w="${widths[i]}" w:type="dxa"/></w:tcPr>${blocks(cell.blocks, widths[i]!, depth + 3)}${cell.blocks.at(-1)?.kind !== "paragraph" ? "<w:p/>" : ""}</w:tc>`).join("")}</w:tr>`).join("")}</w:tbl>`;
+      const geometry = tableGeometry(block, width, w);
+      const { widths } = geometry;
+      const style = block.style !== undefined ? `<w:tblStyle w:val="${xmlValue(resolve(block.style, "table"))}"/>` : "";
+      return `<w:tbl xmlns:w="${w}"><w:tblPr>${style}${geometry.properties}</w:tblPr><w:tblGrid>${widths.map(value => `<w:gridCol w:w="${value}"/>`).join("")}</w:tblGrid>${block.rows.map((row, rowIndex) => `<w:tr>${geometry.rows[rowIndex]}${row.map((cell, i) => {
+        const innerWidth = widths[i]! - (cell.margins?.left ? twips(cell.margins.left, false) : geometry.margin) - (cell.margins?.right ? twips(cell.margins.right, false) : geometry.margin);
+        if (innerWidth <= 0) throw new InvalidValueError("Cell margins must leave positive content width.");
+        const properties = `<w:tcW w:w="${widths[i]}" w:type="dxa"/>` + tableBorders(cell.borders, "tcBorders", w) + tableShading(cell.shading) + tableMargins(cell.margins, "tcMar", w);
+        return `<w:tc><w:tcPr>${properties}</w:tcPr>${blocks(cell.blocks, innerWidth, depth + 3)}${cell.blocks.at(-1)?.kind !== "paragraph" ? "<w:p/>" : ""}</w:tc>`;
+      }).join("")}</w:tr>`).join("")}</w:tbl>`;
     }).join("");
   };
   const body = blocks(content.blocks, containerWidth, 3);

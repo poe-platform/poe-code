@@ -17,7 +17,7 @@ import { restoreDateTime } from "../interp/date.js";
 import { validateBoxedProperties } from "./boxed.js";
 import { hasGuestObjectState, isGuestClosure } from "../interp/object-model.js";
 import { getIntrinsicIdentity } from "../interp/intrinsics.js";
-import { isSandboxClosure } from "../interp/values.js";
+import { isSandboxClosure, snapshotRuntimeGetters } from "../interp/values.js";
 import { validateGuestHeapNode, validateGuestHeapGraphs } from "./guest-heap-validation.js";
 import { validateGuestFunctionAst } from "./guest-ast-validation.js";
 import { validateTemplateObjects } from "./template-validation.js";
@@ -1013,12 +1013,12 @@ function validateGenericValue(
   depth: number,
   state: ValidationState
 ): void {
+  if (types.isProxy(value) && (state.dataPropertiesOnly || getIntrinsicIdentity(value as object) === undefined)) {
+    fail("invalidType", path, "proxy objects are not snapshot data");
+  }
   if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
       !(state.allowHostFunctionState && isSandboxClosure(value) && !isGuestClosure(value))) {
     fail("invalidState", path, "guest function properties, prototype links and custom descriptors cannot be restored");
-  }
-  if (state.dataPropertiesOnly && types.isProxy(value)) {
-    fail("invalidType", path, "proxy objects are not snapshot data");
   }
   if (depth > state.limits.maxDepth)
     fail("budgetExceeded", path, `exceeds nesting limit ${state.limits.maxDepth}`);
@@ -1051,9 +1051,11 @@ function validateGenericValue(
         validateGenericValue(entry, `${path}[${key}]`, depth + 1, state);
       }
     } else {
-      value.forEach((entry, index) =>
-        validateGenericValue(entry, `${path}[${index}]`, depth + 1, state)
-      );
+      for (const [key, entry] of ownSnapshotDataEntries(value, path, true)) {
+        const index = Number(key);
+        if (Number.isInteger(index) && index >= 0 && index < value.length && String(index) === key)
+          validateGenericValue(entry, `${path}[${index}]`, depth + 1, state);
+      }
     }
   } else if (value !== null && typeof value === "object") {
     const record = value as Record<string, unknown>;
@@ -1062,7 +1064,7 @@ function validateGenericValue(
     }
     const entries = state.dataPropertiesOnly
       ? snapshotDataEntries(value, path, state.dataPrototypes)
-      : Object.entries(value);
+      : ownSnapshotDataEntries(value, path, true);
     if (state.dataPropertiesOnly) {
       // Registered intrinsics carry realm state even when an earlier sibling
       // is an ordinary runtime closure. Diagnose that state before rejecting
@@ -1109,12 +1111,23 @@ function snapshotDataEntries(value: object, path: string, checkedPrototypes?: We
   if (Object.getOwnPropertySymbols(value).length > 0) {
     fail("invalidType", path, "snapshot data must not have symbol properties");
   }
-  return Object.getOwnPropertyNames(value).map(key => {
+  return ownSnapshotDataEntries(value, path);
+}
+
+function ownSnapshotDataEntries(value: object, path: string, runtime = false): Array<[string, unknown]> {
+  const entries: Array<[string, unknown]> = [];
+  for (const key of Object.getOwnPropertyNames(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
-    if (!("value" in descriptor))
+    // Only engine-created wrapper getters may be read in runtime snapshots.
+    // Caller accessors, including non-enumerable ones, never gain that authority.
+    const runtimeGetter = runtime && descriptor.get !== undefined &&
+      descriptor.set === undefined && snapshotRuntimeGetters.has(descriptor.get);
+    if (!("value" in descriptor) && !runtimeGetter)
       fail("invalidType", `${path}${formatKey(key)}`, "must be a data property; snapshot data must not have accessors");
-    return [key, descriptor.value];
-  });
+    if (!runtime || descriptor.enumerable)
+      entries.push([key, runtimeGetter ? Reflect.apply(descriptor.get!, value, []) : descriptor.value]);
+  }
+  return entries;
 }
 
 function validateScopeCycles(

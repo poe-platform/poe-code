@@ -105,6 +105,7 @@ const sandboxPromiseBrand = Symbol("SandboxPromise");
 const sandboxRegexBrand = Symbol("SandboxRegex");
 const sandboxRegexPattern = Symbol("SandboxRegexPattern");
 const sandboxRetainedValues = Symbol("SandboxRetainedValues");
+export const snapshotRuntimeGetters = new WeakSet<() => unknown>();
 for (const marker of [sandboxClosureBrand, sandboxGeneratorBrand, sandboxPromiseBrand, sandboxRegexBrand, sandboxRegexPattern, sandboxRetainedValues]) internalSymbols.add(marker);
 
 export type SandboxPrimitive = string | number | bigint | boolean | symbol | null | undefined;
@@ -321,9 +322,9 @@ export function createSandboxClosure(input: {
   }
 
   if (input.guest === true) registerGuestClosure(closure);
-  Object.defineProperty(closure, "properties", {
-    get: () => getGuestFunctionProperties(closure)
-  });
+  const readProperties = () => getGuestFunctionProperties(closure);
+  snapshotRuntimeGetters.add(readProperties);
+  Object.defineProperty(closure, "properties", { get: readProperties });
   if (input.guest !== true && input.properties !== undefined) {
     const properties = typeof input.properties === "function" ? input.properties(closure) : input.properties;
     const target = materializeFunctionProperties(closure, properties);
@@ -416,6 +417,8 @@ export function createSandboxPromise(
       return readPromiseCancellation(sandboxPromise, original);
     }
   } as SandboxPromise;
+
+  snapshotRuntimeGetters.add(Object.getOwnPropertyDescriptor(sandboxPromise, "promise")!.get!);
 
   if (metadata.trackReplay !== false)
     promiseReplayContext.getStore()?.registerPromiseValue(sandboxPromise, original);

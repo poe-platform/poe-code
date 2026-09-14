@@ -2943,3 +2943,90 @@ Map capability path parsing discarded trailing colon components, accepting `valu
 Baseline **2,640/2,640**; focused post-repair **36/36**; final snapshot/public migration/replay/checkpoint/harness integration selection **2,648/2,648 in 194 files**, zero failures/skips/unhandled errors, 126.69s. TypeScript and scoped ESLint exit 0. Existing mutation limits, legacy fixtures and transactional rollback controls remain unchanged. Source/environment hashes, raw archived logs and preservation receipts accompany the report. Only the owned parser file changed among pre-existing SafeJS files; unrelated staged changes are preserved.
 
 **Local delivery:** one atomic repair commit, with post-commit SHA reported separately. **Remote-main delivery:** no push requested or performed. **Release receipts:** none for this increment. Independently executed Bun/Workerd, clean delivered-source and installed-artifact qualification remain unverified; these gaps block an overall completion claim. No budgets, assertions, runtime support or timeouts were weakened.
+
+## qualify-snapshot-adversarial-input — Repeated transaction recovery audit, 2026-09-14
+
+Source anchor: `3037814abb743c76334fff843b0388ccf4b7fa52` on `main`, plus the
+preserved working candidate. Node **22.23.2**, ICU **78.2**, V8
+**12.4.254.21-node.56**, Darwin arm64. All files in the previous publication
+candidate manifest still match: canonical file-map SHA-256
+`59d8fae879871ace3f7d1234d264654d05e703d8cf1bbeaff6d77dd327e4417e`.
+This is a working-source qualification, not a claim that HEAD alone contains
+the preceding repairs. ECMA-262 **edition 16**, ECMA-402 **edition 12**, Test262
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93` and the ledger's explicitly tracked
+newer APIs remain unchanged. Snapshot wire formats have no Test262 oracle.
+
+Rechecked the public Node restore export, shared Node/core/Workerd run paths,
+interpreter restore, replay-data decoder, replay-input preparation, migration
+inspection/construction, file migration, CLI resume/backend parsing, and
+HostCallJournal/PromiseReplay constructors against their validation boundaries.
+Backend reads parse JSON; execution consumers perform semantic validation.
+Migration checks original source, digest and explicit reconciliation before
+exclusive output publication. Explicit resolver, observation and scheduler
+hooks remain trusted integration authority; arbitrary external effects inside
+those hooks are not reversible. A capability identifier grants no authority
+without the supplied capability. Extensible envelope metadata and ordinary
+user tag properties remain supported.
+
+Added `packages/safe-js/src/snapshot/repeated-transaction-recovery.test.ts`:
+**six deterministic in-memory controls**, retained cyclic rings of size 1/4/16,
+and absent/present original Promise property tables. Each rejects the same graph
+three times after observing its replacement table installed, checks exact old
+descriptors and object identities, retained memo contents, imported weak
+registrations, compile tickets, live data charges and unchanged wire input,
+then successfully decodes that graph while preserving the original ring.
+That is **18 late rejections and six recoveries**. New test SHA-256:
+`009202940cfc09cf6bab7f5482771e4302406ae4340857dd44130fdec26d1046`.
+The initial six tests passed in 17 ms; no runtime defect was reproduced and no
+runtime repair was invented. No filesystem/LLM calls, timeout changes, budget
+relaxations, or weakened existing assertions were added. CPU/peak history is
+not refunded by the existing live-charge rollback contract.
+
+Fresh manual checks for the exact regression file and evidence being committed:
+
+- New controls: **6/6 passed**, exit 0 (included again in the broad selection).
+- Snapshot/public migration/replay/checkpoint/mutation/harness selection:
+  **2,619/2,619 passed in 191 files**, zero failures/skips/unhandled errors,
+  125.26 s, exit 0.
+- Journal and public recovery selection: **343/343 passed in 10 files**, zero
+  failures/skips, 16.34 s, exit 0. Counts are separate from the broad selection.
+- `npx eslint packages/safe-js/src/snapshot/repeated-transaction-recovery.test.ts`
+  and `npx tsc -p packages/safe-js/tsconfig.json --noEmit`: exit 0.
+- New-file Prettier and task-only staged whitespace checks: exit 0.
+
+Reproduction commands from the repository root:
+
+```sh
+npx vitest run packages/safe-js/src/snapshot/repeated-transaction-recovery.test.ts
+npx vitest run packages/safe-js/src/snapshot packages/safe-js/src/migrate.test.ts packages/safe-js/src/migration-file.test.ts packages/safe-js/src/run.test.ts packages/safe-js/src/transport-version-matrix.test.ts packages/safe-js/src/run.transport-v8-compatibility.test.ts packages/safe-js/src/external-checkpoint-validation.test.ts packages/safe-js/test/adversarial/snapshot-mutation.test.ts packages/safe-js/test/integration/snapshot-roundtrip.test.ts packages/safe-js/test/integration/crash-resume.test.ts packages/agent-harness/src/loader/agent-results.test.ts
+npx vitest run packages/safe-js/src/interp/host-call.test.ts packages/safe-js/src/interp/host-call-graph.test.ts packages/safe-js/src/interp/promise-replay.test.ts packages/safe-js/src/interp/promise-replay-import-header.test.ts packages/safe-js/src/interp/promise-replay-imports.test.ts packages/safe-js/src/interp/promise-replay-settlement.test.ts packages/safe-js/src/checkpoint-views-validation.test.ts packages/safe-js/src/transport-recovery-matrix.test.ts packages/safe-js/src/transport-rejection-matrix.test.ts packages/safe-js/src/run.promise-compatibility.test.ts
+```
+
+These selections include the unchanged 96-case mutation corpus (seed
+`0x5a902026`, 750 ms internal cap, 2 s timeout), malformed tags/references,
+source/version/size/prototype/private-slot rejection, forged capability paths,
+atomic wait and finalization rollback, intrinsic cleanup/retry, explicit dump
+v1/v2 cyclic fixtures, jobs-v1–v9 migration and genuine jobs-v6/v7 replay fixtures.
+Unsupported resume formats still require actionable explicit reconciliation.
+No new failure or skip occurred in this increment. Full workspace/build gates
+were not rerun for this test-only change; the historical complete workspace
+result remains **30,594 passed / 47 skipped**, not a fresh or skip-free gate.
+No visual CLI behavior changed; the historical screenshot is not a new check.
+
+Local raw command logs and preservation receipts are retained in
+`docs/plans/qualify-snapshot-adversarial-input/retry-audit-20260914/`; artifacts
+are excluded from the commit. The pre-existing source hashes and ledger prefix
+remain unchanged. Unrelated staged diff SHA-256 remains
+`839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8`.
+Only the new regression file and this ledger section belong to the atomic
+`test(safe-js): qualify repeated snapshot transaction recovery` commit.
+The local commit SHA is reported separately after commit creation. Previous
+working repairs and other staged content are not swept into this commit.
+
+**Disposition:** bounded local Node acceptance remains qualified; overall
+closure remains open for clean delivered-source/installed-artifact qualification,
+complete non-Node native wait/finalization coverage, and Workerd elapsed-time
+qualification, as recorded in the existing working-candidate evidence. Native GC timing is not
+asserted. **Verified remote-main delivery: none for this increment. Publication:
+none; no release receipt.** No push was requested or performed. Historical
+releases do not qualify this dirty candidate or this new local test commit.

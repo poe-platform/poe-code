@@ -35,5 +35,12 @@
   },
   "devDependencies": {
     "memfs": "4.56.10"
+  },
+  "poeCode": {
+    "build": {
+      "dependencies": {
+        "@poe-code/safe-fs": "build:portable"
+      }
+    }
   }
 }

@@ -70,3 +70,11 @@ with2 skipped files/47 skipped tests; terminal-pilot passes8 files/288 tests.
 No-declared-test workspaces and skipped cases are not passes. Repository lint
 exits0. Selected portable build and independent original reds/greens qualify
 this bounded correction; no corpus/model/full-shell parity claim is added.
+
+## Atomic local delivery
+
+Safe-fs portable mode is locally committed as5d79b7bd3; that commit adds only
+the available event and this plan. This next atomic change activates generic
+declared dependency-event selection and the DOCX manifest mapping. All candidate
+source was frozen throughout final maintained tests/lint/selected build.
+No remote delivery or release has occurred or is authorized.

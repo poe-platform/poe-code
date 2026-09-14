@@ -2710,3 +2710,97 @@ Raw logs are retained in `caller-accessor-20260914/` under the task evidence
 directory. Unrelated staged content remains byte-for-byte identical. This
 increment receives a separate local commit. **Remote-main delivery: none yet.
 Publication: none for this candidate. Overall task closure remains open.**
+
+
+### Lifecycle acceptance and commit audit — 2026-09-14, 14:10 local
+
+**Acceptance remains blocked.** This increment adds only this evidence section;
+no runtime repair or test change is justified by the fresh Node results. The
+Bun native waiter teardown counterexample still reproduces. The earlier
+qualification, ownership matrix and documented profile remain applicable.
+
+Source anchor: local main `75d523a7bd66ed8d9811b158ac5aaffac806d229` plus the
+preserved working changes. Runtime: Node **22.23.2 / ICU
+78.2**, Darwin arm64. The SHA-256 of the sorted JSON map
+of file-path-to-SHA-256 values for all files returned by `rg --files
+packages/safe-js/src packages/safe-js/test packages/safe-js/scripts` is
+`fc9b7ad47f26689a2d9400f6a0afa970e750482038c3444c05fdd49e0fd0fbb6` (Python `json.dumps(map, sort_keys=True)`
+encoding). This identifies a dirty candidate, not a delivered source tree.
+The target remains ECMA-262 edition 16 / ECMA-402 edition 12, June 2025,
+Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and the separately tracked
+newer API pins. No runtime support, budget, assertion, timeout or host grant changed.
+
+Manual focused gate, executed from the repository root, exit **0**:
+
+```sh
+npx vitest run packages/safe-js/src/realm.test.ts packages/safe-js/src/realm-resource-ownership.test.ts packages/safe-js/src/realm-nested-suspension.test.ts packages/safe-js/src/realm-lifecycle-qualification.test.ts packages/safe-js/src/realm-source-lifecycle-qualification.test.ts packages/safe-js/src/realm-callback-phases.test.ts packages/safe-js/src/interp/atomic-wait.test.ts packages/safe-js/src/interp/weak-collection-cleanup.test.ts packages/safe-js/test/async-lifecycle-qualification.test.ts packages/safe-js/test/conformance/agents-lifecycle.test.ts packages/safe-js/src/snapshot/lifecycle-retained-accessors.test.ts packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts packages/safe-js/src/snapshot/atomic-wait-race.test.ts
+```
+
+Result: **98 passed in 13 files, zero failed/skipped**, Vitest **5.68 seconds**.
+Coverage includes repeated close, partial extension setup failure, callback
+release/revocation, live host objects, nested evaluation, concurrent rejection,
+late import settlement, weak registration isolation, atomic worker ownership,
+cleanup exceptions and checkpoint rollback/race. Review confirms realm teardown
+uses its disposal promise, revokes owned capabilities, detaches cancellation,
+and attempts every registered disposer; atomic cleanup is admitted before worker
+acquisition and keyed to the realm resource owner. Passing tests do not prove
+successful native worker teardown on other engines.
+
+Executed the first JavaScript fence of the unchanged
+[retention profile](qualify-lifecycle-and-retention/profile.md) using
+`node --import tsx --input-type=module`, exit **0**, **2.09 seconds**. Three
+warmups and twelve measured samples per mode, outside unit tests, no GC oracle:
+
+| Mode                 | Samples | Root counts | Data charges | Heap-used range, bytes |
+| -------------------- | ------: | ----------- | ------------ | ---------------------- |
+| fresh-realm          |      12 | [0]         | [0]          | 58165392–92422840      |
+| persistent-wait      |      12 | [0]         | [1]          | 93386640–104643680     |
+| completed-checkpoint |      12 | [0]         | [1697]       | 136015696–201491168    |
+
+Fresh closed realms have zero owned registrations. Persistent worker charges
+return to zero on close. Every measured completed checkpoint is
+**991030 serialized bytes**.
+The independent realm's guest closure remains usable. Heap ranges are descriptive;
+they do not establish unbounded retention or prove absence of every heap leak.
+
+Executed the unchanged first JavaScript fence of the
+[native worker control](qualify-lifecycle-and-retention/native-worker-control.md)
+with `node --input-type=module` and `bun run -`. Both reporting processes exited
+**0** and acknowledged registration. Node reports **0 remaining waiters**;
+Bun **1.3.11 / ICU 74.2** reports **1 remaining waiter after awaited termination**.
+The Bun observation is a **failed teardown contract**, regardless of process exit.
+The minimized counterexample has no SafeJS dependency. Waking an arbitrary guest
+buffer would risk another owner's waiter; it is not an acceptable cleanup repair.
+This host/backend blocker prevents acceptance, rather than establishing an
+ECMAScript defect or authorizing removal of Bun support.
+
+Fresh delivery observations:
+
+- `git ls-remote origin refs/heads/main` returned
+  `77505a0e76b178ef7fde1fd3089dbf5d3b4fbcfb`, the previously delivered lifecycle
+  repair tip. This does not deliver the dirty candidate or this evidence increment.
+- `gh run list --commit 77505a0e76b178ef7fde1fd3089dbf5d3b4fbcfb --json databaseId,headSha,name,status,conclusion`
+  returned terminal scoped release **34881845066: failure**, root release
+  **34881845353: cancelled**, schema publication **34881845094: success**.
+  Schema success is not npm publication. No successful task npm release exists
+  in those receipts.
+- This evidence-only increment is committed locally; no push or publication is
+  attempted. Its SHA is reported separately after commit. Historical repair
+  commits and remote delivery remain distinct from that local evidence commit.
+
+Required checks for the exact committed delta: standalone Markdown formatting
+and candidate `git diff --cached --check` pass. The commit contains only this
+section in `docs/plans/safejs-gap-closure-evidence.md`; the original ledger text,
+all inspected SafeJS source hashes and the original staged patch are preserved.
+No artifacts or pre-existing staged changes are adopted. Runtime tests above
+qualify the inspected working candidate, not a claim that this documentation
+commit contains the existing repairs.
+
+Full package/repository gates, other Node versions, Workerd, installed-artifact
+checks and CLI screenshots were not rerun for this documentation-only increment.
+Prior broad-gate failures and runtime gaps remain unresolved, not reclassified
+as passes. An initial hook inventory read found no `.husky/pre-commit`; the
+configured `.husky/_` dispatcher and existing commit-message hook were inspected.
+No hooks were bypassed. Local raw observations are in
+`/tmp/safejs-lifecycle-final-audit`; these temporary artifacts are not committed.
+The reproducible commands, profile, observations and disposition are recorded here.

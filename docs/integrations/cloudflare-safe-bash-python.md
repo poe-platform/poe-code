@@ -1,6 +1,11 @@
 # Cloudflare safe-bash Python integration boundary
 
 Status: unavailable in the reviewed checkout; production qualification blocked.
+The [final user edge audit](../plans/cloudflare-user-final-edge-audit-ce83eedb.md)
+records fresh public-API cases at `ce83eedb79b7a062cc45fe7e6a458b127468fbf8`.
+Python is absent; default pipeline status can hide command absence, so validation
+must check expected bytes and stage failures (or enable `pipefail`). Its selected
+source/build hashes establish availability observations, not runtime qualification.
 The [current handoff review](../plans/cloudflare-adapter-handoff-current.md)
 records fresh built-public-API observations at
 `51ea26d96f61b74ffb0ef70aeaef48d5cc423d4e`, with a source/build byte inventory

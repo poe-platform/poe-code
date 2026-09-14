@@ -1,0 +1,23 @@
+{
+  "reviewer": "/root/independent_review",
+  "sourceHEAD": "ce83eedb79b7a062cc45fe7e6a458b127468fbf8",
+  "result": "BLOCKED; independent absence review, not production acceptance",
+  "observations": [
+    "No public Python/Pyodide export; python and cloudflare subpaths ERR_PACKAGE_PATH_NOT_EXPORTED",
+    "python/python3 inline, VFS script, stdin pipeline return 127",
+    "Recovery exact recovered; repeated disposal settles",
+    "Missing/invalid Node providers rejected synchronously; default Node opt-in absence is not a regression",
+    "No pyodide/workerd/wrangler resolution; missing external provenance and SDK bash.ts",
+    "Playground only injects regex; all Python lifecycle, package, filesystem, browser and budget requirements unqualified"
+  ],
+  "hashes": {
+    "packages/safe-bash/src/index.ts": "66f24e28ac4f72ffc334f5cc76ca08873753f9bc8e4e51350ecc8cb3df9391eb",
+    "packages/safe-bash/dist/index.js": "ceac40fb8fca49c3d30f540e864d0ca59d8e84193dd9c71ffdef081b41cae20b",
+    "packages/safe-bash/dist/core.browser.js": "807977031bb9ff00018b83d06c14a5b5af812203c8e56e3efa74529f0f1d0f25",
+    "packages/safe-bash/package.json": "dd8f09afcac7fb2aa74e82b6a98f1fa3a97eea57e66c8100e64416c84ad2b40e",
+    "packages/safe-bash/src/commands/node/index.ts": "b7426cac9eeedd5bd2701f0f177c15ea936f1b450700367f6d962a76a699a84b",
+    "packages/safe-bash/src/commands/node/types.ts": "36348858ab071d98af1eaad84a3c03435b47374ec043d18dc007d1d7f36e27b0",
+    "packages/safe-bash-playground/src/engine/index.ts": "dbd9a5b275d0b70937c84d64cfd779b408e991f59bc02a0b4f9ca7a0fdd17d63",
+    "packages/safe-bash-playground/src/execution-worker.ts": "97a2ad5b9af87e754195a8e25fb9a8e3c0fb236e42d586e1ad19d5d7fcf3b4ae"
+  }
+}

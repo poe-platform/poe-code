@@ -130,7 +130,7 @@ test("docx XML dry run validates without mutation and rejects dual stdin before 
     assert.equal(envelope.data.output, null);
     assert.deepEqual(volume.toJSON(), before);
     const conflict = await shell.exec("docx xml set - --part /word/document.xml --file - --output -", {
-      stdin: { async *[Symbol.asyncIterator]() { assert.fail("conflicting stdin was acquired"); } },
+      stdin: { async *[Symbol.asyncIterator]() { yield assert.fail("conflicting stdin was acquired"); } },
     });
     assert.equal(conflict.exitCode, 2);
     assert.equal(conflict.stdout, "");

@@ -23,3 +23,11 @@ export {
   InvalidXmlError,
   type AdmittedDocumentArchive
 } from "./admission.js";
+export { normalizePartName, resolvePartTarget, relativePartTarget } from "./part-uri.js";
+export type {
+  DocumentPackage,
+  PackagePart,
+  PackageRelationship,
+  ContentTypeDefault,
+  ContentTypeOverride
+} from "./package.js";

@@ -58,3 +58,12 @@ it("excludes inapplicable selectors from both typed field list surfaces", () => 
   expectTypeOf<docx.DocxBatchArgumentMap["fields.add"]>().not.toHaveProperty("output");
   expectTypeOf<docx.DocxBatchArgumentMap["toc.set"]>().not.toHaveProperty("inPlace");
 });
+
+it("retains operation envelopes for declared field batch items", () => {
+  expectTypeOf<docx.DocxBatchItemMap["fields.add"]>().toEqualTypeOf<{ readonly operation: "fields.add"; readonly arguments: docx.DocxBatchArgumentMap["fields.add"] }>();
+  expectTypeOf<docx.DocxBatchItemMap["fields.set"]>().toEqualTypeOf<{ readonly operation: "fields.set"; readonly arguments: docx.DocxBatchArgumentMap["fields.set"] }>();
+  expectTypeOf<docx.DocxBatchItemMap["toc.add"]>().toEqualTypeOf<{ readonly operation: "toc.add"; readonly arguments: docx.DocxBatchArgumentMap["toc.add"] }>();
+  expectTypeOf<docx.DocxBatchItemMap["toc.set"]>().toEqualTypeOf<{ readonly operation: "toc.set"; readonly arguments: docx.DocxBatchArgumentMap["toc.set"] }>();
+  expectTypeOf<docx.DocxBatchItemMap["captions.add"]>().toEqualTypeOf<{ readonly operation: "captions.add"; readonly arguments: docx.DocxBatchArgumentMap["captions.add"] }>();
+  expectTypeOf<docx.DocxBatchItemMap["captions.set"]>().toEqualTypeOf<{ readonly operation: "captions.set"; readonly arguments: docx.DocxBatchArgumentMap["captions.set"] }>();
+});

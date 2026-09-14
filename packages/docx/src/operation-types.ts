@@ -3141,12 +3141,12 @@ export interface DocxBatchItemMap {
   "bookmarks.add": { readonly operation: "bookmarks.add"; readonly arguments: DocxBatchArgumentMap["bookmarks.add"] };
   "bookmarks.set": { readonly operation: "bookmarks.set"; readonly arguments: DocxBatchArgumentMap["bookmarks.set"] };
   "bookmarks.remove": { readonly operation: "bookmarks.remove"; readonly arguments: DocxBatchArgumentMap["bookmarks.remove"] };
-  "fields.add": Omit<DocxOperationArgumentMap["fields.add"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
-  "fields.set": Omit<DocxOperationArgumentMap["fields.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
-  "toc.add": Omit<DocxOperationArgumentMap["toc.add"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
-  "captions.add": Omit<DocxOperationArgumentMap["captions.add"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
-  "toc.set": Omit<DocxOperationArgumentMap["toc.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
-  "captions.set": Omit<DocxOperationArgumentMap["captions.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
+  "fields.add": { readonly operation: "fields.add"; readonly arguments: DocxBatchArgumentMap["fields.add"] };
+  "fields.set": { readonly operation: "fields.set"; readonly arguments: DocxBatchArgumentMap["fields.set"] };
+  "toc.add": { readonly operation: "toc.add"; readonly arguments: DocxBatchArgumentMap["toc.add"] };
+  "captions.add": { readonly operation: "captions.add"; readonly arguments: DocxBatchArgumentMap["captions.add"] };
+  "toc.set": { readonly operation: "toc.set"; readonly arguments: DocxBatchArgumentMap["toc.set"] };
+  "captions.set": { readonly operation: "captions.set"; readonly arguments: DocxBatchArgumentMap["captions.set"] };
   "notes.get": { readonly operation: "notes.get"; readonly arguments: DocxBatchArgumentMap["notes.get"] };
   "notes.add": { readonly operation: "notes.add"; readonly arguments: DocxBatchArgumentMap["notes.add"] };
   "notes.set": { readonly operation: "notes.set"; readonly arguments: DocxBatchArgumentMap["notes.set"] };

@@ -119,3 +119,54 @@ Verified locally on 2026-09-14:
 
 This is bounded utility evidence, not native rendering, full-root checks,
 whole-model conformance, remote-main delivery or a release. Later tasks stay pending.
+
+## Bounded verification follow-up — 2026-09-14
+
+Reviewed local implementation `1e8fe62c4` against the shared office CLI/SDK
+contracts, this task's spec, the API audit/inventory and original tests. Inspected
+the retained creation, collision, spanning-field, instruction-preservation,
+schema and type red logs and their recorded green outputs. Historical evidence
+above is preserved. The original memfs cases cover all six field kinds in both
+dialects, nested results/instructions, bookmark rename operands, explicit flags,
+static captions, sequence reuse and preservation of unselected TOC XML.
+
+One task-owned correction was required: the six field/TOC/caption entries in
+`DocxBatchItemMap` had accidentally become bare argument objects. This lost the
+shared `{ operation, arguments }` envelope and the discriminant used by consumers.
+The argument map itself correctly excludes publication flags and is retained.
+Six original compile-time equality assertions in the existing memfs-backed
+`fields-command.test.ts` failed with TS2344 before the correction:
+`/tmp/docx-structures-review-envelope-red.log`. These are type regressions, not
+runtime failures; they perform no filesystem mutations. The correction restores
+only the six item envelopes. It does not enable field batch execution or promote
+any pending live-model, inherited, enum, collection or underscore-prefixed API.
+
+Verification results:
+
+- Baseline `npm test --workspace=docx`: 70 files, 1,785 tests passed;
+  `/tmp/docx-structures-review-tests.log`. Runtime product code is unchanged by
+  this follow-up; the complete baseline was not needlessly repeated.
+- After correction, focused original field structures, field commands, operation
+  types and discovery: 4 files, 36 tests passed;
+  `/tmp/docx-structures-review-focused.log`.
+- `npm run lint --workspace=docx` passed after the correction, including source
+  and test TypeScript checks and all six new assertions;
+  `/tmp/docx-structures-review-envelope-green.log`.
+- `npm run build:workspaces -- --workspace=docx` passed the five-workspace
+  declared closure and native postbuild checks after correction;
+  `/tmp/docx-structures-review-final-build.log`.
+- Rebuilt portable exports: `npx vitest run scripts/docx-exports.test.ts`,
+  2 passed; `/tmp/docx-structures-review-final-exports.log`.
+- Existing safe-bash DOCX tests: 41 passed, no failures/skips/cancellations;
+  `/tmp/docx-structures-review-shell.log`. These cover adapter and bookmark
+  behavior but contain no dedicated field/TOC/caption workflows; command-engine
+  memfs cases provide that scoped evidence, not a full shell workflow claim.
+- Reinspected the existing help/workflow PNGs listed above: output is readable,
+  long help lines wrap, and caches are explicitly described as unrecalculated.
+  No fresh visual capture was needed for a declaration-only correction.
+- `git diff --check` passed. Stage only the type file, original command test file
+  and this plan. Preserve the unrelated pipeline-plan work and existing index.
+
+No layout engine, native reference execution, downloaded corpus, full-root suite,
+field batch execution or complete public model QA was run or claimed. No README
+edits, push or release. This follow-up is one local Conventional Commit.

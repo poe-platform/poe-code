@@ -246,6 +246,8 @@ export interface FileSystem {
   readdir(path: string, options?: ReadDirectoryOptions): Promise<DirectoryEntry[]>;
   mkdir(path: string, options?: MkdirOptions): Promise<void>;
   rm(path: string, options?: RemoveOptions): Promise<void>;
+  /** Atomic final-entry removal; every directory is refused, including raced replacements. */
+  unlink?(path: string, options?: FsOptions): Promise<void>;
   rmdir?(path: string, options?: FsOptions): Promise<void>;
   rename(source: string, destination: string, options?: RenameOptions): Promise<void>;
   copyFile(source: string, destination: string, options?: CopyFileOptions): Promise<void>;

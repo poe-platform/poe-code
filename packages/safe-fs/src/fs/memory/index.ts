@@ -787,6 +787,11 @@ export class MemoryFileSystem implements FileSystem {
     this.changed(location.parent);
   }
 
+  unlink(path: string, options: FsOptions = {}): Promise<void> {
+    // Do not allow an untyped recursive option to widen final-entry removal.
+    return this.rm(path, { ...(options.signal === undefined ? {} : { signal: options.signal }) });
+  }
+
   async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     try {

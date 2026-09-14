@@ -1215,3 +1215,23 @@ Unzip directory creation and supported directory metadata restoration also
 require `atomicDirectoryMetadata`. Listing an archive does not require mutation capabilities. Providers without these guarantees reject the
 corresponding mutation; they must not fall back to check-then-rename or
 check-then-delete operations.
+
+# Optional atomic unlink
+
+`FileSystem.unlink?(path, options)` removes one final nondirectory entry, including
+an unfollowed final symlink. Every directory must be refused at removal time,
+including an empty directory concurrently replacing a file. Missing entries,
+permissions, read-only policy and cancellation remain observable; no recursive
+option or force option is admitted. Open descriptors retain the removed object.
+Method absence means unsupported. `rm` does not establish this guarantee: some
+providers allow nonrecursive empty-directory removal, and a caller-side lstat
+followed by rm cannot strengthen that behavior.
+
+Memory uses its synchronous nonrecursive removal, which already rejects all
+directories. Rooted real uses native unlink after its existing rooted admission;
+this retains the documented stable-root/path-race limitations. Mount forwarding
+selects the final entry without following its symlink and requires backend unlink.
+Read-only refuses mutation; quota currently withholds unlink rather than acquiring
+an unqualified removal path. Overlay and remote adapters have no new unlink
+support. The Python filesystem service requires this operation for guest unlink;
+it never falls back to lstat followed by rm.

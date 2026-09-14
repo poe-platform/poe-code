@@ -226,15 +226,16 @@ export class DeviceFileSystem implements FileSystem {
   async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
     options?.signal?.throwIfAborted();
     if (!options || typeof options !== "object") throw new FsError("EINVAL", { syscall: "open", path });
-    const resolved = await this.#resolve(path, options);
+    const resolved = await this.#resolve(path, options, options.creation !== "exclusive");
     options.signal?.throwIfAborted();
     if (resolved === nullPath || resolved === deviceDirectory) throw new FsError("ENOTSUP", { syscall: "open", path });
     const query = this.#filesystem.capabilitiesFor;
     options.signal?.throwIfAborted();
-    const capabilities = query ? await Reflect.apply(query, this.#filesystem, [path, options]) : this.#filesystem.capabilities;
+    const capabilities = query && options.creation !== "exclusive" ? await Reflect.apply(query, this.#filesystem, [path, options]) : this.#filesystem.capabilities;
     options.signal?.throwIfAborted();
     const open = this.#filesystem.open;
     options.signal?.throwIfAborted();
+    if (capabilities.readOnly === true && (options.access === "write" || options.access === "readwrite" || options.creation === "ifMissing" || options.creation === "exclusive" || options.truncate === true || options.append === true)) throw new FsError("EROFS", { syscall: "open", path });
     if (capabilities.open === false || typeof open !== "function") throw new FsError("ENOTSUP", { syscall: "open", path });
     let descriptor: FileDescriptor | undefined;
     try {
@@ -353,6 +354,13 @@ export class DeviceFileSystem implements FileSystem {
   async rm(path: string, options: RemoveOptions = {}): Promise<void> {
     await this.#mutable(path, options, false);
     await this.#filesystem.rm(path, options);
+  }
+
+  async unlink(path: string, options: FsOptions = {}): Promise<void> {
+    await this.#mutable(path, options, false);
+    if (!this.#filesystem.unlink) throw new FsError("ENOTSUP", { syscall: "unlink", path });
+    options.signal?.throwIfAborted();
+    await this.#filesystem.unlink(path, options);
   }
 
   async rmdir(path: string, options: FsOptions = {}): Promise<void> {

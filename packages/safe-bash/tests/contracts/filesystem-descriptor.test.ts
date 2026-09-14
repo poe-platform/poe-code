@@ -552,3 +552,25 @@ for (const source of ["root", "open", "query"] as const) {
     } finally { release.resolve(9); await descriptor.close(); }
   });
 }
+
+test('creating command descriptors preserve selected-path creation intent', async () => {
+  const fs = createMemoryFileSystem();
+  const queries: (boolean | undefined)[] = [];
+  Object.defineProperty(fs, 'capabilitiesFor', { value: async (path: string, options: { create?: boolean } = {}) => {
+    queries.push(options.create);
+    if (!options.create) await fs.stat(path);
+    return fs.capabilities;
+  } });
+  const descriptor = await openCommandFile({ fs, signal: new AbortController().signal }, '/new-file', { access: 'readwrite', creation: 'ifMissing', truncate: true });
+  await descriptor.close();
+  assert.deepEqual(queries, [true]);
+  assert.equal((await fs.readFile('/new-file')).length, 0);
+});
+
+test('exclusive command acquisition does not follow final symlinks in a capability preflight', async () => {
+  const fs = createMemoryFileSystem();
+  await fs.symlink('self', '/self');
+  Object.defineProperty(fs, 'capabilitiesFor', { value: async (path: string) => { await fs.stat(path); return fs.capabilities; } });
+  await assert.rejects(openCommandFile({ fs, signal: new AbortController().signal }, '/self', { access: 'write', creation: 'exclusive' }), { code: 'EEXIST' });
+  assert.equal(await fs.readlink('/self'), 'self');
+});

@@ -6,7 +6,10 @@ export interface CommandFileDescriptor extends FileDescriptor {
   acknowledgeCloseFailure(reason: unknown): boolean;
 }
 
-export async function openCommandFile(context: FileOutputContext & { readonly cleanupFailurePrioritySignal?: AbortSignal | undefined }, path: string, options: OpenFileOptions): Promise<CommandFileDescriptor> {
+/** descriptorCleanup: "caller" requires an already-enrolled owner that drains late
+ * acquisitions and closes the returned descriptor; output accounting keeps the
+ * original registerCleanup identity in either ownership mode. */
+export async function openCommandFile(context: FileOutputContext & { readonly cleanupFailurePrioritySignal?: AbortSignal | undefined; readonly descriptorCleanup?: "caller" }, path: string, options: OpenFileOptions): Promise<CommandFileDescriptor> {
   const { cleanupFailurePrioritySignal } = context;
   let descriptor: FileDescriptor | undefined;
   let accepting = true;
@@ -62,7 +65,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     return operation;
   };
   try {
-    context.registerCleanup?.(async () => {
+    if (context.descriptorCleanup !== "caller") context.registerCleanup?.(async () => {
       try { await close(); }
       catch (reason) {
         if (!closeFailure?.drained || !closeFailure.acknowledged || !Object.is(reason, closeFailure.reason)) {
@@ -80,10 +83,13 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
     if (request.access !== "read") assertCountedFileOutput(context);
     const fsOptions = { signal: scope };
-    const capabilities = await context.fs.capabilitiesFor?.(path, fsOptions) ?? context.fs.capabilities;
+    // A following capability query cannot precede atomic exclusive acquisition:
+    // even a self-loop final symlink must be refused by open with EEXIST.
+    const capabilities = request.creation === "exclusive" ? context.fs.capabilities
+      : await context.fs.capabilitiesFor?.(path, { ...fsOptions, ...(request.creation === "ifMissing" ? { create: true } : {}) }) ?? context.fs.capabilities;
     check();
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
-    if (!context.fs.open || capabilities.open === false) throw new FsError("ENOTSUP", { syscall: "open", path });
+    if (!context.fs.open || capabilities?.open === false) throw new FsError("ENOTSUP", { syscall: "open", path });
     descriptor = await context.fs.open(path, { ...request, signal: scope });
     acquisitionSettled();
     check();

@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { pythonDescriptorFixture } from "../helpers/python-descriptors.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
 const bytes = (text: string) => new TextEncoder().encode(text);
 
-describe("memory canonical descriptors", () => {
+describe.each(["direct", "python"] as const)("memory canonical descriptors (%s)", transport => {
+  const createFileSystem = transport === "python" ? pythonDescriptorFixture : (options?: ConstructorParameters<typeof MemoryFileSystem>[0]) => new MemoryFileSystem(options);
   it("keeps cursor independent of positioned operations and retains tails", async () => {
-    const fs = new MemoryFileSystem();
+    const fs = createFileSystem();
     await fs.writeFile("/file", bytes("abcdef"));
     const fd = await fs.open("/file", { access: "readwrite" });
     const buffer = new Uint8Array(2);
@@ -25,7 +27,7 @@ describe("memory canonical descriptors", () => {
   });
 
   it("checks permissions only at acquisition and keeps inode identity after replacement", async () => {
-    const fs = new MemoryFileSystem();
+    const fs = createFileSystem();
     await fs.mkdir("/dir");
     const fd = await fs.open("/dir/file", { access: "readwrite", creation: "exclusive", mode: 0 });
     await fd.write(bytes("old"), null);
@@ -47,7 +49,7 @@ describe("memory canonical descriptors", () => {
   });
 
   it("supports append and volatile synchronization without pretending durability", async () => {
-    const fs = new MemoryFileSystem();
+    const fs = createFileSystem();
     const first = await fs.open("/file", { access: "write", creation: "ifMissing", append: true, synchronization: "data" });
     const second = await fs.open("/file", { access: "write", append: true });
     await Promise.all([first.write(bytes("ab"), null), second.write(bytes("cd"), null)]);
@@ -61,7 +63,7 @@ describe("memory canonical descriptors", () => {
   });
 
   it("enforces exact creation, canonical traversal, and non-file errors", async () => {
-    const fs = new MemoryFileSystem();
+    const fs = createFileSystem();
     await fs.mkdir("/dir");
     await fs.symlink("/missing", "/link");
     await expect(fs.open("/missing", { access: "write" })).rejects.toMatchObject({ code: "ENOENT" });
@@ -76,7 +78,7 @@ describe("memory canonical descriptors", () => {
   });
 
   it("charges unlinked open inodes once until final close, including growth and truncate", async () => {
-    const fs = new MemoryFileSystem({ maxBytes: 8 });
+    const fs = createFileSystem({ maxBytes: 8 });
     await fs.writeFile("/file", bytes("1234"));
     await fs.link("/file", "/alias");
     const first = await fs.open("/file", { access: "readwrite" });
@@ -97,7 +99,7 @@ describe("memory canonical descriptors", () => {
   });
 
   it("accounts hardlinks, recursive removal, overwrite rename, and retained streaming writers", async () => {
-    const fs = new MemoryFileSystem({ maxBytes: 6 });
+    const fs = createFileSystem({ maxBytes: 6 });
     await fs.mkdir("/dir");
     await fs.writeFile("/dir/file", bytes("abc"));
     await fs.link("/dir/file", "/dir/alias");

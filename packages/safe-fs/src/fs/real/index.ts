@@ -430,6 +430,16 @@ export class RealFileSystem implements FileSystem {
     });
   }
 
+  async unlink(path: string, options: FsOptions = {}): Promise<void> {
+    return this.operation("unlink", path, options, async () => {
+      const target = await this.path(path, { ...options, followFinal: false });
+      this.protectTerminal(path);
+      this.protectRoot(target, await this.root(options));
+      options.signal?.throwIfAborted();
+      await native.unlink(target);
+    });
+  }
+
   async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
     return this.operation("rename", source, options, async () => {
       if (options.noReplace) throw new FsError("ENOTSUP", { syscall: "rename", path: source, dest: destination });

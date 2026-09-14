@@ -70,7 +70,12 @@ test("observer captures the retained descriptor across rename without pathname s
         async close() { closes++; await descriptor.close(); },
       });
     },
-    async stat() { assert.fail("descriptor observation must not stat a pathname"); },
+    async stat(path, options) {
+      // Creation capability admission may inspect parent paths before open.
+      // Once retained, all observer metadata must come from that descriptor.
+      assert.equal(opens, 0, "descriptor observation must not stat a pathname");
+      return backing.stat(path, options);
+    },
   });
   const subject = setup(async invocation => {
     const observer = observe(invocation.input, 1);

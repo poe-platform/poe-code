@@ -11,7 +11,7 @@ const operations = new Set<keyof FileSystem>([
   "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
-  "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "stat", "symlink", "truncate", "utimes",
+  "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "unlink", "stat", "symlink", "truncate", "utimes",
   "writeFile", "writeStream",
 ]);
 

@@ -1,3 +1,4 @@
+import { BackgroundJobs, BackgroundResources, backgroundResources, backgroundPrune, backgroundDestination, forwardBackgroundDestination } from "./background-jobs.js";
 import type { InternalErrorHandler } from "../contracts/command.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { writeDiagnostic } from "../escaping.js";
@@ -88,7 +89,7 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "mapfile", "readarray",
-  "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt",
+  "wait", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
@@ -110,6 +111,9 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<
   }
   return result;
 }
+
+const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
+const inputScopes = new WeakMap<ShellInput, InvocationScope>();
 
 const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
 
@@ -267,6 +271,7 @@ export class Budget {
         await interruptible(sink.write(chunk), signal);
       },
     };
+    forwardBackgroundDestination(output, sink);
     budgetedSinks.set(output, { budget: this, write: output.write, ...(ownership?.write === sink.write && ownership.file ? { file: ownership.file } : {}) });
     return output;
   }
@@ -387,10 +392,14 @@ export interface State {
   errexit?: boolean;
   nounset?: boolean;
   isolated?: boolean;
+  backgroundJobs?: BackgroundJobs | undefined;
+  lastBackgroundJob?: string;
   redirectAssignments?: ReadonlyMap<string, ShellValue>;
 }
 
 interface IO {
+  readonly [backgroundPrune]?: ((descriptors: ReadonlyMap<number, Descriptor>) => void) | undefined;
+  readonly [backgroundResources]?: readonly BackgroundResources[] | undefined;
   readonly nameExpansionContext?: "document" | "conditional" | undefined;
   readonly [invocationScope]: InvocationScope;
   readonly [valueScope]?: ValueScope;
@@ -512,6 +521,7 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
     } } : {}),
     async write(chunk) { signal.throwIfAborted(); await interruptible(write(chunk), signal); },
   };
+  forwardBackgroundDestination(output, sink);
   if (owned) budgetedSinks.set(output, { ...owned, write: output.write });
   return output;
 }
@@ -529,6 +539,7 @@ function bindCommandIO(context: CommandContext): void {
 async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope, inheritLocals = true): Promise<State> {
   const destination = await snapshotState(state, () => ({
     ...state,
+    ...(state.backgroundJobs ? { backgroundJobs: new BackgroundJobs(state.backgroundJobs.execution) } : {}),
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
     readonlyVariables: new Set(state.readonlyVariables),
@@ -1181,6 +1192,7 @@ export class Runtime {
     private readonly inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs,
   ) {
     this.fs = scopeFileSystem(fs, () => budget.fileSystemOperation(), signal, () => budget.fileSystemCleanupOperation());
+    runtimeFileSystems.set(this.fs, runtimeFileSystems.get(fs) ?? fs);
     const checkpoint = () => budget.cpuCheckpoint();
     registerYieldCheckpoint(signal, checkpoint);
     registerYieldCheckpoint(commandSignal, checkpoint);
@@ -1835,6 +1847,50 @@ export class Runtime {
 
   async script(script: Script, state: State, io: IO): Promise<number> {
     for (const list of script.lists) {
+      if (list.background) {
+        const jobs = state.backgroundJobs!;
+        const id = jobs.execution.identifier();
+        const scope = jobs.execution.scope.child();
+        const inheritedDestinations = new Set([io.stdout, io.stderr, ...[...io.descriptors?.values() ?? []].flatMap(descriptor => descriptor.output && !descriptor.closed ? [descriptor.output] : [])].map(backgroundDestination));
+        const leases = (io[backgroundResources] ?? []).filter(resource => !resource.destination || inheritedDestinations.has(resource.destination)).map(resource => ({ resource, release: resource.retain() }));
+        const releases = leases.map(lease => lease.release);
+        let child: State;
+        try { child = await cloneState(state, this.signal, scope); }
+        catch (error) { releases.forEach(release => release()); await scope.close(); throw error; }
+        child.isolated = true;
+        child.loopDepth = 0;
+        const inherited = isolateIO(activeIO(io));
+        const redirectsInput = list.pipelines[0]!.commands[0]!.redirects.some(redirect => redirect.descriptor === 0);
+        const stdin = redirectsInput ? inherited.stdin : toByteSource("");
+        const descriptors = new Map(inherited.descriptors);
+        descriptors.set(0, { input: stdin, stdinIsDefault: false });
+        let initialRedirection = true;
+        const backgroundIO: IO = { ...inherited, [invocationScope]: scope, stdin, stdinIsDefault: false, descriptors,
+          [backgroundPrune]: list.pipelines.length === 1 ? descriptors => {
+            if (!initialRedirection) return;
+            initialRedirection = false;
+            const destinations = new Set([...descriptors.values()].flatMap(descriptor => descriptor.output && !descriptor.closed ? [backgroundDestination(descriptor.output)] : []));
+            for (const lease of leases) if (lease.resource.destination && !destinations.has(lease.resource.destination)) lease.release();
+          } : undefined,
+        };
+        const runtime = new Runtime(runtimeFileSystems.get(this.fs) ?? this.fs, this.commands, this.middleware, this.budget,
+          AbortSignal.any([this.commandSignal, scope.signal]), this.fileWrites, this.outputFiles,
+          this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner,
+          this.cancellationDepth, this.cancellationMaxDepth, undefined, this.inputProfile);
+        try {
+          state.lastBackgroundJob = jobs.launch(id, async () => {
+            try {
+              try { return (await runtime.runUnit({ lists: [{ ...list, background: false }] }, child, backgroundIO)).exitCode; }
+              catch (error) { if (error instanceof Flow && error.kind === "return") return error.status; throw error; }
+            } finally {
+              releases.forEach(release => release());
+              await scope.close();
+            }
+          });
+        } catch (error) { releases.forEach(release => release()); await scope.close(); throw error; }
+        state.status = 0;
+        continue;
+      }
       for (let index = 0; index < list.pipelines.length; index++) {
         const operator = list.operators[index - 1];
         if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
@@ -1873,12 +1929,17 @@ export class Runtime {
       const completed = new Set<number>();
       const closing = new Set<TurnHandle>();
       let statuses: number[];
+      const stageLeases: { resource: BackgroundResources; release: () => void }[][] = [];
       try {
         for (let index = 1; index < pipeline.commands.length; index++) pipes.push(createBytePipe({
           highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
         }));
         for (let index = 0; index < pipeline.commands.length; index++) controllers.push(new AbortController());
+        stageLeases.push(...pipeline.commands.map(() => (io[backgroundResources] ?? []).filter(resource => resource.destination).map(resource => ({ resource, release: resource.retain() }))));
+        io[backgroundPrune]?.(new Map());
         const tasks = pipeline.commands.map(async (command, index) => {
+          let initialRedirection = true;
+          const inheritedLeases = stageLeases[index]!;
           const incoming = pipes[index - 1];
           const outgoing = pipes[index];
           const childDepth = this.cancellationDepth + 1;
@@ -1917,6 +1978,8 @@ export class Runtime {
               throw error;
             }
           } };
+          const resources = new BackgroundResources();
+          resources.destination = backgroundDestination(pipeOutput ?? io.stdout);
           const executeStage = async (): Promise<CommandResult> => {
             try {
               let exitCode: number;
@@ -1925,6 +1988,13 @@ export class Runtime {
                 child.isolated = true;
                 const work = runtime.runCommandIsolated(command, child, {
                   ...isolateIO(io),
+                  [backgroundResources]: [...io[backgroundResources] ?? [], resources],
+                  [backgroundPrune]: descriptors => {
+                    if (!initialRedirection) return;
+                    initialRedirection = false;
+                    const destinations = new Set([...descriptors.values()].flatMap(descriptor => descriptor.output && !descriptor.closed ? [backgroundDestination(descriptor.output)] : []));
+                    for (const lease of inheritedLeases) if (!destinations.has(lease.resource.destination!)) lease.release();
+                  },
                   stdin: input,
                   ...(incoming ? { stdinIsDefault: false } : {}),
                   stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
@@ -1932,12 +2002,14 @@ export class Runtime {
                 }).finally(() => stateMonitor(child)?.closeValues());
                 retain(work);
                 exitCode = await interruptible(work, signal);
+                if (resources.busy) await interruptible(resources.drain(), signal);
               } catch (error) {
                 if (!(error instanceof PipelineClosed)) throw error;
                 exitCode = 141;
               }
               return { exitCode };
             } finally {
+              inheritedLeases.forEach(lease => lease.release());
               completed.add(index);
               if (incoming) {
                 const upstream = index - 1;
@@ -1967,6 +2039,7 @@ export class Runtime {
         statuses = await interruptible(Promise.all(tasks), this.signal);
       } finally {
         try {
+          for (const leases of stageLeases) for (const lease of leases) lease.release();
           for (const close of closing) cancelTurn(close);
           for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
           const aborts = pipes.map((pipe) => pipe.abort());
@@ -2039,13 +2112,20 @@ export class Runtime {
     this.budget.tick();
     if (this.budget.commands % 128 === 0) await yieldTurn(this.signal);
     this.signal.throwIfAborted();
+    const resources = new BackgroundResources();
+    originalIO = { ...originalIO, [backgroundResources]: [...originalIO[backgroundResources] ?? [], resources] };
     const inputs = new Set<ShellInput>();
     const outputs = new Set<(completion: OutputCompletion) => void | Promise<void>>();
     const finishOutputs = async (status: number): Promise<void> => {
       const pending = [...outputs];
       outputs.clear();
-      const settled = await Promise.allSettled(pending.map(close => close({ status })));
-      throwCleanupFailures(settled.filter(result => result.status === "rejected").map(result => result.reason));
+      const finish = async (): Promise<void> => {
+        await resources.drain();
+        const settled = await Promise.allSettled(pending.map(close => close({ status })));
+        throwCleanupFailures(settled.filter(result => result.status === "rejected").map(result => result.reason));
+      };
+      if (resources.busy) state.backgroundJobs!.execution.track(finish());
+      else await finish();
     };
     const allocation = this.budget.values.scope();
     originalIO = { ...originalIO, [valueScope]: allocation };
@@ -2286,14 +2366,19 @@ export class Runtime {
       return status;
     } finally {
       try {
-        await Promise.allSettled([
+        const close = async (): Promise<void> => {
+          await resources.drain();
+          await Promise.allSettled([
           ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })),
-          ...[...inputs].map(async input => input.close()),
+          ...[...inputs].map(async input => { try { await input.close(); } finally { await inputScopes.get(input)?.close(); } }),
         ]).then(results => {
           const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
           if (diagnosticFailure) io[invocationScope].failures.push(...failures);
           else throwCleanupFailures(failures);
         }).finally(() => allocation.close());
+        };
+        if (resources.busy) state.backgroundJobs!.execution.track(close());
+        else await close();
       } finally {
         finishSnapshot?.();
         await snapshotScope?.close();
@@ -2368,6 +2453,8 @@ export class Runtime {
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
         [invocationScope]: io[invocationScope],
+        [backgroundResources]: io[backgroundResources],
+        [backgroundPrune]: io[backgroundPrune],
         ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
         ...(io.execution === undefined ? {} : { execution: io.execution }),
         ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),
@@ -2430,14 +2517,24 @@ export class Runtime {
           await interruptible(this.fs.access(path, 4, options), this.signal);
           const stat = await interruptible(this.fs.stat(path, options), this.signal);
           if (stat.type === "directory" && !fileShortcut) throw new PublicDiagnostic(`${target}: Is a directory`);
-          const source = stat.type === "directory" ? toByteSource("")
-            : await fileInput(this.fs, path, this.budget.limits.maxInputBytes, this.signal, this.inputProfile, { stat, registerCleanup: cleanup => { io[invocationScope].register(cleanup); } });
-          const input = new ShellInput(source, this.budget, this.signal, { stat, ...source });
-          inputs.add(input);
+          const inputScope = (state.backgroundJobs?.execution.scope ?? io[invocationScope]).child();
+          let input: ShellInput;
+          try {
+            const inputSignal = this.commandSignal;
+            const inputFs = scopeFileSystem(runtimeFileSystems.get(this.fs) ?? this.fs, () => this.budget.fileSystemOperation(), inputSignal, () => this.budget.fileSystemCleanupOperation());
+            const source = stat.type === "directory" ? toByteSource("")
+              : await fileInput(inputFs, path, this.budget.limits.maxInputBytes, inputSignal, this.inputProfile, { stat, registerCleanup: cleanup => { inputScope.register(cleanup); } });
+            input = new ShellInput(source, this.budget, inputSignal, { stat, ...source });
+            inputScopes.set(input, inputScope);
+            inputs.add(input);
+          } catch (error) { await inputScope.close(); throw error; }
           descriptors.set(redirect.descriptor, { input, stdinIsDefault: false });
         } else {
+          const outputSignal = this.commandSignal;
+          const outputFs = scopeFileSystem(runtimeFileSystems.get(this.fs) ?? this.fs, () => this.budget.fileSystemOperation(), outputSignal, () => this.budget.fileSystemCleanupOperation());
+          const options = { signal: outputSignal };
           const append = redirect.operator === ">>";
-          const capabilities = await this.fs.capabilitiesFor?.(path, options) ?? this.fs.capabilities;
+          const capabilities = await outputFs.capabilitiesFor?.(path, options) ?? outputFs.capabilities;
           const random = capabilities.randomAccessWrite === true;
           const key = resolvePath(state.cwd, path);
           let file!: OutputFile;
@@ -2446,15 +2543,15 @@ export class Runtime {
             if (!random && file.references) throw new FsError("ENOTSUP", { path, message: "Conflicting sequential output descriptors" });
             file.references++;
             this.outputFiles.set(key, file);
-          });
+          }, outputSignal);
           let closed = false;
           let offset = 0;
           const incremental = async (): Promise<ByteSink> => {
             await this.fileOperation(key, async () => {
-              if (append) await this.fs.appendFile(path, new Uint8Array(), options);
-              else await this.fs.writeFile(path, new Uint8Array(), { ...options, flag: "w" });
+              if (append) await outputFs.appendFile(path, new Uint8Array(), options);
+              else await outputFs.writeFile(path, new Uint8Array(), { ...options, flag: "w" });
               if (!append) file.data = new Uint8Array();
-            });
+            }, outputSignal);
             return { write: (chunk) => {
               const copy = new Uint8Array(chunk);
               return this.fileOperation(key, async () => {
@@ -2463,27 +2560,27 @@ export class Runtime {
                 let atEOF = false;
                 if (!append && current && offset === current.length && capabilities.append === true && capabilities.stat !== false) {
                   try {
-                    atEOF = (await interruptible(this.fs.stat(path, options), this.signal)).size === offset;
+                    atEOF = (await interruptible(outputFs.stat(path, options), outputSignal)).size === offset;
                   } catch {
                     // Metadata is optional for this optimization; writes need no read access.
-                    this.signal.throwIfAborted();
+                    outputSignal.throwIfAborted();
                   }
-                  this.signal.throwIfAborted();
+                  outputSignal.throwIfAborted();
                 }
                 if (append || atEOF) {
                   // Preparing a larger view only touches the unpublished tail of current.
                   const bytes = current ? appendOutputBytes(current, copy) : undefined;
-                  await this.fs.appendFile(path, copy, options);
+                  await outputFs.appendFile(path, copy, options);
                   file.data = bytes;
                 } else {
                   const bytes = new Uint8Array(Math.max(current?.length ?? 0, offset + copy.length));
                   if (current) bytes.set(current);
                   bytes.set(copy, offset);
-                  await this.fs.writeFile(path, bytes, options);
+                  await outputFs.writeFile(path, bytes, options);
                   file.data = bytes;
                 }
                 if (!append) offset += copy.length;
-              });
+              }, outputSignal);
             } };
           };
           const resumePathCache = this.budget.pathLookup.suspend();
@@ -2496,8 +2593,8 @@ export class Runtime {
           let target;
           let outputScope: InvocationScope | undefined;
           try {
-            outputScope = io[invocationScope].child();
-            target = await openFileOutput({ fs: this.fs, signal: this.signal, registerCleanup: cleanup => { outputScope!.register(cleanup); } }, path, append ? "a" : "w", random ? incremental : undefined);
+            outputScope = (state.backgroundJobs?.execution.scope ?? io[invocationScope]).child();
+            target = await openFileOutput({ fs: outputFs, signal: outputSignal, registerCleanup: cleanup => { outputScope!.register(cleanup); } }, path, append ? "a" : "w", random ? incremental : undefined);
           } catch (error) {
             try { await outputScope?.close(); }
             finally { release(); }
@@ -2505,12 +2602,12 @@ export class Runtime {
           }
           outputs.add(async completion => {
             try {
-              if (this.signal.aborted) await target.abort(this.signal.reason);
+              if (outputSignal.aborted) await target.abort(outputSignal.reason);
               else if ("reason" in completion) await target.abort(completion.reason);
               else {
                 try { await target.finish(); }
                 catch (error) {
-                  this.signal.throwIfAborted();
+                  outputSignal.throwIfAborted();
                   if (completion.status === 0) throw error;
                 }
               }
@@ -2519,7 +2616,7 @@ export class Runtime {
               finally { release(); }
             }
           });
-          const output = this.budget.sink(target.sink, this.signal);
+          const output = this.budget.sink(target.sink, outputSignal);
           budgetedSinks.get(output)!.file = Object.freeze({ path });
           descriptors.set(redirect.descriptor, { output });
           if (redirect.operator === "&>") {
@@ -2532,14 +2629,15 @@ export class Runtime {
       const diagnostic = errorTarget === undefined ? undefined : filesystemDiagnostic(error, errorTarget);
       throw new ExecutionFailure(error, currentIO(), diagnostic);
     }
+    io[backgroundPrune]?.(descriptors);
     return currentIO();
   }
 
-  async fileOperation(path: string, operation: () => Promise<void>): Promise<void> {
+  async fileOperation(path: string, operation: () => Promise<void>, signal = this.signal): Promise<void> {
     const previous = this.fileWrites.get(path) ?? Promise.resolve();
-    const pending = previous.catch(() => undefined).then(() => { this.signal.throwIfAborted(); return operation(); });
+    const pending = previous.catch(() => undefined).then(() => { signal.throwIfAborted(); return operation(); });
     this.fileWrites.set(path, pending);
-    try { await interruptible(pending, this.signal); }
+    try { await interruptible(pending, signal); }
     finally { if (this.fileWrites.get(path) === pending) this.fileWrites.delete(path); }
   }
 
@@ -2607,7 +2705,7 @@ export class Runtime {
     };
     let overlayOpen = false;
     try {
-      if (snapshotScope) state = await cloneState(state, this.signal, snapshotScope);
+      if (snapshotScope) { const jobs = state.backgroundJobs; state = await cloneState(state, this.signal, snapshotScope); state.backgroundJobs = jobs; }
       if (words.length) {
         stateMonitor(state)?.openOverlay(previous);
         overlayOpen = true;
@@ -2711,6 +2809,8 @@ export class Runtime {
   private async dispatchScoped(name: string, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean): Promise<number> {
     const { [invocationScope]: scope, ...publicIO } = io;
     Reflect.deleteProperty(publicIO, valueScope);
+    Reflect.deleteProperty(publicIO, backgroundResources);
+    Reflect.deleteProperty(publicIO, backgroundPrune);
     const allocation = this.budget.values.scope();
     scope.register(() => allocation.close());
     const argumentValues = this.admitArguments(values, allocation);
@@ -2759,6 +2859,7 @@ export class Runtime {
       const forwardedValues = getCommandArguments(forwarded);
       const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
       const context = { ...forwarded, args: admitted.args, argumentValues: admitted, [invocationScope]: scope,
+        [backgroundResources]: io[backgroundResources], [backgroundPrune]: io[backgroundPrune],
         ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }) };
       const previous = new Map<string, SavedVariable & { overlay: string | undefined }>();
       const cwd = state.cwd;
@@ -3092,6 +3193,7 @@ export class Runtime {
       directoryStack: { entries: [], bytes: 0 },
       dotglob: false,
       globstar: false,
+      backgroundJobs: new BackgroundJobs(state.backgroundJobs!.execution),
       positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
       loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
       errexit: false,
@@ -3288,6 +3390,8 @@ export class Runtime {
       };
       Reflect.deleteProperty(context, invocationScope);
       Reflect.deleteProperty(context, valueScope);
+      Reflect.deleteProperty(context, backgroundResources);
+      Reflect.deleteProperty(context, backgroundPrune);
       bindCommandIO(context);
       bindFileOutputBudget(context, sink => this.budget.sink(sink, runtime.signal));
       if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
@@ -4306,10 +4410,82 @@ export class Runtime {
     } finally { try { await pinned?.release(); } finally { try { releaseHolding?.(); } finally { allocation.close(); } } }
   }
 
+  private async waitBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+    let next = false;
+    let variable: string | undefined;
+    let index = 0;
+    for (; index < context.args.length; index++) {
+      const option = context.args[index]!;
+      if (option === "--") { index++; break; }
+      if (!option.startsWith("-") || option === "-") break;
+      for (let flag = 1; flag < option.length; flag++) {
+        const letter = option[flag];
+        if (letter === "n") next = true;
+        else if (letter === "f") { /* Processes do not stop in the virtual shell. */ }
+        else if (letter === "p") {
+          variable = option.slice(flag + 1) || context.args[++index];
+          if (variable === undefined) { await writeDiagnostic(context.stderr, "wait: -p: option requires an argument\n"); return 2; }
+          if (!/^[a-zA-Z_][a-zA-Z_0-9]*(?:\[.+\])?$/su.test(variable)) {
+            await writeDiagnostic(context.stderr, `wait: ${variable}: not a valid identifier\n`); return 1;
+          }
+          break;
+        } else { await writeDiagnostic(context.stderr, `wait: -${letter}: invalid option\n`); return 2; }
+      }
+    }
+    const target = variable === undefined ? undefined : /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(.+)\])?$/su.exec(variable)!;
+    if (target) {
+      const name = target[1]!;
+      if (state.readonlyVariables?.has(name)) { await writeDiagnostic(context.stderr, `wait: ${name}: readonly variable\n`); return 1; }
+      if (target[2] === undefined) {
+        if (arrayStore(state)?.get(name)) await this.unsetIndexed(state, name);
+        else this.unsetVariable(state, name);
+      }
+    }
+    const publish = async (id: string): Promise<void> => {
+      if (!target) return;
+      if (target[2] === undefined) await this.assignVariable(state, target[1]!, id);
+      else await this.arrayAssignment({ kind: "element", name: target[1]!, index: { decimal: target[2], source: target[2] }, append: false, value: { offset: 0, parts: [{ kind: "text", value: id, quoted: true }] } }, state, context);
+    };
+    const table = state.backgroundJobs!;
+    const ids = context.args.slice(index);
+    const selected = [];
+    let invalid = false;
+    for (const id of ids) {
+      if (!id.startsWith("%") && !/^[0-9]+$/u.test(id)) { await writeDiagnostic(context.stderr, `wait: ${id}: not a pid or valid job spec\n`); if (next) continue; return 1; }
+      const job = table.resolve(id);
+      if (!job) { await writeDiagnostic(context.stderr, `wait: ${id}: not a child of this shell\n`); invalid = true; }
+      else selected.push(job);
+    }
+    if (next) {
+      const eligible = ids.length ? selected.filter(job => !job.waited) : [...table.jobs.values()].filter(job => !job.done && !job.consumed);
+      if (!eligible.length) return 127;
+      const result = await interruptible(Promise.race(eligible.map(async job => ({ job, status: await job.promise }))), this.signal);
+      result.job.consumed = true;
+      await publish(result.job.id);
+      return result.status;
+    }
+    if (!ids.length) {
+      await interruptible(Promise.all([...table.jobs.values()].map(job => job.promise)), this.signal);
+      table.jobs.clear();
+      return 0;
+    }
+    let status = invalid ? 127 : 0;
+    for (const id of ids) {
+      const job = table.resolve(id);
+      if (!job) { status = 127; continue; }
+      status = await interruptible(job.promise, this.signal);
+      job.consumed = true;
+      job.waited = true;
+      await publish(job.id);
+    }
+    return status;
+  }
+
   async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
+    if (command === "wait") return this.waitBuiltin(context, state);
     if (command === "shopt") return this.shoptBuiltin(context, state);
     if (command === "let") return this.letBuiltin(context, state);
     if (command === "mapfile" || command === "readarray") return this.mapfileBuiltin(context, state);
@@ -4901,9 +5077,11 @@ export class Runtime {
       const substitutionDiagnosticLines = new Map<Command, number>();
       for (const [command, line] of part.script.printedLines ?? []) substitutionDiagnosticLines.set(command,
         part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1);
-      const captureIO = { ...isolateIO(io), substitutionDiagnosticLines, diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };
+      const resources = new BackgroundResources();
+      const captureIO = { ...isolateIO(io), [backgroundResources]: [...io[backgroundResources] ?? [], resources], substitutionDiagnosticLines, diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };
+      resources.destination = backgroundDestination(captureIO.stdout);
       try { state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO); }
-      finally { stateMonitor(child)?.closeValues(); }
+      finally { await interruptible(resources.drain(), this.signal); stateMonitor(child)?.closeValues(); }
       state.status = state.substitutionStatus;
       const bytes = capture.bytes();
       if (bytes.includes(0)) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
@@ -4937,7 +5115,8 @@ export class Runtime {
       io[valueScope]?.reserve(values.length * 32 + 64, 0);
       return concatShellValues(values.flatMap((value, index) => index ? [separator, value] : [value]), io[valueScope]);
     }
-    let value = part.name === "?" ? String(state.status)
+    let value = part.name === "!" ? state.lastBackgroundJob
+      : part.name === "?" ? String(state.status)
       : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}`
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")

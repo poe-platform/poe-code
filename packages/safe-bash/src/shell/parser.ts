@@ -94,6 +94,7 @@ export interface Pipeline {
 }
 
 export interface AndOr {
+  readonly background?: boolean;
   readonly pipelines: Pipeline[];
   readonly operators: ("&&" | "||")[];
 }
@@ -176,7 +177,7 @@ class Lexer {
     }
     const operator = this.conditionalPattern ? undefined : /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
-      if (["&", "&>>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
+      if (operator === "&>>") this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
       if (operator === "<<" || operator === "<<-") this.delimiterOperator = operator;
       if (operator === "\n") this.readDocuments();
@@ -612,7 +613,7 @@ class Lexer {
       return;
     }
     this.position++;
-    if (["$", "!"].includes(this.source[this.position] ?? "") || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
+    if (this.source[this.position] === "$" || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
     if (this.source.startsWith("((", this.position)) {
       const start = this.position + 2;
       const end = arithmeticEnd(this.source, start);
@@ -645,11 +646,11 @@ class Lexer {
     } else if (this.source[this.position] === "{") {
       this.position++;
       const parameterStart = this.position - 2;
-      const listing = this.source[this.position] === "!";
+      const listing = this.source[this.position] === "!" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
       if (listing) this.position++;
-      const length = !listing && this.source[this.position] === "#" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
+      const length = !listing && this.source[this.position] === "#" && /[a-zA-Z_!]/u.test(this.source[this.position + 1] ?? "");
       if (length) this.position++;
-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
+      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#!-])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
       let prefixNames: "*" | "@" | undefined;
@@ -725,7 +726,7 @@ class Lexer {
         parts.push(part);
       }
     } else {
-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
+      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#!0-9-])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {
         this.position += name.length;
         parts.push({ kind: "variable", name, quoted, line });
@@ -798,11 +799,11 @@ class Parser {
         this.newlines();
         pipelines.push(this.pipeline());
       }
-      lists.push({ pipelines, operators });
+      lists.push({ pipelines, operators, ...(this.is("&") ? { background: true } : {}) });
       separators.push(this.is("\n"));
       if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
       if (inputUnit && this.is("\n")) break;
-      if (this.is(";") || this.is("\n")) {
+      if (this.is(";") || this.is("&") || this.is("\n")) {
         this.advance();
         if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
         if (inputUnit && this.is("\n")) break;

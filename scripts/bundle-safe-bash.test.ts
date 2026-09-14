@@ -456,7 +456,7 @@ it("cancels active custom commands and disposes the shell", async () => {
   const shell = new browser.Shell({ fs: new filesystem.MemoryFileSystem() }).use({
     name: "wait-for-cancellation",
     setup(host) {
-      host.commands.register({ name: "wait", execute(context) {
+      host.commands.register({ name: "wait-for-cancellation", execute(context) {
         return new Promise((_resolve, reject) => {
           context.signal.addEventListener("abort", () => reject(context.signal.reason), { once: true });
           start();
@@ -465,7 +465,7 @@ it("cancels active custom commands and disposes the shell", async () => {
     },
   });
   const stopped = new Error("stop browser execution");
-  const running = shell.exec("wait", { signal: controller.signal });
+  const running = shell.exec("wait-for-cancellation", { signal: controller.signal });
   const rejected = expect(running).rejects.toBe(stopped);
   await started;
   controller.abort(stopped);

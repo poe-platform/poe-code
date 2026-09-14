@@ -390,6 +390,8 @@ function assertSource7Discovery(files) {
     "tests/contracts/value.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
+    "tests/shell/background-jobs.test.ts",
+    "tests/shell/background-jobs-review.test.ts",
     "tests/shell/globstar.test.ts",
     "tests/shell/prefix-names.test.ts",
     "tests/shell/parameter-transforms.test.ts",

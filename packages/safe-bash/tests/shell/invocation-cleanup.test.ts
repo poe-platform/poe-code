@@ -313,12 +313,12 @@ test("dispose closes admissions and shares the active cleanup barrier before plu
   let callbacks = 0;
   const events: string[] = [];
   shell.use({ name: "owner", setup() {}, dispose() { events.push("plugin"); } });
-  commands.register({ name: "wait", async execute(context) {
+  commands.register({ name: "host-wait", async execute(context) {
     context.registerCleanup?.(async () => { callbacks++; await release.promise; events.push("cleanup"); });
     entered.resolve();
     return new Promise<CommandResult>(() => {});
   } });
-  const execution = shell.exec("wait").catch(() => { events.push("exec"); });
+  const execution = shell.exec("host-wait").catch(() => { events.push("exec"); });
   await entered.promise;
   let firstDone = false;
   let secondDone = false;

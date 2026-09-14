@@ -113,6 +113,7 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
   if (type === "TemplateData") return valueSchema("DeclaredTemplateRecord | ReadonlyArray<DeclaredTemplateRecord>", definitions);
   if (type.startsWith("ReadonlyArray<") && type.endsWith(">")) return { type: "array", items: valueSchema(type.slice(14, -1), definitions) };
   if (type === "bounded range 1..9") return { type: "object", properties: { start: { type: "integer", minimum: 1, maximum: 9 }, end: { type: "integer", minimum: 1, maximum: 9 } }, required: ["start", "end"], additionalProperties: false, description: "start must not exceed end." };
+  if (type === "Baseline") return { enum: ["baseline", "superscript", "subscript"] };
   if (type === "ThemeFont") return { enum: ["majorAscii", "majorHAnsi", "majorEastAsia", "majorBidi", "minorAscii", "minorHAnsi", "minorEastAsia", "minorBidi"] };
   if (type === "ShadingPattern") return { enum: ["clear", "solid", "pct5", "pct10", "pct20", "pct25", "pct50", "pct75"] };
   if (type === "Border") return { ...objectSchema({ style: "none|single|double|dotted|dashed", width: "Length", color: "RGBColor", space: "?Length" }, definitions), description: "Width and space are nonnegative lengths." };

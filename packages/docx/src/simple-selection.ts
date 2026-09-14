@@ -35,8 +35,9 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
     const location = document.resolve(options.select);
     const acceptable = text ? ["story", "paragraph", "run", "table", "cell"]
       : inserting && ["paragraphs", "tables"].includes(resource) ? ["story", "cell", "paragraph"]
+      : operation === "runs.set" && location.value.range !== null ? ["run", "paragraph"]
       : resource === "tables" ? ["table", "cell"] : [targetKind];
-    if (!text && location.value.range !== null) throw new InvalidValueError("Whole resource operations require a resource token, not a text range.");
+    if (!text && operation !== "runs.set" && location.value.range !== null) throw new InvalidValueError("Whole resource operations require a resource token, not a text range.");
     if (!acceptable.includes(location.kind)) throw new SelectionError("missing-selection");
     if ((resource === "headers" || resource === "footers") &&
       !document.list("story", { scope: resource }).some(story => story.token === location.token))

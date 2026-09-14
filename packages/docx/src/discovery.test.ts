@@ -28,7 +28,7 @@ describe("document discovery", () => {
   it("lists only implemented discovery paths and generates options from declarations", () => {
     const root = discover("help")!;
     expect(root.data).toMatchObject({ name: "docx", paths: [
-      { path: ["create"] }, { path: ["inspect"] }, { path: ["validate"] }, { path: ["text", "get"] }, { path: ["text", "replace"] }, { path: ["xml", "get"] }, { path: ["xml", "set"] }, { path: ["help"] }, { path: ["schema"] }, { path: ["capabilities"] }, { path: ["version"] }
+      { path: ["create"] }, { path: ["inspect"] }, { path: ["validate"] }, { path: ["text", "get"] }, { path: ["text", "replace"] }, { path: ["xml", "get"] }, { path: ["xml", "set"] }, { path: ["runs", "set"] }, { path: ["help"] }, { path: ["schema"] }, { path: ["capabilities"] }, { path: ["version"] }
     ] });
     expect(root.human).toContain("Implemented commands");
     expect(root.human).toContain("docx create");
@@ -52,7 +52,7 @@ describe("document discovery", () => {
       result: { oneOf: [{ properties: { ok: { const: true }, affected: { type: "integer", minimum: 0 } } }, { properties: { ok: { const: false }, data: { type: "null" } } }] }, support: "edit"
     }] });
     const root = discover("schema")!.data as { operations: readonly { id: string; result: unknown }[] };
-    expect(root.operations.map(item => item.id)).toEqual(["create", "inspect", "validate", "text.get", "text.replace", "xml.get", "xml.set", "help", "schema", "capabilities", "version"]);
+    expect(root.operations.map(item => item.id)).toEqual(["create", "inspect", "validate", "text.get", "text.replace", "xml.get", "xml.set", "runs.set", "help", "schema", "capabilities", "version"]);
     expect(discover("schema", "images", "replace")!.data).toMatchObject({ operations: [{ support: "reject", result: { properties: { ok: { const: false } } } }] });
     expect(root.operations.find(item => item.id === "version")!.result).toMatchObject({ oneOf: [
       { properties: { version: { const: 1 }, operation: { const: "version" }, data: { properties: { version: { type: "string" } } } } },
@@ -72,7 +72,7 @@ describe("document discovery", () => {
   it("reports conservative host support and effective limits without document claims", () => {
     const budget = new DocumentBudget({ compressedInput: 1234 });
     const result = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} }, budget)!;
-    expect(result.data).toMatchObject({ features: [{ id: "F11", level: "edit" }, { id: "F06", level: "read" }, { id: "F49", level: "read" }, { id: "F08", level: "read" }, { id: "F09", level: "read" }, { id: "F07", level: "edit" }, { id: "F10", level: "edit" }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true } });
+    expect(result.data).toMatchObject({ features: [{ id: "F12", level: "edit" }, { id: "F11", level: "edit" }, { id: "F06", level: "read" }, { id: "F49", level: "read" }, { id: "F08", level: "read" }, { id: "F09", level: "read" }, { id: "F07", level: "edit" }, { id: "F10", level: "edit" }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true } });
     expect((result.data as { limits: readonly unknown[] }).limits).toContainEqual({ name: "compressedInput", ceiling: 1234 });
     expect(result.human).toContain("Inspection and partial core-v1 validation are implemented");
     expect(discover("capabilities", "report.docx")).toBeUndefined();

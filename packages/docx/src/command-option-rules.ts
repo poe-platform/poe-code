@@ -106,7 +106,20 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
     const value = magnitude(options[name]);
     if (value !== undefined && (!(value >= 0) || Number((options[name] as { value: number }).value) < 0)) reject("Spacing and margins must be nonnegative.");
   }
-  if (["runs.set", "runs.fonts.set"].includes(operation) && has("language") && !languageTag(options.language)) reject("Font language must be a nonempty BCP-47 tag.");
+  if (["runs.set", "runs.fonts.set"].includes(operation) && has("language") && options.language !== null && !languageTag(options.language)) reject("Font language must be a nonempty BCP-47 tag.");
+  if (operation === "runs.set") {
+    for (const key of ["underline", "highlight"]) if ((options[key] as { name?: string } | null)?.name === "INHERITED") reject("Use null for inherited formatting.");
+    const size = magnitude(options.size);
+    if (size !== undefined && (Math.round(size / 6350) < 1 || Math.round(size / 6350) > 3276)) reject("Font size must round to 1 through 3276 half-points.");
+    for (const key of ["font", "ascii", "highAnsi", "eastAsia", "complexScript"]) {
+      if (options[key] !== undefined && options[key] !== null && (typeof options[key] !== "string" || !options[key] || [...options[key] as string].some(c => c.charCodeAt(0) < 32))) reject("Font references must be nonempty names without control characters.");
+    }
+    if (has("font") && (has("ascii") || has("highAnsi"))) reject("Font shorthand conflicts with explicit Latin font slots.");
+    if (has("baseline") && (has("superscript") || has("subscript"))) reject("Choose one baseline spelling.");
+    if (has("superscript") && has("subscript") && options.superscript !== options.subscript && options.superscript !== true && options.subscript !== true) reject("Conflicting baseline resets.");
+    if (has("themeColor") && has("color")) reject("Choose RGB or theme color.");
+    if ((options.themeColor as { name?: string } | null)?.name === "NOT_THEME_COLOR") reject("Use null to remove a theme reference.");
+  }
   if (has("lineSpacing") && options.lineSpacing !== null) {
     const value = options.lineSpacing;
     if (typeof value === "number" ? !(value > 0) : !(Number(magnitude(value)) >= 0)) reject("Invalid line spacing.");

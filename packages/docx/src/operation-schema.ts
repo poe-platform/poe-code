@@ -176,6 +176,7 @@ function valid(type: string, value: unknown): boolean {
   if (type === "declared understood-namespace profile") return value === "core-v1";
   if (type === "closed operation ID") return typeof value === "string" && Object.hasOwn(operationDeclarations, value);
   if (type === "Length" || type.startsWith("Length (explicit")) return closed(value, { value: "number", unit: "identifier" }) && ["emu", "in", "cm", "mm", "pt", ...(type === "Length" ? ["twip"] : [])].includes(String(value.unit));
+  if (type === "Baseline") return typeof value === "string" && ["baseline", "superscript", "subscript"].includes(value);
   if (type === "RGBColor" || type === "RGB hex") return text(value) && value.length === 6 && [...value].every(c => "0123456789abcdefABCDEF".includes(c));
   if (Object.hasOwn(docxEnumSymbols, type)) return closed(value, { enum: "identifier", name: "identifier" }) && value.enum === type && docxEnumSymbols[type]!.includes(String(value.name));
   if (type === "BinaryInput") return object(value) && (value.kind === "bytes" ? closed(value, { kind: "identifier", base64: "string" }) && base64(value.base64) : value.kind === "vfs" && closed(value, { kind: "identifier", path: "identifier", capability: "identifier" }));

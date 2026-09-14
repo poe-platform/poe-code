@@ -19,6 +19,10 @@ The bounded logical text read milestone and its additive segment context are
 recorded in [text extraction evidence](../docx/text-extraction.md). It implements
 the utility read surface only, not the proposed document object model.
 
+The bounded scoped direct-formatting operation is described in
+[run formatting evidence](../docx/run-formatting.md). It does not promote the
+planned live object model, whole-text setters or batch execution to implemented.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong
@@ -470,7 +474,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `runs list`             | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F08, F19                                                                                           |
 | `runs get`              | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceData     | F01, F04                                                                                           |
 | `runs add`              | selectedEdit | `text?`: string; `style?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F01, F04                                                                                           |
-| `runs set`              | selectedEdit | `text?`: string; `bold?`: boolean / null; `italic?`: boolean / null; `underline?`: boolean / WD_UNDERLINE / null; `strike?`: boolean / null; `size?`: Length (explicit emu/in/cm/mm/pt); `font?`: string; `color?`: RGB hex / null; `highlight?`: WD_COLOR_INDEX / null; `language?`: string; `hidden?`: boolean / null; `rtl?`: boolean / null; `superscript?`: boolean / null; `subscript?`: boolean / null                                                                                                                                                                                              | MutationData     | F08, F09, F12, F25, F32                                                                            |
+| `runs set`              | selectedEdit | `text?`: string; `bold?`: boolean / null; `italic?`: boolean / null; `underline?`: boolean / WD_UNDERLINE / null; `strike?`: boolean / null; `size?`: Length (explicit emu/in/cm/mm/pt) / null; `font?`: string / null; `color?`: RGB hex / null; `highlight?`: WD_COLOR_INDEX / null; `language?`: string / null; `hidden?`: boolean / null; `rtl?`: boolean / null; `superscript?`: boolean / null; `subscript?`: boolean / null; additional nullable font-slot/theme/baseline fields in section 6.5                                                                                                                                                                                              | MutationData     | F08, F09, F12, F25, F32                                                                            |
 | `runs remove`           | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F44                                                                                                |
 | `styles list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F14                                                                                                |
 | `sections list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F16                                                                                                |
@@ -619,6 +623,28 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   multiple, or nullable reset. Outline level 9 is body text. Superscript and
   subscript cannot both be true. Advanced font flags, tabs, borders, shading,
   latent styles and theme links use fixed typed model/format batch operations.
+  The bounded `runs set` formatting subset additionally accepts nullable `size`,
+  `font` and `language`; `ascii`, `highAnsi`, `eastAsia`, `complexScript` are
+  nullable font names, and `asciiTheme`, `highAnsiTheme`, `eastAsiaTheme`,
+  `complexScriptTheme` are nullable ThemeFont references. ThemeFont is one of
+  majorAscii/majorHAnsi/majorEastAsia/majorBidi or the corresponding minor values.
+  `themeColor` is nullable MSO_THEME_COLOR; `baseline` is nullable
+  baseline/superscript/subscript. These additive fields use identical direct,
+  SDK and proposed batch schemas. Actual batch execution remains pending.
+  `font` updates ascii/hAnsi and conflicts with those explicit slots; it retains
+  their theme references. Language patches val only. Null clears the named slot
+  or property; omitted/undefined fields retain it. False superscript/subscript
+  writes explicit baseline, while null removes vertAlign. Baseline cannot combine
+  with superscript/subscript. RGB and themeColor are alternative assignments;
+  RGB clears theme transforms, theme assignment retains fallback/transforms, and
+  null themeColor removes only theme attributes. INHERITED/NOT_THEME_COLOR setter
+  sentinels reject; null expresses removal. Font names reject empty/control text.
+  Sizes convert to integer EMUs then nearest half-points, halfway away from zero;
+  this bounded editor admits 1–3276 half-points. Run/paragraph scalar ranges are
+  accepted for formatting only. Partial unsupported run content rejects; unchanged
+  formatting does not split. Only selected semantically equivalent adjacent runs
+  may merge; markers, opaque content and style/direct-property differences remain
+  boundaries. Whole-text assignment remains outside this implemented subset.
 - **Sections/stories.** Section add appends a new section, inheriting current
   geometry; startType defaults NEW_PAGE. Section set does not infer a width/height
   swap from orientation. Margins must leave positive content extent. Columns

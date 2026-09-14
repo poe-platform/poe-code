@@ -2,9 +2,9 @@ import { dirname, basename, type FileStat, type FileSystem } from "@poe-code/saf
 import { archiveSettings, CancellationError, InputTypeError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import type { ArchiveSink, ArchiveWriteOptions } from "./archive-write.js";
 import { DocumentPackage } from "./package.js";
-import { parseDocumentXml } from "./package-xml.js";
+import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { documentDialects } from "./dialect.js";
-import { UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { writeDocumentArchive } from "./document-write.js";
 
 export interface PublicationInput { readonly path: string; readonly stat: FileStat }
@@ -142,27 +142,43 @@ async function publish(fs: FileSystem, target: Destination, bytes: Uint8Array, s
   if (failed) throw error;
 }
 
-export function assertDocumentEditable(archive: DocumentArchive, { limits, budget }: ReturnType<typeof archiveSettings>): void {
+export function assertDocumentEditable(archive: DocumentArchive, { limits, budget }: ReturnType<typeof archiveSettings>, controlSource?: DocumentArchive): void {
   // Until feature-specific authorization is implemented, protected packages fail closed.
   const packageView = new DocumentPackage(archive, limits, budget);
   for (const part of packageView.parts) {
     const type = part.content_type.toLowerCase();
     if (type.includes("digital-signature")) throw new UnsupportedEditError("Signed package publication is not supported.");
     if (!type.endsWith("+xml") && type !== "application/xml" && type !== "text/xml") continue;
-    const stack = [parseDocumentXml(part.bytes, {}, budget).root];
+    const current = controlSource ? new DocumentXmlEditor(part.bytes, {}, undefined, budget) : undefined;
+    const originalPart = controlSource?.members.find(member => "/" + member.name === part.partname);
+    const original = originalPart ? new DocumentXmlEditor(originalPart.bytes, {}, undefined, budget) : undefined;
+    const root = current?.root ?? parseDocumentXml(part.bytes, {}, budget).root;
+    const stack = [{ node: root, path: [] as number[], ancestors: [root] }];
     while (stack.length) {
-      const node = stack.pop()!;
+      const { node, path, ancestors } = stack.pop()!;
+      let preservedControlLock = false;
+      if (original && current && node.localName === "lock" && ancestors.at(-2)?.localName === "sdtPr" && ancestors.at(-3)?.localName === "sdt" && ancestors.slice(-3).every(owner => owner.namespace === node.namespace)) {
+        let source: XmlElement | undefined = original.root; const sourceAncestors = [source];
+        for (const index of path) { source = source?.children[index]; if (!source) break; sourceAncestors.push(source); }
+        const properties = ancestors.at(-2)!, owner = ancestors.at(-3)!, oldProperties = sourceAncestors.at(-2), oldOwner = sourceAncestors.at(-3);
+        const inherited = (chain: readonly XmlElement[]) => JSON.stringify(chain.slice(0, -3).map(ancestor => ancestor.attributes.filter(attribute => ["http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace)).map(attribute => [attribute.namespace, attribute.localName, attribute.value])));
+        if (source && oldProperties && oldOwner && source.namespace === node.namespace && source.localName === "lock" && oldProperties.localName === "sdtPr" && oldOwner.localName === "sdt" &&
+          current.sourceXml(properties) === original.sourceXml(oldProperties) && inherited(ancestors) === inherited(sourceAncestors) && owner.namespaces.size === oldOwner.namespaces.size && [...owner.namespaces].every(([prefix, uri]) => oldOwner.namespaces.get(prefix) === uri)) {
+          const lock = node.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "val")?.value;
+          preservedControlLock = lock === "unlocked" || current.sourceXml(owner) === original.sourceXml(oldOwner);
+        }
+      }
       if ((Object.values(documentDialects).some(dialect => node.namespace === dialect.w)
-        && ["documentProtection", "writeProtection", "lock"].includes(node.localName))
+        && (["documentProtection", "writeProtection"].includes(node.localName) || node.localName === "lock" && !preservedControlLock))
         || node.namespace === "http://www.w3.org/2000/09/xmldsig#"
         || node.attributes.some(attribute => attribute.localName === "Type" && attribute.value.includes("/digital-signature/")))
         throw new UnsupportedEditError("Protected or signed package publication is not supported.");
-      for (const child of node.children) stack.push(child);
+      node.children.forEach((child, index) => stack.push({ node: child, path: [...path, index], ancestors: [...ancestors, child] }));
     }
   }
 }
 
-export async function publishDocumentArchive(archive: DocumentArchive, options: PublicationOptions, context: PublicationContext): Promise<PublicationResult> {
+export async function publishDocumentArchive(archive: DocumentArchive, options: PublicationOptions, context: PublicationContext, controlSource?: DocumentArchive): Promise<PublicationResult> {
   options = ownedOptions(options, ["input", "output", "inPlace", "force", "dryRun", "creation", "json"]);
   context = { ...context, encoding: { ...context.encoding } };
   const settings = archiveSettings(context);
@@ -175,7 +191,7 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
   const published: PublishedFile[] = [];
   let target: Destination | undefined;
   const path = inPlace ? options.input!.path : output;
-  assertDocumentEditable(archive, settings);
+  assertDocumentEditable(archive, settings, controlSource);
   const chunks: Uint8Array[] = [];
   let size = 0;
   let stagingFailure: unknown;

@@ -172,6 +172,7 @@ export function getDocxOperationSchema(id: string, transport: "sdk" | "cli" | "b
   const applicable = transport === "batch" ? fields : { ...Object.fromEntries(declaration.commonOptions.map(key => [key, docxCommonOptions[key]!])), ...fields };
   const schema = fieldsSchema(applicable, definitions);
   const conditions: DocxJsonSchema[] = [];
+  if (id === "controls.set") conditions.push({ oneOf: ["text", "checked", "choice", "date", "file"].map(name => ({ required: [name] })) });
   if (id === "text.replace") conditions.push({ anyOf: [
     { properties: { trackChanges: { const: true } }, required: ["trackChanges", "author", "timestamp"] },
     { properties: { trackChanges: { const: false } }, not: { anyOf: [{ required: ["author"] }, { required: ["timestamp"] }] } },

@@ -42,6 +42,12 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (action === "add" && ["runs", "links", "fields", "toc", "captions", "notes", "images", "equations"].includes(resource) && !has("paragraph") && !token)
     reject("Inline insertion requires a paragraph.");
   if (operation === "equations.replace" && !token) reject("Equation replacement requires a location token.");
+  if (["controls.list", "controls.set"].includes(operation) && token) {
+    let range;
+    try { range = decodeLocation(options.select as string).range; }
+    catch { reject("Invalid control selection token."); }
+    if (range !== null) reject("Control operations require whole control or owner tokens.");
+  }
   if (["revisions.accept", "revisions.reject"].includes(operation) && token) {
     let range;
     try { range = decodeLocation(options.select as string).range; }

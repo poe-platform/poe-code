@@ -11,6 +11,7 @@ export interface ExpandedXmlName { readonly namespace: string; readonly localNam
 export interface CompatibilityProfile {
   readonly understoodNamespaces: readonly string[];
   readonly extensionElements?: readonly ExpandedXmlName[];
+  readonly understoodElements?: readonly (ExpandedXmlName & { readonly attributes: readonly ExpandedXmlName[] })[];
 }
 
 // Namespace understanding here declares read traversal, not feature editing or rendering.
@@ -40,21 +41,30 @@ export const documentCompatibilityProfile: CompatibilityProfile = Object.freeze(
     "http://purl.org/dc/elements/1.1/",
     "http://purl.org/dc/terms/"
   ]),
-  extensionElements: Object.freeze(drawingNamespaces.map(namespace => Object.freeze({ namespace, localName: "ext" })))
+  extensionElements: Object.freeze(drawingNamespaces.map(namespace => Object.freeze({ namespace, localName: "ext" }))),
+  understoodElements: Object.freeze(["checkbox", "checked", "checkedState", "uncheckedState"].map(localName => Object.freeze({
+    namespace: "http://schemas.microsoft.com/office/word/2010/wordml", localName,
+    attributes: Object.freeze((localName === "checkbox" ? [] : localName === "checked" ? ["val"] : ["val", "font"]).map(name => Object.freeze({ namespace: "http://schemas.microsoft.com/office/word/2010/wordml", localName: name })))
+  })))
 });
 
 export function compatibilitySettings(profile: CompatibilityProfile): CompatibilityProfile {
   if (!profile || typeof profile !== "object" || Array.isArray(profile) ||
-    Object.keys(profile).some(key => !["understoodNamespaces", "extensionElements"].includes(key)) ||
+    Object.keys(profile).some(key => !["understoodNamespaces", "extensionElements", "understoodElements"].includes(key)) ||
     !Array.isArray(profile.understoodNamespaces) ||
     profile.understoodNamespaces.some(uri => typeof uri !== "string" || uri === mc) ||
     (profile.extensionElements !== undefined && (!Array.isArray(profile.extensionElements) || profile.extensionElements.some(name =>
       !name || typeof name !== "object" || typeof name.namespace !== "string" || name.namespace === mc ||
       typeof name.localName !== "string" || !ncName(name.localName) || Object.keys(name).some(key => !["namespace", "localName"].includes(key))))))
     throw new InvalidValueError("Invalid markup compatibility profile.");
+  if (profile.understoodElements !== undefined && (!Array.isArray(profile.understoodElements) || profile.understoodElements.some(name =>
+    !name || typeof name.namespace !== "string" || name.namespace === mc || !ncName(name.localName) || !Array.isArray(name.attributes) ||
+    Object.keys(name).some(key => !["namespace", "localName", "attributes"].includes(key)) || name.attributes.some((attribute: ExpandedXmlName) =>
+      !attribute || typeof attribute.namespace !== "string" || attribute.namespace === mc || !ncName(attribute.localName) || Object.keys(attribute).some(key => !["namespace", "localName"].includes(key)))))) throw new InvalidValueError("Invalid exact markup compatibility names.");
   return Object.freeze({
     understoodNamespaces: Object.freeze([...profile.understoodNamespaces]),
-    extensionElements: Object.freeze((profile.extensionElements ?? []).map(name => Object.freeze({ ...name })))
+    extensionElements: Object.freeze((profile.extensionElements ?? []).map(name => Object.freeze({ ...name }))),
+    understoodElements: Object.freeze((profile.understoodElements ?? []).map(name => Object.freeze({ ...name, attributes: Object.freeze(name.attributes.map((attribute: ExpandedXmlName) => Object.freeze({ ...attribute }))) })))
   });
 }
 
@@ -168,9 +178,11 @@ export class MarkupCompatibility {
       return result;
     };
     const visit = (element: XmlElement, parent: Scope, blocked: boolean): CompatibilityContent[] => {
+      const exact = settings.understoodElements!.find(name => matches(element, name));
+      const exactAttribute = (attribute: XmlAttribute) => exact?.attributes.some(name => matches(attribute, name)) === true;
       if (settings.extensionElements!.some(name => matches(element, name))) return [opaque(element)];
       const scope = scopeFor(element, parent);
-      if (scope.ignorable.has(element.namespace) && !understood.has(element.namespace)) {
+      if (scope.ignorable.has(element.namespace) && !understood.has(element.namespace) && !exact) {
         if (!scope.process.some(pair => matches(element, pair))) return [];
         if (element.attributes.some(a => a.namespace === xml && ["base", "lang", "space"].includes(a.localName))) invalid();
         mustUnderstand(element);
@@ -220,15 +232,15 @@ export class MarkupCompatibility {
         return visitContent(selected, selectedScope, true);
       }
       mustUnderstand(element);
-      const known = understood.has(element.namespace);
+      const known = understood.has(element.namespace) || exact !== undefined;
       const pairedImage = drawingNamespaces.includes(element.namespace) && element.localName === "blip" &&
         element.children.some(child => child.namespace === element.namespace && child.localName === "extLst");
       const protectedContent = blocked || !known || pairedImage;
       const attributes = element.attributes.filter(a => a.namespace !== mc &&
-        !(scope.ignorable.has(a.namespace) && !understood.has(a.namespace)));
+        !(scope.ignorable.has(a.namespace) && !understood.has(a.namespace) && !exactAttribute(a)));
       if (!protectedContent) {
         this.#editable.add(element);
-        for (const a of attributes) if (a.namespace !== xmlns && (!a.namespace || a.namespace === xml || understood.has(a.namespace))) this.#editable.add(a);
+        for (const a of attributes) if (a.namespace !== xmlns && (exact ? a.namespace === xml && ["lang", "space"].includes(a.localName) || exactAttribute(a) : !a.namespace || a.namespace === xml || understood.has(a.namespace))) this.#editable.add(a);
       }
       return [Object.freeze({ source: element, disposition: known ? "understood" : "opaque",
         attributes: Object.freeze(attributes), content: Object.freeze(visitContent(element, scope, protectedContent)) })];

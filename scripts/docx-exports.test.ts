@@ -40,6 +40,8 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect(runtime.Document).toBeUndefined();
   expect(runtime.editDocumentRevisions).toBeTypeOf("function");
   expect(runtime.editDocumentRevisionDecisions).toBeTypeOf("function");
+  expect(runtime.inspectDocumentControls).toBeTypeOf("function");
+  expect(runtime.editDocumentControls).toBeTypeOf("function");
   expect(runtime.parseDocxArguments([new TextEncoder().encode("--help")]).operation).toBe("help");
   expect(runtime.getDocxOperationSchema("text.replace").additionalProperties).toBe(false);
   expect(runtime.validateDocxBatch({ version: 1, operations: [] }).operations).toEqual([]);

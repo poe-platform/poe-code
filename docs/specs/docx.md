@@ -31,6 +31,11 @@ The later [bounded decision evidence](../docx/revision-decisions-evidence.md)
 qualifies selected inline text and exposed-property acceptance/rejection only;
 live owners, ordered batches and whole-format conformance remain pending.
 
+The later [bounded control evidence](../docx/content-control-values.md) qualifies
+typed utility inspection/filling and existing PNG picture-control replacement.
+Repeating/binding synchronization, live owners and corpus/renderer qualification
+remain pending; this does not promote the complete format contract.
+
 The bounded paragraph operations are described in
 [paragraph editing evidence](../docx/paragraph-editing.md). They add paragraph
 properties and explicit whole-paragraph text assignment, plus block/inline caret
@@ -576,7 +581,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `fields list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F22                                                                                                |
 | `notes list`            | selectedRead | `kind?`: footnote / endnote | NoteReadData | F24                                                                                                |
 | `comments list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F25                                                                                                |
-| `controls list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F28                                                                                                |
+| `controls list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ControlReadData | F28                                                                                                |
 | `images list`           | selectedRead | `unique?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ResourceListData | F31, F34, F35                                                                                      |
 | `styles get` | read | `name!`: string | StyleInspectionData | F14 |
 | `styles add` | edit | `name!`: string; `type!`: paragraph / character / table / numbering; optional StyleDefinitionFields below | StyleMutationData | F14 |
@@ -1019,6 +1024,45 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
 - **Controls/templates.** Control set requires exactly one text/checked/choice/
   date/file field matching the control kind. Date is a valid `YYYY-MM-DD` calendar
   date; no timezone inference. Choice uses a declared option value, not its label.
+  The bounded utility inspection route is `controls list`, including targeted
+  inspection; no separate `controls get` route is declared. Each control snapshot
+  includes its location, kind, stored ID/tag/alias, lock mode, placeholder state,
+  binding descriptor, typed current value, declared choice values/labels and
+  picture relationship metadata where applicable. Unsupported and nested controls
+  remain individually inventoried rather than silently flattened.
+  Plain/rich scalar filling preserves control properties and required paragraph/
+  run containers, retaining first affected run formatting for inserted text and
+  treating tabs/line breaks as logical text rather than XML input. Successful
+  explicit filling, including an empty string, clears only showingPlcHdr; it does
+  not delete placeholder definitions or unrelated control metadata. Parent fill
+  that would erase nested controls rejects. A nested leaf may be filled only when
+  its selected content and all control ancestors are admitted and unlocked.
+  Any non-unlocked or unknown selected/ancestor lock mode refuses filling.
+  Dropdown and combo choices use distinct declared values and render their stored
+  display labels. Checkbox filling updates stored checked state and its declared
+  checked/unchecked Unicode glyph/font; missing or malformed glyph mappings reject.
+  Only verified checkbox extension elements/attributes are admitted; understanding
+  them does not declare their whole namespace understood or activate otherwise
+  inactive compatibility choices. Date filling updates fullDate at UTC midnight
+  and renders admitted numeric Gregorian formats without host locale inference:
+  absent/default or yyyy-MM-dd, MM-dd-yyyy and dd/MM/yyyy. Unsupported stored
+  formats, languages or calendars reject; numeric rendering is bounded to absent
+  language or en-US/en-GB and absent/default Gregorian calendar.
+  Picture filling replaces one admitted existing internal DrawingML image
+  occurrence using bounded owned non-interlaced eight-bit RGB/RGBA PNG input,
+  with structural, checksum and bounded payload validation. Retain geometry, crop, alt text and
+  control/drawing properties; use an occurrence-local relationship and retain
+  shared old media and unrelated relationships. Missing, external, multiple or
+  unsupported picture structures reject. This does not implement general image
+  insertion, format conversion or arbitrary picture synthesis.
+  SDK picture input uses the declared BinaryInput descriptor. Embedded bytes are
+  decoded with admission budgets; VFS descriptors require an explicit matching
+  capability-bound binary resolver. CLI file acquisition uses only its injected
+  command VFS/stdin and the same bounds; no host fallback or implicit network.
+  Filling validates every selected candidate before staging; kind mismatches or
+  unsupported candidates in all-selection fail atomically. Bound controls are
+  inspected and preserved here; filling them rejects until an explicit supported
+  synchronization operation is available, without detaching dataBinding.
   Locked controls reject. Bound controls require the declared binding path and
   synchronized custom-XML value; missing/unsupported mapping rejects instead of
   detaching. Repeat requires one data source containing an array; empty array
@@ -1375,6 +1419,25 @@ type ResourceRecord = {
   references: Reference[];
   support: "edit" | "read" | "preserve" | "reject";
   details?: ResourceDetails;
+};
+// Bounded utility snapshots; this does not complete the live ResourceDetails model.
+type ControlReadData = { items: ControlSnapshot[] };
+type ControlSnapshot = {
+  location: Location;
+  kind: "plain-text" | "rich-text" | "checkbox" | "dropdown" | "combo-box" |
+    "date" | "picture" | "unsupported";
+  id: string | null; tag: string | null; alias: string | null;
+  lock: string; placeholder: boolean;
+  binding: { storeItemId: string | null; xpath: string | null;
+    prefixMappings: string | null } | null;
+  value: string | boolean | ControlPicture | null;
+  choices: { value: string; label: string }[];
+  support: "supported" | "unsupported";
+  reason: string | null;
+};
+type ControlPicture = {
+  relationshipId: string; target: string | null;
+  external: boolean; contentType: string | null;
 };
 type PropertyValue = {
   name: string;

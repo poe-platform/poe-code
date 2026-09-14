@@ -3,6 +3,24 @@ import { Volume } from "memfs";
 import { createMountFileSystem, ReadOnlyFileSystem, type FileStat, type FileSystem } from "@poe-code/safe-fs/core";
 import { CancellationError, DocumentBudget, createDocument, createDocumentArchive, publishDocumentArchive, publishDocumentFiles, type ArchiveContext } from "./index.js";
 import { readPackage, assertPackageLinks } from "../tests/assertions.js";
+import { assertDocumentEditable } from "./publication.js";
+import { archiveSettings, readArchive } from "./archive.js";
+import { textContext, textFixture } from "../tests/fixtures/text.js";
+
+it("keeps publication lock guards default-closed while admitting only verified unchanged control owners", async () => {
+  const body = '<w:p><w:sdt><w:sdtPr><w:text/><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent><w:r><w:t>Keep</w:t></w:r></w:sdtContent></w:sdt></w:p>';
+  const archive = await readArchive(await textFixture(body), textContext);
+  expect(() => assertDocumentEditable(archive, archiveSettings(textContext))).toThrow("Protected");
+  expect(() => assertDocumentEditable(archive, archiveSettings(textContext), archive)).not.toThrow();
+  const changed = { ...archive, members: archive.members.map(member => member.name === "word/document.xml" ? { ...member, bytes: new TextEncoder().encode(new TextDecoder().decode(member.bytes).split("Keep").join("Changed")) } : member) };
+  expect(() => assertDocumentEditable(changed, archiveSettings(textContext), archive)).toThrow("Protected");
+});
+it("refuses unchanged locked controls whose inherited XML semantics changed", async () => {
+  const body = '<w:p xml:lang="ar"><w:sdt><w:sdtPr><w:text/><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent><w:r><w:t>Keep</w:t></w:r></w:sdtContent></w:sdt></w:p>';
+  const archive = await readArchive(await textFixture(body), textContext);
+  const changed = { ...archive, members: archive.members.map(member => member.name === "word/document.xml" ? { ...member, bytes: new TextEncoder().encode(new TextDecoder().decode(member.bytes).split('xml:lang="ar"').join('xml:lang="en"')) } : member) };
+  expect(() => assertDocumentEditable(changed, archiveSettings(textContext), archive)).toThrow("Protected");
+});
 
 const context = (): ArchiveContext => ({ signal: new AbortController().signal, limits: {
   maxArchiveBytes: 65536, maxEntryBytes: 32768, maxTotalBytes: 65536, maxMembers: 100,

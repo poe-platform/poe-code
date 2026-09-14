@@ -117,3 +117,42 @@ Final results on 2026-09-14:
 Deliver this as one atomic local feature commit with the exact owned paths.
 The local hash is reported after Git creates it. No remote delivery or release
 is claimed, and all later tasks remain pending.
+
+## Bounded verification correction, 2026-09-14
+
+Reviewed baseline `cc786f1be`, the original tests, contracts, API audit and
+920-record inventory. The earlier red/green narrative above remains historical;
+standalone replacement red/green logs were not found in the available temporary
+artifacts. Inspected the actual retained final help/result/error screenshot.
+This does not re-execute its Shell recipes or establish rendered-document QA.
+
+Found one additional fidelity defect: explicit formatting reconstructed rPr
+from element children, dropping its comments and processing instructions from
+the inserted run. An original memfs regression failed before the correction
+(29 passed, 1 failed): the inserted run lacked
+`<!--keep color--><?review retain?>`. Its exact text and bold/italic segment
+assertions passed already; the failure was specifically XML preservation.
+The correction uses owned parser content spans and child replacements to retain
+the complete property content while removing only overridden bold/italic nodes.
+No regex, external fixture, host product I/O or model API expansion was added.
+
+Post-correction checks:
+
+- `npm run test --workspace=docx`: 851/851, 34 files, no skips.
+- `npm run lint --workspace=docx`: ESLint and both TypeScript checks passed.
+- `npm run build:workspaces -- --workspace=docx`: all five declared closure
+  builds and applicable lifecycle checks passed.
+- `npx vitest run scripts/docx-exports.test.ts`: 2/2 passed.
+- Read-only safe-bash verification through its maintained focused reporting
+  route: 10/10 passed, no skips. This covers registration/transport, not a new
+  actual preserving-replacement Shell QA run. Adapter-to-SDK wiring was inspected.
+- `git diff --check`: passed.
+
+No new document renderer, downloaded-corpus or paired-tool QA was run. Full
+model/public-API conformance remains pending, including inherited and
+underscore-prefixed public records; utility replacement does not promote those
+rows. Existing async byte/capability publication, Unicode scalar selection,
+neutral model spelling and typed error mappings remain unchanged. No additional
+task-scoped documentation drift was identified. Commit only this correction,
+its original regression and this appended evidence; preserve unrelated plans
+and index entries. No push, release or README edit.

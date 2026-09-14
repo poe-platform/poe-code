@@ -171,12 +171,12 @@ export class DocumentXmlEditor {
   }
 
   /** Exact admitted source, for engine-authored fragments retaining lexical XML. */
-  sourceXml(node: XmlElement, replacements: ReadonlyMap<XmlElement, string> = new Map()): string {
+  sourceXml(node: XmlElement, replacements: ReadonlyMap<XmlElement, string> = new Map(), contentOnly = false): string {
     if (!this.#elements.has(node)) unsupported();
     const span = this.#spans.get(node)!;
     this.#budget.charge("work", span.end - span.start);
     this.#budget.charge("retainedBytes", (span.end - span.start) * 2);
-    let offset = span.start;
+    let offset = contentOnly ? span.contentStart! : span.start;
     const chunks: string[] = [];
     for (const child of replacements.keys()) if (!node.children.includes(child)) unsupported();
     for (const child of node.children) {
@@ -189,7 +189,7 @@ export class DocumentXmlEditor {
       chunks.push(this.#source.slice(offset, childSpan.start), replacement);
       offset = childSpan.end;
     }
-    chunks.push(this.#source.slice(offset, span.end));
+    chunks.push(this.#source.slice(offset, contentOnly ? span.contentEnd! : span.end));
     return chunks.join("");
   }
 

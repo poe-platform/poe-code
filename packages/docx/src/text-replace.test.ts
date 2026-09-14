@@ -132,6 +132,15 @@ it("uses owned XML positions when comments contain text-node markup", async () =
   expect(result.xml).toContain('<!--<w:t>coast</w:t>-->');
 });
 
+it("preserves property comments and processing instructions with explicit formatting", async () => {
+  const body = '<w:p><w:r><w:rPr><!--keep color--><?review retain?><w:b/><w:color w:val="224466"/></w:rPr><w:t>pre coast tail</w:t></w:r></w:p>';
+  const result = await replace(body, { bold: false, italic: true });
+  expect(result.text.segments.map(s => [s.text, s.formatting.bold, s.formatting.italic])).toEqual([["pre ", true, null], ["shore", false, true], [" tail", true, null]]);
+  const inserted = result.xml.split('</w:r>')[1]!;
+  expect(inserted).toContain('<!--keep color--><?review retain?>');
+  expect(inserted).toContain('<w:color w:val="224466"/>');
+});
+
 it("matches tabs and line breaks across runs without flattening outside controls", async () => {
   const body = '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t xml:space="preserve"> A </w:t><w:tab/></w:r><w:r><w:rPr><w:i/></w:rPr><w:t>B</w:t><w:br/><w:t>C</w:t><w:tab/><w:t>tail</w:t></w:r></w:p>';
   const result = await replace(body, { find: "A \tB\nC", with: "shore" });

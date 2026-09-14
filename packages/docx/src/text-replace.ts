@@ -211,7 +211,9 @@ function runProperties(leaf: Leaf): string {
 function formattedRun(leaf: Leaf, text: string, opts: DocxOperationArguments<"text.replace">): string {
   const w = leaf.run.namespace;
   const props = leaf.run.children.find(child => child.namespace === w && child.localName === "rPr");
-  const retained = props?.children.filter(child => !(child.namespace === w && (child.localName === "b" && opts.bold !== undefined || child.localName === "i" && opts.italic !== undefined))).map(child => leaf.editor.sourceXml(child)).join("") ?? "";
+  const removed = new Map(props?.children.filter(child => child.namespace === w &&
+    (child.localName === "b" && opts.bold !== undefined || child.localName === "i" && opts.italic !== undefined)).map(child => [child, ""] as const));
+  const retained = props ? leaf.editor.sourceXml(props, removed, true) : "";
   const overrides = (opts.bold === undefined ? "" : `<w:b xmlns:w="${xmlValue(w)}" w:val="${Number(opts.bold)}"/>`) + (opts.italic === undefined ? "" : `<w:i xmlns:w="${xmlValue(w)}" w:val="${Number(opts.italic)}"/>`);
   const properties = props ? runOpen(props) + retained + overrides + `</${props.name}>` : `<w:rPr xmlns:w="${xmlValue(w)}">${overrides}</w:rPr>`;
   return runOpen(leaf.run) + properties + textMarkup(leaf.node, text) + `</${leaf.run.name}>`;

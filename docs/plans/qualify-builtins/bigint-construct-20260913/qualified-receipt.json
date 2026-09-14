@@ -1,0 +1,65 @@
+{
+  "baseHead": "e07a8fd3a0db21495cc0b14c6d7321fa0df4610e",
+  "sourceHash": "7a24ccf822b66275857569905882340a89bfc3fc486d68c30b72eb2b8ae305d0",
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+  "execution": {
+    "timeoutMs": 3000,
+    "budget": {},
+    "effectiveBudget": {
+      "maxSteps": "unlimited",
+      "maxCallDepth": "unlimited",
+      "stringLength": "unlimited",
+      "arrayLength": "unlimited",
+      "dataSize": "unlimited"
+    },
+    "deadline": "per-variant timeout",
+    "isolation": {
+      "kind": "persistent-child-process",
+      "startupTimeoutMs": 10000,
+      "wallTimeoutMs": 3000,
+      "timerStarts": "before-dispatch",
+      "recovery": "kill-and-replace-without-retrying-variant"
+    }
+  },
+  "counts": {
+    "files": 77,
+    "fixtures": 0,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 154,
+    "passed": 154,
+    "failed": 0,
+    "unsupported": 0
+  },
+  "complete": true,
+  "exitCode": 0,
+  "completedAt": "2026-09-13T22:48:02.456Z",
+  "reportHash": "56ed23963eb7761869b40b114470542464561d576438561959c8b24e09abf3b9",
+  "verifiedFixtureHashes": 77,
+  "focusedTests": {
+    "passed": 37,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "eslintExitCode": 0,
+  "changedInheritedFiles": [
+    "packages/safe-js/src/interp/globals/bigint.ts"
+  ],
+  "ownedSourceHashes": {
+    "packages/safe-js/src/interp/globals/bigint.ts": "5ff5a5020476b5f8040f3fda5eab7254946cf96cd2955f20e7c3cdf2359b43c5",
+    "packages/safe-js/src/interp/globals/bigint-constructor.test.ts": "4a0c4a607b83c943ef3e51e7e7882ecde8f0802a2b3b0c04297362357439bdbc"
+  },
+  "preservedIndexHash": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "preservedLedgerHash": "e1d505b515526463397a49d3562bb1730a2e4c16d600ac5aaf0e094b97a10370",
+  "remoteMainObserved": "dea009de8f6c7ff608f295c6986d56f255570939",
+  "remoteDelivery": null,
+  "release": null,
+  "acceptance": "open"
+}

@@ -63,3 +63,16 @@ export {
   type PublicationInput, type PublicationOptions, type PublicationContext,
   type PublicationResult, type PublishedFile, type PublicationFile, type ExtractionPublicationOptions
 } from "./publication.js";
+
+export {
+  encodeLocation, decodeLocation, SelectionError,
+  type LocationPayload, type LocationKind, type LocationPositions, type Location,
+  type PartLocation, type StoryLocation, type ParagraphLocation, type RunLocation,
+  type TableLocation, type CellLocation, type ImageLocation, type AnnotationLocation
+} from "./location-token.js";
+export { documentScopes, type DocumentScope, type StoryReference } from "./location-index.js";
+export {
+  openDocumentLocations, type DocumentLocations,
+  type LocationQuery, type MatchOptions, type LocationMutationOptions, type LocationAddress, type LocationUpdate,
+  type LocationMutationResult, type LocationStage
+} from "./locations.js";

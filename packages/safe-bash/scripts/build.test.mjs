@@ -607,6 +607,36 @@ test("guarded compiler resolves the public peer declaration without admitting pe
   noHeldReads(owned);
 });
 
+test("guarded compiler admits only declared private op types, not its source or runtime", async () => {
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "virtual-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
+    "../op/package.json": JSON.stringify({ name: "@poe-platform/op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts" } } }),
+    "../op/dist/index.d.ts": 'export interface Backend { name: string; }',
+    "../op/dist/index.js": 'RUNTIME MUST NOT BE READ',
+    "../op/src/index.ts": 'SOURCE MUST NOT BE READ',
+    "src/index.ts": 'import type { Backend } from "@poe-platform/op"; export const backend: Backend = { name: "fixture" };'
+  });
+  const result = await owned.run();
+  assert.equal(result.status, 0, owned.output.join(""));
+  assert.ok(owned.reads.includes("/owned/op/dist/index.d.ts"));
+  assert.ok(!owned.reads.some(path => path.startsWith("/owned/op/src/") || path.endsWith("/op/dist/index.js")));
+  noHeldReads(owned);
+});
+
+for (const defect of ["name", "private", "types"]) test(`guarded compiler rejects untrusted op declaration metadata: ${defect}`, async () => {
+  const op = { name: "@poe-platform/op", private: true, exports: { ".": { types: "./dist/index.d.ts" } } };
+  if (defect === "name") op.name = "other";
+  if (defect === "private") op.private = false;
+  if (defect === "types") op.exports["."].types = "./src/index.ts";
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "virtual-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
+    "../op/package.json": JSON.stringify(op),
+    "../op/src/index.ts": "SOURCE MUST NOT BE READ"
+  });
+  await assert.rejects(owned.run(), /internal op|remain private/);
+  assert.ok(!owned.reads.some(path => path.startsWith("/owned/op/src/")));
+});
+
 function checkoutPeerFixture() {
   const checkout = "/checkout", packageRoot = checkout + "/packages/safe-bash";
   const manifest = { name: "virtual-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };

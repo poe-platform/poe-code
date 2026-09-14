@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import { Volume } from "memfs";
 import { build, type BuildResult } from "esbuild";
 import { beforeAll, expect, it } from "vitest";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -203,6 +203,16 @@ it("runs nested env/xargs, truncate, csplit, pr, tsort, factor, getopt, hexdump 
   expect(() => entry.getCommandArguments({ args: [...argumentsFromBrowser.args], argumentValues: argumentsFromBrowser })).toThrow(entry.CommandArgumentIdentityError);
   const bytesFromBrowser = argumentsFromBrowser.withValues([new Uint8Array([255, 0])]);
   expect(Array.from(entry.createCommandArguments(bytesFromBrowser.values).bytes(0))).toEqual([255, 0]);
+});
+
+it("bundles the opt-in op plugin with browser crypto and no Node implementation", async () => {
+  const result = await build(resolveBrowserOpBuild(root));
+  expect(result.outputFiles!.some(output => output.path.endsWith("/commands/op/index.browser.js"))).toBe(true);
+  const inputs = Object.keys(result.metafile!.inputs);
+  expect(inputs).toContain("packages/op/src/crypto-browser.ts");
+  expect(inputs.some(input => input.endsWith("crypto-node.ts") || input.endsWith("node-host.ts"))).toBe(false);
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core"]);
 });
 
 it("builds the portable shell without Node workers, adapters, or duplicate filesystem identity", async () => {

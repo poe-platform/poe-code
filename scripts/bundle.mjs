@@ -10,7 +10,7 @@ import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
 import { mergeRuntimeBundleOutputs, resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 import { copyNativeAssets, nativeImportMapping, readNativeRegistry } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { collectCanonicalNativeAssets, readBoundedNativeBytes } from "../packages/package-lint/dist/native-assets.js";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import {
   canonicalFs,
   collectCanonicalDeclarations,
@@ -186,6 +186,19 @@ consumerBuilds.push(
 );
 
 const { entryPoints: providerEntryPoints, sourceNames: providerSourceNames } = await getProviderEntryPoints(rootDir);
+consumerBuilds.push(
+  await esbuild.build({
+    entryPoints: [path.join(rootDir, "packages/safe-bash/src/commands/op/index.ts")],
+    bundle: true,
+    platform: "node",
+    target: "es2022",
+    format: "esm",
+    outfile: path.join(rootDir, "packages/safe-bash/dist/commands/op/index.js"),
+    ...consumerBuildOptions,
+    sourcemap: true,
+    plugins: [stripShebangPlugin]
+  })
+);
 if (providerEntryPoints.length > 0) {
   consumerBuilds.push(
     await esbuild.build({
@@ -251,6 +264,15 @@ await publishBundleOutputs(shellBundle, {
   workingDirectory: rootDir
 });
 consumerBuilds.push(shellBundle);
+
+const browserOpOptions = resolveBrowserOpBuild(rootDir);
+const browserOp = await esbuild.build(browserOpOptions);
+await publishBundleOutputs(browserOp, {
+  outdir: path.join(rootDir, "packages/safe-bash/dist"),
+  entryPoints: Object.values(browserOpOptions.entryPoints),
+  workingDirectory: rootDir
+});
+consumerBuilds.push(browserOp);
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
 // don't need @poe-code/* workspace deps at runtime.

@@ -1,5 +1,14 @@
 import path from "node:path";
 
+export function resolveBrowserOpBuild(rootDir) {
+  const options = resolveBrowserShellBuild(rootDir);
+  return {
+    ...options,
+    entryPoints: { "commands/op/index.browser": path.join(rootDir, "packages/safe-bash/src/commands/op/index.ts") },
+    alias: { ...options.alias, "@poe-platform/op": path.join(rootDir, "packages/op/src/index.ts") }
+  };
+}
+
 export function resolveBrowserShellBuild(rootDir) {
   const directory = path.join(rootDir, "packages/safe-bash");
   const platform = path.join(directory, "browser/platform.mjs");

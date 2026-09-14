@@ -238,6 +238,18 @@ function compilerInputs(root, tools, fileSystem) {
           else peerPaths[name + "/*"] = [join(dependencyRoot, "*")];
         }
       }
+      if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {
+        assert.equal(manifest.private, true, "op build dependency is internal only");
+        assert.equal(manifest.devDependencies["@poe-platform/op"], "*", "op build dependency must be the local workspace");
+        const opRoot = resolve(root, "../op");
+        peerMetadata.add(join(opRoot, "package.json"));
+        const op = JSON.parse(read(join(opRoot, "package.json")));
+        assert.equal(op.name, "@poe-platform/op", "internal op package identity");
+        assert.equal(op.private, true, "op implementation must remain private");
+        assert.equal(op.exports?.["."]?.types, "./dist/index.d.ts", "internal op declaration entry");
+        toolRoots.push(join(opRoot, "dist"));
+        peerPaths = { ...peerPaths, "@poe-platform/op": [join(opRoot, "dist/index.d.ts")] };
+      }
       return peerPaths;
     },
     admitSources(paths) {

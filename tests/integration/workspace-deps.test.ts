@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import rootUnitConfig from "../../vitest.root.config.js";
+import { createWorkspaceTestPlan } from "../../scripts/build-workspaces.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const PACKAGES_DIR = path.join(ROOT, "packages");
@@ -43,6 +45,17 @@ function findTestFiles(dir: string): boolean {
 }
 
 describe("workspace dependency completeness", () => {
+  it("keeps op node:test files out of Vitest while retaining their maintained workspace task", () => {
+    expect(rootUnitConfig.test?.exclude).toContain("packages/op/src/*.test.ts");
+    const plan = createWorkspaceTestPlan(ROOT);
+    expect(plan.testStages.filter(stage => stage.name === "@poe-platform/op")).toEqual([
+      { id: "@poe-platform/op#test:unit", name: "@poe-platform/op", path: "packages/op", event: "test:unit" }
+    ]);
+    expect(readJson(path.join(PACKAGES_DIR, "op", "package.json"))).toMatchObject({
+      scripts: { "test:unit": "node --import tsx --test src/*.test.ts" }
+    });
+  });
+
   it("all packages with tests are listed in root devDependencies", () => {
     const rootPkg = readJson(path.join(ROOT, "package.json")) as {
       devDependencies: Record<string, string>;

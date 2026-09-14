@@ -7,6 +7,11 @@ Bounded package primitives now have separate evidence in the
 The later [logical text read milestone](text-extraction.md) also remains a utility
 operation; no documented model member or enum is promoted by its passing tests.
 
+The [paragraph operation milestone](paragraph-editing.md) remains utility-level
+coverage. Exact paragraph, tab, break and unit mappings, D23 handle drift and the
+unchanged pending model/inherited/enum inventory statuses are recorded in the
+[bounded task plan](../plans/docx-paragraph-editing.md#standards-and-exact-languagesecurity-mappings).
+
 ## Sources and baseline
 
 - [Published API and user guides](https://python-docx.readthedocs.io/en/latest/).

@@ -103,5 +103,7 @@ export { createDocxInspectionCommandEngine, type DocxInspectionCommandRequest } 
 export { extractDocumentText, type TextOptions } from "./text.js";
 export { replaceDocumentText, type TextReplaceOptions, type TextMutationData } from "./text-replace.js";
 export { formatDocumentRuns, type RunFormatOptions, type RunFormatData } from "./run-format.js";
+export { editDocumentParagraphs, type ParagraphEditRequest, type ParagraphEditOperation, type ParagraphEditData } from "./paragraph-edit.js";
+export type { DocxTabStop, DocxParagraphBorder, DocxParagraphBorders, DocxParagraphShading } from "./operation-types.js";
 export type { TextData, TextView, TextSegment, TextFormatting } from "./text-traversal.js";
 export { getDocumentXml, replaceDocumentXmlPart, type XmlOptions, type XmlData, type XmlMutationData } from "./xml-parts.js";

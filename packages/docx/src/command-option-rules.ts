@@ -1,4 +1,6 @@
 import { DocxUsageError } from "./argument-json.js";
+import { paragraphLineMultiples, paragraphUnits } from "./paragraph-properties.js";
+import type { DocxOperationArguments } from "./operation-types.js";
 
 const lengthUnits: Readonly<Record<string, number>> = { emu: 1, in: 914400, cm: 360000, mm: 36000, pt: 12700, twip: 635 };
 const formattingFields: Readonly<Record<string, readonly string[]>> = {
@@ -68,6 +70,36 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
   checkLengths(options);
   const has = (name: string) => options[name] !== undefined;
   const reject = (message: string): never => { throw new DocxUsageError(message); };
+  if (operation === "paragraphs.set") {
+    const paragraph = options as DocxOperationArguments<"paragraphs.set">;
+    if (paragraph.lineSpacing !== undefined && paragraph.lineSpacingRule !== undefined && !(paragraph.lineSpacing === null && paragraph.lineSpacingRule === null)) {
+      const rule = paragraph.lineSpacingRule?.name;
+      if (paragraph.lineSpacing === null || rule === undefined || (typeof paragraph.lineSpacing === "number" ? !["SINGLE", "ONE_POINT_FIVE", "DOUBLE", "MULTIPLE"].includes(rule) : !["EXACTLY", "AT_LEAST"].includes(rule)))
+        reject("Line spacing and its rule require compatible units and reset intent.");
+      const fixed = rule === undefined ? undefined : paragraphLineMultiples[rule];
+      if (fixed !== undefined && paragraph.lineSpacing !== fixed) reject("Fixed line spacing rules conflict with the supplied multiple.");
+    }
+    for (const key of ["leftIndent", "rightIndent", "firstLineIndent", "spaceBefore", "spaceAfter"] as const) {
+      const value = paragraph[key]; if (value) paragraphUnits(value);
+    }
+    if (paragraph.lineSpacing != null) {
+      const value = paragraph.lineSpacing;
+      if (typeof value === "number" ? Math.round(value * 240) < 1 || !Number.isSafeInteger(Math.round(value * 240)) : value.value < 0)
+        reject("Line spacing must fit the nonnegative schema range; multiples must round positive.");
+      if (typeof value !== "number") paragraphUnits(value);
+    }
+    const positions = new Set<number>();
+    for (const tab of paragraph.tabStops ?? []) {
+      const position = paragraphUnits(tab.position);
+      if (positions.has(position)) reject("Tab stops require unique rounded positions.");
+      positions.add(position);
+    }
+    for (const border of Object.values(paragraph.borders ?? {})) {
+      const size = paragraphUnits(border.width, 12700 / 8);
+      if (size < (border.style === "none" ? 0 : 2) || size > 96) reject("Border width must round to 2 through 96 eighth-points, or zero for none.");
+      if (border.space && paragraphUnits(border.space, 12700) > 31) reject("Border spacing must round to 0 through 31 points.");
+    }
+  }
   if (operation === "sanitize") {
     const revisions = Array.isArray(options.remove) && options.remove.includes("revisions");
     if (revisions !== has("revisionPolicy")) reject("Revision policy is required only when removing revisions.");

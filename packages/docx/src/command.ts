@@ -246,6 +246,9 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
     docxInvocationBudgets.set(invocation, budget);
     return invocation;
   }
+  for (const name of ["tabStops", "borders", "shading"]) {
+    if (options[name + "Json"] !== undefined) { options[name] = options[name + "Json"]; delete options[name + "Json"]; }
+  }
   const sources: DocxArgumentSource[] = [];
   for (const [file, json, semantic, type] of [["contentFile", "contentJson", "content", "OriginalDocumentContentV1"], ["dataFile", "dataJson", "data", "TemplateData"], ["opsFile", "opsJson", "operations", "BatchV1"]]) {
     if (options[file!] !== undefined && options[json!] !== undefined) usage("Conflicting JSON sources.");
@@ -281,8 +284,9 @@ function validateSelections(operation: string, options: Record<string, unknown>)
   if (options.run !== undefined && options.paragraph === undefined) usage("Run selection requires paragraph.");
   if (options.cell !== undefined && options.table === undefined) usage("Cell selection requires table.");
   if (options.comment !== undefined && options.note !== undefined || ["image", "link", "control", "revision", "shape", "field", "bookmark"].filter(key => options[key] !== undefined).length > 1) usage("Sibling selectors cannot be combined.");
-  if (options.all === true && operation !== "text.replace" && (selected.length || options.select !== undefined)) usage("All conflicts with a target selection.");
-  if (options.before === true && options.paragraph === undefined) usage("Before requires a paragraph anchor.");
+  const paragraphOwner = operation === "paragraphs.set" && selected.length > 0 && selected.every(key => ["section", "table", "cell", "note", "comment"].includes(key));
+  if (options.all === true && operation !== "text.replace" && (selected.length && !paragraphOwner || options.select !== undefined)) usage("All conflicts with a target selection.");
+  if (options.before === true && options.paragraph === undefined && !(operation === "paragraphs.add" && options.select !== undefined)) usage("Before requires a paragraph anchor.");
   if (operation.startsWith("headers.") || operation.startsWith("footers.")) {
     const scope = operation.split(".")[0];
     if (options.scope !== undefined && options.scope !== scope && options.scope !== "all-stories") usage("Inapplicable story scope.");

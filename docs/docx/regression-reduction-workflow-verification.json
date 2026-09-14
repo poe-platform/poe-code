@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "task": "fixture-reduction-workflow",
+  "reviewed_on": "2026-09-14",
+  "status": "procedure-authored-execution-pending",
+  "owned_files": [
+    "docs/plans/docx-regression-reduction-qa.md",
+    "docs/docx/regression-reduction-workflow-verification.json"
+  ],
+  "authority_sha256": {
+    "docs/specs/docx.md": "22f9ee5339048b9a368256c1516a1e4cf302cc1ccc82fd3f1b81dc3c46b38ee8",
+    "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+    "docs/specs/office-sdk.md": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9",
+    "docs/docx/upstream-api-audit.md": "8bd6c7c14fb5fe1524586b8b01294335f6b850e7d4968d8b0750672b3580c46b",
+    "docs/docx/upstream-api-inventory.json": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+    "docs/docx/public-api-map.json": "b5d04eb79f7b24f00fee4abffef9f0a78998a02dfbadb0b2d009b68051dd87b1",
+    "docs/docx/test-case-map.json": "777a9ad8baffbaeb83db45dda6af7e16a0924585620e9a424a019c0c31e18e4f",
+    "docs/docx/command-coverage.json": "c105fea1a9d86c4fe2009967c72c702a67b049bb0448d3c799b510bb99fdc067",
+    "docs/docx/corpus-manifest.json": "e77009a4942a6841184076ad7eb401725476ef5d8bc18ea74b1a5444acfb4b1f",
+    "docs/docx/corpus-feature-gaps.json": "8976561865e81e396e2097411ecaea3db8be05cad74819c1db6b1a72a763acd4"
+  },
+  "inventory_review": {
+    "records": 920,
+    "coverage_status": {
+      "planned": 410,
+      "security-mapped": 378,
+      "language-mapped": 124,
+      "documentation-error": 8
+    },
+    "documentation_resolutions": 23,
+    "mapping_authority": "docs/docx/public-api-map.json#mapping_rules",
+    "drift_authority": "docs/docx/upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+    "historical_status_rule": "Older adaptation_status and future-map wording do not supersede later per-row maps; no implemented status is inferred."
+  },
+  "review": {
+    "requirements": [
+      "Original minimal in-memory document and scoped relationship closure",
+      "Intended failing assertion before any authorized implementation fix",
+      "Exact failure category, selectors and data-loss invariant retained",
+      "Existing passing behavior requires negative oracle control, never fabricated product failure",
+      "Fixture ID/SHA-256, reduced test path, red/green and maintained verification evidence required",
+      "Large-file pass alone cannot close a finding",
+      "Corpus-unavailable execution required before closure; cleanup remains separately owned",
+      "Whole public API and exact JS/security mappings retained, including underscore-prefixed public types",
+      "Shared CLI paths, schemas, capabilities, flags, JSON and error semantics retained"
+    ],
+    "result": "passed-document-review"
+  },
+  "checks": {
+    "referenced_json_parse": "passed",
+    "format": {
+      "status": "passed",
+      "command": "npx prettier --check docs/plans/docx-regression-reduction-qa.md docs/docx/regression-reduction-workflow-verification.json"
+    },
+    "local_links": {
+      "status": "passed",
+      "count": 16
+    },
+    "owned_whitespace": {
+      "status": "passed",
+      "command": "git diff --cached --check"
+    }
+  },
+  "execution": {
+    "product_runs": 0,
+    "downloaded_documents_opened": 0,
+    "new_downloads": 0,
+    "product_defects_reproduced": 0,
+    "reduced_regressions_authored": 0,
+    "findings_closed": 0,
+    "corpus_free_test_run": "not-run-documentation-only-task",
+    "cleanup": "not-run-later-task",
+    "rendering": "not-run-no-visual-change",
+    "product_build_tests": "not-run-no-code-change"
+  },
+  "findings": [],
+  "limitations": [
+    "This is workflow acceptance, not product conformance or execution of later tasks.",
+    "Existing corpus observations remain acquisition/census evidence; no product defect is inferred.",
+    "No reduced test path or successful product test is invented.",
+    "Shared ZIP reader and subsequent implementation tasks remain pending."
+  ],
+  "delivery": {
+    "branch": "main",
+    "commit": "reported-after-commit-in-chat",
+    "push": "not-authorized-not-run",
+    "release": "not-authorized-not-run"
+  }
+}

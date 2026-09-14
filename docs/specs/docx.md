@@ -35,6 +35,11 @@ the later [style-formatting evidence](../docx/style-formatting-audit.md) records
 latent mutation and the bounded live style/font/paragraph/tab subgraph. Complete
 document-model coverage remains pending.
 
+The bounded theme/font-resource inventory and preservation evidence is recorded
+in [font resource evidence](../docx/font-resources.md). It adds detailed inspection
+and an explicit embedded-font mutation boundary; it does not establish whole-model
+or rendered font-selection coverage.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong
@@ -696,6 +701,15 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   RGB clears theme transforms, theme assignment retains fallback/transforms, and
   null themeColor removes only theme attributes. INHERITED/NOT_THEME_COLOR setter
   sentinels reject; null expresses removal. Font names reject empty/control text.
+  Theme/font inspection MUST expose stored schemes, font-table entries, embedding
+  bindings, obfuscation metadata, language settings and unresolved references.
+  A resolved resource reference MUST NOT imply availability or licensing; both
+  remain unknown. Unresolved stored references MAY survive unrelated edits without
+  synthesis of resources. Typed token validation precedes acquisition; inventory
+  diagnoses missing themes/slots and invalid embedded bindings. Missing physical
+  internal targets fail package admission. Embedded font definition or binding
+  mutation through XML replacement MUST fail before publication with unsupported-edit
+  and a specific embedded-font message, including dry-run.
   Sizes convert to integer EMUs then nearest half-points, halfway away from zero;
   this bounded editor admits 1–3276 half-points. Run/paragraph scalar ranges are
   accepted for formatting only. Partial unsupported run content rejects; unchanged
@@ -1134,11 +1148,29 @@ type InspectionData = {
   protected: boolean;
   pages: { rendered: null; cachedBreaks: number };
   fonts: { references: string[]; themeReferences: string[]; embedded: string[]; installed: null };
+  fontResources: FontResourceData;
   signatures: { parts: string[]; verified: null };
   media: { name: string; contentType: string; bytes: number; sha256: string }[];
   annotations: { part: string; kind: string; id: string | null; author: string | null; date: string | null }[];
   protection: { part: string; kind: string; enforced: boolean | null; edit: string | null }[];
   warnings: { code: string; message: string }[];
+};
+type FontResourceData = {
+  themes: { part: string; name: string | null;
+    colors: { slot: string; kind: string; value: string | null; lastColor: string | null }[];
+    fonts: { family: "major" | "minor"; slot: string; script: string | null; typeface: string | null }[] }[];
+  fontTables: { part: string; fonts: { name: string | null; alternateName: string | null;
+    charset: string | null; family: string | null; pitch: string | null;
+    embedded: { kind: string; id: string | null; fontKey: string | null;
+      subsetted: string | null; target: string | null;
+      status: "resolved" | "invalid-font-reference" }[] }[] }[];
+  references: { part: string; path: number[]; attribute: string; value: string;
+    resource: string | null;
+    status: "resolved" | "missing-theme" | "invalid-theme-reference" | "missing-theme-slot" }[];
+  languages: { part: string; values: Record<string, string> }[];
+  colorMappings: { part: string; values: Record<string, string> }[];
+  diagnostics: { code: string; part: string; message: string }[];
+  availability: null; licensing: null; embeddedFontMutation: "unsupported";
 };
 type ValidationData = {
   valid: boolean;

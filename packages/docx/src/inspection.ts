@@ -1,3 +1,4 @@
+import { readFontResources, type FontResourceData } from "./font-resources.js";
 import { archiveSettings, readArchive, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
@@ -27,6 +28,7 @@ export interface InspectionAnnotation { readonly part: string; readonly kind: st
 export interface InspectionProtection { readonly part: string; readonly kind: string; readonly enforced: boolean | null; readonly edit: string | null }
 export interface InspectionWarning { readonly code: string; readonly message: string }
 export interface InspectionData {
+  readonly fontResources: FontResourceData;
   readonly kind: "docx" | "dotx";
   readonly dialect: DocumentDialect;
   readonly sizes: { readonly archiveBytes: number; readonly expandedBytes: number; readonly mediaBytes: number };
@@ -140,6 +142,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   const fontNames = new Set<string>();
   const themeNames = new Set<string>();
   const unknownNamespaces = new Set<string>();
+  const roots = new Map<string, XmlElement>();
   let cachedBreaks = 0;
   let compatibility = false;
   const annotationNames = new Set(["comment", "ins", "del", "moveFrom", "moveTo", "rPrChange", "pPrChange", "tblPrChange", "tcPrChange", "sectPrChange", "numberingChange"]);
@@ -147,6 +150,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     const type = part.content_type.toLowerCase();
     if (!(type.endsWith("+xml") || type === "application/xml" || type === "text/xml")) continue;
     const root = parseDocumentXml(part.bytes, {}, budget).root;
+    roots.set(part.partname, root);
     properties.push(...propertiesOf(root, part.partname, archive.dialect));
     const raw = [root];
     while (raw.length) {
@@ -223,7 +227,9 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     ["F28", counts.controls > 0, "read"], ["F30", properties.length > 0, "read"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
     ["F41", relationships.some(r => r.type.endsWith("/customXml") || r.type.endsWith("/glossaryDocument")) || parts.some(p => p.contentType.includes("glossary") || p.name.startsWith("/customXml/")), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => p.contentType.endsWith(".settings+xml") || p.contentType.endsWith(".fontTable+xml")), "read"], ["F43", signatureParts.length > 0, "preserve"]
   ];
-  const result: InspectionData = { kind: archive.kind, dialect: archive.dialect, sizes: { archiveBytes: owned.length, expandedBytes: parts.reduce((sum, p) => sum + p.bytes, 0), mediaBytes: media.reduce((sum, p) => sum + p.bytes, 0) }, parts, relationships,
+  const fontResources = readFontResources(archive, roots, budget);
+  if (fontResources.diagnostics.length) warnings.push({ code: "unresolved-font-resources", message: "Theme or embedded font references have unresolved package resources; see fontResources.diagnostics." });
+  const result: InspectionData = { fontResources, kind: archive.kind, dialect: archive.dialect, sizes: { archiveBytes: owned.length, expandedBytes: parts.reduce((sum, p) => sum + p.bytes, 0), mediaBytes: media.reduce((sum, p) => sum + p.bytes, 0) }, parts, relationships,
     contentTypes: { defaults: graph.defaults.map(d => ({ extension: d.extension, contentType: d.content_type })).sort((a, b) => compare(a.extension, b.extension)), overrides: graph.overrides.map(d => ({ name: d.partname, contentType: d.content_type })).sort((a, b) => compare(a.name, b.name)) },
     stories, properties, counts, features: detections.map(([id, detected, level]) => ({ id, detected, level, subsets: [{ name: "inventory", level, reason: "Package inventory only; no editing or rendering claim." }] })),
     signed: signatureParts.length > 0, protected: protection.some(p => p.enforced !== false), pages: { rendered: null, cachedBreaks },

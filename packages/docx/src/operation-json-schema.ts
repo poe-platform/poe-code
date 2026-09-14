@@ -16,7 +16,7 @@ export interface DocxJsonSchema {
   readonly not?: DocxJsonSchema;
   readonly properties?: Readonly<Record<string, DocxJsonSchema>>;
   readonly required?: readonly string[];
-  readonly additionalProperties?: boolean;
+  readonly additionalProperties?: boolean | DocxJsonSchema;
   readonly items?: DocxJsonSchema | false;
   readonly prefixItems?: readonly DocxJsonSchema[];
   readonly minItems?: number;

@@ -1,3 +1,4 @@
+import { embeddedFontState, UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 import { archiveSettings, InputTypeError, type ArchiveContext, type ArchiveMember } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
@@ -128,6 +129,8 @@ export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uin
     if (graph.getPart(part.partname).content_type.toLowerCase() !== part.content_type.toLowerCase())
       throw new UnsupportedEditError("XML replacement cannot change existing part content types or document kind.");
   }
+  if (changed && embeddedFontState(archive.package, budget) !== embeddedFontState(graph, budget))
+    throw new UnsupportedEmbeddedFontMutationError();
   const originalMain = archive.package.relationships("/").find(edge => !edge.is_external && edge.target_part.partname === "/" + archive.mainPart)!;
   const mainEdges = graph.relationships("/").filter(edge => edge.reltype === originalMain.reltype);
   if (mainEdges.length !== 1 || mainEdges[0]!.is_external || mainEdges[0]!.target_part.partname !== "/" + archive.mainPart)

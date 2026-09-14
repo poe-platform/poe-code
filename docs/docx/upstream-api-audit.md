@@ -25,6 +25,13 @@ results.
 
 ## Sources and baseline
 
+The later [theme/font resource milestone](font-resources.md) adds utility
+inventory and embedded-font mutation rejection. Its [exact mapping record](../plans/docx-theme-font-resources.md)
+retains the existing Font/ColorFormat/null/enum distinctions and separates
+resource-slot resolution from rendering. The pinned inventory remains historical;
+this milestone does not promote pending model owners, inherited interfaces or
+public underscore-prefixed types to complete coverage.
+
 - [Published API and user guides](https://python-docx.readthedocs.io/en/latest/).
 - Pinned source documentation at commit `e45454602b53e8e572b179ccf1c91093ec9f4ed7` in `/tmp/docx-upstream-review/docs`.
 - [Reconciled research inventory](upstream-api-inventory.json): schema version 2, preserving all 331 original IDs and expanding to 920 model/support/error records from 39 pinned API/user-guide files. The 262 nested enum values include value aliases; counts are research accounting, not a conformance denominator.
@@ -39,7 +46,8 @@ asymmetric read/write types. It is not an exact Sphinx build or an exhaustive
 certificate: counts include explicitly identified package support and erroneous
 documented symbols. The subsequent [public API map](public-api-map.json) records
 1,337 proposed member/value/protocol rows with target signatures, CLI routes and
-original acceptance contracts. None is implemented. Direct documentation downloads returned
+original acceptance contracts. None was implemented by that mapping milestone;
+later bounded implementation evidence is linked above. Direct documentation downloads returned
 HTTP 403; published pages were read through the web research tool. No new
 objects.inv download, reference runtime execution or product test pass is claimed.
 

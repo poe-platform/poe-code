@@ -43,7 +43,21 @@ const part = object({ name: string, contentType: string, bytes: number, sha256: 
 const reference = object({ owner: string, id: string, type: string, target: string, external: boolean });
 const location: DocxJsonSchema = object({ kind: string, token: string, value: { type: "object" }, positions: { type: "object" } });
 const property = object({ name: string, type: { enum: ["string", "boolean", "integer", "number", "date"] }, value: { oneOf: [string, boolean, { type: "number" }, { type: "null" }] }, writable: boolean, cached: boolean, part: string, group: { enum: ["core", "extended", "custom"] } });
+const fontResources = object({
+  themes: array(object({ part: string, name: nullableString,
+    colors: array(object({ slot: string, kind: string, value: nullableString, lastColor: nullableString })),
+    fonts: array(object({ family: { enum: ["major", "minor"] }, slot: string, script: nullableString, typeface: nullableString })) })),
+  fontTables: array(object({ part: string, fonts: array(object({ name: nullableString, alternateName: nullableString, charset: nullableString, family: nullableString, pitch: nullableString,
+    embedded: array(object({ kind: string, id: nullableString, fontKey: nullableString, subsetted: nullableString, target: nullableString, status: { enum: ["resolved", "invalid-font-reference"] } })) })) })),
+  references: array(object({ part: string, path: array(number), attribute: string, value: string, resource: nullableString,
+    status: { enum: ["resolved", "missing-theme", "invalid-theme-reference", "missing-theme-slot"] } })),
+  languages: array(object({ part: string, values: { type: "object", additionalProperties: string } })),
+  colorMappings: array(object({ part: string, values: { type: "object", additionalProperties: string } })),
+  diagnostics: array(object({ code: string, part: string, message: string })),
+  availability: { type: "null" }, licensing: { type: "null" }, embeddedFontMutation: { const: "unsupported" }
+});
 const inspectionData = object({
+  fontResources,
   kind: { enum: ["docx", "dotx"] }, dialect: { enum: ["strict", "transitional"] }, parts: array(part), relationships: array(reference),
   contentTypes: object({ defaults: array(object({ extension: string, contentType: string })), overrides: array(object({ name: string, contentType: string })) }),
   stories: array(object({ kind: string, location, properties: array(property), references: array(reference), support: { const: "read" } })), properties: array(property),
@@ -107,7 +121,7 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["runs.set", "Format selected runs or a fingerprinted run/paragraph scalar range. Omission leaves direct properties unchanged; null removes them. Explicit false/default overrides inheritance. Preserve complex-script and CJK properties. Whole-text assignment and model batches remain pending.", ["F02", "F04", "F09", "F12"], runFormatData],
   ["text.replace", "Replace literal paragraph text across formatting runs; exactly one of --first, --all or --occurrence is required. Field, object, revision and container boundaries stop matches. Inherit the first matched run; --bold/--italic explicitly override those properties.", ["F02", "F04", "F05", "F10"], mutationData],
   ["create", "Create an original DOCX/DOTX or append typed blocks to an admitted template; explicit dialect and content settings.", ["F01", "F02", "F03", "F11", "F15"], mutationData],
-  ["inspect", "Inventory package parts, metadata and document structure without rendering or linked-resource access.", ["F06"], inspectionData],
+  ["inspect", "Inventory package parts, metadata, theme schemes, font-table entries, embedding metadata and unresolved references without rendering or linked-resource access. Font availability and licensing are unknown; embedded font mutation is unsupported.", ["F06", "F14", "F42"], inspectionData],
   ["validate", "Validate document bytes against the partial core-v1 profile without repairs.", ["F49"], validationData],
   ["text.get", "Extract logical story text with locations, direct formatting and revision views.", ["F08", "F09"], textData],
   ["xml.get", "Read one absolute XML part as raw bytes or bounded display serialization.", ["F04", "F07"], xmlData],

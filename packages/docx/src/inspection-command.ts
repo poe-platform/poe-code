@@ -1,3 +1,4 @@
+import { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
 import { type ArchiveLimits, ResourceLimitError, CancellationError } from "./archive.js";
@@ -110,7 +111,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           const warnings = "warnings" in data ? data.warnings.map(warning => typeof warning === "string" ? { code: "partial-validation", message: warning } : warning) : [];
           const errors = "diagnostics" in data ? data.diagnostics.map(item => ({ code: "invalid-package", message: item.message, part: item.part, location: item.location })) : [];
           const human = "text" in data ? data.text : "valid" in data ? `docx validate: ${data.valid ? "valid within" : "invalid within"} ${data.profile}\n${data.checks.map(check => `${check.id}: ${check.status}`).join("\n")}\n`
-            : `docx inspect: ${data.kind}, ${data.dialect}\nParts: ${data.parts.length}; paragraphs: ${data.counts.paragraphs}; tables: ${data.counts.tables}; images: ${data.counts.images}\nCached pages: ${data.counts.cachedPages ?? "unknown"}; rendered pages: not calculated\nFont references do not establish installed fonts.\nSignatures present: ${data.signed}; signatures verified: not performed\nProtected: ${data.protected}\n`;
+            : `docx inspect: ${data.kind}, ${data.dialect}\nParts: ${data.parts.length}; paragraphs: ${data.counts.paragraphs}; tables: ${data.counts.tables}; images: ${data.counts.images}\nCached pages: ${data.counts.cachedPages ?? "unknown"}; rendered pages: not calculated\nThemes: ${data.fontResources.themes.length}; font tables: ${data.fontResources.fontTables.length}; unresolved font/theme references: ${data.fontResources.diagnostics.length}\nFont references do not establish installed fonts or licensing.\nSignatures present: ${data.signed}; signatures verified: not performed\nProtected: ${data.protected}\n`;
           const diagnostic = warnings.map(warning => `docx: ${escapeTerminalText(warning.code)}: ${escapeTerminalText(warning.message)}\n`).join("") + errors.map(error => `docx: ${escapeTerminalText(error.code)}: ${escapeTerminalText(error.message)}\n`).join("");
           budget.check("diagnosticBytes", new TextEncoder().encode(diagnostic).length);
           output = new TextEncoder().encode(invocation.options.json === true ? JSON.stringify({ version: 1, operation: invocation.operation, ok: valid, data: valid ? data : null, warnings, errors, affected: 0, locations }) + "\n" : human);
@@ -128,7 +129,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         if (writingDiagnostics) return { exitCode: 3 };
         const code = error instanceof ResourceLimitError ? "limit-exceeded" : acquiring ? "source-failure" : error && typeof error === "object" && "code" in error ? String(error.code) : "invalid-document";
         exitCode = error instanceof ResourceLimitError ? 4 : code === "conflict" ? 1 : acquiring || error instanceof PublicationError || code === "source-failure" || code === "sink-failure" ? 3 : code === "usage" ? 2 : 1;
-        const diagnostic = commandDiagnostic(acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : "Document operation failed: " + code, code, budget.limits.diagnosticBytes);
+        const diagnostic = commandDiagnostic(acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : error instanceof UnsupportedEmbeddedFontMutationError ? error.message : "Document operation failed: " + code, code, budget.limits.diagnosticBytes);
         const message = diagnostic.message;
         output = new TextEncoder().encode(invocation.options.json === true ? JSON.stringify({ version: 1, operation: invocation.operation, ok: false, data: null, warnings: [], errors: [{ code, message }], affected: 0, locations: [] }) + "\n" : "");
         try { await request.stderr.write(new TextEncoder().encode(diagnostic.human)); }

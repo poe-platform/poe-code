@@ -72,7 +72,7 @@ describe("document discovery", () => {
   it("reports conservative host support and effective limits without document claims", () => {
     const budget = new DocumentBudget({ compressedInput: 1234 });
     const result = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} }, budget)!;
-    expect(result.data).toMatchObject({ features: [{ id: "F15", level: "edit" }, { id: "F14", level: "edit" }, { id: "F13", level: "edit" }, { id: "F12", level: "edit" }, { id: "F11", level: "edit" }, { id: "F06", level: "read" }, { id: "F49", level: "read" }, { id: "F08", level: "read" }, { id: "F09", level: "read" }, { id: "F07", level: "edit" }, { id: "F10", level: "edit" }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true } });
+    expect(result.data).toMatchObject({ features: [{ id: "F42", level: "read" }, { id: "F15", level: "edit" }, { id: "F14", level: "edit" }, { id: "F13", level: "edit" }, { id: "F12", level: "edit" }, { id: "F11", level: "edit" }, { id: "F06", level: "read" }, { id: "F49", level: "read" }, { id: "F08", level: "read" }, { id: "F09", level: "read" }, { id: "F07", level: "edit" }, { id: "F10", level: "edit" }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true } });
     expect((result.data as { limits: readonly unknown[] }).limits).toContainEqual({ name: "compressedInput", ceiling: 1234 });
     expect(result.human).toContain("Inspection and partial core-v1 validation are implemented");
     expect(discover("capabilities", "report.docx")).toBeUndefined();

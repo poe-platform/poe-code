@@ -1,0 +1,133 @@
+{
+  "bin": {
+    "poe-safejs": "dist/safe-js/cli.js",
+    "poe-safe-js": "dist/safe-js/cli.js"
+  },
+  "bugs": {
+    "url": "https://github.com/poe-platform/poe-code/issues"
+  },
+  "dist": {
+    "shasum": "11cfb673a1eed1d1efcea75f377e35a39e167e8e",
+    "tarball": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.590.tgz",
+    "fileCount": 374,
+    "integrity": "sha512-bSYtuDAncGg6F8L4z+idVRwgIoy7XasBfW7jlDTAA8ER74KJmojWwVsuii+vWtXtkmmEx5ujOgRVCkxu3FEmiQ==",
+    "signatures": [
+      {
+        "sig": "MEUCIB1khKRyZibcOSHZk9/PWBWhOb5wcIMiP73+OO9ZF0lNAiEAr2HhmasNUqGgRVTFkiPA5zRCry1YUgqV4s2c2QKSl/Y=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "sig": "MEQCIDhv3bOnYl5n6nBcDyVru2OydiAAoYlKQlGtc3lzest3AiAosSA+24YDdGlGexdM963A1mfY7ojYiMXk0yZdC6zuWQ==",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.590",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 42995832
+  },
+  "name": "@poe-platform/safe-js",
+  "type": "module",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "exports": {
+    ".": {
+      "types": {
+        "browser": "./dist/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/safe-js/index.d.ts"
+      },
+      "import": "./dist/safe-js/index.js",
+      "browser": null
+    },
+    "./fs": {
+      "types": "./dist/compat/fs.d.ts",
+      "import": "./dist/compat/fs.js"
+    },
+    "./cli": {
+      "types": {
+        "browser": "./dist/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/safe-js/cli.d.ts"
+      },
+      "import": "./dist/safe-js/cli.js",
+      "browser": null
+    },
+    "./core": {
+      "types": {
+        "browser": "./dist/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/safe-js/core.d.ts"
+      },
+      "import": "./dist/safe-js/core.js",
+      "browser": null
+    },
+    "./fs/core": {
+      "types": "./dist/compat/fs-core.d.ts",
+      "import": "./dist/compat/fs-core.js"
+    },
+    "./fs/node": {
+      "types": "./dist/compat/fs-node.d.ts",
+      "import": "./dist/compat/fs-node.js",
+      "browser": null
+    },
+    "./workerd": {
+      "types": {
+        "browser": "./dist/safe-js/node-unavailable.d.ts",
+        "default": "./dist/safe-js/workerd.d.ts",
+        "workerd": "./dist/safe-js/workerd.d.ts"
+      },
+      "import": "./dist/safe-js/workerd.js",
+      "browser": null,
+      "workerd": "./dist/safe-js/workerd.js"
+    }
+  },
+  "license": "MIT",
+  "_npmUser": {
+    "name": "GitHub Actions",
+    "email": "npm-oidc-no-reply@github.com",
+    "trustedPublisher": {
+      "id": "github",
+      "oidcConfigId": "oidc:9cfc37c9-62e3-45bd-a408-3cbfaca03c4a"
+    }
+  },
+  "homepage": "https://github.com/poe-platform/poe-code#readme",
+  "repository": {
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "type": "git",
+    "directory": "packages/safe-js"
+  },
+  "_npmVersion": "11.19.1",
+  "description": "Budgeted JavaScript interpreter with explicit host capabilities and resumable execution",
+  "directories": {},
+  "maintainers": [
+    {
+      "name": "kamilio",
+      "email": "kamil.jopek@gmail.com"
+    }
+  ],
+  "_nodeVersion": "22.23.2",
+  "dependencies": {
+    "jose": "^6.1.3",
+    "yaml": "^2.8.2",
+    "@types/node": "^25.2.2",
+    "temporal-polyfill": "1.0.4",
+    "@formatjs/bigdecimal": "0.2.7",
+    "@petamoriken/float16": "^3.9.3",
+    "@poe-platform/safe-fs": "0.1.590",
+    "@formatjs/intl-numberformat": "9.4.0",
+    "@formatjs/intl-localematcher": "0.8.13",
+    "@formatjs/intl-durationformat": "0.10.18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "_hasShrinkwrap": false,
+  "_npmOperationalInternal": {
+    "tmp": "tmp/safe-js_0.1.590_1789347254895_0.8957780113821763",
+    "host": "s3://npm-registry-packages-npm-production"
+  },
+  "_id": "@poe-platform/safe-js@0.1.590",
+  "version": "0.1.590"
+}

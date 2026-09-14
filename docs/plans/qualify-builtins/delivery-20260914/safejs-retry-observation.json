@@ -1,0 +1,54 @@
+{
+  "observedAt": "2026-09-14T00:53:09.841Z",
+  "rows": [
+    {
+      "url": "https://registry.npmjs.org/@poe-platform%2Fsafe-js/0.1.590?qualification=1789347189050",
+      "status": 404,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cf-ray": "a3ab69bccf9924cb-ATL",
+        "connection": "keep-alive",
+        "content-length": "28",
+        "content-type": "application/json",
+        "date": "Mon, 14 Sep 2026 00:53:09 GMT",
+        "server": "cloudflare"
+      }
+    },
+    {
+      "url": "https://registry.npmjs.org/@poe-platform%2Fsafe-js?qualification=1789347189050",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=300",
+        "cf-cache-status": "MISS",
+        "cf-ray": "a3ab69bf3f4d53d3-ATL",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/json",
+        "date": "Mon, 14 Sep 2026 00:53:09 GMT",
+        "etag": "W/\"d7a1472cbf3643e2fa96444f8ab8e1a5\"",
+        "last-modified": "Sun, 13 Sep 2026 20:24:17 GMT",
+        "server": "cloudflare",
+        "transfer-encoding": "chunked",
+        "vary": "accept-encoding, accept"
+      },
+      "latest": "0.1.589"
+    },
+    {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2Fsafe-js@0.1.590?qualification=1789347189050",
+      "status": 404,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "age": "37",
+        "cache-control": "public, max-age=300",
+        "cf-ray": "a3ab69c0f8b424cb-ATL",
+        "connection": "keep-alive",
+        "content-length": "21",
+        "content-type": "application/json",
+        "date": "Mon, 14 Sep 2026 00:53:09 GMT",
+        "server": "cloudflare",
+        "vary": "accept-encoding, accept"
+      }
+    }
+  ]
+}

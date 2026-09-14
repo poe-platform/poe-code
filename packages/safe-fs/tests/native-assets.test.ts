@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { createHash } from "node:crypto";
-import { buildNativeAssets, copyNativeAssets, readBuiltNativeAssets, readNativeRegistry } from "../scripts/native-assets.mjs";
+import { buildNativeAssets, copyNativeAssets, readBuiltNativeAssets, readNativeRegistry, parseNativeAssetArguments } from "../scripts/native-assets.mjs";
 
 const registry = {
   version: 1, specifier: "#safe-fs-native-seek", directory: "native/fs-seek",
@@ -148,5 +148,28 @@ describe("native build assets", () => {
     });
     await expect(buildNativeAssets(setup.options)).rejects.toThrow();
     await expect(setup.files.stat("/repo/packages/safe-fs/dist/native/fs-seek/manifest.json")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+});
+
+describe("explicit portable asset build", () => {
+  it("emits authenticated portable assets on a supported host without compiler or headers", async () => {
+    const setup = fixture(); await setup.files.unlink("/usr/bin/cc"); for (const name of headerNames) await setup.files.unlink("/headers/" + name);
+    const result = await buildNativeAssets({ ...setup.options, portable: true });
+    expect(result.manifest.targets).toEqual([]); expect(result.manifest.build.compiler).toBeNull(); expect(result.manifest.build.headers).toBeNull(); expect(setup.compile).not.toHaveBeenCalled();
+    const built = await readBuiltNativeAssets({ rootDir: "/repo", files: setup.files }); expect(built.entries.map(entry => entry.name).sort()).toEqual(["loader.d.ts", "loader.mjs", "manifest.json"]);
+  });
+  it("never inspects host attributes in explicit portable mode", async () => {
+    const setup = fixture(), inspect = vi.fn(() => { throw new Error("Unexpected host inspection"); });
+    const result = await buildNativeAssets({ ...setup.options, portable: true, host: { get platform() { return inspect(); }, get arch() { return inspect(); }, get libc() { return inspect(); }, get libcVersion() { return inspect(); } } });
+    expect(result.manifest.targets).toEqual([]); expect(inspect).not.toHaveBeenCalled(); expect(setup.compile).not.toHaveBeenCalled();
+  });
+  it("retires registered native binaries when explicitly rebuilding portable assets", async () => {
+    const setup = fixture(); await buildNativeAssets(setup.options); setup.compile.mockClear();
+    await buildNativeAssets({ ...setup.options, portable: true }); expect(setup.compile).not.toHaveBeenCalled();
+    expect((await setup.files.readdir("/repo/packages/safe-fs/dist/native/fs-seek")).sort()).toEqual(["loader.d.ts", "loader.mjs", "manifest.json"]);
+  });
+  it("parses only the explicit portable switch and preserves native defaults", () => {
+    expect(parseNativeAssetArguments([])).toEqual({ portable: false }); expect(parseNativeAssetArguments(["--portable"])).toEqual({ portable: true });
+    for (const args of [["--unknown"], ["--portable", "--portable"], ["--portable=yes"]]) expect(() => parseNativeAssetArguments(args)).toThrow();
   });
 });

@@ -173,17 +173,18 @@ async function publishFiles(files, directory, entries, registry) {
   for (const entry of entries) await files.writeFile(path.join(directory, entry.name), entry.contents);
 }
 
-export async function buildNativeAssets({ rootDir, files = filesystem, host, headers, compile = runCompiler }) {
+export async function buildNativeAssets({ rootDir, files = filesystem, host, headers, compile = runCompiler, portable = false }) {
+  assert.equal(typeof portable, "boolean", "portable asset mode must be boolean");
   const registry = await readNativeRegistry({ rootDir, files });
   const inputs = await sourceInputs(rootDir, registry, files);
   const packageDir = path.join(rootDir, "packages/safe-fs");
   const dist = path.join(packageDir, "dist");
   await inspectPath(files, dist, true);
-  if (host === undefined) {
+  if (!portable && host === undefined) {
     const libcVersion = process.platform === "linux" ? process.report?.getReport().header?.glibcVersionRuntime : undefined;
     host = { platform: process.platform, arch: process.arch, libc: libcVersion ? "glibc" : undefined, libcVersion };
   }
-  const targets = registry.targets.filter(target => supported(target, host));
+  const targets = portable ? [] : registry.targets.filter(target => supported(target, host));
   assert.ok(targets.length <= 1, "ambiguous native target");
   const manifest = { version: 1, napi: registry.napi, maxBinaryBytes: registry.maxBinaryBytes, targets: [], build: {
     sourceSha256: digest(inputs.source), loaderSha256: digest(inputs.loader), declarationSha256: digest(inputs.declaration), headers: null, compiler: null,
@@ -278,8 +279,14 @@ export async function copyNativeAssets({ rootDir, outDir, files = filesystem }) 
   return { registry: artifact.registry, directory, manifest: artifact.manifest };
 }
 
+export function parseNativeAssetArguments(args) {
+  assert.ok(Array.isArray(args), "native asset arguments must be an array");
+  assert.ok(args.length === 0 || (args.length === 1 && args[0] === "--portable"), "unsupported native asset arguments");
+  return { portable: args.length === 1 };
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const rootDir = fileURLToPath(new URL("../../../", import.meta.url));
-  const result = await buildNativeAssets({ rootDir });
+  const result = await buildNativeAssets({ rootDir, ...parseNativeAssetArguments(process.argv.slice(2)) });
   console.log(JSON.stringify({ nativeAssets: result.directory, targets: result.manifest.targets.map(targetName) }));
 }

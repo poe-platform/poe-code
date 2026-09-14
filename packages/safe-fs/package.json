@@ -41,6 +41,7 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs",
+    "build:portable": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs --portable",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "repository": {

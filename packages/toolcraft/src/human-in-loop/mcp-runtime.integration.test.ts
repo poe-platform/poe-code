@@ -223,7 +223,7 @@ describe("human-in-loop MCP runtime", () => {
 
       expect(result.content[0]).toEqual({
         type: "text",
-        text: `Queued for human approval (id: ${pending.approvalId}). Track with \`toolcraft approvals show ${pending.approvalId}\`.`,
+        text: `Queued for human approval (id: ${pending.approvalId}). Track with \`toolcraft approvals show --approval-id ${pending.approvalId}\`.`,
       });
       expect(pending).toEqual({
         status: "pending-approval",

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
-import { defineCommand } from "./index.js";
-import { renderResult } from "./renderer.js";
+import { asMCPResult, defineCommand } from "./index.js";
+import { renderObjectTable, renderResult } from "./renderer.js";
 import type { RenderPrimitives } from "./index.js";
 import type { OutputMode } from "./renderer.js";
 
@@ -61,6 +61,129 @@ function render(result: unknown, output: OutputMode = "rich") {
 
 afterEach(() => {
   vi.restoreAllMocks();
+});
+
+describe("ordinary result ownership", () => {
+  const cases = [
+    { name: "empty content", result: { content: [] } },
+    { name: "text-like content", result: { content: [{ type: "text", text: "domain-text" }] } },
+    { name: "structured content", result: { structuredContent: { name: "domain" } } },
+    { name: "structured metadata", result: { structuredContent: { name: "domain" }, _meta: { source: "local" } } },
+    { name: "domain error flag", result: { content: [], isError: true } },
+    { name: "extra-key control", result: { content: [], kind: "document" } }
+  ];
+
+  describe.each(cases)("$name", ({ result }) => {
+    describe.each([false, true])("declared schema: %s", (typed) => {
+      it("preserves the full value in automatic JSON output", () => {
+        const original = structuredClone(result);
+        const command = defineCommand({
+          name: "demo",
+          params: S.Object({}),
+          ...(typed ? { result: S.Object(Object.fromEntries(Object.keys(result).map((key) => [key, S.Json()]))) } : {}),
+          handler: () => result
+        });
+        const write = vi.fn();
+        const status = renderResult(command, result, "json", createPrimitives(), write);
+        expect(status.mcpError).toBe(false);
+        expect(write).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(write.mock.calls[0]![0])).toStrictEqual(original);
+        expect(write.mock.calls[0]![1]).not.toBe("stderr");
+        expect(result).toStrictEqual(original);
+      });
+
+      it.each(["rich", "md", "json"] as const)("passes the actual handler value to custom %s rendering", (output) => {
+        const rich = vi.fn();
+        const markdown = vi.fn(() => "rendered");
+        const json = vi.fn((value: unknown) => value);
+        const command = defineCommand({
+          name: "demo",
+          params: S.Object({}),
+          ...(typed ? { result: S.Object(Object.fromEntries(Object.keys(result).map((key) => [key, S.Json()]))) } : {}),
+          handler: () => result,
+          render: { rich, markdown, json }
+        });
+        const primitives = createPrimitives();
+        const status = renderResult(command, result, output, primitives, vi.fn());
+        const renderer = output === "rich" ? rich : output === "md" ? markdown : json;
+        expect(status.mcpError).toBe(false);
+        expect(renderer).toHaveBeenCalledWith(result, primitives);
+        expect(renderer.mock.calls[0]![0]).toBe(result);
+      });
+    });
+  });
+});
+
+describe("result field label ownership", () => {
+  const cases = [
+    { name: "scalar keys", result: { "display-name": "dash", display_name: "underscore" }, keys: ["display-name", "display_name"] },
+    { name: "nested keys", result: { record: { "display-name": "dash", display_name: "underscore" } }, keys: ["display-name", "display_name"] },
+    { name: "object sections", result: { "profile-name": { value: "dash" }, profile_name: { value: "underscore" } }, keys: ["profile-name", "profile_name"] },
+    { name: "lists", result: { "tag-name": ["dash"], tag_name: ["underscore"] }, keys: ["tag-name", "tag_name"] },
+    { name: "array sections", result: { "group-name": [{ value: "dash" }], group_name: [{ value: "underscore" }] }, keys: ["group-name", "group_name"] },
+    { name: "mixed sections", result: { "profile-name": "dash", profile_name: { value: "underscore" } }, keys: ["profile-name", "profile_name"] },
+    { name: "Unicode keys", result: { "café-id": "dash", café_id: "underscore" }, keys: ["café-id", "café_id"] },
+    { name: "already humanized keys", result: { "display-name": "dash", display_name: "underscore", "Display name": "literal" }, keys: ["display-name", "display_name", "Display name"] }
+  ];
+
+  describe.each(cases)("$name", ({ result, keys }) => {
+    it("disambiguates rich labels without changing the result", () => {
+      const original = structuredClone(result);
+      const rendered = render(result);
+      for (const key of keys) expect(rendered.stdout).toContain(key);
+      expect(rendered.stdout).toContain("dash");
+      expect(rendered.stdout).toContain("underscore");
+      expect(rendered.stderr).toBe("");
+      expect(result).toStrictEqual(original);
+    });
+
+    it("disambiguates detail-table labels", () => {
+      const primitives = createPrimitives();
+      const table = JSON.parse(renderObjectTable(result, primitives)) as { rows: Array<{ label: string; value: string }> };
+      const labels = table.rows.map((row) => row.label.trim());
+      for (const key of keys) expect(labels).toContain(key);
+    });
+
+    it.each(["md", "json"] as const)("preserves literal keys in %s", (output) => {
+      const rendered = render(result, output);
+      for (const key of keys) expect(rendered.stdout).toContain(key);
+      if (output === "json") expect(JSON.parse(rendered.stdout)).toStrictEqual(result);
+    });
+  });
+
+  it("retains readable labels when there is no collision", () => {
+    const rendered = render({ display_name: "known", age: 42 });
+    expect(rendered.stdout).toContain("Display name");
+    expect(rendered.stdout).toContain("Age");
+    expect(rendered.stdout).not.toContain("display_name");
+  });
+
+  it("does not treat matching keys in separate parents as sibling collisions", () => {
+    const rendered = render({ first: { display_name: "one" }, second: { display_name: "two" } });
+    expect(rendered.stdout.split("Display name")).toHaveLength(3);
+    expect(rendered.stdout).not.toContain("display_name");
+  });
+
+  it("keeps unrelated sibling labels human-readable", () => {
+    const rendered = render({ "field-name": "dash", field_name: "underscore", display_name: "known" });
+    expect(rendered.stdout).toContain("field-name");
+    expect(rendered.stdout).toContain("field_name");
+    expect(rendered.stdout).toContain("Display name");
+    expect(rendered.stdout).not.toContain("display_name");
+  });
+
+  it("preserves raw column names in top-level array tables", () => {
+    const table = JSON.parse(render([{ "display-name": "dash", display_name: "underscore" }]).stdout) as { columns: Array<{ name: string; title: string }> };
+    expect(table.columns).toEqual([{ name: "display-name", title: "display-name" }, { name: "display_name", title: "display_name" }]);
+  });
+
+  it("leaves custom rich renderers in control of presentation", () => {
+    const result = { "display-name": "dash", display_name: "underscore" };
+    const rich = vi.fn();
+    const primitives = createPrimitives();
+    renderResult(createCommand(result, { rich }), result, "rich", primitives, vi.fn());
+    expect(rich).toHaveBeenCalledWith(result, primitives);
+  });
 });
 
 describe("renderResult auto renderer", () => {
@@ -297,25 +420,65 @@ describe("renderResult auto renderer", () => {
 });
 
 describe("renderResult MCP call tool envelopes", () => {
+  describe.each(["text", { name: "item" }, [], null, false, 0])("result value %j", (value) => {
+    it.each(["rich", "md", "json"] as const)("preserves sibling fields in %s", (output) => {
+      const payload = { result: value, cursor: "next-page" };
+      const envelope = asMCPResult({ content: [], structuredContent: payload });
+      const original = structuredClone(envelope);
+      const rendered = render(envelope, output);
+      expect(rendered.stdout).toContain("next-page");
+      if (output === "json") expect(JSON.parse(rendered.stdout)).toStrictEqual(payload);
+      expect(rendered.stderr).toBe("");
+      expect(envelope).toStrictEqual(original);
+    });
+
+    it.each(["rich", "md", "json"] as const)("retains single-result wrapper compatibility in %s", (output) => {
+      expect(render(asMCPResult({ content: [], structuredContent: { result: value } }), output)).toEqual(render(value, output));
+    });
+  });
+
+  it.each(["rich", "md", "json"] as const)("preserves error payload siblings in %s", (output) => {
+    const payload = { result: "failed", detail: "actionable-context" };
+    const rendered = render(asMCPResult({ content: [], structuredContent: payload, isError: true }), output);
+    expect(rendered.stdout).toBe("");
+    expect(rendered.stderr).toContain("actionable-context");
+    if (output === "json") expect(JSON.parse(rendered.stderr)).toStrictEqual(payload);
+    expect(rendered.status.mcpError).toBe(true);
+  });
+
+  it.each(["rich", "md", "json"] as const)("passes the actual marked envelope to custom %s renderers", (output) => {
+    const payload = { result: "visible", cursor: "next-page" };
+    const envelope = asMCPResult({ content: [], structuredContent: payload });
+    const rich = vi.fn();
+    const markdown = vi.fn(() => "rendered");
+    const json = vi.fn((value: unknown) => value);
+    const primitives = createPrimitives();
+    const command = createCommand(envelope, { rich, markdown, json });
+    renderResult(command, envelope, output, primitives, vi.fn());
+    expect(output === "rich" ? rich : output === "md" ? markdown : json).toHaveBeenCalledWith(envelope, primitives);
+  });
+
   it("unwraps structuredContent.result before rendering", () => {
-    const result = {
+    const result = asMCPResult({
+      content: [],
       structuredContent: {
         result: "- Daily Focus",
       },
-    };
+    });
 
     expect(render(result).stdout).toBe("- Daily Focus\n");
     expect(render(result).status.mcpError).toBe(false);
   });
 
-  it("passes structuredContent without result to downstream renderers", () => {
+  it("passes marked structuredContent without result inside the actual custom-renderer value", () => {
     const markdown = vi.fn(() => "rendered");
-    const result = {
+    const result = asMCPResult({
+      content: [],
       structuredContent: {
         foo: 1,
         bar: 2,
       },
-    };
+    });
     const command = createCommand(result, { markdown });
     const primitives = createPrimitives();
     let stdout = "";
@@ -324,39 +487,48 @@ describe("renderResult MCP call tool envelopes", () => {
       stdout += chunk;
     });
 
-    expect(markdown).toHaveBeenCalledWith({ foo: 1, bar: 2 }, primitives);
+    expect(markdown).toHaveBeenCalledWith(result, primitives);
     expect(stdout).toBe("rendered\n");
   });
 
   it("joins text content when structuredContent is absent", () => {
-    const result = {
+    const result = asMCPResult({
       content: [
         { type: "text", text: "hello" },
         { type: "text", text: "world" },
       ],
-    };
+    });
 
     expect(render(result).stdout).toBe("hello\nworld\n");
   });
 
   it("falls back to the empty-result renderer when text content is empty", () => {
-    const result = {
+    const result = asMCPResult({
       content: [],
-    };
+    });
 
     expect(render(result).stdout).toBe("Done.\n");
   });
 
   it("writes error envelopes to stderr and marks the result as an MCP error", () => {
-    const result = {
+    const result = asMCPResult({
       content: [{ type: "text", text: "failed" }],
       isError: true,
-    };
+    });
 
     const rendered = render(result);
 
     expect(rendered.stdout).toBe("");
     expect(rendered.stderr).toBe("failed\n");
+    expect(rendered.status.mcpError).toBe(true);
+  });
+
+  it.each(["rich", "md", "json"] as const)("does not describe an empty MCP failure as success in %s", (output) => {
+    const result = asMCPResult({ content: [], isError: true });
+    const rendered = render(result, output);
+    expect(rendered.stdout).toBe("");
+    expect(rendered.stderr).toContain("Upstream tool failed.");
+    expect(rendered.stderr).not.toContain("Done.");
     expect(rendered.status.mcpError).toBe(true);
   });
 

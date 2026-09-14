@@ -143,6 +143,11 @@
         "POE_CI_RUNTIME"
       ],
       "cache": true
+    },
+    "toolcraft#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

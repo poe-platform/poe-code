@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import { runNpm } from "./npm-command.mjs";
 import { createToolcraftBundleOptions } from "./toolcraft-standalone-bundle.mjs";
 
 const rootDirectory = fileURLToPath(new URL("..", import.meta.url));
@@ -48,7 +49,7 @@ function installBundleFixture(name, bundlePath) {
     })}\n`
   );
   const packResult = JSON.parse(
-    execFileSync("npm", ["pack", packageDirectory, "--json", "--pack-destination", packDirectory], {
+    runNpm(["pack", packageDirectory, "--json", "--pack-destination", packDirectory], {
       encoding: "utf8"
     })
   );
@@ -56,8 +57,7 @@ function installBundleFixture(name, bundlePath) {
     path.join(consumerDirectory, "package.json"),
     `${JSON.stringify({ private: true, type: "module" })}\n`
   );
-  execFileSync(
-    "npm",
+  runNpm(
     [
       "install",
       "--ignore-scripts",
@@ -76,8 +76,7 @@ try {
   mkdirSync(packDirectory, { recursive: true });
   mkdirSync(buildDirectory, { recursive: true });
   const packResult = JSON.parse(
-    execFileSync(
-      "npm",
+    runNpm(
       ["pack", "./packages/toolcraft", "--json", "--pack-destination", packDirectory],
       { cwd: rootDirectory, encoding: "utf8" }
     )
@@ -87,7 +86,7 @@ try {
     path.join(buildDirectory, "package.json"),
     `${JSON.stringify({ private: true, type: "module" })}\n`
   );
-  execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", tarballPath], {
+  runNpm(["install", "--ignore-scripts", "--no-audit", "--no-fund", tarballPath], {
     cwd: buildDirectory,
     stdio: "inherit"
   });

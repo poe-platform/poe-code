@@ -11,18 +11,18 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { runNpm } from "./npm-command.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 const rootTscPath = path.join(repoRoot, "node_modules", "typescript", "bin", "tsc");
 
-function run(command, args, options = {}) {
-  return execFileSync(command, args, { cwd: repoRoot, encoding: "utf8", ...options });
-}
-
 function packPackage(relativeDir, packDir) {
   const result = JSON.parse(
-    run("npm", ["pack", path.join(repoRoot, relativeDir), "--json", "--pack-destination", packDir])
+    runNpm(["pack", path.join(repoRoot, relativeDir), "--json", "--pack-destination", packDir], {
+      cwd: repoRoot,
+      encoding: "utf8"
+    })
   );
   return path.join(packDir, result[0].filename);
 }
@@ -87,7 +87,7 @@ function collectBundledRegistryIdentities(projectDir) {
 
 function isPublishedToRegistry(name, version) {
   try {
-    execFileSync("npm", ["view", `${name}@${version}`, "version"], { stdio: "ignore" });
+    runNpm(["view", `${name}@${version}`, "version"], { stdio: "ignore" });
     return true;
   } catch {
     return false;
@@ -174,7 +174,7 @@ function writeConsumerFixture(projectDir) {
 }
 
 function runConsumerSmoke(projectDir, tarballs) {
-  execFileSync("npm", ["install", ...tarballs], { cwd: projectDir, stdio: "inherit" });
+  runNpm(["install", ...tarballs], { cwd: projectDir, stdio: "inherit" });
 
   execFileSync(
     process.execPath,
@@ -284,13 +284,13 @@ function runOptionalDependencySmoke(projectDir, toolcraftTarball, workspaceManif
     ) + "\n"
   );
 
-  execFileSync("npm", ["install", "--package-lock-only"], {
+  runNpm(["install", "--package-lock-only"], {
     cwd: projectDir,
     stdio: "inherit"
   });
   rmSync(path.join(projectDir, "node_modules"), { recursive: true, force: true });
-  execFileSync("npm", ["ci", "--ignore-scripts"], { cwd: projectDir, stdio: "inherit" });
-  execFileSync("npm", ["ls", "--all"], { cwd: projectDir, stdio: "inherit" });
+  runNpm(["ci", "--ignore-scripts"], { cwd: projectDir, stdio: "inherit" });
+  runNpm(["ls", "--all"], { cwd: projectDir, stdio: "inherit" });
   assertLockOmitsPrivateIdentities(projectDir, privateWorkspaceVersions);
 
   const bundledIdentities = collectBundledRegistryIdentities(projectDir);
@@ -314,7 +314,7 @@ function runOptionalDependencySmoke(projectDir, toolcraftTarball, workspaceManif
         .join(", ")} published by this release run.`
     );
   } else {
-    execFileSync("npm", ["audit", "signatures"], { cwd: projectDir, stdio: "inherit" });
+    runNpm(["audit", "signatures"], { cwd: projectDir, stdio: "inherit" });
   }
   execFileSync(
     process.execPath,

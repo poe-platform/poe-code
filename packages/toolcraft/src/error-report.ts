@@ -8,7 +8,13 @@ import type { Command, SecretDeclarations } from "./index.js";
 import { ApprovalDeclinedError } from "./human-in-loop/types.js";
 import { findPackageMetadata } from "./package-metadata.js";
 import { findProjectRoot } from "./project-root.js";
-import { isSensitiveName, redactHttpBody, redactHttpHeaderValue } from "./redaction.js";
+import {
+  isSensitiveName,
+  redactHttpBody,
+  redactHttpHeaderValue,
+  redactSecretLikeFields
+} from "./redaction.js";
+import { isHttpErrorLike, type HttpErrorLike } from "./api-error-summary.js";
 import { UserError } from "./user-error.js";
 
 const ERROR_REPORTS_ENV = "TOOLCRAFT_ERROR_REPORTS";
@@ -43,23 +49,6 @@ export interface ErrorReportRenderResult {
   redactedKeys: string[];
 }
 
-interface HttpErrorLike {
-  name: "HttpError";
-  message: string;
-  request: {
-    method: string;
-    url: string;
-    headers: Record<string, string>;
-    body?: unknown;
-  };
-  response: {
-    status: number;
-    statusText: string;
-    headers: Record<string, string>;
-    body: unknown;
-  };
-}
-
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -70,15 +59,6 @@ function unwrapOptional(schema: AnySchema): AnySchema {
   }
 
   return schema;
-}
-
-function hasHttpContext(error: unknown): error is HttpErrorLike {
-  return (
-    error instanceof Error &&
-    error.name === "HttpError" &&
-    isPlainObject((error as { request?: unknown }).request) &&
-    isPlainObject((error as { response?: unknown }).response)
-  );
 }
 
 function isSkippedError(error: unknown): boolean {
@@ -93,7 +73,7 @@ function isSkippedError(error: unknown): boolean {
     return true;
   }
 
-  return error instanceof UserError && error.cause === undefined && !hasHttpContext(error);
+  return error instanceof UserError && error.cause === undefined && !isHttpErrorLike(error);
 }
 
 function reportsEnabled(
@@ -429,10 +409,6 @@ function redactStructuredErrorField(
       return redactedHeaderValue;
     }
 
-    if (isSensitiveName(name)) {
-      return "<redacted>";
-    }
-
     return redactString(value);
   }
 
@@ -466,7 +442,7 @@ function ownStructuredFields(
     Object.defineProperty(fields, key, {
       value: redactStructuredErrorField(
         key,
-        (error as unknown as Record<string, unknown>)[key],
+        redactSecretLikeFields((error as unknown as Record<string, unknown>)[key], key),
         redactString
       ),
       enumerable: true,
@@ -480,11 +456,17 @@ function ownStructuredFields(
 
 function formatStackChain(error: unknown, redactString: (value: string) => string): string {
   const lines: string[] = [];
+  const seen = new Set<Error>();
   let current: unknown = error;
   let index = 0;
 
   while (current !== undefined) {
     if (current instanceof Error) {
+      if (seen.has(current)) {
+        lines.push("Caused by: [Circular]");
+        break;
+      }
+      seen.add(current);
       const stack = current.stack ?? String(current);
       lines.push(redactString(index === 0 ? stack : `Caused by: ${stack}`));
       current = current.cause;
@@ -605,7 +587,7 @@ function buildReport(context: ErrorReportRenderContext): string {
     formatStackChain(error, redactString)
   ];
 
-  if (hasHttpContext(error)) {
+  if (isHttpErrorLike(error)) {
     lines.push("", "HTTP Transcript", formatHttpTranscript(error, redactString));
   }
 
@@ -652,4 +634,4 @@ export async function writeErrorReport(
   };
 }
 
-export { hasHttpContext };
+export { isHttpErrorLike as hasHttpContext };

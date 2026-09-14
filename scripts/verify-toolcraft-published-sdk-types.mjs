@@ -3,6 +3,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { runNpm } from "./npm-command.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const fixtureRoot = mkdtempSync(path.join(os.tmpdir(), "toolcraft-published-sdk-types-"));
@@ -14,7 +15,7 @@ function run(command, args, options = {}) {
   return execFileSync(command, args, {
     cwd: options.cwd ?? repoRoot,
     encoding: "utf8",
-    stdio: options.capture === true ? "pipe" : "inherit"
+    stdio: "inherit"
   });
 }
 
@@ -23,10 +24,9 @@ function writeJson(filePath, value) {
 }
 
 function pack(packageDir) {
-  const output = run(
-    "npm",
+  const output = runNpm(
     ["pack", packageDir, "--pack-destination", packDir, "--json"],
-    { capture: true }
+    { cwd: repoRoot, encoding: "utf8" }
   );
   const [{ filename }] = JSON.parse(output);
   return path.join(packDir, filename);
@@ -65,12 +65,23 @@ try {
   });
   writeFileSync(
     path.join(producerDir, "src", "index.ts"),
-    `import { defineCommand, defineGroup, S } from "toolcraft";
+    `import { asMCPResult, defineCommand, defineGroup, S } from "toolcraft";
 
 const lint = defineCommand({
   name: "lint",
   params: S.Object({ root: S.Optional(S.String()) }),
   handler: async () => ({ files: 1 }),
+});
+
+const upstream = defineCommand({
+  name: "upstream",
+  params: S.Object({}),
+  handler: () => asMCPResult({
+    content: [{ type: "text", text: "upstream text" }],
+    structuredContent: { id: "one" },
+    _meta: { trace: "request" },
+  }),
+  render: { json: (result) => ({ id: result.structuredContent.id, trace: result._meta.trace }) },
 });
 
 const inspect = defineCommand({
@@ -86,14 +97,15 @@ const inspect = defineCommand({
 export const root = defineGroup({
   name: "example",
   scope: ["cli", "mcp", "sdk"],
-  children: [lint, inspect] as const,
+  children: [lint, inspect, upstream] as const,
 });
 `,
     "utf8"
   );
 
-  run("npm", ["install", "--ignore-scripts", "--install-strategy=nested"], {
-    cwd: producerDir
+  runNpm(["install", "--ignore-scripts", "--install-strategy=nested"], {
+    cwd: producerDir,
+    stdio: "inherit"
   });
   run(path.join(repoRoot, "node_modules", ".bin", "tsc"), ["-p", "tsconfig.json"], {
     cwd: producerDir
@@ -131,21 +143,35 @@ export const root = defineGroup({
   });
   writeFileSync(
     path.join(consumerDir, "consumer.ts"),
-    `import { createSDK } from "toolcraft/sdk";
+    `import { cloneCommandNode, type ValidationOptions } from "toolcraft";
+import { createSDK } from "toolcraft/sdk";
+import { S, validate } from "toolcraft/schema";
+import { disposeMcpProxies } from "toolcraft/mcp-proxy";
 import { root } from "toolcraft-sdk-types-producer";
 
-const sdk = createSDK(root);
+const sdk = createSDK(cloneCommandNode(root));
+const validationOptions: ValidationOptions = { defaults: "none" };
+const validation = validate(S.Object({ count: S.Optional(S.Number({ default: 2 })) }), {}, validationOptions);
+void validation;
 // @ts-expect-error root must be a string
 sdk.lint({ root: 42 });
 const result = await sdk.lint({ root: "." });
 const files: number = result.files;
 void files;
+const upstream = await sdk.upstream({});
+const id: string = upstream.structuredContent.id;
+const trace: string = upstream._meta.trace;
+const contentType: "text" = upstream.content[0]!.type;
+void [id, trace, contentType];
+const disposed: Promise<void> = disposeMcpProxies(root);
+await disposed;
 `,
     "utf8"
   );
 
-  run("npm", ["install", "--ignore-scripts", "--install-strategy=nested"], {
-    cwd: consumerDir
+  runNpm(["install", "--ignore-scripts", "--install-strategy=nested"], {
+    cwd: consumerDir,
+    stdio: "inherit"
   });
   for (const exactOptionalPropertyTypes of ["false", "true"]) {
     run(
@@ -170,11 +196,13 @@ void files;
   });
   writeFileSync(
     path.join(consumerDir, "consumer-declaration.ts"),
-    `import { createSDK } from "toolcraft/sdk";
+    `import { cloneCommandNode } from "toolcraft";
+import { createSDK } from "toolcraft/sdk";
 import { root } from "toolcraft-sdk-types-producer";
 
-const sdk = createSDK(root);
+const sdk = createSDK(cloneCommandNode(root));
 export const result = sdk.lint({ root: "." });
+export const upstreamResult = sdk.upstream({});
 `,
     "utf8"
   );

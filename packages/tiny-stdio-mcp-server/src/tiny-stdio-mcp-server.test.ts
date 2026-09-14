@@ -1379,6 +1379,29 @@ function createSdkTransport() {
 }
 
 describe("createServer", () => {
+  describe.each([false, true])("custom method errors with async=%s", (asynchronous) => {
+    it.each([
+      { failure: new ToolError(-32042, "Structured failure", { retryable: false }), expected: { code: -32042, message: "Structured failure", data: { retryable: false } } },
+      { failure: new ToolError(-32602, "Invalid input"), expected: { code: -32602, message: "Invalid input" } },
+      { failure: new ToolError(-32001, "Falsy metadata", false), expected: { code: -32001, message: "Falsy metadata", data: false } },
+      { failure: new Error("Internal failure"), expected: { code: -32603, message: "Internal failure" } }
+    ])("preserves $expected.code and error metadata", async ({ failure, expected }) => {
+      const server = createServer({ name: "test", version: "1" });
+      server.method("example/fail", asynchronous ? async () => { throw failure; } : () => { throw failure; });
+      const session = server.createMessageSession();
+      try {
+        await session.handleMessage("initialize", {
+          protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "test", version: "1" }
+        });
+        await session.handleMessage("notifications/initialized");
+
+        await expect(session.handleMessage("example/fail", {})).resolves.toEqual({ error: expected });
+      } finally {
+        session.close();
+      }
+    });
+  });
+
   it("runs custom methods with session notifications and aborts them on close", async () => {
     const server = createServer({ name: "test", version: "1.0.0" });
     const notifications: unknown[] = [];

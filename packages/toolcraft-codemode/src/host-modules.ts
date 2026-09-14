@@ -1,4 +1,4 @@
-import type { Group } from "toolcraft";
+import { UserError, type Group } from "toolcraft";
 
 import {
   formatModuleSegment,
@@ -75,9 +75,18 @@ export async function buildHostModules(
       : await resolveCommandEntries(entries);
   const modules = Object.create(null) as HostModules;
   const lintModules = Object.create(null) as HostLintModules;
+  const pathsByExport = new Map<string, string>();
 
   for (const entry of resolvedEntries) {
     const moduleName = getModuleName(root, entry.groupPath);
+    const exportKey = JSON.stringify([moduleName, entry.name]);
+    const previousPath = pathsByExport.get(exportKey);
+    if (previousPath !== undefined) {
+      throw new UserError(
+        `Codemode module "${moduleName}" exports "${entry.name}" more than once: command paths "${previousPath}" and "${entry.path}" collide.`
+      );
+    }
+    pathsByExport.set(exportKey, entry.path);
     const module = getOrCreateModule(modules, moduleName);
     const lintModule = getOrCreateLintModule(lintModules, moduleName);
 

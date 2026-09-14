@@ -291,15 +291,16 @@ describe("runScreenshot", () => {
       on: processEvents.on.bind(processEvents)
     };
 
-    spawnMock.mockReturnValue(fakeProcess as never);
+    spawnMock.mockImplementation(() => {
+      queueMicrotask(() => stdout.emit("data", Buffer.from("partial output\n")));
+      return fakeProcess as never;
+    });
 
     const stderrWriteSpy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
 
     const promise = runScreenshot(["echo", "slow"], {
       output: "screenshots/slow.png"
     });
-
-    stdout.emit("data", Buffer.from("partial output\n"));
 
     await vi.advanceTimersByTimeAsync(60000);
 

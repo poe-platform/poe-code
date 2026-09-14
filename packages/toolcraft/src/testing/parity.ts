@@ -1,4 +1,4 @@
-import { isDeepStrictEqual } from "node:util";
+import { isDeepStrictEqual, types } from "node:util";
 import type { AnySchema, ObjectSchema } from "toolcraft-schema";
 import {
   McpClient,
@@ -13,6 +13,7 @@ import { UserError } from "../index.js";
 import { createMCPServer } from "../mcp.js";
 import { filterSchemaForScope } from "../schema-scope.js";
 import { createSDK } from "../sdk.js";
+import { formatDiagnosticValue } from "./diagnostic-value.js";
 
 export interface SurfaceOutcome {
   ok: boolean;
@@ -487,11 +488,55 @@ async function runCLISurface(
   }
 }
 
-function errorIdentity(error: unknown): { name: string; message: string } {
-  if (error instanceof Error) {
-    return { name: error.constructor.name, message: error.message };
+const domExceptionMessageGetter = typeof DOMException === "undefined"
+  ? undefined
+  : Object.getOwnPropertyDescriptor(DOMException.prototype, "message")?.get;
+
+function nativeDOMExceptionMessage(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || types.isProxy(error)) return undefined;
+  try {
+    return domExceptionMessageGetter?.call(error);
+  } catch {
+    return undefined;
   }
-  return { name: typeof error, message: String(error) };
+}
+
+function propertyDescriptor(value: unknown, name: string): PropertyDescriptor | undefined {
+  let current = value;
+  while (
+    current !== null &&
+    (typeof current === "object" || typeof current === "function") &&
+    !types.isProxy(current)
+  ) {
+    const descriptor = Object.getOwnPropertyDescriptor(current, name);
+    if (descriptor !== undefined) return descriptor;
+    current = Object.getPrototypeOf(current);
+  }
+  return undefined;
+}
+
+function errorIdentity(error: unknown): { name: string; message: string } {
+  const domMessage = nativeDOMExceptionMessage(error);
+  if (types.isNativeError(error) || domMessage !== undefined) {
+    const prototype = Object.getPrototypeOf(error);
+    const constructor = propertyDescriptor(prototype, "constructor")?.value;
+    const name = typeof constructor === "function" && !types.isProxy(constructor)
+      ? Object.getOwnPropertyDescriptor(constructor, "name")?.value
+      : undefined;
+    const descriptor = propertyDescriptor(error, "message");
+    const message = descriptor === undefined
+      ? ""
+      : "value" in descriptor
+        ? typeof descriptor.value === "string" ? descriptor.value : formatDiagnosticValue(descriptor.value)
+        : descriptor.get === domExceptionMessageGetter && domMessage !== undefined
+          ? domMessage
+          : "[Accessor]";
+    return { name: typeof name === "string" ? name : "Error", message };
+  }
+  return {
+    name: typeof error,
+    message: typeof error === "string" ? error : formatDiagnosticValue(error)
+  };
 }
 
 function outcomesAgree(left: SurfaceOutcome, right: SurfaceOutcome): boolean {
@@ -506,10 +551,11 @@ function outcomesAgree(left: SurfaceOutcome, right: SurfaceOutcome): boolean {
 
 function describeOutcome(surface: Scope, outcome: SurfaceOutcome): string {
   if (outcome.ok) {
-    return `${surface}: ok ${JSON.stringify(outcome.value)}`;
+    return `${surface}: ok ${formatDiagnosticValue(outcome.value)}`;
   }
   const error = errorIdentity(outcome.error);
-  return `${surface}: error ${error.name}: ${error.message}`;
+  const description = `${surface}: error ${error.name}: ${error.message}`;
+  return description.length > 4000 ? `${description.slice(0, 4000)}…` : description;
 }
 
 export async function runParity<TServices extends object>(

@@ -199,6 +199,34 @@ describe("prompts and resources protocol conformance", () => {
     );
   });
 
+  describe.each([false, true])("result metadata with output schema: %s", (typed) => {
+    describe.each([false, true])("error result: %s", (isError) => {
+      it.each([false, true])("preserves metadata with empty text content: %s", async (empty) => {
+        const envelope = {
+          content: empty ? [] : [{ type: "text" as const, text: "upstream text" }],
+          structuredContent: { temperature: 22 },
+          isError,
+          _meta: { trace: "request-one", pagination: { cursor: "next" } }
+        };
+        const original = structuredClone(envelope);
+        const handler = vi.fn(() => envelope);
+        const server = createServer({ name: "metadata", version: "1" }).registerTool({
+          name: "weather", description: "Weather", inputSchema: defineSchema({}),
+          ...(typed ? { outputSchema: defineSchema({ temperature: { type: "number" } }) } : {})
+        }, handler);
+        await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+        const response = await server.handleMessage("tools/call", { name: "weather", arguments: {} });
+        expect(response.error).toBeUndefined();
+        expect(response.result).toStrictEqual({
+          ...original,
+          content: typed && !isError && empty ? [{ type: "text", text: JSON.stringify(original.structuredContent) }] : original.content
+        });
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(envelope).toStrictEqual(original);
+      });
+    });
+  });
+
   it("returns declarative rich tool descriptors and validated structured content", async () => {
     const server = createServer({
       name: "rich-tools",

@@ -16,9 +16,8 @@ import type {
   ObjectSchema,
   RecordSchema
 } from "toolcraft-schema";
-import { validate as validateSchema } from "toolcraft-schema";
+import { cloneDefaultValue, unicodeLength, validate as validateSchema } from "toolcraft-schema";
 import {
-  cancel,
   configureTheme,
   confirm,
   createLogger,
@@ -31,9 +30,9 @@ import {
   promptText,
   renderHelpTokens,
   renderTable,
-  resetOutputFormatCache,
   select,
   text,
+  withOutputFormat,
   type HelpToken
 } from "toolcraft-design";
 import type {
@@ -162,6 +161,7 @@ interface VariantDefinition {
   controlDisplayPath: string;
   controlFieldId: string;
   optional: boolean;
+  parent?: { id: string; branchId: string };
   branches: VariantBranchDefinition[];
 }
 
@@ -177,7 +177,7 @@ interface ExecutionState<TServices extends object> {
   casing: Casing;
   dynamicFields: DynamicFieldDefinition[];
   fields: FieldDefinition[];
-  positionalValues: unknown[];
+  positionalValues: string[];
   presetsEnabled: boolean;
   rawArgv: string[];
   actionCommand: CommanderCommand;
@@ -244,6 +244,7 @@ interface JsonHelpOption {
   required: boolean;
   default?: unknown;
   positional?: boolean;
+  choices?: string[];
 }
 
 export interface CLIControls {
@@ -602,11 +603,22 @@ function collectFields(
         optional: runtimeOptional,
         hasDefault: false,
         defaultValue: undefined,
-        requiredWhenActive
+        requiredWhenActive,
+        variantId: variantContext?.id,
+        variantBranchId: variantContext?.branchId
       };
       collected.fields.push(controlField);
 
       const branches: VariantBranchDefinition[] = [];
+
+      collected.variants.push({
+        id: variantId,
+        controlDisplayPath: controlField.displayPath,
+        controlFieldId: controlField.id,
+        optional: variantContext === undefined ? runtimeOptional : !requiredWhenActive,
+        parent: variantContext,
+        branches
+      });
 
       for (const [branchId, branchSchema] of Object.entries(childSchema.branches)) {
         const branch = collectFields(branchSchema, casing, globalLongOptionFlags, nextPath, true, {
@@ -629,13 +641,6 @@ function collectFields(
         });
       }
 
-      collected.variants.push({
-        id: variantId,
-        controlDisplayPath: controlField.displayPath,
-        controlFieldId: controlField.id,
-        optional: runtimeOptional,
-        branches
-      });
       continue;
     }
 
@@ -643,9 +648,15 @@ function collectFields(
       const variantId = `${toDisplayPath(nextPath)}:union`;
       const controlPath = toUnionKindControlPath(nextPath);
       const controlDisplayPath = toUnionKindDisplayPath(nextPath);
-      const branchIds = childSchema.branches.map((branch) =>
-        getRequiredBranchFingerprint(branch, casing)
-      );
+      const seenFingerprints = new Set<string>();
+      const branchIds = childSchema.branches.map((branch, index) => {
+        const fingerprint = getRequiredBranchFingerprint(branch, casing);
+        const branchId = seenFingerprints.has(fingerprint)
+          ? `${fingerprint} (branch ${index + 1})`
+          : fingerprint;
+        seenFingerprints.add(fingerprint);
+        return branchId;
+      });
       const controlField: FieldDefinition = {
         id: controlDisplayPath,
         path: controlPath,
@@ -665,11 +676,22 @@ function collectFields(
         hasDefault: false,
         defaultValue: undefined,
         requiredWhenActive,
-        synthetic: true
+        synthetic: true,
+        variantId: variantContext?.id,
+        variantBranchId: variantContext?.branchId
       };
       collected.fields.push(controlField);
 
       const branches: VariantBranchDefinition[] = [];
+
+      collected.variants.push({
+        id: variantId,
+        controlDisplayPath,
+        controlFieldId: controlField.id,
+        optional: variantContext === undefined ? runtimeOptional : !requiredWhenActive,
+        parent: variantContext,
+        branches
+      });
 
       childSchema.branches.forEach((branchSchema, index) => {
         const branchId = branchIds[index] ?? "";
@@ -693,13 +715,6 @@ function collectFields(
         });
       });
 
-      collected.variants.push({
-        id: variantId,
-        controlDisplayPath,
-        controlFieldId: controlField.id,
-        optional: runtimeOptional,
-        branches
-      });
       continue;
     }
 
@@ -872,7 +887,7 @@ function parseBooleanText(value: string, label: string): boolean {
     return false;
   }
 
-  throw new InvalidArgumentError(
+  throw new UserError(
     `Invalid value for "${label}". Expected true or false, got ${describeReceived(value)}.`
   );
 }
@@ -891,7 +906,7 @@ function parseEnumValue(
     );
     const suggestionLine =
       suggestions.length > 0 ? ` Did you mean: ${suggestions.join(", ")}?\n` : " ";
-    throw new InvalidArgumentError(
+    throw new UserError(
       `Invalid value for "${label}".${suggestionLine}Expected one of: ${values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
     );
   }
@@ -904,15 +919,16 @@ function validateStringPattern(
   schema: Extract<ScalarSchema, { kind: "string" }>,
   label: string
 ): string {
-  if (schema.minLength !== undefined && value.length < schema.minLength) {
+  const length = unicodeLength(value);
+  if (schema.minLength !== undefined && length < schema.minLength) {
     throw new UserError(
-      `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${value.length}.`
+      `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${length}.`
     );
   }
 
-  if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+  if (schema.maxLength !== undefined && length > schema.maxLength) {
     throw new UserError(
-      `Invalid value for "${label}". Expected a string with length at most ${schema.maxLength}, got string with length ${value.length}.`
+      `Invalid value for "${label}". Expected a string with length at most ${schema.maxLength}, got string with length ${length}.`
     );
   }
 
@@ -933,7 +949,7 @@ function parseJsonText(value: string, label: string): unknown {
   try {
     return JSON.parse(value);
   } catch (error) {
-    throw new InvalidArgumentError(
+    throw new UserError(
       `Invalid value for "${label}". Expected valid JSON, got ${describeReceived(value)} (parser: ${getErrorMessage(error)}).`
     );
   }
@@ -1110,8 +1126,8 @@ function parseScalarValue(
 
     case "number": {
       const parsed = Number(value);
-      if (!isValidNumberSchemaValue(parsed, schema)) {
-        throw new InvalidArgumentError(
+      if (value.trim().length === 0 || !isValidNumberSchemaValue(parsed, schema)) {
+        throw new UserError(
           `Invalid value for "${label}". Expected ${getExpectedNumberDescription(schema)}, got ${describeReceived(value)}.`
         );
       }
@@ -1173,19 +1189,14 @@ function parseArrayValue(value: string, schema: ArraySchema<any>, label: string)
   );
 }
 
-function isNegativeNumericArrayToken(token: string, schema: ArraySchema<any>): boolean {
+function isNegativeNumericToken(token: string): boolean {
   if (!token.startsWith("-") || token.startsWith("--")) {
-    return false;
-  }
-
-  const itemSchema = unwrapOptional(schema.item);
-  if (itemSchema.kind !== "number") {
     return false;
   }
 
   const items = splitArrayInput(token);
   return (
-    items.length > 0 && items.every((item) => isValidNumberSchemaValue(Number(item), itemSchema))
+    items.length > 0 && items.every((item) => Number.isFinite(Number(item)))
   );
 }
 
@@ -1194,7 +1205,63 @@ function isNextArrayOptionToken(token: string, schema: ArraySchema<any>): boolea
     return false;
   }
 
-  return token.startsWith("-") && !isNegativeNumericArrayToken(token, schema);
+  return token.startsWith("-") &&
+    !(unwrapOptional(schema.item).kind === "number" && isNegativeNumericToken(token));
+}
+
+function normalizeNumericArrayOptions(
+  argv: string[],
+  options: readonly Option[],
+  numericArrayOptions: ReadonlySet<Option>
+): string[] {
+  if (numericArrayOptions.size === 0) {
+    return argv;
+  }
+
+  const normalized: string[] = [];
+  let activeFlag: string | undefined;
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index]!;
+    if (token === "--") {
+      normalized.push(...argv.slice(index));
+      break;
+    }
+
+    const option = options.find((candidate) => candidate.short === token || candidate.long === token);
+    const attachedOption = token.startsWith("-") && !token.startsWith("--") && token.length > 2
+      ? options.find((candidate) => candidate.short === token.slice(0, 2))
+      : undefined;
+
+    if (activeFlag !== undefined && option === undefined && attachedOption === undefined) {
+      if (token.startsWith("-") && !token.startsWith("--")) {
+        if (isNegativeNumericToken(token)) {
+          normalized.push(activeFlag);
+        } else if (token !== "-") {
+          activeFlag = undefined;
+        }
+      } else if (token.startsWith("--")) {
+        activeFlag = undefined;
+      }
+    } else {
+      activeFlag = undefined;
+    }
+
+    normalized.push(token);
+    if (option !== undefined) {
+      const nextToken = argv[index + 1];
+      if (nextToken !== undefined && (option.required ||
+        (option.optional && !(nextToken.length > 1 && nextToken.startsWith("-"))))) {
+        normalized.push(nextToken);
+        index += 1;
+      }
+      if (numericArrayOptions.has(option)) {
+        activeFlag = token;
+      }
+    }
+  }
+
+  return normalized;
 }
 
 function validateArrayBounds(value: unknown[], schema: ArraySchema<any>, label: string): void {
@@ -1215,39 +1282,45 @@ function createOption(
   field: FieldDefinition,
   globalLongOptionFlags: ReadonlySet<string>
 ): Option[] {
-  const flags = formatOptionFlags(field, globalLongOptionFlags);
   const collidesWithGlobalFlag = globalLongOptionFlags.has(field.optionFlag);
+  const flagGroups = collidesWithGlobalFlag
+    ? [formatOptionFlags(field, globalLongOptionFlags)]
+    : [
+        field.shortFlag === undefined ? field.optionFlag : `-${field.shortFlag}, ${field.optionFlag}`,
+        ...field.longAliases
+      ];
 
-  if (field.schema.kind === "boolean") {
-    if (collidesWithGlobalFlag) {
-      return [createCommanderOption(flags, field.description, field)];
+  return flagGroups.flatMap((flags, index) => {
+    if (field.schema.kind === "boolean") {
+      if (collidesWithGlobalFlag) {
+        return [createCommanderOption(flags, field.description, field)];
+      }
+
+      const mainOption = createCommanderOption(`${flags} [value]`, field.description, field);
+      mainOption.preset(true);
+      // Commander v14 passes the preset value through argParser too, so guard with typeof check
+      mainOption.argParser((value: string | boolean) => (typeof value === "boolean" ? value : value));
+
+      return index === 0
+        ? [mainOption, createCommanderOption(`--no-${field.optionFlag.slice(2)}`, field.description, field)]
+        : [mainOption];
     }
 
-    const mainOption = createCommanderOption(`${flags} [value]`, field.description, field);
-    mainOption.preset(true);
-    // Commander v14 passes the preset value through argParser too, so guard with typeof check
-    mainOption.argParser((value: string | boolean) => (typeof value === "boolean" ? value : value));
+    if (field.schema.kind === "array") {
+      return [
+        createCommanderOption(`${flags} <value...>`, field.description, field).argParser(
+          (value: string, previous: string[] = []) => [...previous, value]
+        )
+      ];
+    }
 
-    return [
-      mainOption,
-      createCommanderOption(`--no-${field.optionFlag.slice(2)}`, field.description, field)
-    ];
-  }
+    if (field.schema.kind === "json") {
+      return [createCommanderOption(`${flags} <json>`, field.description, field)];
+    }
 
-  if (field.schema.kind === "array") {
-    return [
-      createCommanderOption(`${flags} <value...>`, field.description, field).argParser(
-        (value: string, previous: string[] = []) => [...previous, value]
-      )
-    ];
-  }
-
-  if (field.schema.kind === "json") {
-    return [createCommanderOption(`${flags} <json>`, field.description, field)];
-  }
-
-  const option = createCommanderOption(`${flags} <value>`, field.description, field);
-  return [option];
+    const option = createCommanderOption(`${flags} <value>`, field.description, field);
+    return [option];
+  });
 }
 
 interface ResolvedCLIControls {
@@ -1382,12 +1455,111 @@ function createCommanderOption(
   return option;
 }
 
-function hasHelpFlag(argv: string[]): boolean {
-  return argv.some((token) => HELP_FLAGS.has(token));
-}
+function prepareCliArguments(
+  program: CommanderCommand,
+  argv: string[],
+  fieldLoaders: ReadonlyMap<CommanderCommand, () => DynamicFieldDefinition[]>,
+  casing: Casing,
+  controls: ResolvedCLIControls
+): { argv: string[]; helpArgv?: string[] } {
+  const normalized = argv.slice(0, 2);
+  const path: string[] = [];
+  let current = program;
+  let helpPath: string[] | undefined;
+  let output: string | undefined;
 
-function normalizeVerboseAlias(argv: string[]): string[] {
-  return argv.map((token) => (token === "-v" ? "--verbose" : token));
+  for (let index = 2; index < argv.length; index += 1) {
+    let token = argv[index]!;
+    if (token === "--") {
+      normalized.push(...argv.slice(index));
+      break;
+    }
+    if (HELP_FLAGS.has(token)) {
+      helpPath ??= [...path];
+      normalized.push(token);
+      continue;
+    }
+    if (controls.verbose && token === "-v") {
+      token = "--verbose";
+    }
+
+    const dynamicFields = fieldLoaders.get(current)?.() ?? [];
+    const equalsIndex = token.startsWith("--") ? token.indexOf("=") : -1;
+    const flag = equalsIndex < 0 ? token : token.slice(0, equalsIndex);
+    let option = current.options.find((candidate) => candidate.long === flag || candidate.short === flag);
+    let attached = equalsIndex >= 0;
+    if (option === undefined && token.startsWith("-") && !token.startsWith("--") && token.length > 2) {
+      for (let offset = 1; offset < token.length; offset += 1) {
+        const candidate = current.options.find((entry) => entry.short === `-${token[offset]}`);
+        if (candidate === undefined) {
+          break;
+        }
+        option = candidate;
+        if (candidate.required || candidate.optional) {
+          attached = offset < token.length - 1;
+          break;
+        }
+      }
+    }
+    if (option !== undefined) {
+      normalized.push(token);
+      const next = argv[index + 1];
+      if (flag === "--output" && controls.output) {
+        output = attached ? token.slice(equalsIndex + 1) : next;
+      }
+      if (!attached && next !== undefined && (option.required ||
+        (option.optional && !(next.length > 1 && next.startsWith("-"))))) {
+        normalized.push(next);
+        index += 1;
+      }
+      continue;
+    }
+
+    const child = current.commands.find((command) => command.name() === token || command.aliases().includes(token));
+    if (child !== undefined) {
+      current = child;
+      path.push(token);
+      normalized.push(token);
+      continue;
+    }
+    const defaultName = getDefaultCommanderCommandName(current);
+    const defaultCommand = current.commands.find((command) => command.name() === defaultName);
+    if (defaultCommand !== undefined) {
+      current = defaultCommand;
+      index -= 1;
+      continue;
+    }
+
+    if (token.startsWith("--") && equalsIndex < 0) {
+      const normalizedFlag = token.startsWith("--no-") ? token.slice(5) : token.slice(2);
+      let dynamic: ReturnType<typeof resolveDynamicOption>;
+      try {
+        dynamic = resolveDynamicOption(dynamicFields, normalizedFlag, casing);
+      } catch (error) {
+        if (!isUserError(error)) {
+          throw error;
+        }
+      }
+      const next = argv[index + 1];
+      if (dynamic !== undefined && next !== undefined &&
+        dynamic.leaf.schema.kind !== "boolean" && dynamic.leaf.schema.kind !== "array") {
+        normalized.push(`${token}=${next}`);
+        index += 1;
+        continue;
+      }
+    }
+    if (!token.startsWith("-") && current.commands.length > 0) {
+      path.push(token);
+    }
+    normalized.push(token);
+  }
+
+  return {
+    argv: normalized,
+    ...(helpPath === undefined ? {} : {
+      helpArgv: [...argv.slice(0, 2), ...helpPath, ...(output === undefined ? [] : ["--output", output])]
+    })
+  };
 }
 
 function resolveHelpOutput(argv: string[]): OutputMode {
@@ -2620,11 +2792,20 @@ function formatJsonHelpOption(
     name: field.displayPath,
     flags: formatHelpFieldFlags(field, globalLongOptionFlags).split(", "),
     type: formatJsonHelpSchemaType(field.schema),
+    ...(field.schema.kind === "enum" ? { choices: formatCLIEnumChoices(field.schema) } : {}),
     ...(field.description === undefined ? {} : { description: field.description }),
     required: field.requiredWhenActive,
     ...(field.hasDefault ? { default: field.defaultValue } : {}),
     ...(field.positionalIndex === undefined ? {} : { positional: true })
   };
+}
+
+function formatCLIEnumChoices(schema: Extract<FieldSchema, { kind: "enum" }>): string[] {
+  const choices = schema.values.map((value) => String(value));
+  if (schema.nullable === true && !choices.includes("null")) {
+    choices.push("null");
+  }
+  return choices;
 }
 
 function formatJsonHelpSchemaType(schema: FieldSchema): string {
@@ -2709,7 +2890,7 @@ async function renderGeneratedHelp<TServices extends object>(
     return;
   }
 
-  await withOutputFormat(output, async () => {
+  await withOutputFormat(toDesignSystemOutput(output), async () => {
     const rendered =
       target.node.kind === "group"
         ? renderGroupHelp(
@@ -2748,6 +2929,7 @@ function createNodeCommand<TServices extends object>(
   execute: (state: ExecutionState<TServices>) => Promise<void>,
   presetsEnabled: boolean,
   controls: ResolvedCLIControls,
+  fieldLoaders: Map<CommanderCommand, () => DynamicFieldDefinition[]>,
   pathSegments: string[] = []
 ): CommanderCommand | null {
   const nextPathSegments = [...pathSegments, node.name];
@@ -2758,11 +2940,10 @@ function createNodeCommand<TServices extends object>(
     }
 
     const command = new CommanderCommand(node.name);
+    let unknownArgv: string[] = [];
+    let loadedFields: DynamicFieldDefinition[] | undefined;
     Reflect.set(command, "_toolcraftHidden", node.hidden);
     Reflect.set(command, "_toolcraftOriginalName", node.name);
-    const collected = collectFields(node.params, casing, globalLongOptionFlags);
-    const fields = assignPositionals(collected.fields, node.positional);
-    validateUniqueOptionFlags(fields, globalLongOptionFlags);
 
     if (node.description !== undefined) {
       command.description(node.description);
@@ -2773,42 +2954,73 @@ function createNodeCommand<TServices extends object>(
     addGlobalOptions(command, presetsEnabled, controls);
     command.allowExcessArguments(true);
 
-    if (collected.dynamicFields.length > 0) {
-      command.allowUnknownOption(true);
-    }
+    fieldLoaders.set(command, () => {
+      if (loadedFields !== undefined) {
+        return loadedFields;
+      }
+      const collected = collectFields(node.params, casing, globalLongOptionFlags);
+      const fields = assignPositionals(collected.fields, node.positional);
+      validateUniqueOptionFlags(fields, globalLongOptionFlags);
 
-    for (const field of fields) {
-      if (field.positionalIndex !== undefined) {
-        // Positionals are declared optional so resolveParams stays the single owner of argument
-        // validation: Commander would otherwise report a missing positional in its own words
-        // before prompts, defaults, and presets have had a chance to supply the value.
-        command.argument(
-          field.variadicPosition === true ? `[${field.displayPath}...]` : `[${field.displayPath}]`
+      if (collected.dynamicFields.length > 0) {
+        command.allowUnknownOption(true);
+      }
+
+      const numericArrayOptions = new Set<Option>();
+      for (const field of fields) {
+        if (field.positionalIndex !== undefined) {
+          // Positionals are declared optional so resolveParams stays the single owner of argument
+          // validation: Commander would otherwise report a missing positional in its own words
+          // before prompts, defaults, and presets have had a chance to supply the value.
+          command.argument(
+            field.variadicPosition === true ? `[${field.displayPath}...]` : `[${field.displayPath}]`
+          );
+          continue;
+        }
+
+        for (const option of createOption(field, globalLongOptionFlags)) {
+          command.addOption(option);
+          if (field.schema.kind === "array" && unwrapOptional(field.schema.item).kind === "number") {
+            numericArrayOptions.add(option);
+          }
+        }
+      }
+
+      const parseOptions = command.parseOptions.bind(command);
+      command.parseOptions = (argv) => {
+        const parsed = parseOptions(normalizeNumericArrayOptions(argv, command.options, numericArrayOptions));
+        const firstUnknownOption = parsed.unknown.findIndex((token) =>
+          token.length > 1 && token.startsWith("-") && !isNegativeNumericToken(token)
         );
-        continue;
-      }
+        const operandCount = firstUnknownOption < 0 ? parsed.unknown.length : firstUnknownOption;
+        parsed.operands.push(...parsed.unknown.splice(0, operandCount));
+        if (parsed.unknown[0] === "--") {
+          parsed.operands.push(...parsed.unknown.slice(1));
+          parsed.unknown.length = 0;
+        }
+        unknownArgv = parsed.unknown;
+        return parsed;
+      };
 
-      for (const option of createOption(field, globalLongOptionFlags)) {
-        command.addOption(option);
-      }
-    }
+      command.action(async (...args: unknown[]) => {
+        const actionCommand = args[args.length - 1] as CommanderCommand;
+        const positionalValues = actionCommand.args.slice(0, actionCommand.args.length - unknownArgv.length);
 
-    command.action(async (...args: unknown[]) => {
-      const actionCommand = args[args.length - 1] as CommanderCommand;
-      const positionalValues = args.slice(0, -2);
-
-      await execute({
-        command: node,
-        commandPath: nextPathSegments.join("."),
-        casing,
-        dynamicFields: collected.dynamicFields,
-        fields,
-        positionalValues,
-        presetsEnabled,
-        rawArgv: actionCommand.args,
-        actionCommand,
-        variants: collected.variants
+        await execute({
+          command: node,
+          commandPath: nextPathSegments.join("."),
+          casing,
+          dynamicFields: collected.dynamicFields,
+          fields,
+          positionalValues,
+          presetsEnabled,
+          rawArgv: unknownArgv,
+          actionCommand,
+          variants: collected.variants
+        });
       });
+      loadedFields = collected.dynamicFields;
+      return loadedFields;
     });
 
     return command;
@@ -2830,6 +3042,7 @@ function createNodeCommand<TServices extends object>(
         execute,
         presetsEnabled,
         controls,
+        fieldLoaders,
         nextPathSegments
       )
     )
@@ -2975,7 +3188,8 @@ function createGlobalSnapshotOptions(
       type: "enum",
       required: false,
       hidden: true,
-      description: "Print stack traces for unexpected errors."
+      description: "Print stack traces for unexpected errors.",
+      choices: ["trim", "raw"]
     });
   }
   if (controls.logLevel) {
@@ -2985,7 +3199,8 @@ function createGlobalSnapshotOptions(
       type: "enum",
       required: false,
       hidden: true,
-      description: "Set runtime diagnostic log level."
+      description: "Set runtime diagnostic log level.",
+      choices: [...LOG_LEVELS]
     });
   }
   if (controls.verbose) {
@@ -3081,6 +3296,7 @@ function createFieldSnapshotOption(
     name: field.displayPath,
     flags: formatHelpFieldFlags(field, globalLongOptionFlags).split(", "),
     type: formatJsonHelpSchemaType(field.schema),
+    ...(field.schema.kind === "enum" ? { choices: formatCLIEnumChoices(field.schema) } : {}),
     required: field.requiredWhenActive,
     hidden: false,
     ...(field.description === undefined ? {} : { description: field.description }),
@@ -3290,7 +3506,6 @@ function withPromptStreams<T extends object>(
 }
 
 function throwPromptCancellation(): never {
-  cancel("Operation cancelled.");
   throw new UserError("Operation cancelled.");
 }
 
@@ -3364,7 +3579,7 @@ async function promptForField(
   }
 
   if (entered.trim().length === 0 && field.hasDefault) {
-    return field.defaultValue;
+    return cloneDefaultValue(field.defaultValue);
   }
 
   if (field.schema.kind === "array") {
@@ -3447,23 +3662,6 @@ function toDesignSystemOutput(output: OutputMode): "terminal" | "markdown" | "js
   return "terminal";
 }
 
-async function withOutputFormat<T>(output: OutputMode, fn: () => Promise<T>): Promise<T> {
-  const previous = process.env.OUTPUT_FORMAT;
-  process.env.OUTPUT_FORMAT = toDesignSystemOutput(output);
-  resetOutputFormatCache();
-
-  try {
-    return await fn();
-  } finally {
-    if (previous === undefined) {
-      delete process.env.OUTPUT_FORMAT;
-    } else {
-      process.env.OUTPUT_FORMAT = previous;
-    }
-    resetOutputFormatCache();
-  }
-}
-
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -3472,7 +3670,7 @@ function hasFieldValue(value: unknown): boolean {
   return value !== undefined;
 }
 
-function hasNestedField(fields: FieldDefinition[], path: string[]): boolean {
+function hasNestedField(fields: ReadonlyArray<{ path: string[] }>, path: string[]): boolean {
   return fields.some(
     (field) =>
       path.length < field.path.length &&
@@ -3511,18 +3709,19 @@ function validatePresetScalarValue(
   }
 
   switch (schema.kind) {
-    case "string":
+    case "string": {
       if (typeof value !== "string") {
         break;
       }
-      if (schema.minLength !== undefined && value.length < schema.minLength) {
+      const length = unicodeLength(value);
+      if (schema.minLength !== undefined && length < schema.minLength) {
         throw new UserError(
-          `Preset file "${presetPath}" has an invalid value for "${fieldPath}". Expected a string with length at least ${schema.minLength}, got string with length ${value.length}.`
+          `Preset file "${presetPath}" has an invalid value for "${fieldPath}". Expected a string with length at least ${schema.minLength}, got string with length ${length}.`
         );
       }
-      if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+      if (schema.maxLength !== undefined && length > schema.maxLength) {
         throw new UserError(
-          `Preset file "${presetPath}" has an invalid value for "${fieldPath}". Expected a string with length at most ${schema.maxLength}, got string with length ${value.length}.`
+          `Preset file "${presetPath}" has an invalid value for "${fieldPath}". Expected a string with length at most ${schema.maxLength}, got string with length ${length}.`
         );
       }
       if (schema.pattern !== undefined && !matchesStringPattern(value, schema.pattern)) {
@@ -3531,7 +3730,7 @@ function validatePresetScalarValue(
         );
       }
       return value;
-
+    }
     case "number":
       if (!isValidNumberSchemaValue(value, schema)) {
         break;
@@ -3576,6 +3775,10 @@ function validatePresetFieldValue(
     );
   }
 
+  if (value === null && field.schema.nullable === true) {
+    return null;
+  }
+
   const itemSchema = unwrapOptional(field.schema.item);
 
   if (itemSchema.kind === "array" || itemSchema.kind === "object") {
@@ -3607,8 +3810,9 @@ function validatePresetFieldValue(
 
 async function loadPresetValues(
   fields: FieldDefinition[],
+  dynamicFields: DynamicFieldDefinition[],
   presetPath: string
-): Promise<Record<string, unknown>> {
+): Promise<{ fields: Record<string, unknown>; dynamic: Map<string, unknown> }> {
   let rawPreset: string;
 
   try {
@@ -3643,7 +3847,10 @@ async function loadPresetValues(
   }
 
   const fieldByPath = new Map(fields.map((field) => [field.displayPath, field]));
+  const dynamicFieldByPath = new Map(dynamicFields.map((field) => [field.displayPath, field]));
+  const allFields = [...fields, ...dynamicFields];
   const presetValues: Record<string, unknown> = {};
+  const dynamicValues = new Map<string, unknown>();
 
   function visitObject(current: Record<string, unknown>, path: string[]): void {
     for (const [key, value] of Object.entries(current)) {
@@ -3656,7 +3863,21 @@ async function loadPresetValues(
         continue;
       }
 
-      if (!hasNestedField(fields, nextPath)) {
+      const dynamicField = dynamicFieldByPath.get(displayPath);
+      if (dynamicField !== undefined) {
+        const validation = validateSchema(dynamicField.schema, value, { defaults: "all" });
+        if (!validation.ok) {
+          const issue = validation.issues[0]!;
+          const issuePath = [displayPath, ...issue.path].join(".");
+          throw new UserError(
+            `Preset file "${presetPath}" has an invalid value for "${issuePath}". ${issue.message}`
+          );
+        }
+        dynamicValues.set(dynamicField.id, validation.value);
+        continue;
+      }
+
+      if (!hasNestedField(allFields, nextPath)) {
         throw new UserError(
           `Preset file "${presetPath}" contains unknown parameter "${displayPath}".`
         );
@@ -3673,7 +3894,7 @@ async function loadPresetValues(
   }
 
   visitObject(parsedPreset, []);
-  return presetValues;
+  return { fields: presetValues, dynamic: dynamicValues };
 }
 
 function isNumericFixtureSelector(value: string): boolean {
@@ -4107,18 +4328,20 @@ function isHumanInLoopPending(result: unknown): result is HumanInLoopPending {
   );
 }
 
-function renderHumanInLoopPending(pending: HumanInLoopPending, rootUsageName: string): void {
-  process.stdout.write(
+function renderHumanInLoopPending(
+  pending: HumanInLoopPending,
+  rootUsageName: string,
+  outputEmitter?: (entry: string) => void
+): void {
+  const message =
     `✓ Queued for human approval (id: ${pending.approvalId})\n` +
       `  Message: ${pending.message}\n` +
-      `  Track:   ${rootUsageName} approvals show --approval-id ${pending.approvalId}\n`
-  );
-}
-
-function renderApprovalDeclined(error: ApprovalDeclinedError): void {
-  const logger = createLogger();
-  logger.error(error.message);
-  process.exitCode = 1;
+      `  Track:   ${rootUsageName} approvals show --approval-id ${pending.approvalId}`;
+  if (outputEmitter === undefined) {
+    process.stdout.write(`${message}\n`);
+  } else {
+    outputEmitter(message);
+  }
 }
 
 type CliErrorPattern =
@@ -4218,7 +4441,7 @@ function renderCliErrorPattern(
 function getNestedValue(target: Record<string, unknown>, path: string[]): unknown {
   return path.reduce<unknown>(
     (current, segment) =>
-      current !== null && typeof current === "object"
+      current !== null && typeof current === "object" && Object.prototype.hasOwnProperty.call(current, segment)
         ? (current as Record<string, unknown>)[segment]
         : undefined,
     target
@@ -4596,7 +4819,7 @@ function finalizeDynamicValue(
 
         if (childValue === undefined) {
           if (childSchema.default !== undefined) {
-            result[key] = childSchema.default;
+            result[key] = cloneDefaultValue(childSchema.default);
             continue;
           }
 
@@ -4656,7 +4879,7 @@ function formatCliSchemaKind(kind: string): string {
 }
 
 function formatUnsupportedDynamicSchemaMessage(kind: string, displayPath: string): string {
-  return `Unsupported parameter type "${kind}" for "${displayPath}". Supported types: string, number, integer, boolean, array, object, enum, oneof.`;
+  return `Unsupported CLI argument shape for "${displayPath}" (type "${kind}").`;
 }
 
 function qualifyDisplayPath(prefix: string, displayPath: string): string {
@@ -4671,6 +4894,24 @@ function qualifyDisplayPath(prefix: string, displayPath: string): string {
   return `${prefix}.${displayPath}`;
 }
 
+function resolveDynamicOption(dynamicFields: DynamicFieldDefinition[], flagName: string, casing: Casing) {
+  const flagPath = flagName.split(".");
+  const match = [...dynamicFields]
+    .sort((left, right) => right.optionPath.length - left.optionPath.length)
+    .find((field) => {
+      const optionPath = field.optionPath.map((segment) => formatSegment(segment, casing));
+      return flagPath.length > optionPath.length &&
+        optionPath.every((segment, index) => flagPath[index] === segment);
+    });
+  if (match === undefined) {
+    return undefined;
+  }
+  return {
+    match,
+    leaf: resolveDynamicLeaf(match.schema, flagPath.slice(match.optionPath.length), casing, [], [], match.displayPath)
+  };
+}
+
 function parseDynamicValues(
   dynamicFields: DynamicFieldDefinition[],
   rawArgv: string[],
@@ -4679,16 +4920,23 @@ function parseDynamicValues(
 ): {
   providedFieldIds: Set<string>;
   values: Map<string, unknown>;
+  positionals: string[];
 } {
   const rawValues = new Map<string, Record<string, unknown>>();
   const providedFieldIds = new Set<string>();
-  const sortedFields = [...dynamicFields].sort(
-    (left, right) => right.optionPath.length - left.optionPath.length
-  );
+  const positionals: string[] = [];
 
   for (let index = 0; index < rawArgv.length; index += 1) {
     const token = rawArgv[index] ?? "";
+    if (token === "--") {
+      positionals.push(...rawArgv.slice(index + 1));
+      break;
+    }
     if (!token.startsWith("--")) {
+      if (token.length > 1 && token.startsWith("-") && !isNegativeNumericToken(token)) {
+        throw new UserError(`Unknown option "${token}".`);
+      }
+      positionals.push(token);
       continue;
     }
 
@@ -4697,16 +4945,9 @@ function parseDynamicValues(
     const equalsIndex = normalized.indexOf("=");
     const flagName = equalsIndex >= 0 ? normalized.slice(2, equalsIndex) : normalized.slice(2);
     const inlineValue = equalsIndex >= 0 ? normalized.slice(equalsIndex + 1) : undefined;
-    const flagPath = flagName.split(".");
-    const match = sortedFields.find((field) => {
-      const optionPath = field.optionPath.map((segment) => formatSegment(segment, casing));
-      return (
-        flagPath.length > optionPath.length &&
-        optionPath.every((segment, segmentIndex) => flagPath[segmentIndex] === segment)
-      );
-    });
+    const dynamic = resolveDynamicOption(dynamicFields, flagName, casing);
 
-    if (match === undefined) {
+    if (dynamic === undefined) {
       throw new UserError(
         `Unknown parameter "${flagName}". ${formatAvailableList(
           dynamicFields.map((field) => field.optionPathDisplay)
@@ -4714,9 +4955,7 @@ function parseDynamicValues(
       );
     }
 
-    const optionPath = match.optionPath.map((segment) => formatSegment(segment, casing));
-    const remainder = flagPath.slice(optionPath.length);
-    const leaf = resolveDynamicLeaf(match.schema, remainder, casing, [], [], match.displayPath);
+    const { match, leaf } = dynamic;
     const rawStore = rawValues.get(match.id) ?? {};
     const label = `${match.displayPath}.${leaf.displayPath}`.replace(/^\./u, "");
     const parsed =
@@ -4735,6 +4974,7 @@ function parseDynamicValues(
 
   return {
     providedFieldIds,
+    positionals,
     values: new Map(
       dynamicFields
         .filter((field) => rawValues.has(field.id))
@@ -4760,10 +5000,12 @@ async function enforceVariantConstraints(
   providedDynamicFieldIds: Set<string>,
   providedFieldIds: Set<string>,
   shouldPrompt: boolean,
-  errors: ValidationError[]
+  errors: ValidationError[],
+  promptStreams: PromptStreams
 ): Promise<void> {
   const fieldById = new Map(fields.map((field) => [field.id, field]));
   const dynamicFieldById = new Map(dynamicFields.map((field) => [field.id, field]));
+  const activeBranches = new Map<string, string>();
   const getAvailableBranchParameters = (branch: VariantBranchDefinition): string[] => [
     ...branch.fieldIds
       .map((fieldId) => fieldById.get(fieldId))
@@ -4776,13 +5018,17 @@ async function enforceVariantConstraints(
   ];
 
   for (const variant of variants) {
+    if (variant.parent !== undefined && activeBranches.get(variant.parent.id) !== variant.parent.branchId) {
+      continue;
+    }
     let selectedBranchId = resolvedFieldValues.get(variant.controlFieldId);
 
     if (selectedBranchId === undefined && shouldPrompt) {
       const controlField = fieldById.get(variant.controlFieldId);
       if (controlField !== undefined) {
-        selectedBranchId = await promptForField(controlField);
+        selectedBranchId = await promptForField(controlField, promptStreams);
         resolvedFieldValues.set(controlField.id, selectedBranchId);
+        providedFieldIds.add(controlField.id);
         if (!controlField.synthetic) {
           setNestedValue(params, controlField.path, selectedBranchId);
         }
@@ -4852,9 +5098,29 @@ async function enforceVariantConstraints(
       continue;
     }
 
+    activeBranches.set(variant.id, selectedBranch.branchId);
+
+    for (const fieldId of selectedBranch.fieldIds) {
+      const field = fieldById.get(fieldId);
+      if (field?.variantId !== variant.id || !field.hasDefault || getNestedValue(params, field.path) !== undefined) {
+        continue;
+      }
+      const value = cloneDefaultValue(field.defaultValue);
+      resolvedFieldValues.set(field.id, value);
+      setNestedValue(params, field.path, value);
+    }
+
+    for (const fieldId of selectedBranch.dynamicFieldIds) {
+      const field = dynamicFieldById.get(fieldId);
+      if (field?.variantId !== variant.id || !field.hasDefault || getNestedValue(params, field.path) !== undefined) {
+        continue;
+      }
+      setNestedValue(params, field.path, cloneDefaultValue(field.defaultValue));
+    }
+
     for (const fieldId of selectedBranch.requiredFieldIds) {
       const field = fieldById.get(fieldId);
-      if (field === undefined || field.synthetic) {
+      if (field?.variantId !== variant.id || field.synthetic) {
         continue;
       }
 
@@ -4863,7 +5129,7 @@ async function enforceVariantConstraints(
       }
 
       if (shouldPrompt) {
-        const promptedValue = await promptForField(field);
+        const promptedValue = await promptForField(field, promptStreams);
         resolvedFieldValues.set(field.id, promptedValue);
         setNestedValue(params, field.path, promptedValue);
         providedFieldIds.add(field.id);
@@ -4880,7 +5146,7 @@ async function enforceVariantConstraints(
 
     for (const fieldId of selectedBranch.requiredDynamicFieldIds) {
       const field = dynamicFieldById.get(fieldId);
-      if (field === undefined) {
+      if (field?.variantId !== variant.id) {
         continue;
       }
 
@@ -4902,7 +5168,7 @@ async function resolveParams(
   fields: FieldDefinition[],
   dynamicFields: DynamicFieldDefinition[],
   variants: VariantDefinition[],
-  positionalValues: unknown[],
+  positionalValues: string[],
   optionValues: Record<string, unknown>,
   rawArgv: string[],
   casing: Casing,
@@ -4912,13 +5178,24 @@ async function resolveParams(
   promptStreams: PromptStreams
 ): Promise<Record<string, unknown>> {
   const params: Record<string, unknown> = {};
+  const errors: ValidationError[] = [];
+  const dynamicResults = parseDynamicValues(dynamicFields, rawArgv, casing, errors);
+  const positionalTokens = [...positionalValues, ...dynamicResults.positionals];
+  const positionalFields = fields.filter((field) => field.positionalIndex !== undefined);
+  if (
+    !positionalFields.some((field) => field.variadicPosition === true) &&
+    positionalTokens.length > positionalFields.length
+  ) {
+    throw new UserError(
+      `Unexpected arguments: ${positionalTokens.slice(positionalFields.length).map((token) => JSON.stringify(token)).join(", ")}.`
+    );
+  }
   const presetValues =
     typeof presetPath === "string" && presetPath.length > 0
-      ? await loadPresetValues(fields, presetPath)
-      : {};
+      ? await loadPresetValues(fields, dynamicFields, presetPath)
+      : { fields: {}, dynamic: new Map<string, unknown>() };
   const providedFieldIds = new Set<string>();
   const resolvedFieldValues = new Map<string, unknown>();
-  const errors: ValidationError[] = [];
 
   for (const field of fields) {
     let value: unknown;
@@ -4926,7 +5203,9 @@ async function resolveParams(
     let source: "default" | "option" | "positional" | "preset" | "prompt" | undefined;
 
     if (field.positionalIndex !== undefined) {
-      const positionalValue = positionalValues[field.positionalIndex];
+      const positionalValue = field.variadicPosition === true
+        ? positionalTokens.slice(field.positionalIndex)
+        : positionalTokens[field.positionalIndex];
 
       if (field.schema.kind === "array") {
         if (Array.isArray(positionalValue) && positionalValue.length > 0) {
@@ -4941,7 +5220,7 @@ async function resolveParams(
           );
           source = "positional";
         }
-      } else if (typeof positionalValue === "string" && positionalValue.length > 0) {
+      } else if (typeof positionalValue === "string") {
         value = parseFieldInputValue(positionalValue, field.schema, field.displayPath);
         source = "positional";
       }
@@ -4978,9 +5257,9 @@ async function resolveParams(
 
     if (
       value === undefined &&
-      Object.prototype.hasOwnProperty.call(presetValues, field.optionAttribute)
+      Object.prototype.hasOwnProperty.call(presetValues.fields, field.optionAttribute)
     ) {
-      value = presetValues[field.optionAttribute];
+      value = presetValues.fields[field.optionAttribute];
       source = "preset";
     }
 
@@ -5052,8 +5331,8 @@ async function resolveParams(
       source = "prompt";
     }
 
-    if (value === undefined && field.hasDefault) {
-      value = field.defaultValue;
+    if (value === undefined && field.hasDefault && field.variantId === undefined) {
+      value = cloneDefaultValue(field.defaultValue);
       source = "default";
     }
 
@@ -5079,19 +5358,16 @@ async function resolveParams(
     }
   }
 
-  const dynamicResults =
-    dynamicFields.length > 0
-      ? parseDynamicValues(dynamicFields, rawArgv, casing, errors)
-      : {
-          providedFieldIds: new Set<string>(),
-          values: new Map<string, unknown>()
-        };
-
   for (const field of dynamicFields) {
     let value = dynamicResults.values.get(field.id);
 
-    if (value === undefined && field.hasDefault) {
-      value = field.defaultValue;
+    if (presetValues.dynamic.has(field.id)) {
+      if (value === undefined) value = presetValues.dynamic.get(field.id);
+      dynamicResults.providedFieldIds.add(field.id);
+    }
+
+    if (value === undefined && field.hasDefault && field.variantId === undefined) {
+      value = cloneDefaultValue(field.defaultValue);
     }
 
     if (value === undefined) {
@@ -5118,7 +5394,8 @@ async function resolveParams(
     dynamicResults.providedFieldIds,
     providedFieldIds,
     shouldPrompt,
-    errors
+    errors,
+    promptStreams
   );
 
   throwValidationErrors(errors);
@@ -5126,8 +5403,15 @@ async function resolveParams(
   return params;
 }
 
-function getResolvedFlags(command: CommanderCommand): ResolvedFlags {
-  const flags = command.optsWithGlobals() as ResolvedFlags;
+function getResolvedFlags(command: CommanderCommand): ResolvedFlags & Record<string, unknown> {
+  const flags: ResolvedFlags & Record<string, unknown> = {};
+  const commands: CommanderCommand[] = [];
+  for (let current: CommanderCommand | null = command; current !== null; current = current.parent) {
+    commands.unshift(current);
+  }
+  for (const current of commands) {
+    Object.assign(flags, current.opts());
+  }
   return flags;
 }
 
@@ -5156,7 +5440,7 @@ async function executeCommand<TServices extends object>(
   }) => void
 ): Promise<void> {
   const logger = createLogger(outputEmitter);
-  const optionValues = state.actionCommand.optsWithGlobals() as Record<string, unknown>;
+  const optionValues = getResolvedFlags(state.actionCommand);
   const resolvedFlags = optionValues as ResolvedFlags;
   const output = resolveOutput(resolvedFlags);
   const primitives: RenderPrimitives = {
@@ -5214,7 +5498,7 @@ async function executeCommand<TServices extends object>(
   let resolvedParams: unknown;
 
   try {
-    await withOutputFormat(output, async () => {
+    await withOutputFormat(toDesignSystemOutput(output), async () => {
       await assertCommandRequirements(state.command, preflightContext, runtime.requirementOptions);
 
       const params = await resolveParams(
@@ -5263,7 +5547,7 @@ async function executeCommand<TServices extends object>(
           }
         });
         const interrupt = (): void => {
-          void stream.cancel(new UserError("Operation cancelled."));
+          void stream.cancel(new UserError("Operation cancelled.")).catch(() => undefined);
         };
         process.once("SIGINT", interrupt);
         try {
@@ -5300,8 +5584,7 @@ async function executeCommand<TServices extends object>(
       if (
         state.command.confirm &&
         !state.command.humanInLoop &&
-        !resolvedFlags.yes &&
-        process.stdin.isTTY
+        shouldPrompt
       ) {
         for (const field of state.fields) {
           const value = field.path.reduce<unknown>(
@@ -5319,11 +5602,11 @@ async function executeCommand<TServices extends object>(
 
         const proceed = await confirm({
           message: "Proceed?",
-          initialValue: true
+          initialValue: true,
+          ...promptStreams
         });
 
         if (isCancel(proceed)) {
-          cancel("Operation cancelled.");
           throw new UserError("Operation cancelled.");
         }
 
@@ -5341,13 +5624,14 @@ async function executeCommand<TServices extends object>(
         writeRichHeader(`${state.command.name} (fixture)`);
       }
 
-      if (isHumanInLoopPending(result)) {
-        renderHumanInLoopPending(result, rootUsageName);
+      const pendingApproval = isHumanInLoopPending(result);
+      if (pendingApproval && output === "rich") {
+        renderHumanInLoopPending(result, rootUsageName, outputEmitter);
         return;
       }
 
       const renderStatus = renderCLIResult(
-        state.command,
+        pendingApproval ? { ...state.command, render: undefined } : state.command,
         state.commandPath,
         result,
         output,
@@ -5743,7 +6027,7 @@ async function handleRunError(
 ): Promise<void> {
   const logger = createLogger(options.outputEmitter);
 
-  await withOutputFormat(options.output, async () => {
+  await withOutputFormat(toDesignSystemOutput(options.output), async () => {
     if (isUserError(error)) {
       renderCliErrorPattern(
         options.userErrorPattern === "definition"
@@ -6188,15 +6472,20 @@ function getDefaultCommanderCommandName(command: CommanderCommand): string | und
     : undefined;
 }
 
-function configureCommanderSuggestionOutput(command: CommanderCommand): void {
+function configureCommanderSuggestionOutput(command: CommanderCommand, version?: string): void {
   command.exitOverride();
+  command.enablePositionalOptions();
+  command.helpOption(false);
+  if (version !== undefined && !command.options.some((option) => option.long === "--version")) {
+    command.version(version, "--version");
+  }
   command.configureOutput({
     // Every Commander error throws through exitOverride and is rendered once by handleRunError
     // in the design-system error pattern; writing it here as well double-reports one mistake.
     outputError: () => {}
   });
 
-  command.commands.forEach((child) => configureCommanderSuggestionOutput(child));
+  command.commands.forEach((child) => configureCommanderSuggestionOutput(child, version));
 }
 
 export async function runCLI<TServices extends object = Record<string, unknown>>(
@@ -6205,14 +6494,16 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 ): Promise<void> {
   enableSourceMaps();
   const controls = resolveCLIControls(options.controls);
-  const argv = controls.verbose
-    ? normalizeVerboseAlias([...(options.argv ?? process.argv)])
-    : [...(options.argv ?? process.argv)];
+  let argv = [...(options.argv ?? process.argv)];
   const rootUsageName = options.rootUsageName ?? inferProgramName(argv);
   let lastActionCommand: CommanderCommand | undefined;
   let resolvedCommandPath = "";
   let program: CommanderCommand | undefined;
   let version: string | undefined;
+  let proxyCleanup: {
+    dispose: typeof import("./mcp-proxy.js")["disposeMcpProxies"];
+    root: Group<TServices>;
+  } | undefined;
   let userErrorPattern: "definition" | "runtime-user" | "usage" = "definition";
   let errorReportContext:
     | {
@@ -6228,9 +6519,9 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     const root = mergeApprovalsRoot(normalizedRoot, options);
     assertHumanInLoopWired(root, options.humanInLoop);
     if (hasMcpProxyConfig(root)) {
-      await (
-        await importOptionalModule<typeof import("./mcp-proxy.js")>(optionalModulePaths.mcpProxy)
-      ).resolveMcpProxies(root, { projectRoot: options.projectRoot });
+      const proxyRuntime = await importOptionalModule<typeof import("./mcp-proxy.js")>(optionalModulePaths.mcpProxy);
+      await proxyRuntime.resolveMcpProxies(root, { projectRoot: options.projectRoot });
+      proxyCleanup = { dispose: proxyRuntime.disposeMcpProxies, root };
     }
     const casing = options.casing ?? "kebab";
     const services = (options.services ?? {}) as TServices;
@@ -6249,12 +6540,6 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
     validateServices(services as Record<string, unknown>);
 
-    if (hasHelpFlag(argv)) {
-      userErrorPattern = "usage";
-      await renderGeneratedHelp(root, argv, { ...options, version });
-      return;
-    }
-
     if (argv.length <= 2 && root.default?.scope.includes("cli") !== true) {
       userErrorPattern = "usage";
       await renderGeneratedHelp(root, argv, { ...options, version });
@@ -6272,6 +6557,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       version !== undefined,
       controls
     );
+    const fieldLoaders = new Map<CommanderCommand, () => DynamicFieldDefinition[]>();
     addGlobalOptions(program, presetsEnabled, controls);
 
     if (version !== undefined) {
@@ -6326,7 +6612,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
         globalLongOptionFlags,
         execute,
         presetsEnabled,
-        controls
+        controls,
+        fieldLoaders
       );
       if (command === null) {
         continue;
@@ -6339,32 +6626,50 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
       addCommanderChild(program, command, isDefaultChild, rootChildNames);
     }
-    configureCommanderSuggestionOutput(program);
+    configureCommanderSuggestionOutput(program, version);
+    const prepared = prepareCliArguments(program, argv, fieldLoaders, casing, controls);
+    argv = prepared.argv;
+    if (prepared.helpArgv !== undefined) {
+      userErrorPattern = "usage";
+      await renderGeneratedHelp(root, prepared.helpArgv, { ...options, version });
+      return;
+    }
+    for (const loadFields of fieldLoaders.values()) {
+      loadFields();
+    }
 
     const unknownCommand = findUnknownCommanderCommand(program, argv);
     if (unknownCommand !== undefined) {
-      createLogger().error(
-        appendUsagePointer(
-          formatUnknownCommandMessage(unknownCommand.input, unknownCommand.currentCommand),
+      await withOutputFormat(toDesignSystemOutput(resolveOutputFromArgv(argv, controls.outputFormats)), async () => {
+        renderCliErrorPattern(
           {
+            kind: "usage",
+            message: formatUnknownCommandMessage(unknownCommand.input, unknownCommand.currentCommand),
             rootUsageName,
             commandPath: unknownCommand.commandPath
-          }
-        )
-      );
-      process.exitCode = 1;
+          },
+          options.outputEmitter
+        );
+      });
       return;
     }
 
     userErrorPattern = "usage";
     await program.parseAsync(argv);
   } catch (error) {
+    const resolvedFlags = lastActionCommand ? getResolvedFlags(lastActionCommand) : undefined;
     if (error instanceof ApprovalDeclinedError) {
-      renderApprovalDeclined(error);
+      await withOutputFormat(
+        toDesignSystemOutput(resolvedFlags !== undefined
+          ? resolveOutput(resolvedFlags)
+          : resolveOutputFromArgv(argv, controls.outputFormats)),
+        async () => {
+          renderCliErrorPattern({ kind: "runtime-user", message: error.message }, options.outputEmitter);
+        }
+      );
       return;
     }
 
-    const resolvedFlags = lastActionCommand ? getResolvedFlags(lastActionCommand) : undefined;
     const report = await writeErrorReport({
       argv,
       command: errorReportContext?.command,
@@ -6402,5 +6707,14 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       outputEmitter: options.outputEmitter,
       userErrorPattern: errorReportContext?.params === undefined ? userErrorPattern : "runtime-user"
     });
+  } finally {
+    if (proxyCleanup !== undefined) {
+      try {
+        await proxyCleanup.dispose(proxyCleanup.root);
+      } catch (error) {
+        process.exitCode = 1;
+        process.stderr.write(`Failed to close MCP proxy connections: ${error instanceof Error ? error.message : String(error)}\n`);
+      }
+    }
   }
 }

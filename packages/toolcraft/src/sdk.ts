@@ -1,5 +1,6 @@
 import "./node-require-shim.js";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
+import { isPlainRecord, unicodeLength, validate as validateSchema } from "toolcraft-schema";
 import type { Command, Group, HandlerFs, LogLevel, RuntimeLoggerInput, Scope } from "./index.js";
 import {
   ToolcraftBugError,
@@ -11,15 +12,22 @@ import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
 import type { HumanInLoopPending, HumanInLoopRuntime } from "./human-in-loop/types.js";
 import { assertHumanInLoopWired, mergeApprovalsRoot } from "./human-in-loop/wiring.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
+import { isMCPResult } from "./mcp-result.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
+import { validateAppliedDefault } from "./applied-default.js";
 import { filterSchemaForScope } from "./schema-scope.js";
+import { validateCasedSchemaMembers } from "./schema-member-names.js";
 import { enableSourceMaps } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
+import { resolveDiscriminatedBranch } from "./discriminator.js";
+import { validateUnionSchema } from "./union-validation.js";
 import { createRuntimeLogger } from "./runtime-logging.js";
 import { createEnv, createFs, validateServices } from "./runtime/io.js";
 import { createManagedStream } from "./stream.js";
 import type { StreamConsumerOptions, ToolcraftStream } from "./stream.js";
+
+export { mergeApprovalsRoot };
 
 type ScopeInput = readonly Scope[] | undefined;
 type HumanInLoopMode = "sync" | "async";
@@ -297,10 +305,6 @@ function isOptional(schema: AnySchema): boolean {
   return schema.kind === "optional";
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 function formatAvailableList(values: Iterable<string>): string {
   return `Available: ${[...values].sort().join(", ")}.`;
 }
@@ -329,12 +333,15 @@ function describeReceived(value: unknown): string {
   if (value === null) return "null";
   if (value === undefined) return "missing";
   if (Array.isArray(value)) return `array(${value.length})`;
-  if (typeof value === "object") return "object";
+  if (typeof value === "object") return isPlainRecord(value) ? "object" : "non-plain object";
   if (typeof value === "string") {
     const s = value.length > 40 ? `${value.slice(0, 40)}…` : value;
     return `${JSON.stringify(s)}`;
   }
-  return JSON.stringify(value);
+  if (typeof value === "bigint" || typeof value === "symbol" || typeof value === "function") {
+    return typeof value;
+  }
+  return String(value);
 }
 
 function validateSchemaValue(
@@ -344,6 +351,10 @@ function validateSchemaValue(
   errors: ValidationError[]
 ): unknown {
   const unwrappedSchema = unwrapOptional(schema);
+
+  if (isOptional(schema) && value === undefined) {
+    return validateAppliedDefault(unwrappedSchema, label, errors);
+  }
 
   if (value === null && unwrappedSchema.nullable === true) {
     return null;
@@ -394,18 +405,28 @@ function validateSchemaValue(
         return value;
       }
       validateArrayConstraints(unwrappedSchema, value, label, errors);
-      return value.map((item, index) =>
-        validateSchemaValue(unwrappedSchema.item, item, `${label}[${index}]`, errors)
+      return Array.from({ length: value.length }, (_item, index) =>
+        validateSchemaValue(unwrappedSchema.item, value[index], `${label}[${index}]`, errors)
       );
 
     case "object":
       return validateObjectSchema(unwrappedSchema, value, label, errors);
 
-    case "json":
+    case "json": {
+      const validation = validateSchema(unwrappedSchema, value);
+      if (!validation.ok) {
+        for (const issue of validation.issues) {
+          errors.push({
+            path: label,
+            message: `Invalid value for "${label}". Expected a JSON value, got ${issue.received}.`
+          });
+        }
+      }
       return value;
+    }
 
     case "record": {
-      if (!isPlainObject(value)) {
+      if (!isPlainRecord(value)) {
         errors.push({
           path: label,
           message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
@@ -421,35 +442,22 @@ function validateSchemaValue(
     }
 
     case "oneOf": {
-      if (!isPlainObject(value)) {
+      const resolved = resolveDiscriminatedBranch(
+        unwrappedSchema, value, formatSegment(unwrappedSchema.discriminator), label, errors
+      );
+      if (resolved === undefined) {
         return value;
       }
-      const discriminator = value[unwrappedSchema.discriminator];
-      const branch =
-        typeof discriminator === "string" ? unwrappedSchema.branches[discriminator] : undefined;
-      if (branch === undefined) {
-        return value;
-      }
-      const { [unwrappedSchema.discriminator]: ignoredDiscriminator, ...branchValue } = value;
-      void ignoredDiscriminator;
       return {
-        [unwrappedSchema.discriminator]: discriminator,
-        ...validateObjectSchema(branch, branchValue, label, errors)
+        ...validateObjectSchema(resolved.branch, resolved.value, label, errors),
+        [unwrappedSchema.discriminator]: resolved.discriminator
       };
     }
 
     case "union": {
-      if (!isPlainObject(value)) {
-        return value;
-      }
-      const branch = unwrappedSchema.branches.find((candidate) =>
-        Object.keys(candidate.shape).every(
-          (key) =>
-            candidate.shape[key]?.kind === "optional" ||
-            Object.prototype.hasOwnProperty.call(value, formatSegment(key))
-        )
+      return validateUnionSchema(unwrappedSchema, value, label, errors, (branch, branchErrors) =>
+        validateObjectSchema(branch, value, label, branchErrors)
       );
-      return branch === undefined ? value : validateObjectSchema(branch, value, label, errors);
     }
   }
 }
@@ -460,17 +468,18 @@ function validateStringConstraints(
   label: string,
   errors: ValidationError[]
 ): void {
-  if (schema.minLength !== undefined && value.length < schema.minLength) {
+  const length = unicodeLength(value);
+  if (schema.minLength !== undefined && length < schema.minLength) {
     errors.push({
       path: label,
-      message: `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${value.length}.`
+      message: `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${length}.`
     });
   }
 
-  if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+  if (schema.maxLength !== undefined && length > schema.maxLength) {
     errors.push({
       path: label,
-      message: `Invalid value for "${label}". Expected a string with length at most ${schema.maxLength}, got string with length ${value.length}.`
+      message: `Invalid value for "${label}". Expected a string with length at most ${schema.maxLength}, got string with length ${length}.`
     });
   }
 
@@ -509,7 +518,7 @@ export function validateObjectSchema(
   label: string,
   errors: ValidationError[]
 ): Record<string, unknown> {
-  if (!isPlainObject(value)) {
+  if (!isPlainRecord(value)) {
     errors.push({
       path: label,
       message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
@@ -552,10 +561,10 @@ export function validateObjectSchema(
     const hasValue = Object.prototype.hasOwnProperty.call(value, inputKey);
     const fieldLabel = label.length === 0 ? inputKey : `${label}.${inputKey}`;
 
-    if (!hasValue) {
+    if (!hasValue || (isOptional(rawChildSchema) && value[inputKey] === undefined)) {
       if (childSchema.default !== undefined) {
         Object.defineProperty(result, outputKey, {
-          value: childSchema.default,
+          value: validateAppliedDefault(childSchema, fieldLabel, errors),
           enumerable: true,
           configurable: true,
           writable: true
@@ -564,6 +573,13 @@ export function validateObjectSchema(
       }
 
       if (isOptional(rawChildSchema)) {
+        if (inputKey !== outputKey && Object.hasOwn(result, outputKey)) {
+          const aliasLabel = label.length === 0 ? outputKey : `${label}.${outputKey}`;
+          errors.push({
+            path: aliasLabel,
+            message: `Unexpected parameter "${aliasLabel}". Use "${fieldLabel}" for this declared parameter.`
+          });
+        }
         continue;
       }
 
@@ -580,28 +596,6 @@ export function validateObjectSchema(
   }
 
   return result;
-}
-
-function validateUniqueSDKParameterMembers(schema: ObjectSchema<any>): void {
-  const sourceKeysByMember = new Map<string, string>();
-
-  for (const [key, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
-    const member = formatSegment(key);
-    const existingKey = sourceKeysByMember.get(member);
-
-    if (existingKey !== undefined) {
-      throw new UserError(
-        `Parameters "${existingKey}" and "${key}" use conflicting SDK member "${member}".`
-      );
-    }
-
-    sourceKeysByMember.set(member, key);
-
-    const childSchema = unwrapOptional(rawChildSchema);
-    if (childSchema.kind === "object") {
-      validateUniqueSDKParameterMembers(childSchema);
-    }
-  }
 }
 
 function validateSDKArguments(
@@ -675,7 +669,7 @@ function createResolvedSDK(
     if (node.kind === "command") {
       const sdkParamsSchema = filterSchemaForScope(node.params, "sdk");
       if (sdkParamsSchema?.kind === "object") {
-        validateUniqueSDKParameterMembers(sdkParamsSchema);
+        validateCasedSchemaMembers(sdkParamsSchema, formatSegment, "SDK member");
       }
 
       if (node.stream !== undefined) {
@@ -786,9 +780,15 @@ function createResolvedSDK(
             ...baseContext,
             params: validatedParams
           } as Parameters<typeof node.handler>[0];
-          return humanInLoop === undefined
+          const result = humanInLoop === undefined
             ? await node.handler(handlerContext)
             : await humanInLoop.invoke(node, handlerContext, commandPath);
+          if (node.result !== undefined && isMCPResult(result) && result.isError === true) {
+            const text = result.content.flatMap((block) => block.type === "text" ? [block.text] : []).join("\n");
+            const message = text || (result.structuredContent === undefined ? "Upstream tool failed." : JSON.stringify(result.structuredContent));
+            throw new UserError(message, { cause: result });
+          }
+          return result;
         } catch (error) {
           await writeErrorReport({
             command: node,
@@ -819,7 +819,7 @@ function createResolvedSDK(
         childValue = build(child, nextPath);
       } else {
         childValue = build(child, nextPath);
-        if (!isPlainObject(childValue) || Object.keys(childValue).length === 0) {
+        if (!isPlainRecord(childValue) || Object.keys(childValue).length === 0) {
           continue;
         }
       }

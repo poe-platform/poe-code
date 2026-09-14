@@ -476,7 +476,10 @@ function normalizeSurfacedSubsetError(
   try {
     const name = budget.allocateString(toSandboxErrorName(readErrorName(error)));
     const message = budget.allocateString(readSurfacedErrorMessage(error, name));
-    const frames = readSandboxStackFrames(error.stack);
+    const frames = readSandboxStackFrames(
+      error.stack,
+      formatErrorStack(readErrorName(error), typeof error.message === "string" ? error.message : "")
+    );
     if (!Object.isExtensible(error) || ["name", "message", "stack"].some(key => {
       const descriptor = Object.getOwnPropertyDescriptor(error, key);
       return descriptor !== undefined && (!("value" in descriptor) || !descriptor.writable);
@@ -523,9 +526,17 @@ function readSurfacedErrorMessage(error: SandboxObject, name: string): string {
   return message;
 }
 
-function readSandboxStackFrames(stack: unknown): string[] {
+function readSandboxStackFrames(stack: unknown, header: string): string[] {
   if (typeof stack !== "string") {
     return [];
+  }
+
+  if (stack === header) {
+    return [];
+  }
+
+  if (stack.startsWith(`${header}\n`)) {
+    return stack.slice(header.length + 1).split("\n");
   }
 
   const [, ...frames] = stack.split("\n");

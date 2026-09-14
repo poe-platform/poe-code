@@ -57,10 +57,15 @@ export function makeGetSchemasCommand({
           continue;
         }
 
-        result[name] = {
-          description: entry.command.description ?? "",
-          params: toJsonSchema(entry.command.params as Parameters<typeof toJsonSchema>[0])
-        };
+        Object.defineProperty(result, name, {
+          value: {
+            description: entry.command.description ?? "",
+            params: toJsonSchema(entry.command.params as Parameters<typeof toJsonSchema>[0])
+          },
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
       }
 
       if (missingNames.size > 0) {

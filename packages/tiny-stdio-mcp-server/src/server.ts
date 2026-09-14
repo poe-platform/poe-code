@@ -96,7 +96,28 @@ interface LifecycleState {
   notificationReady: boolean;
   resourceSubscriptions: Set<string>;
   abortController: AbortController;
+  admissions: Set<AbortController>;
   listener?: (notification: JSONRPCNotification) => void | Promise<void>;
+}
+
+function createLifecycleState(
+  listener?: (notification: JSONRPCNotification) => void | Promise<void>
+): LifecycleState {
+  const abortController = new AbortController();
+  const admissions = new Set<AbortController>();
+  abortController.signal.addEventListener("abort", () => {
+    for (const admission of admissions) admission.abort(abortController.signal.reason);
+    admissions.clear();
+  }, { once: true });
+  return {
+    initialized: false,
+    initializeAccepted: false,
+    notificationReady: false,
+    resourceSubscriptions: new Set(),
+    abortController,
+    admissions,
+    listener
+  };
 }
 
 interface RegisteredToolDefinition extends ToolDefinition {
@@ -155,13 +176,7 @@ export function createServer(options: ServerOptions): Server {
     (notification: JSONRPCNotification) => void | Promise<void>,
     LifecycleState
   >();
-  const defaultLifecycle: LifecycleState = {
-    initialized: false,
-    initializeAccepted: false,
-    notificationReady: false,
-    resourceSubscriptions: new Set(),
-    abortController: new AbortController()
-  };
+  const defaultLifecycle = createLifecycleState();
   const messageLifecycles = new Set<LifecycleState>([defaultLifecycle]);
 
   const handleMessageWithLifecycle = async (
@@ -287,11 +302,11 @@ export function createServer(options: ServerOptions): Server {
 
       try {
         let handlerResult: ToolReturn | CallToolResult;
-        const admissionTimeout = options.toolCallTimeoutMs === undefined ? undefined : new AbortController();
-        const admissionSignal = AbortSignal.any([
-          lifecycle.abortController.signal,
-          ...(admissionTimeout === undefined ? [] : [admissionTimeout.signal])
-        ]);
+        const admissionController = new AbortController();
+        const sessionSignal = lifecycle.abortController.signal;
+        const admissionSignal = admissionController.signal;
+        if (sessionSignal.aborted) admissionController.abort(sessionSignal.reason);
+        else lifecycle.admissions.add(admissionController);
         const handlerPromise = (async () => {
           const release = await toolAdmission.acquire(admissionSignal);
           try {
@@ -299,27 +314,31 @@ export function createServer(options: ServerOptions): Server {
             return await tool.handler(toolArgs);
           } finally { release(); }
         })();
-        if (options.toolCallTimeoutMs === undefined) {
-          handlerResult = await handlerPromise;
-        } else {
-          let timeout: ReturnType<typeof setTimeout> | undefined;
-          handlerResult = await Promise.race([
-            handlerPromise,
-            new Promise<never>((_resolve, reject) => {
-              timeout = setTimeout(() => {
-                const error = new ToolError(
-                  JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-                  `Tool call timed out: ${toolName}`
-                );
-                admissionTimeout!.abort(error);
-                reject(error);
-              }, options.toolCallTimeoutMs);
-            })
-          ]).finally(() => {
-            if (timeout !== undefined) {
-              clearTimeout(timeout);
-            }
-          });
+        try {
+          if (options.toolCallTimeoutMs === undefined) {
+            handlerResult = await handlerPromise;
+          } else {
+            let timeout: ReturnType<typeof setTimeout> | undefined;
+            handlerResult = await Promise.race([
+              handlerPromise,
+              new Promise<never>((_resolve, reject) => {
+                timeout = setTimeout(() => {
+                  const error = new ToolError(
+                    JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+                    `Tool call timed out: ${toolName}`
+                  );
+                  admissionController.abort(error);
+                  reject(error);
+                }, options.toolCallTimeoutMs);
+              })
+            ]).finally(() => {
+              if (timeout !== undefined) {
+                clearTimeout(timeout);
+              }
+            });
+          }
+        } finally {
+          lifecycle.admissions.delete(admissionController);
         }
         const result = normalizeToolResult(handlerResult, tool.outputSchema);
         const outputValidation = tool.outputValidator?.validate(result.structuredContent);
@@ -460,7 +479,7 @@ export function createServer(options: ServerOptions): Server {
         const result = await customMethod(params, {
           signal: lifecycle.abortController.signal,
           async notify(notificationMethod, notificationParams) {
-            if (!lifecycle.notificationReady || lifecycle.listener === undefined) {
+            if (lifecycle.abortController.signal.aborted || !lifecycle.notificationReady || lifecycle.listener === undefined) {
               return;
             }
             await lifecycle.listener({
@@ -472,6 +491,15 @@ export function createServer(options: ServerOptions): Server {
         });
         return { result };
       } catch (error) {
+        if (error instanceof ToolError) {
+          return {
+            error: {
+              code: error.code,
+              message: error.message,
+              ...(error.data === undefined ? {} : { data: error.data })
+            }
+          };
+        }
         return internalError(toErrorMessage(error));
       }
     }
@@ -487,14 +515,7 @@ export function createServer(options: ServerOptions): Server {
   const createMessageSession = (
     listener?: (notification: JSONRPCNotification) => void | Promise<void>
   ): MessageSession => {
-    const lifecycle: LifecycleState = {
-      initialized: false,
-      initializeAccepted: false,
-      notificationReady: false,
-      resourceSubscriptions: new Set(),
-      abortController: new AbortController(),
-      listener
-    };
+    const lifecycle = createLifecycleState(listener);
     messageLifecycles.add(lifecycle);
     if (listener !== undefined) {
       connectionNotificationListeners.set(listener, lifecycle);
@@ -1062,11 +1083,11 @@ function normalizeToolResult(
   }
 
   return {
+    ...callToolResult,
     content:
       callToolResult !== undefined && callToolResult.content.length > 0
         ? callToolResult.content
         : [{ type: "text", text: JSON.stringify(structuredContent) }],
-    ...(callToolResult?.isError !== undefined ? { isError: callToolResult.isError } : {}),
     structuredContent
   };
 }

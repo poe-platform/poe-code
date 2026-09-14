@@ -1,0 +1,392 @@
+{
+  "source": "const log=[]; const a=[];\na.length={valueOf(){log.push('coerce');Promise.resolve().then(()=>log.push('job'));return 2}};\nlog.push('assigned');await Promise.resolve();return log;",
+  "result": {
+    "ok": true,
+    "returnValue": [
+      "coerce",
+      "coerce",
+      "assigned",
+      "job",
+      "job"
+    ],
+    "snapshot": {
+      "version": 2,
+      "executionSemantics": "jobs-v8",
+      "sourceHash": "2756261d",
+      "bindings": {
+        "eval": {
+          "kind": "fn",
+          "name": "eval"
+        },
+        "JSON": {},
+        "console": {
+          "error": {
+            "kind": "fn",
+            "name": "error"
+          },
+          "log": {
+            "kind": "fn",
+            "name": "log"
+          }
+        },
+        "Map": {
+          "kind": "fn",
+          "name": "Map"
+        },
+        "Set": {
+          "kind": "fn",
+          "name": "Set"
+        },
+        "WeakMap": {
+          "kind": "fn",
+          "name": "WeakMap"
+        },
+        "WeakSet": {
+          "kind": "fn",
+          "name": "WeakSet"
+        },
+        "Float32Array": {
+          "kind": "fn",
+          "name": "Float32Array"
+        },
+        "Uint8Array": {
+          "kind": "fn",
+          "name": "Uint8Array"
+        },
+        "Int8Array": {
+          "kind": "fn",
+          "name": "Int8Array"
+        },
+        "Uint8ClampedArray": {
+          "kind": "fn",
+          "name": "Uint8ClampedArray"
+        },
+        "Int16Array": {
+          "kind": "fn",
+          "name": "Int16Array"
+        },
+        "Uint16Array": {
+          "kind": "fn",
+          "name": "Uint16Array"
+        },
+        "Int32Array": {
+          "kind": "fn",
+          "name": "Int32Array"
+        },
+        "Uint32Array": {
+          "kind": "fn",
+          "name": "Uint32Array"
+        },
+        "Float64Array": {
+          "kind": "fn",
+          "name": "Float64Array"
+        },
+        "BigInt64Array": {
+          "kind": "fn",
+          "name": "BigInt64Array"
+        },
+        "BigUint64Array": {
+          "kind": "fn",
+          "name": "BigUint64Array"
+        },
+        "Float16Array": {
+          "kind": "fn",
+          "name": "Float16Array"
+        },
+        "Date": {
+          "kind": "fn",
+          "name": "Date"
+        },
+        "Temporal": {},
+        "Symbol": {
+          "kind": "fn",
+          "name": "Symbol"
+        },
+        "BigInt": {
+          "kind": "fn",
+          "name": "BigInt"
+        },
+        "Error": {
+          "kind": "fn",
+          "name": "Error"
+        },
+        "TypeError": {
+          "kind": "fn",
+          "name": "TypeError"
+        },
+        "RangeError": {
+          "kind": "fn",
+          "name": "RangeError"
+        },
+        "ReferenceError": {
+          "kind": "fn",
+          "name": "ReferenceError"
+        },
+        "SyntaxError": {
+          "kind": "fn",
+          "name": "SyntaxError"
+        },
+        "URIError": {
+          "kind": "fn",
+          "name": "URIError"
+        },
+        "EvalError": {
+          "kind": "fn",
+          "name": "EvalError"
+        },
+        "AggregateError": {
+          "kind": "fn",
+          "name": "AggregateError"
+        },
+        "SuppressedError": {
+          "kind": "fn",
+          "name": "SuppressedError"
+        },
+        "Infinity": null,
+        "Math": {},
+        "NaN": null,
+        "Object": {
+          "kind": "fn",
+          "name": "Object"
+        },
+        "Array": {
+          "kind": "fn",
+          "name": "Array"
+        },
+        "String": {
+          "kind": "fn",
+          "name": "String"
+        },
+        "Number": {
+          "kind": "fn",
+          "name": "Number"
+        },
+        "Boolean": {
+          "kind": "fn",
+          "name": "Boolean"
+        },
+        "Iterator": {
+          "kind": "fn",
+          "name": "Iterator"
+        },
+        "DisposableStack": {
+          "kind": "fn",
+          "name": "DisposableStack"
+        },
+        "AsyncDisposableStack": {
+          "kind": "fn",
+          "name": "AsyncDisposableStack"
+        },
+        "Reflect": {},
+        "Atomics": {},
+        "SharedArrayBuffer": {
+          "kind": "fn",
+          "name": "SharedArrayBuffer"
+        },
+        "WeakRef": {
+          "kind": "fn",
+          "name": "WeakRef"
+        },
+        "FinalizationRegistry": {
+          "kind": "fn",
+          "name": "FinalizationRegistry"
+        },
+        "Proxy": {
+          "kind": "fn",
+          "name": "Proxy"
+        },
+        "Intl": {},
+        "ArrayBuffer": {
+          "kind": "fn",
+          "name": "ArrayBuffer"
+        },
+        "DataView": {
+          "kind": "fn",
+          "name": "DataView"
+        },
+        "structuredClone": {
+          "kind": "fn",
+          "name": "structuredClone"
+        },
+        "parseInt": {
+          "kind": "fn",
+          "name": "parseInt"
+        },
+        "parseFloat": {
+          "kind": "fn",
+          "name": "parseFloat"
+        },
+        "isNaN": {
+          "kind": "fn",
+          "name": "isNaN"
+        },
+        "isFinite": {
+          "kind": "fn",
+          "name": "isFinite"
+        },
+        "encodeURI": {
+          "kind": "fn",
+          "name": "encodeURI"
+        },
+        "encodeURIComponent": {
+          "kind": "fn",
+          "name": "encodeURIComponent"
+        },
+        "decodeURI": {
+          "kind": "fn",
+          "name": "decodeURI"
+        },
+        "decodeURIComponent": {
+          "kind": "fn",
+          "name": "decodeURIComponent"
+        },
+        "escape": {
+          "kind": "fn",
+          "name": "escape"
+        },
+        "unescape": {
+          "kind": "fn",
+          "name": "unescape"
+        },
+        "Promise": {
+          "kind": "fn",
+          "name": "Promise"
+        },
+        "RegExp": {
+          "kind": "fn",
+          "name": "RegExp"
+        },
+        "Function": {
+          "kind": "fn",
+          "name": "Function"
+        },
+        "globalThis": {},
+        "log": [
+          "coerce",
+          "coerce",
+          "assigned",
+          "job",
+          "job"
+        ],
+        "a": [
+          null,
+          null
+        ]
+      },
+      "replay": {
+        "version": 1,
+        "calls": []
+      },
+      "initialInputs": {
+        "root": {
+          "tag": "ref",
+          "id": 0
+        },
+        "nodes": [
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "bindings": {
+                "value": {
+                  "tag": "ref",
+                  "id": 1
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "imports": {
+                "value": {
+                  "tag": "ref",
+                  "id": 2
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "entryPointArgs": {
+                "value": {
+                  "tag": "undefined"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "importMeta": {
+                "value": {
+                  "tag": "ref",
+                  "id": 3
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {}
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {}
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {}
+          }
+        ]
+      },
+      "promiseReplay": {
+        "version": 1,
+        "steps": 50,
+        "promises": 5,
+        "settlements": [
+          {
+            "id": 1,
+            "step": 19
+          },
+          {
+            "id": 3,
+            "step": 31
+          },
+          {
+            "id": 5,
+            "step": 42
+          },
+          {
+            "id": 2,
+            "step": 45
+          },
+          {
+            "id": 4,
+            "step": 48
+          }
+        ]
+      },
+      "random": {
+        "seed": 795618151,
+        "initialState": 795618151,
+        "state": 795618151
+      }
+    },
+    "stats": {
+      "nodeVisits": 60
+    }
+  },
+  "expected": [
+    "coerce",
+    "coerce",
+    "assigned",
+    "job",
+    "job"
+  ]
+}

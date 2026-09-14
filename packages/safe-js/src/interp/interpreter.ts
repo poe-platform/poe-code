@@ -4477,6 +4477,16 @@ export function setSandboxProperty(
   const key = typeof property === "symbol" ? property : String(property);
   if (Array.isArray(target)) {
     assertCollectionMutable(target);
+    if (key === "length" && typeof value !== "number") {
+      // Assignment rejects a nonwritable length before ArraySetLength coercion.
+      if (Object.getOwnPropertyDescriptor(target, key)?.writable === false) {
+        if (!throwOnFailure) return;
+        throw new TypeError("Cannot assign to read only property 'length'.");
+      }
+      const result = defineDataProperty(target, key, { value }, budget, context, throwOnFailure);
+      if (result instanceof Promise) return result.then(() => undefined);
+      return;
+    }
     if (typeof key === "string" && (key === "length" || isArrayIndexKey(key))) {
       if (!throwOnFailure) {
         Reflect.set(target, key, value);

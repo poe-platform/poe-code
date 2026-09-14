@@ -1,0 +1,133 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/array-length-coercion.test.ts (5 tests | 4 failed) 162ms
+   × assigns boxed lengths with guest conversion and preserves host prototypes 49ms
+   × performs both length conversions through Proxy getters in order 29ms
+   × rejects unequal conversions and preserves the original array 30ms
+   ✓ does not coerce assignments to a nonwritable length 28ms
+   × retains truncation failure and descriptor semantics 26ms
+FAIL packages/safe-js/src/interp/array-length-coercion.test.ts > assigns boxed lengths with guest conversion and preserves host prototypes
+TypeError: Cannot convert object to primitive value
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { span: { start: { line: 1, column: 15, offset: 14 }, end: { line: 1, column: 39, offset: 38 } } }
+FAIL packages/safe-js/src/interp/array-length-coercion.test.ts > performs both length conversions through Proxy getters in order
+TypeError: Cannot convert object to primitive value
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { span: { start: { line: 5, column: 5, offset: 220 }, end: { line: 5, column: 21, offset: 236 } } }
+FAIL packages/safe-js/src/interp/array-length-coercion.test.ts > rejects unequal conversions and preserves the original array
+AssertionError: expected [ false, +0, [ 1, 2, 3 ] ] to deeply equal [ true, 2, [ 1, 2, 3 ] ]
+
+- Expected
++ Received
+
+@@ -1,8 +1,8 @@
+  [
+-   true,
+-   2,
++   false,
++   0,
+    [
+      1,
+      2,
+      3,
+    ],
+
+ ❯ packages/safe-js/src/interp/array-length-coercion.test.ts:27:50
+     25|     try { a.length = {valueOf() { return ++calls; }}; }
+     26|     catch (e) { rejected = e instanceof RangeError; }
+     27|     return [rejected, calls, a];`)).returnValue).toEqual([true, 2, [1,…
+       |                                                  ^
+     28| });
+     29|
+
+FAIL packages/safe-js/src/interp/array-length-coercion.test.ts > retains truncation failure and descriptor semantics
+AssertionError: expected [ true, 3, true, true ] to deeply equal [ true, 2, false, true ]
+
+- Expected
++ Received
+
+  [
+    true,
+-   2,
+-   false,
++   3,
++   true,
+    true,
+  ]
+
+ ❯ packages/safe-js/src/interp/array-length-coercion.test.ts:43:19
+     41|     try { a.length = new Number(0); } catch(e) { rejected = e instance…
+     42|     return [rejected, a.length, 2 in a, Object.getOwnPropertyDescripto…
+     43|   )).returnValue).toEqual([true, 2, false, true]);
+       |                   ^
+     44| });
+     45|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/array-length-coercion.test.ts > assigns boxed lengths with guest conversion and preserves host prototypes
+ FAIL  packages/safe-js/src/interp/array-length-coercion.test.ts > performs both length conversions through Proxy getters in order
+TypeError: Cannot convert object to primitive value
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  packages/safe-js/src/interp/array-length-coercion.test.ts > rejects unequal conversions and preserves the original array
+AssertionError: expected [ false, +0, [ 1, 2, 3 ] ] to deeply equal [ true, 2, [ 1, 2, 3 ] ]
+
+- Expected
++ Received
+
+@@ -1,8 +1,8 @@
+  [
+-   true,
+-   2,
++   false,
++   0,
+    [
+      1,
+      2,
+      3,
+    ],
+
+ ❯ packages/safe-js/src/interp/array-length-coercion.test.ts:27:50
+     25|     try { a.length = {valueOf() { return ++calls; }}; }
+     26|     catch (e) { rejected = e instanceof RangeError; }
+     27|     return [rejected, calls, a];`)).returnValue).toEqual([true, 2, [1,…
+       |                                                  ^
+     28| });
+     29|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  packages/safe-js/src/interp/array-length-coercion.test.ts > retains truncation failure and descriptor semantics
+AssertionError: expected [ true, 3, true, true ] to deeply equal [ true, 2, false, true ]
+
+- Expected
++ Received
+
+  [
+    true,
+-   2,
+-   false,
++   3,
++   true,
+    true,
+  ]
+
+ ❯ packages/safe-js/src/interp/array-length-coercion.test.ts:43:19
+     41|     try { a.length = new Number(0); } catch(e) { rejected = e instance…
+     42|     return [rejected, a.length, 2 in a, Object.getOwnPropertyDescripto…
+     43|   )).returnValue).toEqual([true, 2, false, true]);
+       |                   ^
+     44| });
+     45|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 1 passed (5)
+   Start at  17:49:51
+   Duration  2.26s (transform 1.58s, setup 37ms, import 1.98s, tests 162ms, environment 0ms)
+

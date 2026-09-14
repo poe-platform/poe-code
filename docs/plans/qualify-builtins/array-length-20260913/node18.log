@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/array-length-coercion.test.ts (8 tests) 678ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  17:51:20
+   Duration  2.94s (transform 1.72s, setup 52ms, import 2.13s, tests 678ms, environment 0ms)
+

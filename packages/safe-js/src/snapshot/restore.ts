@@ -15,7 +15,7 @@ import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
 import { runResources, withRunResources } from "../interp/resources.js";
 import { createInterpretedClosure, executeAsyncFunction, type AsyncEvaluationContext } from "../interp/async.js";
 import { createBuiltinBindings } from "../interp/globals.js";
-import { resolveIntrinsicIdentity } from "../interp/intrinsics.js";
+import { listIntrinsicIdentities, resolveIntrinsicIdentity } from "../interp/intrinsics.js";
 import { allocateGuestScopes, hydrateGuestScopes } from "./scope-frames.js";
 import { createMappedSandboxArguments, mappedArgumentStates } from "../interp/arguments.js";
 import type { DynamicSource } from "../parse/dynamic-source.js";
@@ -255,6 +255,7 @@ export function restore(
 ): RestoredSnapshot {
   const budget = options.budget ?? new Budget();
   const operation = budget.acquireCompileOwner(false, owner);
+  const finishData = budget.provisionDataUsage(0);
   const compilation = new CompileScope(operation.owner);
   const finalizationActivation: FinalizationActivation = {phase:"pending",pending:[],rollback:[]};
   let failure: {reason: unknown} | undefined;
@@ -456,11 +457,11 @@ export function restore(
   }
   if (failure !== undefined || cleanupErrors.length > 0) {
     for (const view of intrinsicBudgets.values()) {
-      if (view === budget) continue;
       try { releaseObjectPrototype(view); }
       catch (error) { cleanupErrors.push(error); }
     }
   }
+  finishData(failure === undefined && cleanupErrors.length === 0);
   if (cleanupErrors.length > 0) {
     throw new AggregateError(failure === undefined ? cleanupErrors : [failure.reason,...cleanupErrors],
       "SafeJS snapshot restoration cleanup failed.");
@@ -851,6 +852,8 @@ function initializeIntrinsicRealm(state: RestoreState, realm = 0): Budget {
   const installed = state.intrinsicBudgets.get(realm);
   if (installed !== undefined) return installed;
   const budget = realm === 0 ? state.budget : state.budget.forkRealm();
+  if (listIntrinsicIdentities(budget).length !== 0)
+    throw new TypeError("Snapshot restoration requires a fresh intrinsic realm budget.");
   state.intrinsicBudgets.set(realm, budget);
   const nodes = Object.values(state.heap).filter(node => node.kind === "intrinsic" && (node.realm ?? 0) === realm);
   const prototype = nodes.find(node => node.kind === "intrinsic" && node.id === '["%FunctionPrototype%"]');

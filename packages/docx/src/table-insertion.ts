@@ -22,12 +22,18 @@ export function renderInsertedTable(options: DocxOperationArguments<"tables.add"
   }));
   budget.table(options.rows, options.cols);
   const table: DocxTableInput = { kind: "table", rows: block?.rows ?? Array.from({ length: options.rows }, () => Array.from({ length: options.cols }, () => ({ blocks: [] }))), ...block, ...formatting };
+  const width = tableContainerWidth(location, root, mainRoot, options.before);
+  return renderContent({ version: 1, blocks: [table] }, mainRoot.namespace, budget, styles, width);
+}
+
+/** Stored section or enclosing-cell width shared by insertion and explicit grid growth. */
+export function tableContainerWidth(location: Location | undefined, root: XmlElement, mainRoot: XmlElement, before?: boolean): number {
   const body = sectionChild(mainRoot, "body")!;
   const sections = body.children.flatMap(n => n.localName === "p" ? sectionChild(sectionChild(n, "pPr"), "sectPr") ?? [] : n.localName === "sectPr" ? [n] : []);
   let section = sections.at(-1);
   if (location?.positions.section) section = sections[location.positions.section - 1];
   // An insertion after a section-ending paragraph belongs to the following section.
-  if (location?.kind === "paragraph" && !location.value.range && !options.before) {
+  if (location?.kind === "paragraph" && !location.value.range && !before) {
     let node = root; for (const i of location.value.path) node = node.children[i]!;
     if (sectionChild(sectionChild(node, "pPr"), "sectPr")) section = sections[(location.positions.section ?? 1)];
   }
@@ -61,5 +67,5 @@ export function renderInsertedTable(options: DocxOperationArguments<"tables.add"
     }
   }
   if (!Number.isSafeInteger(width) || width < 1) throw new UnsupportedEditError("No positive stored container width is available.");
-  return renderContent({ version: 1, blocks: [table] }, mainRoot.namespace, budget, styles, width);
+  return width;
 }

@@ -1,3 +1,6 @@
+import { executeTableEditCommand } from "./table-edit-command.js";
+import { inspectDocumentTable } from "./table-read.js";
+import type { DocxOperationArguments } from "./operation-types.js";
 import { executeListsCommand } from "./lists-command.js";
 import { executeSectionsCommand } from "./sections-command.js";
 import { executeStoriesCommand } from "./stories-command.js";
@@ -50,6 +53,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let writingDiagnostics = false;
       let output: Uint8Array;
       let exitCode = 0;
+      const tableOperation = ["tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove"].includes(invocation.operation);
       const listOperation = ["lists.add", "lists.set"].includes(invocation.operation);
       const storyOperation = ["headers.list", "headers.get", "headers.set", "headers.remove", "footers.list", "footers.get", "footers.set", "footers.remove"].includes(invocation.operation);
       try {
@@ -57,7 +61,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           output = await executeCreateCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
-        if (!listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
+        if (!tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
         if (["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined)) {
@@ -66,7 +70,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const input = invocation.inputs[0]!;
         acquiring = true;
         let inputIdentity: PublicationInput | undefined;
-        if (["lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && input !== "-" && request.filesystem.lstat) {
+        if ((tableOperation || ["lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -77,8 +81,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           return { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
         } });
         acquiring = false;
-        if (listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = listOperation ? await executeListsCommand(invocation, bytes, inputIdentity, request, context)
+        if (tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
+          output = tableOperation ? await executeTableEditCommand(invocation, bytes, inputIdentity, request, context)
+            : listOperation ? await executeListsCommand(invocation, bytes, inputIdentity, request, context)
             : storyOperation ? await executeStoriesCommand(invocation, bytes, inputIdentity, request, context)
             : invocation.operation.startsWith("sections.") ? await executeSectionsCommand(invocation, bytes, inputIdentity, request, context)
             : invocation.operation === "batch" ? await executeStyleModelCommand(invocation, bytes, inputIdentity, request, context)
@@ -87,6 +92,13 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
             : invocation.operation === "runs.set" ? await executeRunFormatCommand(invocation, bytes, inputIdentity, request, context)
             : invocation.operation === "text.replace" ? await executeTextReplaceCommand(invocation, bytes, inputIdentity, request, context)
             : await executeXmlCommand(invocation, bytes, inputIdentity, request, context, io);
+          budget.check("serializedOutput", output.length);
+        } else if (invocation.operation === "tables.get") {
+          const data = await inspectDocumentTable(bytes, invocation.options as DocxOperationArguments<"tables.get">, context);
+          const details = data.item.details;
+          const human = `docx tables get: ${details.rows} rows; ${details.columns} columns\n` + details.cells.map(cell =>
+            `Row ${cell.row}, column ${cell.column} (${cell.rowSpan}x${cell.columnSpan}): ${escapeTerminalText(cell.text)}\n`).join("");
+          output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: invocation.operation, ok: true, data, affected: 0, locations: [data.item.location, ...details.cells.map(cell => cell.location)], warnings: [], errors: [] }) + "\n" : human);
           budget.check("serializedOutput", output.length);
         } else {
           const data = invocation.operation === "text.get" ? await extractDocumentText(bytes, context, invocation.options as TextOptions)

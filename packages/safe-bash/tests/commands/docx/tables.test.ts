@@ -190,3 +190,74 @@ test("docx nested table insertion gives per-cell zero margins precedence over ta
     assert.deepEqual(child(child(cell, "tbl"), "tblGrid").children.map(column => attribute(column, "w")), ["2760", "2760"]);
   } finally { await shell.dispose(); }
 });
+
+test("docx table cell replacement keeps exact values and formatting edits keep text", async () => {
+  const { shell, volume } = await fixture();
+  try {
+    const content = { version: 1, blocks: [{ kind: "table", rows: [
+      [{ blocks: [{ kind: "paragraph", text: "Harbor" }] }, { blocks: [{ kind: "paragraph", text: "001.230" }] }],
+      [{ blocks: [{ kind: "paragraph", text: "South" }] }, { blocks: [{ kind: "paragraph", text: "=A1 & <safe>" }] }]
+    ] }] };
+    const added = await shell.exec(`docx tables add source.docx --rows 2 --cols 2 --content-json '${JSON.stringify(content)}' --in-place --json`);
+    assert.equal(added.exitCode, 0, added.stderr);
+    const before = volume.toJSON();
+    const dry = await shell.exec("docx tables set source.docx --table 1 --cell B1 --text '  0002.500 🌊  ' --dry-run --json");
+    assert.equal(dry.exitCode, 0, dry.stderr);
+    assert.deepEqual(volume.toJSON(), before);
+    const replaced = await shell.exec("docx tables set source.docx --table 1 --cell B1 --text '  0002.500 🌊  ' --in-place --json");
+    assert.equal(replaced.exitCode, 0, replaced.stderr);
+    const formatted = await shell.exec("docx tables set source.docx --table 1 --cell B1 --width 2in --repeat-header true --in-place --json");
+    assert.equal(formatted.exitCode, 0, formatted.stderr);
+    const inspected = await shell.exec("docx tables get source.docx --table 1 --json");
+    assert.equal(inspected.exitCode, 0, inspected.stderr);
+    const details = JSON.parse(inspected.stdout).data.item.details;
+    assert.equal(details.rows, 2);
+    assert.equal(details.columns, 2);
+    assert.deepEqual(details.cells.map((cell: { row: number; column: number; text: string }) => [cell.row, cell.column, cell.text]), [
+      [1, 1, "Harbor"], [1, 2, "  0002.500 🌊  "], [2, 1, "South"], [2, 2, "=A1 & <safe>"]
+    ]);
+  } finally { await shell.dispose(); }
+});
+
+test("docx table row and column insertion uses one-based positions and explicit removal", async () => {
+  const { shell } = await fixture();
+  try {
+    const content = { version: 1, blocks: [{ kind: "table", rows: [
+      [{ blocks: [{ kind: "paragraph", text: "North" }] }, { blocks: [{ kind: "paragraph", text: "0007" }] }],
+      [{ blocks: [{ kind: "paragraph", text: "South" }] }, { blocks: [{ kind: "paragraph", text: "7.00" }] }]
+    ] }] };
+    const added = await shell.exec(`docx tables add source.docx --rows 2 --cols 2 --content-json '${JSON.stringify(content)}' --in-place --json`);
+    assert.equal(added.exitCode, 0, added.stderr);
+    for (const operation of ["rows add --index 2", "columns add --index 1 --width 1in"]) {
+      const result = await shell.exec(`docx tables ${operation} source.docx --table 1 --in-place --json`);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    const inserted = await shell.exec("docx tables get source.docx --table 1 --json");
+    assert.equal(inserted.exitCode, 0, inserted.stderr);
+    assert.deepEqual(JSON.parse(inserted.stdout).data.item.details.cells.map((cell: { text: string }) => cell.text), ["", "North", "0007", "", "", "", "", "South", "7.00"]);
+    for (const operation of ["rows remove --index 2", "columns remove --index 1"]) {
+      const result = await shell.exec(`docx tables ${operation} source.docx --table 1 --in-place --json`);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    const restored = await shell.exec("docx tables get source.docx --table 1 --json");
+    assert.equal(restored.exitCode, 0, restored.stderr);
+    assert.deepEqual(JSON.parse(restored.stdout).data.item.details.cells.map((cell: { text: string }) => cell.text), ["North", "0007", "South", "7.00"]);
+  } finally { await shell.dispose(); }
+});
+
+test("docx invalid table edits reject before publication to source or existing output", async () => {
+  const { shell, volume } = await fixture();
+  try {
+    const added = await shell.exec("docx tables add source.docx --rows 2 --cols 2 --in-place --json");
+    assert.equal(added.exitCode, 0, added.stderr);
+    volume.writeFileSync("/work/output.docx", "Retain approved bytes");
+    const before = volume.toJSON();
+    for (const operation of ["set --table 1 --cell C1 --text invalid", "set --table 1 --text invalid", "set --table 3 --cell A1 --text invalid", "rows add --table 1 --index 4", "columns remove --table 1 --index 3", "rows remove --table 1 --index 0"]) {
+      const result = await shell.exec(`docx tables ${operation} source.docx --output output.docx --force --json`);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(JSON.parse(result.stdout).ok, false);
+      assert.notEqual(JSON.parse(result.stdout).errors[0].code, "unsupported-profile");
+      assert.deepEqual(volume.toJSON(), before);
+    }
+  } finally { await shell.dispose(); }
+});

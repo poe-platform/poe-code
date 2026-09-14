@@ -75,6 +75,11 @@ const mutationData = object({ changed: boolean, changes: array(object({ kind: { 
   output: { oneOf: [object({ path: nullableString, bytes: number, sha256: string }), { type: "null" }] }, dryRun: boolean });
 const runFormatData = object({ ...mutationData.properties, changes: array(object({ kind: { const: "format" }, before: location, after: location })) });
 const paragraphEditData = object({ ...mutationData.properties, changes: array(object({ kind: { enum: ["format", "replace", "insert"] }, before: location, after: location })) });
+const tableEditData = object({ ...mutationData.properties, changes: array(object({ kind: { enum: ["format", "replace", "insert", "delete"] }, before: location, after: location })) });
+const tableDetails = object({ kind: { const: "tables" }, rows: number, columns: number,
+  cells: array(object({ row: number, column: number, rowSpan: number, columnSpan: number, location, text: string })),
+  omitted: array(object({ row: number, before: number, after: number })) });
+const tableReadData = object({ item: object({ kind: { const: "tables" }, location, properties: empty, references: empty, support: { const: "read" }, details: tableDetails }) });
 const textData = object({ text: string, view: { enum: ["final", "original", "all"] }, hiddenText: { const: "include" },
   segments: array(object({ text: string, location, revision: { enum: ["insert", "delete", "unchanged"] },
     kind: { enum: ["text", "tab", "line-break", "page-break", "column-break", "paragraph", "cell", "row", "story"] },
@@ -108,6 +113,12 @@ const styleInspectionData = object({
   diagnostics: array(object({ code: string, part: string, location: string, message: string }))
 });
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
+  ["tables.get", "Inspect one table's 1-based logical cell anchors, spans, omitted slots and exact text.", ["F19", "F20"], tableReadData],
+  ["tables.set", "Replace selected cell values or edit table, row and cell formatting without growing the grid.", ["F19"], tableEditData],
+  ["tables.rows.add", "Insert a row before a 1-based index, or append at count+1.", ["F19"], tableEditData],
+  ["tables.rows.remove", "Delete an explicit 1-based row while preserving surviving cells and properties.", ["F19"], tableEditData],
+  ["tables.columns.add", "Insert a column before a 1-based index, or append at count+1.", ["F19"], tableEditData],
+  ["tables.columns.remove", "Delete an explicit 1-based column while preserving surviving cells and properties.", ["F19"], tableEditData],
   ["tables.add", "Create a bounded rectangular table with typed nested blocks, explicit grid widths and table/row/cell formatting; preserve surrounding sections.", ["F19"], paragraphEditData],
   ["lists.add", "Insert a list item with bounded nesting and an optional starting value.", ["F18"], paragraphEditData],
   ["lists.set", "Change list nesting or restart selected items while preserving other lists.", ["F18"], paragraphEditData],
@@ -148,5 +159,5 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["xml.set", "Replace one complete XML part with validated bytes; preserve opaque content and unrelated parts.", ["F04", "F07"], mutationData]
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
-  warnings: array(diagnostic), errors: empty, affected: ["tables.add", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
+  warnings: array(diagnostic), errors: empty, affected: ["tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.add", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
 }), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: { type: "object" } }, affected: { const: 0 }, locations: empty })] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;

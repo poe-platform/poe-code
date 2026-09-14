@@ -17,7 +17,7 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   const invocation = validateDocxInvocation({ operation: value.operation, inputs: value.inputs, options: value.options });
   const { operation, options } = invocation;
   const resource = operation.split(".")[0]!;
-  const inserting = operation.endsWith(".add");
+  const inserting = operation.endsWith(".add") && !operation.startsWith("tables.rows.") && !operation.startsWith("tables.columns.");
   const targetKind = inserting && ["images", "runs"].includes(resource) ? "paragraph"
     : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? "story"
     : operation === "text.get" && options.section === undefined ? "story" : resourceKinds[resource];

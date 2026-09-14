@@ -50,6 +50,14 @@ protocols, enum aliases and add_table/iter_inner_content obligations. Those live
 owners remain pending; D03 does not introduce a model direction alias. The pinned
 inventory remains historical and is not promoted by utility test passes.
 
+The later [bounded table editing milestone](../plans/docx-table-editing.md) adds
+logical anchor/span/omission inspection, cell value/formatting changes and explicit
+rectangular row/column insertion/deletion. Its exact mapping table retains all
+public and inherited table members, zero-based live collections versus 1-based
+utility coordinates, nullable properties, enum/helper obligations and D03. Live
+owners, merge/split operations and full property inventory remain pending; no
+historical inventory row is promoted merely by utility execution.
+
 ## Sources and baseline
 
 The later [theme/font resource milestone](font-resources.md) adds utility

@@ -47,8 +47,10 @@ not complete the live section model or pagination. The later bounded
 noncreating reads, explicit local/shared edits and binding removal. General
 image editors and the complete live model remain pending. The bounded
 [table construction milestone](../plans/docx-table-construction.md) now adds
-rectangular table insertion and typed table/row/cell formatting; cell updates,
-row/column edits, merges and live table owners remain pending.
+rectangular table insertion and typed table/row/cell formatting. The bounded
+[table editing milestone](../plans/docx-table-editing.md) adds logical table
+inspection, selected cell values/formatting and explicit rectangular row/column
+insertion/deletion. Merges, splits and live table owners remain pending.
 
 ## Normative language
 
@@ -1526,6 +1528,16 @@ type ResourceDetails =
 
 Table cells lists each physical anchor once; omitted slots are not fabricated.
 Merged continuations refer to the anchor location through the logical grid.
+The bounded `tables.get` utility returns `{item}` with kind `tables`, the owning
+table location, support `read` and these structural `details`; its properties and
+references arrays are empty until the complete table property inventory is
+implemented. Cell selection inspects its nearest owning table. The bounded
+`TableEditData` retains the paragraph transaction receipt: changed, changes,
+output and dryRun. Each change has kind `format`, `replace`, `insert` or `delete`,
+before and after. Cell edits return the resulting physical cell location;
+structural edits return the surviving table location. The affected count is the
+number of directly selected objects changed. These bounded receipts do not
+establish live table-model or general model-batch coverage.
 Image unique mode returns one record per identical byte hash with all owners;
 linked-only drawings remain individual records with null hash/pixel dimensions
 and no acquisition. Noncreating absent header/footer records use section binding

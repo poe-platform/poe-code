@@ -1,0 +1,71 @@
+{
+  "root": "/work",
+  "workflows": {
+    "filesystem": {
+      "status": "failed",
+      "error": "[Errno 138] Not supported: '/work/documents with spaces ünicode 日本語/temporary ü ztkd7p7r/tmpg0ran7g4 λ.bin'",
+      "traceback": "Traceback (most recent call last):\n  File \"/work/documents.py\", line 392, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 88, in filesystem_probe\n    with tempfile.NamedTemporaryFile(dir=directory, suffix=\" λ.bin\") as stream:\n         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/lib/python314.zip/tempfile.py\", line 603, in NamedTemporaryFile\n  File \"/lib/python314.zip/tempfile.py\", line 600, in opener\n  File \"/lib/python314.zip/tempfile.py\", line 257, in _mkstemp_inner\nOSError: [Errno 138] Not supported: '/work/documents with spaces ünicode 日本語/temporary ü ztkd7p7r/tmpg0ran7g4 λ.bin'\n"
+    },
+    "pillow_image": {
+      "status": "failed",
+      "error": "src/_imaging.c:196: bad argument to internal function",
+      "traceback": "Traceback (most recent call last):\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/PIL/ImageFile.py\", line 663, in _save\n    fh = fp.fileno()\n         ^^^^^^^^^\nAttributeError: '_idat' object has no attribute 'fileno'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/work/documents.py\", line 392, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 104, in image_probe\n    Image.new(\"RGB\", (24, 16), (24, 96, 160)).save(target)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/PIL/Image.py\", line 2713, in save\n    save_handler(self, fp, filename)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/PIL/PngImagePlugin.py\", line 1507, in _save\n    ImageFile._save(\n    ~~~~~~~~~~~~~~~^\n        single_im,\n        ^^^^^^^^^^\n        cast(IO[bytes], _idat(fp, chunk)),\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        [ImageFile._Tile(\"zip\", (0, 0) + single_im.size, 0, rawmode)],\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/PIL/ImageFile.py\", line 667, in _save\n    _encode_tile(im, fp, tile, bufsize, None, exc)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/PIL/ImageFile.py\", line 685, in _encode_tile\n    encoder.setimage(im.im, extents)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\nSystemError: src/_imaging.c:196: bad argument to internal function\n"
+    },
+    "nofollow_exclusive": {
+      "status": "failed",
+      "error": "{'actual': {'fresh file': 138, 'existing regular': 138, 'dangling link': 138, 'regular link': 138, 'directory link': 138, 'nonexclusive_regular': 138}, 'expected': {'fresh file': 'created', 'existing regular': 20, 'dangling link': 20, 'regular link': 20, 'directory link': 20, 'nonexclusive_regular': 138}}",
+      "traceback": "Traceback (most recent call last):\n  File \"/work/documents.py\", line 392, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 152, in nofollow_exclusive_probe\n    assert outcomes == expected, {\"actual\": outcomes, \"expected\": expected}\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'actual': {'fresh file': 138, 'existing regular': 138, 'dangling link': 138, 'regular link': 138, 'directory link': 138, 'nonexclusive_regular': 138}, 'expected': {'fresh file': 'created', 'existing regular': 20, 'dangling link': 20, 'regular link': 20, 'directory link': 20, 'nonexclusive_regular': 138}}\n"
+    },
+    "python_docx": {
+      "status": "failed",
+      "error": "[Errno 44] No such file or directory: '/work/documents with spaces ünicode 日本語/image fixture ü.png'",
+      "traceback": "Traceback (most recent call last):\n  File \"/work/documents.py\", line 392, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 175, in docx_probe\n    document.add_picture(str(WORK / \"image fixture ü.png\"), width=Inches(0.5))\n    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/docx/document.py\", line 138, in add_picture\n    return run.add_picture(image_path_or_stream, width, height)\n           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/docx/text/run.py\", line 79, in add_picture\n    inline = self.part.new_pic_inline(image_path_or_stream, width, height)\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/docx/parts/story.py\", line 71, in new_pic_inline\n    rId, image = self.get_or_add_image(image_descriptor)\n                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/docx/parts/story.py\", line 37, in get_or_add_image\n    image_part = package.get_or_add_image_part(image_descriptor)\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/docx/package.py\", line 31, in get_or_add_image_part\n    return self.image_parts.get_or_add_image_part(image_descriptor)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/docx/package.py\", line 74, in get_or_add_image_part\n    image = Image.from_file(image_descriptor)\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/docx/image/image.py\", line 41, in from_file\n    with open(path, \"rb\") as f:\n         ~~~~^^^^^^^^^^^^\nFileNotFoundError: [Errno 44] No such file or directory: '/work/documents with spaces ünicode 日本語/image fixture ü.png'\n"
+    },
+    "openpyxl": {
+      "status": "failed",
+      "error": "<cyfunction fromstring at 0x5c8abb8> returned NULL without setting an exception",
+      "traceback": "Traceback (most recent call last):\n  File \"/work/documents.py\", line 392, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 212, in openpyxl_probe\n    from openpyxl import Workbook, load_workbook\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/__init__.py\", line 7, in <module>\n    from openpyxl.workbook import Workbook\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/workbook/__init__.py\", line 4, in <module>\n    from .workbook import Workbook\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/workbook/workbook.py\", line 7, in <module>\n    from openpyxl.worksheet.worksheet import Worksheet\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/worksheet/worksheet.py\", line 24, in <module>\n    from openpyxl.cell import Cell, MergedCell\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/cell/__init__.py\", line 3, in <module>\n    from .cell import Cell, WriteOnlyCell, MergedCell\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/cell/cell.py\", line 27, in <module>\n    from openpyxl.styles.styleable import StyleableObject\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/styles/styleable.py\", line 13, in <module>\n    from .builtins import styles\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/styles/builtins.py\", line 1346, in <module>\n    ('Normal', NamedStyle.from_tree(fromstring(normal))),\n                                    ~~~~~~~~~~^^^^^^^^\nSystemError: <cyfunction fromstring at 0x5c8abb8> returned NULL without setting an exception\n"
+    },
+    "xlsxwriter": {
+      "status": "failed",
+      "error": "<cyfunction fromstring at 0x5c8abb8> returned NULL without setting an exception",
+      "traceback": "Traceback (most recent call last):\n  File \"/work/documents.py\", line 392, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 258, in xlsxwriter_probe\n    from openpyxl import load_workbook\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/__init__.py\", line 7, in <module>\n    from openpyxl.workbook import Workbook\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/workbook/__init__.py\", line 4, in <module>\n    from .workbook import Workbook\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/workbook/workbook.py\", line 7, in <module>\n    from openpyxl.worksheet.worksheet import Worksheet\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/worksheet/worksheet.py\", line 24, in <module>\n    from openpyxl.cell import Cell, MergedCell\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/cell/__init__.py\", line 3, in <module>\n    from .cell import Cell, WriteOnlyCell, MergedCell\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/cell/cell.py\", line 27, in <module>\n    from openpyxl.styles.styleable import StyleableObject\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/styles/styleable.py\", line 13, in <module>\n    from .builtins import styles\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/openpyxl/styles/builtins.py\", line 1346, in <module>\n    ('Normal', NamedStyle.from_tree(fromstring(normal))),\n                                    ~~~~~~~~~~^^^^^^^^\nSystemError: <cyfunction fromstring at 0x5c8abb8> returned NULL without setting an exception\n"
+    },
+    "fpdf2_pypdf": {
+      "status": "failed",
+      "error": "cannot import name 'resources' from 'importlib' (/lib/python314.zip/importlib/__init__.py)",
+      "traceback": "Traceback (most recent call last):\n  File \"/work/documents.py\", line 392, in <module>\n    RESULT[\"workflows\"][name] = {\"status\": \"passed\", **probe()}\n                                                       ~~~~~^^\n  File \"/work/documents.py\", line 298, in pdf_probe\n    import fpdf\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/fpdf/__init__.py\", line 24, in <module>\n    from .enums import Align, ResourceAccessPolicy, TextMode, XPos, YPos\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/fpdf/enums.py\", line 17, in <module>\n    from .drawing_primitives import convert_to_device_color\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/fpdf/drawing_primitives.py\", line 32, in <module>\n    from .util import Number, NumberClass, number_to_str\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/fpdf/util.py\", line 12, in <module>\n    from importlib import resources\nImportError: cannot import name 'resources' from 'importlib' (/lib/python314.zip/importlib/__init__.py)\n"
+    }
+  },
+  "artifacts": {
+    "documents with spaces ünicode 日本語/large boundary ü.bin": {
+      "bytes": 98560,
+      "sha256": "bbcc27e35e90b925b1dbdf9d44a62d1a44ec079b4b28f7a91955ef0a1a5c5c49"
+    }
+  },
+  "versions": {
+    "python-docx": "1.2.0",
+    "openpyxl": "3.1.5",
+    "XlsxWriter": "3.2.9",
+    "pypdf": "6.18.1",
+    "fpdf2": "2.8.8",
+    "lxml": "6.0.2",
+    "Pillow": "12.2.0",
+    "fonttools": "4.65.0",
+    "defusedxml": "0.7.1",
+    "et-xmlfile": "2.0.0",
+    "typing-extensions": "4.16.0"
+  },
+  "default_temp_directory": "/tmp",
+  "qualified_temp_directory": "/work/documents with spaces ünicode 日本語",
+  "priority_passed": false,
+  "pymupdf": {
+    "status": "failed",
+    "error": "no such file: '/work/documents with spaces ünicode 日本語/multi page café.pdf'",
+    "traceback": "Traceback (most recent call last):\n  File \"/work/documents.py\", line 401, in <module>\n    RESULT[\"pymupdf\"] = {\"status\": \"passed\", **pymupdf_probe()}\n                                               ~~~~~~~~~~~~~^^\n  File \"/work/documents.py\", line 370, in pymupdf_probe\n    with pymupdf.open(str(target)) as document:\n         ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/.pyodide-runtime/lib/python3.14/site-packages/pymupdf/__init__.py\", line 2990, in __init__\n    raise FileNotFoundError(f\"no such file: '{filename}'\")\npymupdf.FileNotFoundError: no such file: '/work/documents with spaces ünicode 日本語/multi page café.pdf'\n"
+  },
+  "reportlab": {
+    "status": "generation_failure_requires_evaluation",
+    "reason": "Only evaluate ReportLab when a required PDF generation feature is missing; extraction/rendering are separate concerns"
+  }
+}

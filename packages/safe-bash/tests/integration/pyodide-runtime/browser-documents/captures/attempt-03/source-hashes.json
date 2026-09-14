@@ -1,0 +1,9 @@
+{
+  "server.mjs": "8c3a02ed0e7b4b6f45f984ff8225ac73563ec6c809ff2b554bcf781c06d7908e",
+  "worker.mjs": "71be32d3df485f6767858d1246613c003d8208647d6a5eb5fcb2def2548f146d",
+  "page.mjs": "8fd503d6458e8e35cfb24ee6b5a241424343ace8d2fda423bf28f1ee39060c09",
+  "documents.py": "f9a36a7de7e2b8a4e7c1ba12736447953f6d883461798a93ba749a84e126f072",
+  "../worker.mjs": "8c3160b29bacf622034c3069b93aa980bd4a562c2768cae6cf3e53e8dc8d4b57",
+  "../stat-identity.mjs": "2464f7633174a3baf38e124798671a51321eda1548e3f4651020895e8834fda5",
+  "../node_modules/pyodide/pyodide-lock.json": "3fdaef09e9e365c85e002737720f8d0ab8f278c1c244a2dde6a37663cf488ad4"
+}

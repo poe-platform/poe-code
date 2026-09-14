@@ -231,6 +231,8 @@ it("builds the portable shell without Node workers, adapters, or duplicate files
 it("bundles the complete portable preset with one owned-argument identity", async () => {
   const options = resolveBrowserShellBuild(root);
   expect(options.entryPoints).toEqual({
+    "commands/python/index.browser": path.join(root, "packages/safe-bash/src/commands/python/index.ts"),
+    "commands/python/worker.browser": path.join(root, "packages/safe-bash/src/commands/python/worker.ts"),
     "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
     "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),

@@ -4777,6 +4777,8 @@ export class Runtime {
     const path = pathOf(state, target);
     let source: string;
     let environmentInterpreter: RegExpExecArray | null = null;
+    let interpreterCommand: { name: string; argument?: string } | undefined;
+    let sourceBytes: Uint8Array | undefined;
     let interpreterProfile: "bash" | "sh" | undefined;
     try {
       if (loadedSource?.path === path) source = loadedSource.source;
@@ -4794,16 +4796,31 @@ export class Runtime {
         if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
         const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);
         this.budget.source(bytes.byteLength);
-        source = this.sourceText(bytes, target);
+        sourceBytes = bytes;
+        const newline = bytes.indexOf(10);
+        source = direct && bytes[0] === 35 && bytes[1] === 33
+          ? this.sourceText(bytes.subarray(0, newline < 0 ? bytes.length : newline), target)
+          : this.sourceText(bytes, target);
       }
       if (direct && source.startsWith("#!")) {
         const interpreter = source.split("\n", 1)[0]!.slice(2).replace(/^[ \t]+|[ \t]+$/gu, "");
         environmentInterpreter = /^\/usr\/bin\/env(?:[ \t]+([^\n]*))?$/u.exec(interpreter);
         if (!environmentInterpreter) {
           const shell = /^\/(?:usr\/)?bin\/(bash|sh)(?:[ \t]+([-+]e+))?$/u.exec(interpreter);
-          if (!shell) throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
-          interpreterProfile = shell[1] === "sh" ? "sh" : "bash";
-          if (shell[2]) errexit = shell[2].startsWith("-");
+          if (!shell) {
+            const split = Array.from(interpreter).findIndex(character => character === " " || character === "\t");
+            const executable = split < 0 ? interpreter : interpreter.slice(0, split);
+            const name = executable.slice(executable.lastIndexOf("/") + 1);
+            const directory = executable.slice(0, executable.lastIndexOf("/"));
+            if ((directory !== "/bin" && directory !== "/usr/bin") || name === "sh" || name === "bash" || !this.commands.has(name)) {
+              throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
+            }
+            const argument = split < 0 ? undefined : interpreter.slice(split).trimStart();
+            interpreterCommand = { name, ...(argument ? { argument } : {}) };
+          } else {
+            interpreterProfile = shell[1] === "sh" ? "sh" : "bash";
+            if (shell[2]) errexit = shell[2].startsWith("-");
+          }
         }
       }
     } catch (error) {
@@ -4812,7 +4829,17 @@ export class Runtime {
       if (errorCode(error) === "EFBIG") this.budget.fail("maxSourceBytes");
       throw new CommandFailure(filesystemDiagnostic(error, target, this.budget.onInternalError) ?? `${target}: ${message(error, this.budget.onInternalError)}`, errorCode(error) === "ENOENT" ? 127 : 126);
     }
-    if (direct && environmentInterpreter) return this.envShebang(context, state, io, environmentInterpreter[1], target, args, { path, source });
+    const decodeSource = () => sourceBytes ? this.sourceText(sourceBytes, target) : source;
+    const scriptSource = { path, get source() { return decodeSource(); } };
+    if (direct && environmentInterpreter) return this.envShebang(context, state, io, environmentInterpreter[1], target, args, scriptSource);
+    if (direct && interpreterCommand) {
+      const incoming = getCommandArguments({ args, ...(context.argumentValues ? { argumentValues: context.argumentValues } : {}) });
+      const allocation = this.budget.values.scope();
+      io[invocationScope].register(() => allocation.close());
+      const argumentValues = this.admitArguments([...(interpreterCommand.argument ? [interpreterCommand.argument] : []), target, ...incoming.values], allocation);
+      return (await this.shebangTarget(context, state, io, interpreterCommand.name, argumentValues.args, { argumentValues }, target, scriptSource)).exitCode;
+    }
+    source = scriptSource.source;
     const units: Script[] = [];
     const lineIndex = new SourceLineIndex(source, this.budget.parsing);
     try {

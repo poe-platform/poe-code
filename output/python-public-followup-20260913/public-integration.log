@@ -1,0 +1,472 @@
+
+> virtual-bash@0.0.0 test:python:integration
+> npm --prefix tests/integration/pyodide-runtime run test:public
+
+
+> test:public
+> node --test --test-concurrency=1 public-command-parity.test.mjs public-documents.test.mjs public-lifecycle.test.mjs
+
+TAP version 13
+# Subtest: built public Python aliases match native CPython-in-Bash command and file behavior
+    # Subtest: python: file arguments and metadata
+    ok 1 - python: file arguments and metadata
+      ---
+      duration_ms: 1642.7265
+      type: 'test'
+      ...
+    # Subtest: python: inline arguments and metadata
+    ok 2 - python: inline arguments and metadata
+      ---
+      duration_ms: 1628.165583
+      type: 'test'
+      ...
+    # Subtest: python: module arguments and metadata
+    ok 3 - python: module arguments and metadata
+      ---
+      duration_ms: 1617.332917
+      type: 'test'
+      ...
+    # Subtest: python: explicit stdin arguments and metadata
+    ok 4 - python: explicit stdin arguments and metadata
+      ---
+      duration_ms: 1602.847792
+      type: 'test'
+      ...
+    # Subtest: python: implicit stdin metadata
+    ok 5 - python: implicit stdin metadata
+      ---
+      duration_ms: 1552.412917
+      type: 'test'
+      ...
+    # Subtest: python: local and relative package imports
+    ok 6 - python: local and relative package imports
+      ---
+      duration_ms: 1570.554833
+      type: 'test'
+      ...
+    # Subtest: python: cwd and environment mutation
+    ok 7 - python: cwd and environment mutation
+      ---
+      duration_ms: 1523.588083
+      type: 'test'
+      ...
+    # Subtest: python: uncaught exception stderr
+    ok 8 - python: uncaught exception stderr
+      ---
+      duration_ms: 1674.27075
+      type: 'test'
+      ...
+    # Subtest: python: nested inline traceback
+    ok 9 - python: nested inline traceback
+      ---
+      duration_ms: 1605.109291
+      type: 'test'
+      ...
+    # Subtest: python: nested explicit stdin traceback
+    ok 10 - python: nested explicit stdin traceback
+      ---
+      duration_ms: 1563.993208
+      type: 'test'
+      ...
+    # Subtest: python: chained inline traceback
+    ok 11 - python: chained inline traceback
+      ---
+      duration_ms: 1551.872
+      type: 'test'
+      ...
+    # Subtest: python: indented inline source
+    ok 12 - python: indented inline source
+      ---
+      duration_ms: 1504.408791
+      type: 'test'
+      ...
+    # Subtest: python: explicit relative script path
+    ok 13 - python: explicit relative script path
+      ---
+      duration_ms: 1518.563708
+      type: 'test'
+      ...
+    # Subtest: python: parent relative script path
+    ok 14 - python: parent relative script path
+      ---
+      duration_ms: 1568.756458
+      type: 'test'
+      ...
+    # Subtest: python: syntax error stderr
+    ok 15 - python: syntax error stderr
+      ---
+      duration_ms: 1591.187083
+      type: 'test'
+      ...
+    # Subtest: python: success stderr
+    ok 16 - python: success stderr
+      ---
+      duration_ms: 1592.959166
+      type: 'test'
+      ...
+    # Subtest: python: numeric failure status
+    ok 17 - python: numeric failure status
+      ---
+      duration_ms: 1585.703334
+      type: 'test'
+      ...
+    # Subtest: python: negative failure status
+    ok 18 - python: negative failure status
+      ---
+      duration_ms: 1563.603
+      type: 'test'
+      ...
+    # Subtest: python: wrapped failure status
+    ok 19 - python: wrapped failure status
+      ---
+      duration_ms: 1505.422417
+      type: 'test'
+      ...
+    # Subtest: python: string failure and stderr
+    ok 20 - python: string failure and stderr
+      ---
+      duration_ms: 1622.050583
+      type: 'test'
+      ...
+    # Subtest: python: shell status
+    ok 21 - python: shell status
+      ---
+      duration_ms: 1538.4105
+      type: 'test'
+      ...
+    # Subtest: python: heredoc
+    ok 22 - python: heredoc
+      ---
+      duration_ms: 1618.959709
+      type: 'test'
+      ...
+    # Subtest: python: binary stdin stdout stderr
+    ok 23 - python: binary stdin stdout stderr
+      ---
+      duration_ms: 1477.64275
+      type: 'test'
+      ...
+    # Subtest: python: binary pipeline and redirect
+    ok 24 - python: binary pipeline and redirect
+      ---
+      duration_ms: 1563.480666
+      type: 'test'
+      ...
+    # Subtest: python: input and stderr redirects
+    ok 25 - python: input and stderr redirects
+      ---
+      duration_ms: 1560.3295
+      type: 'test'
+      ...
+    # Subtest: python: random access and shell reopen
+    ok 26 - python: random access and shell reopen
+      ---
+      duration_ms: 1648.385208
+      type: 'test'
+      ...
+    # Subtest: python: executable env shebang
+    ok 27 - python: executable env shebang
+      ---
+      duration_ms: 1784.685542
+      type: 'test'
+      ...
+    # Subtest: python3: file arguments and metadata
+    ok 28 - python3: file arguments and metadata
+      ---
+      duration_ms: 1650.459791
+      type: 'test'
+      ...
+    # Subtest: python3: inline arguments and metadata
+    ok 29 - python3: inline arguments and metadata
+      ---
+      duration_ms: 1548.946834
+      type: 'test'
+      ...
+    # Subtest: python3: module arguments and metadata
+    ok 30 - python3: module arguments and metadata
+      ---
+      duration_ms: 1598.590959
+      type: 'test'
+      ...
+    # Subtest: python3: explicit stdin arguments and metadata
+    ok 31 - python3: explicit stdin arguments and metadata
+      ---
+      duration_ms: 1588.212709
+      type: 'test'
+      ...
+    # Subtest: python3: implicit stdin metadata
+    ok 32 - python3: implicit stdin metadata
+      ---
+      duration_ms: 1598.141875
+      type: 'test'
+      ...
+    # Subtest: python3: local and relative package imports
+    ok 33 - python3: local and relative package imports
+      ---
+      duration_ms: 1558.703041
+      type: 'test'
+      ...
+    # Subtest: python3: cwd and environment mutation
+    ok 34 - python3: cwd and environment mutation
+      ---
+      duration_ms: 1647.52175
+      type: 'test'
+      ...
+    # Subtest: python3: uncaught exception stderr
+    ok 35 - python3: uncaught exception stderr
+      ---
+      duration_ms: 1597.556625
+      type: 'test'
+      ...
+    # Subtest: python3: nested inline traceback
+    ok 36 - python3: nested inline traceback
+      ---
+      duration_ms: 1580.338667
+      type: 'test'
+      ...
+    # Subtest: python3: nested explicit stdin traceback
+    ok 37 - python3: nested explicit stdin traceback
+      ---
+      duration_ms: 1602.990542
+      type: 'test'
+      ...
+    # Subtest: python3: chained inline traceback
+    ok 38 - python3: chained inline traceback
+      ---
+      duration_ms: 1590.616291
+      type: 'test'
+      ...
+    # Subtest: python3: indented inline source
+    ok 39 - python3: indented inline source
+      ---
+      duration_ms: 1623.088416
+      type: 'test'
+      ...
+    # Subtest: python3: explicit relative script path
+    ok 40 - python3: explicit relative script path
+      ---
+      duration_ms: 1630.946292
+      type: 'test'
+      ...
+    # Subtest: python3: parent relative script path
+    ok 41 - python3: parent relative script path
+      ---
+      duration_ms: 1669.449292
+      type: 'test'
+      ...
+    # Subtest: python3: syntax error stderr
+    ok 42 - python3: syntax error stderr
+      ---
+      duration_ms: 1571.708709
+      type: 'test'
+      ...
+    # Subtest: python3: success stderr
+    ok 43 - python3: success stderr
+      ---
+      duration_ms: 1495.474625
+      type: 'test'
+      ...
+    # Subtest: python3: numeric failure status
+    ok 44 - python3: numeric failure status
+      ---
+      duration_ms: 1584.710875
+      type: 'test'
+      ...
+    # Subtest: python3: negative failure status
+    ok 45 - python3: negative failure status
+      ---
+      duration_ms: 1528.051291
+      type: 'test'
+      ...
+    # Subtest: python3: wrapped failure status
+    ok 46 - python3: wrapped failure status
+      ---
+      duration_ms: 1573.37625
+      type: 'test'
+      ...
+    # Subtest: python3: string failure and stderr
+    ok 47 - python3: string failure and stderr
+      ---
+      duration_ms: 1617.253625
+      type: 'test'
+      ...
+    # Subtest: python3: shell status
+    ok 48 - python3: shell status
+      ---
+      duration_ms: 1462.079833
+      type: 'test'
+      ...
+    # Subtest: python3: heredoc
+    ok 49 - python3: heredoc
+      ---
+      duration_ms: 1634.452625
+      type: 'test'
+      ...
+    # Subtest: python3: binary stdin stdout stderr
+    ok 50 - python3: binary stdin stdout stderr
+      ---
+      duration_ms: 1564.842125
+      type: 'test'
+      ...
+    # Subtest: python3: binary pipeline and redirect
+    ok 51 - python3: binary pipeline and redirect
+      ---
+      duration_ms: 1660.467041
+      type: 'test'
+      ...
+    # Subtest: python3: input and stderr redirects
+    ok 52 - python3: input and stderr redirects
+      ---
+      duration_ms: 1542.789708
+      type: 'test'
+      ...
+    # Subtest: python3: random access and shell reopen
+    ok 53 - python3: random access and shell reopen
+      ---
+      duration_ms: 1541.228666
+      type: 'test'
+      ...
+    # Subtest: python3: executable env shebang
+    ok 54 - python3: executable env shebang
+      ---
+      duration_ms: 1758.271584
+      type: 'test'
+      ...
+    1..54
+ok 1 - built public Python aliases match native CPython-in-Bash command and file behavior
+  ---
+  duration_ms: 89054.25675
+  type: 'test'
+  ...
+# Node v22.23.2; GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
+# Intentional runtime identity [Pyodide, platform, pointer bytes, executable]: ["314.0.6", "emscripten", 4, ""]
+# Native identity [platform, pointer bytes, executable]: ["darwin", 8, "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-python-parity-TK1HxX/bin/python"]
+# Matched CPython 3.14.2; native Bash and public built Pyodide command exports
+# Subtest: built public Python invocations isolate interpreter state and observe canonical edits
+ok 2 - built public Python invocations isolate interpreter state and observe canonical edits
+  ---
+  duration_ms: 7746.235833
+  type: 'test'
+  ...
+# Node v22.23.2; GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
+# Intentional runtime identity [Pyodide, platform, pointer bytes, executable]: ["314.0.6", "emscripten", 4, ""]
+# Native identity [platform, pointer bytes, executable]: ["darwin", 8, "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-python-parity-Nso1r8/bin/python"]
+# Matched CPython 3.14.2; native Bash and public built Pyodide command exports
+# Subtest: public Python document scripts through canonical memory storage
+ok 3 - public Python document scripts through canonical memory storage
+  ---
+  duration_ms: 28000.569
+  type: 'test'
+  ...
+# Subtest: public Python document scripts through canonical delayed storage
+ok 4 - public Python document scripts through canonical delayed storage
+  ---
+  duration_ms: 34358.929958
+  type: 'test'
+  ...
+# Delayed canonical operations: 3566; open handles: 0
+# Subtest: built public Python canonical immediate/delayed composed authority and bidirectional effects
+    # Subtest: memory backend
+    ok 1 - memory backend
+      ---
+      duration_ms: 3184.559625
+      type: 'test'
+      ...
+    # Subtest: delayed backend
+    ok 2 - delayed backend
+      ---
+      duration_ms: 3548.865417
+      type: 'test'
+      ...
+    1..2
+ok 5 - built public Python canonical immediate/delayed composed authority and bidirectional effects
+  ---
+  duration_ms: 6734.529625
+  type: 'test'
+  ...
+# Subtest: built public Python quota refusal preserves memory/delayed composed storage and interpreter reuse
+    # Subtest: memory backend
+    ok 1 - memory backend
+      ---
+      duration_ms: 1591.489417
+      type: 'test'
+      ...
+    # Subtest: delayed backend
+    ok 2 - delayed backend
+      ---
+      duration_ms: 1745.709792
+      type: 'test'
+      ...
+    1..2
+ok 6 - built public Python quota refusal preserves memory/delayed composed storage and interpreter reuse
+  ---
+  duration_ms: 3337.678
+  type: 'test'
+  ...
+# Subtest: required Python quota mount supports reads, bounded writes and recovery
+not ok 7 - required Python quota mount supports reads, bounded writes and recovery # TODO Canonical quota wrapper refuses descriptor open with ENOTSUP; required workflow incomplete
+  ---
+  duration_ms: 1602.321875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/tests/integration/pyodide-runtime/public-lifecycle.test.mjs:110:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Required quota workflow remains incomplete:
+    Traceback (most recent call last):
+      File "<string>", line 3, in <module>
+        assert Path('/quota/input').read_text() == 'host input'
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+      File "/lib/python314.zip/pathlib/__init__.py", line 787, in read_text
+        with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/lib/python314.zip/pathlib/__init__.py", line 771, in open
+        return io.open(self, mode, buffering, encoding, errors, newline)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    OSError: [Errno 138] Not supported: '/quota/input'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/tests/integration/pyodide-runtime/public-lifecycle.test.mjs:127:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: built public Python setup failure releases capacity for a successful subsequent interpreter
+ok 8 - built public Python setup failure releases capacity for a successful subsequent interpreter
+  ---
+  duration_ms: 1594.929584
+  type: 'test'
+  ...
+# Subtest: built public Python cancellation and output exhaustion retire descriptors and permit reuse
+ok 9 - built public Python cancellation and output exhaustion retire descriptors and permit reuse
+  ---
+  duration_ms: 4643.279167
+  type: 'test'
+  ...
+# Subtest: built public package offline miss, corrupt local install, integrity failure and subsequent reuse
+ok 10 - built public package offline miss, corrupt local install, integrity failure and subsequent reuse
+  ---
+  duration_ms: 22704.602292
+  type: 'test'
+  ...
+# Subtest: built public package installation cancellation preserves cached environment and retries
+ok 11 - built public package installation cancellation preserves cached environment and retries
+  ---
+  duration_ms: 6449.957709
+  type: 'test'
+  ...
+1..11
+# tests 69
+# suites 0
+# pass 68
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 1
+# duration_ms 207337.487833

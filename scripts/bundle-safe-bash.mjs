@@ -7,6 +7,8 @@ export function resolveBrowserShellBuild(rootDir) {
   return {
     absWorkingDir: rootDir,
     entryPoints: {
+      "commands/python/index.browser": path.join(directory, "src/commands/python/index.ts"),
+      "commands/python/worker.browser": path.join(directory, "src/commands/python/worker.ts"),
       "commands/llm/index.browser": path.join(directory, "src/commands/llm/index.ts"),
       "commands/llm/providers/index.browser": path.join(directory, "src/commands/llm/providers/index.ts"),
       "core.browser": path.join(directory, "src/core.browser.ts"),

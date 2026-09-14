@@ -1,0 +1,25 @@
+{
+  "op": "done",
+  "error": "[object Object]",
+  "profile": "bridge",
+  "operations": {
+    "stat": 79,
+    "lstat": 396,
+    "readdir": 20,
+    "open": 59,
+    "fstat": 61,
+    "read": 208,
+    "close": 54,
+    "mkdir": 4,
+    "write": 1597,
+    "ftruncate": 1,
+    "rmdir": 1,
+    "symlink": 3,
+    "readlink": 1
+  },
+  "openHandles": 0,
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "backendDelayMs": 0,
+  "canonicalArtifactChecks": []
+}

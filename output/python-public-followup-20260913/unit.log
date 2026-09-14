@@ -1,0 +1,1408 @@
+
+> poe-code@0.0.0-dev test
+> node scripts/build-workspaces.mjs --test-unit
+
+
+> @poe-code/office-package@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/safe-fs@0.0.0-dev build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-setup-scripts/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> toolcraft-schema@0.0.1 build
+> rm -rf dist && tsc
+
+
+> pptx@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> virtual-bash@0.0.0 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs
+
+
+> poe-code@0.0.0-dev test:unit:shared
+> node scripts/test-vitest-workspaces.mjs . packages/acp-telemetry packages/agent-child-process packages/agent-code-review packages/agent-gaslight packages/agent-harness packages/agent-harness-tools packages/agent-hook-config packages/agent-spawn packages/agent-stash packages/agent-trace-viewer packages/agent-traces packages/braintrust packages/experiment-loop packages/frontmatter packages/github-review packages/github-workflows packages/maestro packages/maestro-tui packages/markdown-reader packages/mcp-oauth-server packages/memory packages/office-package packages/opencode-poe-auth packages/package-lint packages/pptx packages/process-launcher packages/process-runner packages/ralph packages/safe-bash-optional packages/safe-bash-playground packages/superintendent packages/task-list packages/toolcraft packages/toolcraft-codemode packages/toolcraft-landing-page packages/toolcraft-openapi packages/toolcraft-schema packages/workspace-resolver
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+Unit workspace poe-code: running 551 files
+Unit workspace @poe-code/acp-telemetry: running 6 files
+Unit workspace @poe-code/agent-child-process: running 1 files
+Unit workspace agent-code-review: running 12 files
+Unit workspace @poe-code/agent-gaslight: running 4 files
+Unit workspace @poe-code/agent-harness: running 13 files
+Unit workspace @poe-code/agent-harness-tools: running 17 files
+Unit workspace @poe-code/agent-hook-config: running 8 files
+Unit workspace @poe-code/agent-spawn: running 23 files
+Unit workspace agent-stash: running 13 files
+Unit workspace @poe-code/agent-trace-viewer: running 8 files
+Unit workspace @poe-code/agent-traces: running 9 files
+Unit workspace @poe-code/braintrust: running 9 files
+Unit workspace @poe-code/experiment-loop: running 3 files
+Unit workspace @poe-code/frontmatter: running 1 files
+Unit workspace github-review: running 6 files
+Unit workspace @poe-code/github-workflows: running 10 files
+Unit workspace @poe-code/maestro: running 27 files
+Unit workspace @poe-code/maestro-tui: running 3 files
+Unit workspace @poe-code/markdown-reader: running 7 files
+Unit workspace mcp-oauth-server: running 2 files
+Unit workspace @poe-code/memory: running 29 files
+Unit workspace @poe-code/office-package: running 2 files
+Unit workspace opencode-poe-auth: running 1 files
+Unit workspace @poe-code/package-lint: running 13 files
+Unit workspace pptx: running 269 files
+Unit workspace @poe-code/process-launcher: running 11 files
+Unit workspace @poe-code/process-runner: running 9 files
+Unit workspace @poe-code/ralph: running 2 files
+Unit workspace @poe-code/safe-bash-optional: running 2 files
+Unit workspace safe-bash-playground: running 8 files
+Unit workspace @poe-code/superintendent: running 34 files
+Unit workspace @poe-code/task-list: running 19 files
+Unit workspace toolcraft: running 52 files
+Unit workspace toolcraft-codemode: running 6 files
+Unit workspace toolcraft-landing-page: running 3 files
+Unit workspace toolcraft-openapi: running 21 files
+Unit workspace toolcraft-schema: running 6 files
+Unit workspace @poe-code/workspace-resolver: running 2 files
+(node:5123) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:5123) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  1220 passed | 2 skipped (1222)
+      Tests  30300 passed | 2 skipped (30302)
+   Start at  21:41:38
+   Duration  323.72s (transform 27.00s, setup 15.69s, import 212.77s, tests 292.67s, environment 90ms)
+
+
+> @poe-code/py-poe-spawn@0.0.1 test:unit
+> python3 -m unittest discover -s tests -t .
+
+.............................
+----------------------------------------------------------------------
+Ran 29 tests in 0.237s
+
+OK
+
+> virtual-bash@0.0.0 test:unit
+> npm run test:runner && node scripts/test.mjs
+
+
+> virtual-bash@0.0.0 test:runner
+> node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/copy-compression-assets.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs
+
+ℹ ordinary compiler baseline: all six retired edges produce TS2307; full diagnostic set retained
+ℹ tests 500
+ℹ suites 0
+ℹ pass 500
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30933.263959
+# safe-bash discovery: 1121 active TypeScript test files; 6 authenticated fixture roots; 5 held evidence roots
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/behavior.test.ts (250.476208ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/contracts/errors.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/bounded-codec.test.ts (205.336542ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/capabilities.test.ts (230.604041ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/checkpoint-propagation.test.ts (400.628792ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/cleanup-outcome.test.ts (380.447875ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/file-lifecycle.test.ts (249.878042ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/late-source.test.ts (438.304417ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/contracts/errors.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/native-codec-safety.test.ts (295.350375ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/opaque-next.test.ts (226.516042ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/ownership.test.ts (376.302917ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/planning.test.ts (314.376166ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/safety.test.ts (243.883875ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/shell/shell.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/snapshot-rmdir.test.ts (353.46525ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/compression/streaming.test.ts (248.142834ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/encoding/codecs.test.ts (231.833541ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/encoding/inspection.test.ts (203.066792ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/encoding/streaming.test.ts (331.766584ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/core.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/input-budget.test.ts (1071.078833ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/bytes/plugin.test.ts (506.125875ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/contracts/errors.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/capability-requirements.test.ts (759.763917ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/core.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/cmp-adversarial.test.ts (795.761542ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/shell/shell.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/cmp-skip.test.ts (713.360458ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/shell/shell.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/cmp.test.ts (791.038625ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/cmp/blocks.test.ts (179.244875ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/cmp/cmp.test.ts (278.08075ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/cmp/native.test.ts (189.288875ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/cmp/oracle-lifecycle.test.ts (172.977375ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/cmp/parity.test.ts (172.599917ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/core.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/cmp/review.test.ts (1173.74ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/column-stress/owned-regressions.test.ts (215.067375ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/column/behavior.test.ts (385.522834ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/column/lifecycle.test.ts (349.897708ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/contracts/errors.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/column/limits.test.ts (333.027416ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/column/native.test.ts (350.322333ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/column/padding-evolution/profile.test.ts (454.38725ms)
+✖ isolated 400-million-slot conceptual ragged table: empty (214.675583ms)
+✖ isolated 400-million-slot conceptual ragged table: combining (213.805916ms)
+✖ isolated 400-million-slot conceptual ragged table: explicit (253.597666ms)
+✖ isolated 400-million-slot conceptual ragged table: output-admission (324.43125ms)
+✖ isolated 400-million-slot conceptual ragged table: work-admission (229.28925ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/contracts/errors.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/column/padding-evolution/streaming.test.ts (549.925916ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/command-getter-admission/fs-getters.test.ts (298.953292ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/command-getter-admission/pr-tsort.test.ts (188.724042ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/copy-identity.test.ts (1030.731916ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/copy-preflight-canonicalization.test.ts (253.710417ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-env/forwarding.test.ts (799.253416ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-env/order.test.ts (904.74925ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/core.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-env/runtime-acceptance.test.ts (792.406959ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-expanded/regressions.test.ts (1050.0585ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-regression-stress/native.test.ts (372.447166ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/core.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-regression-stress/output-accounting/guards.test.ts (968.620041ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-regression-stress/resources.test.ts (369.522792ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/core.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-regression-stress/runtime.test.ts (1166.170041ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/core.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-sort/borrowed-buffer.test.ts (1118.534167ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-sort/record-admission.test.ts (178.502958ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/contracts/errors.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-sort/record-budget.test.ts (295.527125ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/core.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-sort/record-integration.test.ts (934.458875ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/contracts/errors.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-sort/regressions.test.ts (899.078917ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/fs/memory/index.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-sort/single-numeric-key-cache.test.ts (871.156708ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/core.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/core-sort/unkeyed-numeric-cache.test.ts (1162.424625ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/contracts/errors.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/csplit-review/engine.test.ts (263.473083ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/shell/shell.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/csplit-review/lifecycle.test.ts (405.727916ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/shell/shell.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/csplit-review/native-command.test.ts (469.591167ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/shell/shell.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/csplit-review/session.test.ts (428.284291ms)
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/src/commands/csplit/io.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:783:38)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-setup-scripts/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.23.2
+✖ tests/commands/csplit/api.test.ts (285.187042ms)
+ℹ Manual native capture: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-files-DsGrtl/evidence.json; metadata observed before bytes; no unit disk writes
+ℹ Manual native capture: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-files-DsGrtl/evidence.json; metadata observed before bytes; no unit disk writes
+ℹ Manual native capture: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-files-DsGrtl/evidence.json; metadata observed before bytes; no unit disk writes
+ℹ Manual native capture: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-files-DsGrtl/evidence.json; metadata observed before bytes; no unit disk writes
+ℹ Manual native capture: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-files-DsGrtl/evidence.json; metadata observed before bytes; no unit disk writes
+ℹ Manual native capture: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-files-DsGrtl/evidence.json; metadata observed before bytes; no unit disk writes
+ℹ Native diagnostic captures: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-EovVKR/write-profile-evidence.json and /tmp/safe-bash-scripting-oracles-20260904/dd-review-write-ErH146/evidence.json; tagged 9.7 src/dd.c iwrite/write_output/dd_copy distinguish full and final buffers
+ℹ Native diagnostic captures: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-EovVKR/write-profile-evidence.json and /tmp/safe-bash-scripting-oracles-20260904/dd-review-write-ErH146/evidence.json; tagged 9.7 src/dd.c iwrite/write_output/dd_copy distinguish full and final buffers
+ℹ Native diagnostic captures: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-EovVKR/write-profile-evidence.json and /tmp/safe-bash-scripting-oracles-20260904/dd-review-write-ErH146/evidence.json; tagged 9.7 src/dd.c iwrite/write_output/dd_copy distinguish full and final buffers
+ℹ Native diagnostic captures: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-EovVKR/write-profile-evidence.json and /tmp/safe-bash-scripting-oracles-20260904/dd-review-write-ErH146/evidence.json; tagged 9.7 src/dd.c iwrite/write_output/dd_copy distinguish full and final buffers
+ℹ Native diagnostic captures: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-EovVKR/write-profile-evidence.json and /tmp/safe-bash-scripting-oracles-20260904/dd-review-write-ErH146/evidence.json; tagged 9.7 src/dd.c iwrite/write_output/dd_copy distinguish full and final buffers
+ℹ Native diagnostic captures: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-EovVKR/write-profile-evidence.json and /tmp/safe-bash-scripting-oracles-20260904/dd-review-write-ErH146/evidence.json; tagged 9.7 src/dd.c iwrite/write_output/dd_copy distinguish full and final buffers
+ℹ Native diagnostic captures: /tmp/safe-bash-scripting-oracles-20260904/dd-independent-EovVKR/write-profile-evidence.json and /tmp/safe-bash-scripting-oracles-20260904/dd-review-write-ErH146/evidence.json; tagged 9.7 src/dd.c iwrite/write_output/dd_copy distinguish full and final buffers
+ℹ Pinned GNU manual close fault capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-close-ab3bcH/evidence.json; real close followed by EIO after copying, with/without prior ENOSPC
+ℹ Pinned GNU manual close fault capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-close-ab3bcH/evidence.json; real close followed by EIO after copying, with/without prior ENOSPC
+ℹ Pinned GNU manual close fault capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-close-ab3bcH/evidence.json; real close followed by EIO after copying, with/without prior ENOSPC
+ℹ Pinned GNU manual close fault capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-close-ab3bcH/evidence.json; real close followed by EIO after copying, with/without prior ENOSPC
+ℹ Pinned GNU manual read fault capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-read-wuzwX1/evidence.json; first read accepts 2 bytes, next read fails EIO without advancing, later reads normal
+ℹ Pinned GNU manual read fault capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-read-wuzwX1/evidence.json; first read accepts 2 bytes, next read fails EIO without advancing, later reads normal
+ℹ Pinned GNU manual read fault capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-read-wuzwX1/evidence.json; first read accepts 2 bytes, next read fails EIO without advancing, later reads normal
+ℹ Pinned GNU manual read fault capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-read-wuzwX1/evidence.json; first read accepts 2 bytes, next read fails EIO without advancing, later reads normal
+ℹ Uninstrumented pinned GNU native capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-exclusive-vk2J4m/evidence.json
+ℹ Uninstrumented pinned GNU native capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-exclusive-vk2J4m/evidence.json
+ℹ Native pipe read-error capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-pipe-read-yLyr7b/evidence.json; explicit resumable FIFO handle, not a terminated JS generator or implicit filesystem fallback
+ℹ Native pipe read-error capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-pipe-read-yLyr7b/evidence.json; explicit resumable FIFO handle, not a terminated JS generator or implicit filesystem fallback
+ℹ Native pipe read-error capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-pipe-read-yLyr7b/evidence.json; explicit resumable FIFO handle, not a terminated JS generator or implicit filesystem fallback
+ℹ Native pipe read-error capture: /tmp/safe-bash-scripting-oracles-20260904/dd-review-pipe-read-yLyr7b/evidence.json; explicit resumable FIFO handle, not a terminated JS generator or implicit filesystem fallback
+ℹ {"engine":"just-bash","name":"plugin-diff-patch-roundtrip","tier":"plugin-integration","tags":["diff","patch","files"],"source":"plugin-integration","status":"pending","reason":"Error: Isolated comparator is not installed; run npm --prefix benchmarks ci --ignore-scripts","assertions":[],"durationMs":0.42695800000001327}
+Error: Build or unit execution interrupted by SIGTERM
+    at taskError (file:///Users/kjopek/Workspace/poe-setup-scripts/scripts/build-workspaces.mjs:174:17)
+    at stop (file:///Users/kjopek/Workspace/poe-setup-scripts/scripts/build-workspaces.mjs:299:34)
+    at process.<anonymous> (file:///Users/kjopek/Workspace/poe-setup-scripts/scripts/build-workspaces.mjs:304:77)
+    at process.emit (node:events:519:28) {
+  exitCode: 1
+}

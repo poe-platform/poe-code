@@ -1,0 +1,27 @@
+--- packages/safe-bash/tests/integration/pyodide-runtime/public-command-parity.test.mjs
++++ packages/safe-bash/tests/integration/pyodide-runtime/public-command-parity.test.mjs
+@@ -107,6 +107,12 @@
+       ['local and relative package imports', alias + ' ' + code('import local,pkg.helper; print(local.value,pkg.helper.value)')],
+       ['cwd and environment mutation', 'cd other; APPLICATION_VALUE="child env" ' + alias + ' ' + code('import os; print(os.getcwd(),os.environ["APPLICATION_VALUE"])')],
+       ['uncaught exception stderr', alias + ' ' + code('raise ValueError("guest failure")')],
++      ['nested inline traceback', alias + ' ' + code('def fail():\n    return 1 / 0\nfail()')],
++      ['nested explicit stdin traceback', alias + ' -', 'def fail():\n    return 1 / 0\nfail()'],
++      ['chained inline traceback', alias + ' ' + code('try:\n    raise ValueError("first")\nexcept ValueError as error:\n    raise RuntimeError("second") from error')],
++      ['indented inline source', alias + ' ' + code('    print("dedented")\n')],
++      ['explicit relative script path', alias + ' ./entry.py' + argumentsText],
++      ['parent relative script path', alias + ' other/../entry.py' + argumentsText],
+       ['syntax error stderr', alias + ' ' + code('if True')],
+       ['success stderr', alias + ' ' + code('import sys; print("out"); print("err",file=sys.stderr)')],
+       ['numeric failure status', alias + ' ' + code('raise SystemExit(7)')],
+@@ -121,10 +127,8 @@
+       ['random access and shell reopen', alias + ' ' + code('f=open("seek.bin","w+b"); f.write(b"abcdef"); f.seek(2); f.write(b"XY"); f.truncate(5); f.close()') + '; cat seek.bin', undefined, ['seek.bin']],
+     ];
+     for (const [name, command, stdin, effects] of cases) await t.test(alias + ': ' + name,
+-      { todo: name === 'uncaught exception stderr' ? 'Required parity incomplete: Pyodide launcher omits the native CPython 3.14 source line in uncaught -c tracebacks' : false },
+       () => compare(command, stdin, effects));
+-    await t.test(alias + ': executable env shebang',
+-      { todo: 'Required parity incomplete: native __file__ preserves /./script while Pyodide normalizes it' }, async () => {
++    await t.test(alias + ': executable env shebang', async () => {
+       await file('script', '#!/usr/bin/env ' + alias + '\n' + metadata, 0o755);
+       await compare('./script' + argumentsText);
+     });

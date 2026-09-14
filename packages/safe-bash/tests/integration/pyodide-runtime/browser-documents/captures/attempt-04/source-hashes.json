@@ -1,0 +1,12 @@
+{
+  "server.mjs": "15efc1e5fb187ca832af1b21f698a1b1252a44ef3c218b6547facb7cff87f0b1",
+  "worker.mjs": "a6d8ec4a14fd88f9998b7e4e98d03944bb14a4147dde5a0c33564d3708867144",
+  "page.mjs": "df98e551e95051f6b0a7122bb0a34060beb6876feab081c71becdb082cfd0f67",
+  "documents.py": "f9a36a7de7e2b8a4e7c1ba12736447953f6d883461798a93ba749a84e126f072",
+  "../worker.mjs": "8c3160b29bacf622034c3069b93aa980bd4a562c2768cae6cf3e53e8dc8d4b57",
+  "../stat-identity.mjs": "2464f7633174a3baf38e124798671a51321eda1548e3f4651020895e8834fda5",
+  "../node_modules/pyodide/pyodide-lock.json": "3fdaef09e9e365c85e002737720f8d0ab8f278c1c244a2dde6a37663cf488ad4",
+  "../../../../../terminal-png/assets/jetbrains-mono-400-normal.ttf": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f",
+  "servedPageBundle": "da4bff69a098c90ef95b7accaf87c87c4d3b24c92fd2bd5f0c3ca3eaa57d8c94",
+  "servedWorker": "d535e54b188bfad8fe229e4d9bf47d3f0dec897b1643e703603864ab7a954a72"
+}

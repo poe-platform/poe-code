@@ -18,6 +18,41 @@ import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInp
 
 const owner = "fixture producer";
 
+test("Pyodide real-runtime verification has explicit opt-in entries and a pinned runtime", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const manifest = JSON.parse(readRegularInput(root, "tests/integration/pyodide-runtime/package.json", 4096));
+  assert.equal(manifest.private, true);
+  assert.equal(manifest.dependencies.pyodide, "314.0.6");
+  assert.equal(manifest.scripts["provision:public"], "node provision-public-runtime.mjs");
+  assert.equal(manifest.scripts["test:public"], "node --test --test-concurrency=1 public-command-parity.test.mjs public-documents.test.mjs public-lifecycle.test.mjs");
+  for (const path of [
+    "tests/integration/pyodide-runtime/stdio-proof.test.mjs",
+    "tests/integration/pyodide-runtime/public-command-parity.test.mjs",
+    "tests/integration/pyodide-runtime/public-documents.test.mjs",
+    "tests/integration/pyodide-runtime/public-lifecycle.test.mjs",
+    "tests/integration/pyodide-runtime/public-runtime-fixture.mjs",
+    "tests/integration/pyodide-runtime/provision-public-runtime.mjs",
+    "tests/integration/pyodide-runtime/fixtures/documents-create.py",
+    "tests/integration/pyodide-runtime/fixtures/documents-edit.py",
+    "tests/integration/pyodide-runtime/fixtures/documents-verify.py",
+    "tests/integration/pyodide-runtime/fixtures/documents-streams.py",
+    "tests/integration/pyodide-runtime/product-worker.test.mjs",
+    "tests/integration/pyodide-runtime/package-provisioning.test.mjs",
+    "tests/integration/pyodide-runtime/launcher.test.mjs",
+    "tests/integration/pyodide-runtime/command-acceptance.test.mjs",
+    "tests/integration/pyodide-runtime/mount-regressions.test.mjs",
+    "tests/integration/pyodide-runtime/verify.mjs",
+    "tests/integration/pyodide-runtime/promise-callback.mjs",
+    "tests/integration/pyodide-runtime/metadata-path-probe.mjs",
+    "tests/integration/pyodide-runtime/host-capability-probe.mjs",
+    "tests/integration/pyodide-runtime/cancel-fs.mjs",
+    "tests/integration/pyodide-runtime/stat-identity.mjs",
+    "tests/integration/pyodide-runtime/browser-documents/server.mjs",
+    "tests/integration/pyodide-runtime/browser-documents/page.mjs",
+    "tests/integration/pyodide-runtime/browser-documents/worker.mjs",
+  ]) assert.ok(readRegularInput(root, path, 65536).length > 0, path);
+});
+
 function shardFixture() {
   const selected = ["tests/safe-a.test.ts", "tests/safe-b.test.ts", "tests/native.test.ts"];
   const contents = new Map([
@@ -898,6 +933,22 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/core-sort/record-admission.test.ts"));
   assert.ok(files.includes("tests/commands/core-sort/record-integration.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
+  assert.ok(files.includes("tests/commands/python/runtime.test.ts"));
+  assert.ok(files.includes("tests/commands/python/admission.test.ts"));
+  assert.ok(files.includes("tests/commands/python/invocation.test.ts"));
+  assert.ok(files.includes("tests/commands/python/installation.test.ts"));
+  assert.ok(files.includes("tests/commands/python/provisioning.test.ts"));
+  assert.ok(files.includes("tests/commands/python/provisioning-runtime.test.ts"));
+  assert.ok(files.includes("tests/plugins/python-exports.test.ts"));
+  assert.ok(files.includes("tests/shell/plugin-shebang.test.ts"));
+  assert.ok(files.includes("tests/commands/python/worker.test.ts"));
+  assert.ok(files.includes("tests/commands/python/reply.test.ts"));
+  for (const integration of [
+    "tests/integration/pyodide-runtime/public-command-parity.test.mjs",
+    "tests/integration/pyodide-runtime/public-documents.test.mjs",
+    "tests/integration/pyodide-runtime/public-lifecycle.test.mjs",
+    "tests/integration/pyodide-runtime/provision-public-runtime.mjs",
+  ]) assert.ok(!files.includes(integration), "real-runtime integration must stay outside fast unit discovery: " + integration);
   assert.ok(files.includes("tests/shell-stress/invocation-closure/v2-batch-controls.test.ts"));
   assert.ok(!files.includes("tests/commands/git/io-cleanup.test.ts"));
 }

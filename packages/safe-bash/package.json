@@ -251,6 +251,21 @@
     "./commands/pptx": {
       "types": "./dist/commands/pptx/index.d.ts",
       "import": "./dist/commands/pptx/index.js"
+    },
+    "./commands/python": {
+      "types": "./dist/commands/python/index.d.ts",
+      "browser": "./dist/commands/python/index.browser.js",
+      "import": "./dist/commands/python/index.js"
+    },
+    "./commands/python/worker": {
+      "types": "./dist/commands/python/worker.d.ts",
+      "browser": "./dist/commands/python/worker.browser.js",
+      "import": "./dist/commands/python/worker.js"
+    },
+    "./commands/python/node": {
+      "types": "./dist/commands/python/node.d.ts",
+      "browser": null,
+      "import": "./dist/commands/python/node.js"
     }
   },
   "files": [
@@ -316,7 +331,9 @@
     "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
     "verify:release:whole": "node scripts/verify-whole-gate.mjs",
     "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/copy-compression-assets.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs",
-    "test:unit": "npm run test:runner && node scripts/test.mjs"
+    "test:unit": "npm run test:runner && node scripts/test.mjs",
+    "provision:python:integration": "npm --prefix tests/integration/pyodide-runtime ci && npm --prefix tests/integration/pyodide-runtime run provision:public",
+    "test:python:integration": "npm --prefix tests/integration/pyodide-runtime run test:public"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",

@@ -1,0 +1,14 @@
+{
+  "op": "done",
+  "error": "TypeError: Failed to execute 'decode' on 'TextDecoder': The provided ArrayBufferView value must not be shared.",
+  "stack": "TypeError: The provided ArrayBufferView value must not be shared.\n    at rpc (http://127.0.0.1:8766/worker.mjs:24:47)\n    at Object.mount (http://127.0.0.1:8766/worker.mjs:88:43)\n    at Object.mount (https://cdn.jsdelivr.net/pyodide/v314.0.6/full/pyodide.asm.mjs:1:73731)\n    at self.onmessage (http://127.0.0.1:8766/worker.mjs:88:6)",
+  "profile": "root-bridge",
+  "operations": {
+    "stat": 1
+  },
+  "openHandles": 0,
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "backendDelayMs": 0,
+  "canonicalArtifactChecks": []
+}

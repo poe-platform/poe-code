@@ -1,0 +1,5 @@
+LibreOfficeDev 26.8.0.0.alpha0 2c87e51eeaa2b413ff4ae097b2705eea1995d8e5
+
+pdftoppm version 26.08.0
+Copyright 2005-2026 The Poppler Developers - http://poppler.freedesktop.org
+Copyright 1996-2011, 2022 Glyph & Cog, LLC

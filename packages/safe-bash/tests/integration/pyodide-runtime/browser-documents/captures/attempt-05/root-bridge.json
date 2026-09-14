@@ -1,0 +1,26 @@
+{
+  "op": "done",
+  "error": "[object Object]",
+  "profile": "root-bridge",
+  "operations": {
+    "stat": 84,
+    "lstat": 409,
+    "readdir": 17,
+    "open": 67,
+    "fstat": 17,
+    "read": 24,
+    "close": 16,
+    "mkdir": 4,
+    "write": 9,
+    "ftruncate": 1,
+    "rmdir": 1,
+    "rm": 1,
+    "symlink": 3,
+    "readlink": 1
+  },
+  "openHandles": 0,
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "backendDelayMs": 0,
+  "canonicalArtifactChecks": []
+}

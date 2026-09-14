@@ -333,7 +333,7 @@ export function createObjectArrayGlobals(options: {
         preventExtensions: createSandboxClosure({
           sandbox: true,
           call: ([value], context) => {
-            if (typeof value === "object" && value !== null && guestProxyStates.has(value)) {
+            if (typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value))) {
               return Promise.resolve(sandboxPreventExtensions(value, options.budget, context)).then(success => {
                 if (!success) throw new TypeError("Proxy refused preventExtensions.");
                 return value;
@@ -359,7 +359,7 @@ export function createObjectArrayGlobals(options: {
         seal: createSandboxClosure({
           sandbox: true,
           call: ([value], context) => {
-            if (typeof value === "object" && value !== null && guestProxyStates.has(value))
+            if (typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value)))
               return setGuestProxyIntegrity(value, "sealed", options.budget, context);
             if (isGuestHostObject(value))
               throw new TypeError("Live host objects cannot be sealed.");
@@ -372,7 +372,7 @@ export function createObjectArrayGlobals(options: {
         isSealed: createSandboxClosure({
           sandbox: true,
           call: ([value], context) =>
-            typeof value === "object" && value !== null && guestProxyStates.has(value)
+            typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value))
               ? testGuestProxyIntegrity(value, "sealed", options.budget, context) :
             Object.isSealed(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
           name: "isSealed",
@@ -381,7 +381,7 @@ export function createObjectArrayGlobals(options: {
         freeze: createSandboxClosure({
           sandbox: true,
           call: ([value], context) => {
-            if (typeof value === "object" && value !== null && guestProxyStates.has(value))
+            if (typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value)))
               return setGuestProxyIntegrity(value, "frozen", options.budget, context);
             if (isGuestHostObject(value))
               throw new TypeError("Live host objects cannot be frozen.");
@@ -397,7 +397,7 @@ export function createObjectArrayGlobals(options: {
         isFrozen: createSandboxClosure({
           sandbox: true,
           call: ([value], context) =>
-            typeof value === "object" && value !== null && guestProxyStates.has(value)
+            typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value))
               ? testGuestProxyIntegrity(value, "frozen", options.budget, context) :
             Object.isFrozen(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
           name: "isFrozen",

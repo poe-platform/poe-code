@@ -1,0 +1,76 @@
+diff --git a/packages/safe-js/src/interp/globals/object-array.ts b/packages/safe-js/src/interp/globals/object-array.ts
+index dbe5ece66..c1fee8600 100644
+--- a/packages/safe-js/src/interp/globals/object-array.ts
++++ b/packages/safe-js/src/interp/globals/object-array.ts
+@@ -333,7 +333,7 @@ export function createObjectArrayGlobals(options: {
+         preventExtensions: createSandboxClosure({
+           sandbox: true,
+           call: ([value], context) => {
+-            if (typeof value === "object" && value !== null && guestProxyStates.has(value)) {
++            if (typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value))) {
+               return Promise.resolve(sandboxPreventExtensions(value, options.budget, context)).then(success => {
+                 if (!success) throw new TypeError("Proxy refused preventExtensions.");
+                 return value;
+@@ -359,7 +359,7 @@ export function createObjectArrayGlobals(options: {
+         seal: createSandboxClosure({
+           sandbox: true,
+           call: ([value], context) => {
+-            if (typeof value === "object" && value !== null && guestProxyStates.has(value))
++            if (typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value)))
+               return setGuestProxyIntegrity(value, "sealed", options.budget, context);
+             if (isGuestHostObject(value))
+               throw new TypeError("Live host objects cannot be sealed.");
+@@ -372,7 +372,7 @@ export function createObjectArrayGlobals(options: {
+         isSealed: createSandboxClosure({
+           sandbox: true,
+           call: ([value], context) =>
+-            typeof value === "object" && value !== null && guestProxyStates.has(value)
++            typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value))
+               ? testGuestProxyIntegrity(value, "sealed", options.budget, context) :
+             Object.isSealed(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
+           name: "isSealed",
+@@ -381,7 +381,7 @@ export function createObjectArrayGlobals(options: {
+         freeze: createSandboxClosure({
+           sandbox: true,
+           call: ([value], context) => {
+-            if (typeof value === "object" && value !== null && guestProxyStates.has(value))
++            if (typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value)))
+               return setGuestProxyIntegrity(value, "frozen", options.budget, context);
+             if (isGuestHostObject(value))
+               throw new TypeError("Live host objects cannot be frozen.");
+@@ -397,7 +397,7 @@ export function createObjectArrayGlobals(options: {
+         isFrozen: createSandboxClosure({
+           sandbox: true,
+           call: ([value], context) =>
+-            typeof value === "object" && value !== null && guestProxyStates.has(value)
++            typeof value === "object" && value !== null && (guestProxyStates.has(value) || isNumericTypedArray(value))
+               ? testGuestProxyIntegrity(value, "frozen", options.budget, context) :
+             Object.isFrozen(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
+           name: "isFrozen",
+diff --git a/packages/safe-js/src/interp/guest-proxy-extensibility.ts b/packages/safe-js/src/interp/guest-proxy-extensibility.ts
+index 5d8dd261f..87cc09016 100644
+--- a/packages/safe-js/src/interp/guest-proxy-extensibility.ts
++++ b/packages/safe-js/src/interp/guest-proxy-extensibility.ts
+@@ -3,6 +3,9 @@ import type { SandboxCallContext, SandboxValue } from "./values.js";
+ import { guestProxyStates, withGuestProxyTrap } from "./guest-proxy.js";
+ import { invokeBuiltinClosure } from "./builtin-call.js";
+ import { objectProperties } from "./globals/object-array.js";
++import { arrayBufferOptions } from "./array-buffer.js";
++import { isSandboxSharedArrayBuffer } from "./shared-array-buffer.js";
++import { isNumericTypedArray, typedArrayStorage, typedArrayViewLayouts } from "./typed-array.js";
+ 
+ export function sandboxIsExtensible(value: SandboxValue, budget: Budget, context?: SandboxCallContext): boolean | Promise<boolean> {
+   if (typeof value !== "object" || value === null || !guestProxyStates.has(value))
+@@ -18,6 +21,12 @@ export function sandboxIsExtensible(value: SandboxValue, budget: Budget, context
+ }
+ 
+ export function sandboxPreventExtensions(value: SandboxValue, budget: Budget, context?: SandboxCallContext): boolean | Promise<boolean> {
++  if (isNumericTypedArray(value)) {
++    const { buffer } = typedArrayStorage(value);
++    if (arrayBufferOptions(buffer) !== undefined &&
++      (!isSandboxSharedArrayBuffer(buffer) || typedArrayViewLayouts.get(value)?.length === undefined))
++      return false;
++  }
+   if (typeof value !== "object" || value === null || !guestProxyStates.has(value))
+     return Reflect.preventExtensions(objectProperties(value, true));
+   budget.visitNode();

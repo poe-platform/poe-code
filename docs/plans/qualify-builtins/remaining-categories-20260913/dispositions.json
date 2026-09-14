@@ -1,0 +1,350 @@
+[
+  {
+    "id": "built-ins/ArrayIteratorPrototype/next/args-mapped-expansion-after-exhaustion.js#sloppy",
+    "blocker": "QB-ARGUMENTS-ITERATOR",
+    "sourceHash": "197a5107cbd9a4e157e1bce157988f5d9fcbd5825a6c860b70e04a177de360b3",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Attempted to call a non-function value.",
+        "type": "TypeError"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/Date/UTC/fp-evaluation-order.js#sloppy",
+    "blocker": "QB-DATE-PRECISION",
+    "sourceHash": "aed1e6ce51bb7b3c6ae503989be3d8654432b064ece38677d03aeb3eb9876c09",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "precision in MakeDate Expected SameValue(\u00ab34448384\u00bb, \u00ab34447360\u00bb) to be true",
+        "type": "Test262Error"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/Date/UTC/fp-evaluation-order.js#strict",
+    "blocker": "QB-DATE-PRECISION",
+    "sourceHash": "aed1e6ce51bb7b3c6ae503989be3d8654432b064ece38677d03aeb3eb9876c09",
+    "observed": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "precision in MakeDate Expected SameValue(\u00ab34448384\u00bb, \u00ab34447360\u00bb) to be true",
+        "type": "Test262Error"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/Math/ceil/S15.8.2.6_A7.js#sloppy",
+    "blocker": "QB-MATH-CEIL-DEADLINE",
+    "sourceHash": "c53159002b96d3939ec16be1298f63bd128b1c74a53eec3088de20c1a9884885",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/Math/ceil/S15.8.2.6_A7.js#strict",
+    "blocker": "QB-MATH-CEIL-DEADLINE",
+    "sourceHash": "c53159002b96d3939ec16be1298f63bd128b1c74a53eec3088de20c1a9884885",
+    "observed": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/Object/freeze/typedarray-backed-by-resizable-buffer.js#sloppy",
+    "blocker": "QB-RESIZABLE-INTEGRITY",
+    "sourceHash": "f14dd66d0ce75e72910f9c8b0539bea247bac283ed7c78f0109222c593fbf3e9",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a TypeError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "disposition": "repaired locally; integrity-final-corpus.jsonl passes both modes on source closure 35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a"
+  },
+  {
+    "id": "built-ins/Object/freeze/typedarray-backed-by-resizable-buffer.js#strict",
+    "blocker": "QB-RESIZABLE-INTEGRITY",
+    "sourceHash": "f14dd66d0ce75e72910f9c8b0539bea247bac283ed7c78f0109222c593fbf3e9",
+    "observed": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a TypeError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      }
+    },
+    "disposition": "repaired locally; integrity-final-corpus.jsonl passes both modes on source closure 35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a"
+  },
+  {
+    "id": "built-ins/Symbol/for/cross-realm.js#sloppy",
+    "blocker": "QB-SYMBOL-REALM",
+    "sourceHash": "e673ec2add6fa10cdad2e1110eaf1851eba169a942be6e1f54945bd8b704fe60",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00abSymbol(parent)\u00bb, \u00abSymbol(parent)\u00bb) to be true",
+        "type": "Test262Error"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/Symbol/for/cross-realm.js#strict",
+    "blocker": "QB-SYMBOL-REALM",
+    "sourceHash": "e673ec2add6fa10cdad2e1110eaf1851eba169a942be6e1f54945bd8b704fe60",
+    "observed": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00abSymbol(parent)\u00bb, \u00abSymbol(parent)\u00bb) to be true",
+        "type": "Test262Error"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/decodeURI/S15.1.3.1_A1.10_T1.js#sloppy",
+    "blocker": "QB-DECODEURI-DEADLINE",
+    "sourceHash": "c2907f1491a4be1b7868f7d322bbae4b813f3e63ae52786ca04c17cfd2fbee96",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/decodeURI/S15.1.3.1_A1.10_T1.js#strict",
+    "blocker": "QB-DECODEURI-DEADLINE",
+    "sourceHash": "c2907f1491a4be1b7868f7d322bbae4b813f3e63ae52786ca04c17cfd2fbee96",
+    "observed": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/decodeURIComponent/S15.1.3.2_A1.10_T1.js#sloppy",
+    "blocker": "QB-DECODECOMPONENT-DEADLINE",
+    "sourceHash": "acb714a6121726888d59222cfa7a56e4a61f2657c6d51d6d0db18df7fe564876",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/decodeURIComponent/S15.1.3.2_A1.10_T1.js#strict",
+    "blocker": "QB-DECODECOMPONENT-DEADLINE",
+    "sourceHash": "acb714a6121726888d59222cfa7a56e4a61f2657c6d51d6d0db18df7fe564876",
+    "observed": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/parseFloat/S15.1.2.3_A6.js#sloppy",
+    "blocker": "QB-PARSEFLOAT-DEADLINE",
+    "sourceHash": "e53e97da27a6e3b70839867b49ad6d1153bbfb58f9edbfe93c3b6a09d0f137f3",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/parseFloat/S15.1.2.3_A6.js#strict",
+    "blocker": "QB-PARSEFLOAT-DEADLINE",
+    "sourceHash": "e53e97da27a6e3b70839867b49ad6d1153bbfb58f9edbfe93c3b6a09d0f137f3",
+    "observed": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/parseInt/S15.1.2.2_A7.2_T1.js#sloppy",
+    "blocker": "QB-PARSEINT-DEADLINE",
+    "sourceHash": "a8a4234ec0b14605ee8cffeaba08e4c412aee1e0c911ce250ec791e0a5c6beaa",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/parseInt/S15.1.2.2_A7.2_T1.js#strict",
+    "blocker": "QB-PARSEINT-DEADLINE",
+    "sourceHash": "a8a4234ec0b14605ee8cffeaba08e4c412aee1e0c911ce250ec791e0a5c6beaa",
+    "observed": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "timeout",
+      "detail": {
+        "phase": "host",
+        "code": "worker-wall-timeout",
+        "message": "Isolated variant exceeded 3000 ms; child terminated"
+      }
+    },
+    "disposition": "unresolved; not a pass"
+  },
+  {
+    "id": "built-ins/Object/seal/seal-finalizationregistry.js#sloppy",
+    "blocker": "QB-FINALIZATION-OWNER",
+    "sourceHash": "1abf7ea2a718f4f91e7280d0d4877384beb0f86359875496bec913ea8450ef40",
+    "observed": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Finalization requires an execution owner with error reporting.",
+        "type": "TypeError"
+      }
+    },
+    "disposition": "unresolved explicit-authority/runner admission; no host capability granted",
+    "finalReport": "integrity-final-corpus.jsonl",
+    "finalSourceClosure": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a"
+  },
+  {
+    "id": "built-ins/Object/seal/seal-finalizationregistry.js#strict",
+    "blocker": "QB-FINALIZATION-OWNER",
+    "sourceHash": "1abf7ea2a718f4f91e7280d0d4877384beb0f86359875496bec913ea8450ef40",
+    "observed": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Finalization requires an execution owner with error reporting.",
+        "type": "TypeError"
+      }
+    },
+    "disposition": "unresolved explicit-authority/runner admission; no host capability granted",
+    "finalReport": "integrity-final-corpus.jsonl",
+    "finalSourceClosure": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a"
+  },
+  {
+    "id": "built-ins/Object/seal/seal-sharedarraybuffer.js#sloppy",
+    "blocker": "QB-SHARED-CORPUS-ADMISSION",
+    "sourceHash": "87d07592327e35279be0e764159d4eb004d0aa711f16d1793f25c4efab2c1163",
+    "observed": {
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "shared-memory"
+    },
+    "disposition": "unresolved explicit-authority/runner admission; no host capability granted",
+    "finalReport": "integrity-final-corpus.jsonl",
+    "finalSourceClosure": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a"
+  },
+  {
+    "id": "built-ins/Object/seal/seal-sharedarraybuffer.js#strict",
+    "blocker": "QB-SHARED-CORPUS-ADMISSION",
+    "sourceHash": "87d07592327e35279be0e764159d4eb004d0aa711f16d1793f25c4efab2c1163",
+    "observed": {
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "shared-memory"
+    },
+    "disposition": "unresolved explicit-authority/runner admission; no host capability granted",
+    "finalReport": "integrity-final-corpus.jsonl",
+    "finalSourceClosure": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a"
+  },
+  {
+    "id": "QB-FIXED-VIEW-QUERY",
+    "kind": "independent standard-derived probe",
+    "owner": "qualify-builtins",
+    "clauses": [
+      "sec-testintegritylevel",
+      "sec-typedarray-defineownproperty"
+    ],
+    "expected": "Object.isSealed on a nonextensible nonempty fixed typed array is false",
+    "initialObserved": true,
+    "red": "query-red.log: one failed, eleven passed",
+    "disposition": "repaired locally; final-focused.log passes all 93 tests, query-sdk-controls.json verifies ordering and replay",
+    "finalSourceClosure": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a"
+  }
+]

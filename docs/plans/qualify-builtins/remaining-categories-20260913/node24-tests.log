@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts (10 tests) 580ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  18:28:01
+   Duration  2.68s (transform 1.52s, setup 36ms, import 1.98s, tests 580ms, environment 0ms)
+

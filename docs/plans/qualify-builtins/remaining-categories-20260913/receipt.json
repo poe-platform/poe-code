@@ -1,0 +1,547 @@
+{
+  "observedAt": "2026-09-14T00:10:40.549775+00:00",
+  "baseHead": "9375c0926d7888884a181e04c7293bdcfdc6cd32",
+  "branch": "main",
+  "qualification": "Exact dirty working-source/build closure; not clean-HEAD or installed publication qualification",
+  "sourceHash": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a",
+  "ownedSourceHashes": {
+    "packages/safe-js/src/interp/globals/object-array.ts": "af412a75f7b72223d0e08591128d041e9535dab4f8bc5081b067a34004c5d168",
+    "packages/safe-js/src/interp/guest-proxy-extensibility.ts": "5971b7cb1a7240b6045c4c5c29399c1669e2bf5d6877caf4a6f37706cabdae35",
+    "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts": "6171e2e988a2e2d46f8a144afb15cb14585bd937eea2bd3737991c8612ac2262"
+  },
+  "environment": {
+    "observedAt": "2026-09-14T00:02:32.664Z",
+    "versions": {
+      "node": "22.23.2",
+      "acorn": "8.16.0",
+      "ada": "2.9.2",
+      "amaro": "1.1.8",
+      "ares": "1.34.6",
+      "brotli": "1.1.0",
+      "cjs_module_lexer": "2.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.4.3",
+      "modules": "127",
+      "napi": "10",
+      "nbytes": "0.1.3",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.69.0",
+      "openssl": "3.5.7",
+      "simdjson": "4.5.0",
+      "simdutf": "6.4.2",
+      "sqlite": "3.51.3",
+      "tz": "2026a",
+      "undici": "6.28.0",
+      "unicode": "17.0",
+      "uv": "1.51.0",
+      "uvwasi": "0.0.23",
+      "v8": "12.4.254.21-node.56",
+      "zlib": "1.3.1-e00f703",
+      "zstd": "1.5.7"
+    },
+    "platform": "darwin",
+    "arch": "arm64",
+    "locale": {
+      "locale": "en-US",
+      "calendar": "gregory",
+      "numberingSystem": "latn",
+      "timeZone": "America/Chicago",
+      "year": "numeric",
+      "month": "numeric",
+      "day": "numeric"
+    },
+    "TZ": null,
+    "LANG": "en_US.UTF-8"
+  },
+  "preservation": {
+    "changedInheritedFiles": [
+      "packages/safe-js/src/interp/guest-proxy-extensibility.ts",
+      "packages/safe-js/src/interp/globals/object-array.ts"
+    ],
+    "indexHash": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+    "originalLedgerBytes": 682127,
+    "originalLedgerPrefixHash": "d31410e1675f7d89ffe0c3d9ef447a429ec3873d5bdf2f73167677e1f9f84929",
+    "otherInputSafeJSFilesUnchanged": true,
+    "focusedArtifactsReverified": 255,
+    "ledgerAppendHash": "a6ee2bea02df9582c5d683cbf21cd3cade56f2ec73494ec390a1d6cfc3ce568f"
+  },
+  "unit": {
+    "command": [
+      "npm",
+      "run",
+      "test:unit",
+      "--workspace=@poe-code/safe-js"
+    ],
+    "log": "package-test-final.log",
+    "exitCode": 0,
+    "complete": true,
+    "filesPassed": 1398,
+    "filesSkipped": 2,
+    "passed": 30065,
+    "skipped": 47,
+    "failed": 0,
+    "durationSeconds": 1229.3
+  },
+  "incompleteUnitAttempts": [
+    {
+      "file": "package-test.log",
+      "exitCode": 143,
+      "observedFailure": "O12 completed-replay 5000ms timeout; independent investigation and full final run pass at unchanged limits"
+    },
+    {
+      "file": "package-test-rerun.log",
+      "exitCode": 143,
+      "reason": "Stopped for the independently reproduced fixed-view query defect; no terminal summary"
+    }
+  ],
+  "skipFiles": [
+    "\u2713 packages/safe-js/src/interp/globals/math-f16round.independent.test.ts (9 tests | 1 skipped) 214ms",
+    "\u2713 packages/safe-js/src/interp/globals/math-f16round.test.ts (59 tests | 1 skipped) 61ms",
+    "\u2713 packages/safe-js/src/modules/fs.conformance.test.ts (201 tests | 33 skipped) 32ms",
+    "\u2713 packages/safe-js/src/interp/structured-clone-host-instant.test.ts (14 tests | 7 skipped) 5ms",
+    "\u2193 packages/safe-js/src/parse/fuzz.test.ts (1 test | 1 skipped)",
+    "\u2193 packages/safe-js/src/interp/temporal-instant-native.test.ts (4 tests | 4 skipped)"
+  ],
+  "focused": {
+    "log": "final-focused.log",
+    "passed": 93,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0
+  },
+  "lint": {
+    "log": "final-lint.log",
+    "exitCode": 0
+  },
+  "build": {
+    "log": "final-build.log",
+    "exitCode": 0,
+    "builtImportChecksPassed": 8
+  },
+  "corpus": [
+    {
+      "file": "corpus.jsonl",
+      "sha256": "7bf1d604dfd57a52a1c21d8432fcba6db0df851071d8c099695a8c73322e5ead",
+      "sourceSha": "9375c0926d7888884a181e04c7293bdcfdc6cd32",
+      "sourceHash": "3b2b2b785da0852d62c0a0c9455a718787e6ff06ca502d8887521724712c1235",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "complete": true,
+      "counts": {
+        "files": 24,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 47,
+        "passed": 30,
+        "failed": 17,
+        "unsupported": 0
+      },
+      "emittedCounts": {
+        "passed": 30,
+        "failed": 17
+      }
+    },
+    {
+      "file": "integrity-final-corpus.jsonl",
+      "sha256": "9d7630101850278bf872431b0feef748d1fe6ecc08096c53ce785b8725f437ad",
+      "sourceSha": "9375c0926d7888884a181e04c7293bdcfdc6cd32",
+      "sourceHash": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "complete": true,
+      "counts": {
+        "files": 289,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 572,
+        "passed": 568,
+        "failed": 2,
+        "unsupported": 2
+      },
+      "emittedCounts": {
+        "passed": 568,
+        "failed": 2,
+        "unsupported": 2
+      }
+    },
+    {
+      "file": "minimum-mapped-corpus.jsonl",
+      "sha256": "0462d35f6fc7c0ad2426525a3170682126698869745aa1ed19850b512ce71922",
+      "sourceSha": "9375c0926d7888884a181e04c7293bdcfdc6cd32",
+      "sourceHash": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a",
+      "runtime": {
+        "node": "v18.18.0",
+        "icu": "73.2",
+        "v8": "10.2.154.26-node.26",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "complete": true,
+      "counts": {
+        "files": 2,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 4,
+        "passed": 2,
+        "failed": 2,
+        "unsupported": 0
+      },
+      "emittedCounts": {
+        "passed": 2,
+        "failed": 2
+      }
+    },
+    {
+      "file": "node20-mapped-corpus.jsonl",
+      "sha256": "30b6e185127a6dfa6c1904599236754f49b32b5ac94eb1f0334d0b2cafd381bc",
+      "sourceSha": "9375c0926d7888884a181e04c7293bdcfdc6cd32",
+      "sourceHash": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a",
+      "runtime": {
+        "node": "v20.20.0",
+        "icu": "77.1",
+        "v8": "11.3.244.8-node.33",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "complete": true,
+      "counts": {
+        "files": 2,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 4,
+        "passed": 4,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "emittedCounts": {
+        "passed": 4
+      }
+    },
+    {
+      "file": "node24-mapped-corpus.jsonl",
+      "sha256": "bfd8bdc9bfc48c0b8192c77121ebf4c30b4f35ad88a5e98197e0b90df72eb00d",
+      "sourceSha": "9375c0926d7888884a181e04c7293bdcfdc6cd32",
+      "sourceHash": "35cf739c3cb76c7a9d5ed555acf00306bdf0bef2b536992dbff50deacba9f04a",
+      "runtime": {
+        "node": "v24.14.0",
+        "icu": "78.2",
+        "v8": "13.6.233.17-node.41",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "complete": true,
+      "counts": {
+        "files": 2,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 4,
+        "passed": 4,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "emittedCounts": {
+        "passed": 4
+      }
+    },
+    {
+      "file": "qualified-corpus.jsonl",
+      "sha256": "c05aa6ea44eff6afd37b7e7c678ae4faa51b96be62a08a040c04cc8ba1b0453d",
+      "sourceSha": "9375c0926d7888884a181e04c7293bdcfdc6cd32",
+      "sourceHash": "80e97692f8202c48a18baf5afc05847ca5afad99c8974726313f9b4d69bfb2bc",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "complete": true,
+      "counts": {
+        "files": 197,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 388,
+        "passed": 384,
+        "failed": 2,
+        "unsupported": 2
+      },
+      "emittedCounts": {
+        "passed": 384,
+        "failed": 2,
+        "unsupported": 2
+      }
+    },
+    {
+      "file": "repaired-corpus.jsonl",
+      "sha256": "735fd52ea88c4ec57021beb76e676b1a01b70697cb6916c76f2125c309315c5c",
+      "sourceSha": "9375c0926d7888884a181e04c7293bdcfdc6cd32",
+      "sourceHash": "f9bdf9800e06168281fabe6a0cfe62d7893a1d89e946e717bd82e42fd61cd695",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "complete": false,
+      "counts": null,
+      "emittedCounts": {
+        "passed": 384,
+        "failed": 2,
+        "unsupported": 2
+      }
+    }
+  ],
+  "unsupportedOrUnverified": [
+    "Exact Node18 minimum and Node18 latest RAB/GSAB prerequisites: final unit cells 3 passed / 9 failed each",
+    "Workerd and complete Bun/per-runtime category matrices",
+    "Current all-category and fixture-to-edition reconciliation",
+    "Remaining indexed historical nonpasses and named current blockers",
+    "Installed-artifact and publication qualification"
+  ],
+  "delivery": {
+    "localCommit": "Recorded separately after commit to avoid a self-referential receipt",
+    "remoteMainObservation": "dea009de8f6c7ff608f295c6986d56f255570939\trefs/heads/main",
+    "verifiedRemoteMainDelivery": false,
+    "release": null,
+    "pushPerformed": false
+  },
+  "artifacts": {
+    "additional-runtime-test-commands.json": "afa3ab4c1720b7351b7241e7a52aff96950c2400f4d04bcae9e18058a44f45f9",
+    "build.log": "5050cbf2875cbab8338330d8be70fd17d0451a2aa51423c7d20e6450d1a65f74",
+    "built-sdk-controls.json": "03592e46df79e9ceea550dbf85486b5177e32dea383fa8ab50a608e3eb5d71b0",
+    "bun-built-controls.json": "e2d1f8147ee9d4211cac49dbc15a7f45dd7751064816ddde2c3ed867c5fe449f",
+    "bun-built-controls.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidate-source.json": "b3089620f6763961dc159eaf950b61f708fd21e61ba57eca14df91cc2462013f",
+    "category-status.json": "c615dbd0a149d3545623921db2b172767c02c1ca7055a5d207f8c388dffa591a",
+    "cli-controls.json": "1f2ee7685108cc22d688085708b3a00c529d98c191a9e42be27081df5c0b0525",
+    "commands.json": "d3f7d9b8144486eed470869c28b53bc923b09a1f39a171caf6f6b96eb16600c2",
+    "controls.json": "a11fc112393a57bc6d49c5b461ccd73a79f51f4fae3a4162a1218ad37baf1dc3",
+    "corpus-command.json": "0f779d020a05ae7f07fa99e2edd7be4632c50d072d55cfb6caf3e78e4c36962c",
+    "corpus.jsonl": "7bf1d604dfd57a52a1c21d8432fcba6db0df851071d8c099695a8c73322e5ead",
+    "corpus.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "detached-and-forged-controls.json": "a6cc076dd0c8952454378caa9720da93382aaa08080bd8f83aad0f5d327ad716",
+    "dispositions.json": "a74b8a9d005dc1dd5c4248296393a36c5dd41187a4ff676a943ee613e302ceb8",
+    "edition-receipt.json": "c1829e0e578b605b4f55bd83dcb259f7b8b72297e1366f2ea77c64846e8d4295",
+    "environment.json": "cfadab14a6aea1095e620344a3dc8f4f2f47a1ea5c53b42d4fa08aaf827313e9",
+    "final-build.log": "c581d374a45badb7cd0a0b3e439708c63716e5c3cb04aae1f119e5486273269f",
+    "final-built-sdk-controls.json": "c9cc8c89b117e3d4a18209841fb2678bc1e90ef803787ee86398059a7e2a7649",
+    "final-bun-query-control.json": "5af2cae38a7a7145eae2d48acf8cb12b4d953cf8032a404da9a63a8dda865b04",
+    "final-bun-query-control.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-candidate-source.json": "38113219399a77a487c49ba48d4f21f236444342243fc5459dd7bf1f4cc9cb84",
+    "final-focused.log": "0b6c592af13398b942e8cefc365a13ca4667908facae78158632ef932e70ae1f",
+    "final-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-node18-latest-tests.log": "1cc7afba96b3d0b48a40801db73fa0431d963dbdab431f09ecb6bff12d8c4cfd",
+    "final-node18-min-tests.log": "5faa42dae45f4999a5bf02eded14800b9dd4533fb759d86553342ea10d50ac6f",
+    "final-node20-tests.log": "1b5e4da1ab6033a206756488e6d02cfed7687cff2b754c2e1fc4b18fdc051085",
+    "final-node24-tests.log": "30bbb2a10739b3e8cd823a0fdef50687f5a1f5fe94e1e38fb20efa5007a75ae2",
+    "final-runtime-test-commands.json": "3230ec2da19818f956306735586d61070f267da9072100b505394d602c25c1ed",
+    "final-sdk-commands.json": "e1e936fb3db303ca395421ea6da9e244e80498f50f5ec0162b77700a4f28b44f",
+    "final-sdk-node18-min.json": "66a5e19420cda7945af41c3a6c410a58f0c8b37572cea107353b0a14b51b88eb",
+    "final-sdk-node18-min.stderr": "4bda8a5261ac2647845f2bff807f90d279adb39331e791acd7c2807996356ccc",
+    "final-sdk-node22.json": "7b5d922aa3b542be9fedcd93ac3249fdafb4b8e718930519429b85f00c637f5f",
+    "final-sdk-node22.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-source-verification.json": "21c60dc0c8ad759fa5a45f50f25714f7650e0b9acf127baf9977495ec07ab2e2",
+    "focused-integrity.json": "bc28169ee0ca3c3175c56ab740a9e54602a938a6923edb3562ece283b6751eb8",
+    "focused.log": "b80a4ff77e93c0c3ad4b744853fa67f531eef85bf3d2201020e6cf826b24063d",
+    "green.log": "1e8d0854a331474f754740f99723e6f48e01f19f2f622a7ee03a69b66c856d4f",
+    "host-view-controls.json": "e80087775eb03c9539a3d21c22ae01ef6430b81fe6157400a4a796db42e0cb6d",
+    "integrity-final-corpus.jsonl": "9d7630101850278bf872431b0feef748d1fe6ecc08096c53ce785b8725f437ad",
+    "integrity-final-corpus.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "job-order-controls.json": "b588330c3fd293790c10b62291938a6f3ae128b05fc7f4cfc2b8e5f1841d2878",
+    "ledger-append.md": "a6ee2bea02df9582c5d683cbf21cd3cade56f2ec73494ec390a1d6cfc3ce568f",
+    "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "manual-qa.md": "097b6b672abdab46ae1f5cfcdbb86a21bd959bbe6b98abaf216287bfd5b44c7e",
+    "mapped-runtime-commands.json": "441af4caf0efd4b5e28173349fa8e9b8396446ae956dbe7aa6cf5ec225df6570",
+    "minimum-mapped-corpus.jsonl": "0462d35f6fc7c0ad2426525a3170682126698869745aa1ed19850b512ce71922",
+    "minimum-mapped-corpus.log": "3df4e221cb9d12e0a2fa81ce411f44e3b2a43c85c6e6a9bb9e71d16c31ccb14b",
+    "node18-latest-tests.log": "05a130cfae43e73a3fcca3d2863059fab8e5a8cfb3f619ebb54c88fdacbefa1c",
+    "node18-min-tests.log": "a7c4ad19e0ce27e2a4b8248595577ba1e9761cac84600ca647ba5c826e2afe09",
+    "node20-mapped-corpus.jsonl": "30b6e185127a6dfa6c1904599236754f49b32b5ac94eb1f0334d0b2cafd381bc",
+    "node20-mapped-corpus.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "node20-tests.log": "38053a25713d7836641ee88f2abca692f13f7b41184abf3d09b1650f8f45f9ff",
+    "node24-mapped-corpus.jsonl": "bfd8bdc9bfc48c0b8192c77121ebf4c30b4f35ad88a5e98197e0b90df72eb00d",
+    "node24-mapped-corpus.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "node24-tests.log": "90b9d5b72ea251d959418af8e6ae727d3082d69589622bdd5bbf61d978db9a0b",
+    "o12-investigation.log": "bd4675c06eab08143e1b5af50a21473d07d3ff826155798abc446dbd42363ba1",
+    "package-test-final.log": "1e1c0394f337788e0e7fa583d7b1f4ad10af8843d71f1ab5c390be3ee5e19f2f",
+    "package-test-rerun.log": "38a39c7b4bdff2bdfa83d03b42b6af27f670255f1352ee547f6a55246e7c238a",
+    "package-test.log": "d036ee75ed0604a12d97e989847d4a2b27833f8414c17f1b2f5d2eb05d99de5b",
+    "qualification.md": "b0bb9041291407eb7ca86ae3bac261da3e5f3d78910b94b4e7f0569df7562624",
+    "qualified-corpus.jsonl": "c05aa6ea44eff6afd37b7e7c678ae4faa51b96be62a08a040c04cc8ba1b0453d",
+    "qualified-corpus.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "query-red.log": "90f359e35eb9ea00b1ca055be88617bf8d92b3c16509e456341ab07f544af2b0",
+    "query-sdk-controls.json": "29de96f8ca7ac8a1b9051f0c16ae18e91d9dd4b557107328357950fbb5e81d34",
+    "reconciliation.json": "f650665780fbe90f5cb4ca59ac828b206826b3095203e0f8d2e5df2bc10426a5",
+    "red.log": "58c423f0317bd553fee3f2a09d47bbb24448eb1f4c35b86acd15f5b88f552335",
+    "remote-main-observation.txt": "cc8e368517d27379006ca963bd2860d58c99ff7ce0a19f828433574e70bead6a",
+    "repair-reuse.json": "f867fd2ed99ce304ad6055185bded72840e6fb1e72c977b97ee182226c073d57",
+    "repaired-corpus.jsonl": "735fd52ea88c4ec57021beb76e676b1a01b70697cb6916c76f2125c309315c5c",
+    "repaired-corpus.log": "dea50219d656ccadbfaaed7c722d28c6114696d3f84a756e08ef00f1fd6a6da0",
+    "runtime-test-commands.json": "47aa6ca2b48d65346061b7f0274758ccb5a00556c8fe88ad6b07e28f64a0e592",
+    "runtime.patch": "b20c8f4228d8140dcd2a94e2588636a8d3209bac7b807a69e83f097e565cdfa6",
+    "sdk-commands.json": "d9b271c5311c455c7df0978fafddedd96103b46b4eb7a400780eb28b9ba48481",
+    "sdk-node18-min.json": "66a5e19420cda7945af41c3a6c410a58f0c8b37572cea107353b0a14b51b88eb",
+    "sdk-node18-min.stderr": "32140957bfbc0f845be4259f6efab5155ba538a21171f124893b7f1ab45d6a03",
+    "sdk-node22-initial.json": "f7a06f2343a7a9d8bd6e7d20ead098e393e7d8fec4a0574381a8409a385375c6",
+    "sdk-node22.json": "7b5d922aa3b542be9fedcd93ac3249fdafb4b8e718930519429b85f00c637f5f",
+    "sdk-node22.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "selected-historical-cases.json": "8f115bdee93dda734c8c9da5b60706d2e1e3aa30ff5e5ca71bd05ae0d7059177",
+    "selected-paths.json": "c96e1fdb4ea6ca277398902eb1c2dff9cd7e658da0e8d64cb66b9cfd86c42bb6",
+    "source-before.json": "aad9c8901b27e39b590672b565656487b5a7996570c438f875762a4d959c474d",
+    "source-consistency.json": "7cecd6c327f90f39af59008e4b19e72bef5ce0286ed2b6582375e1012762c412",
+    "stage-whitespace-review.json": "beb046d3d7687a8c39e0a79886d3e762242fd21e12ae7d950a5c7dba7a87fa93",
+    "test-versions.json": "b668510cc2b058e96ff2432c13a04462dc60488f23a38fa3cd57243df46c33e9",
+    "timeout-controls.json": "7c96e35563bd334f64bc286a82998e6d4821b15cd14d26534998502033f3608f"
+  }
+}

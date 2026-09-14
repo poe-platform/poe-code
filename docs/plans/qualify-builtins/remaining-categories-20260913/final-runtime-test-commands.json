@@ -1,0 +1,45 @@
+[
+  {
+    "argv": [
+      "npx",
+      "--yes",
+      "--package=node@18.18.0",
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 5.201845407485962
+  },
+  {
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v18.20.8/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 3.258341073989868
+  },
+  {
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v20.20.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 3.4867241382598877
+  },
+  {
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v24.14.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 3.260019063949585
+  }
+]

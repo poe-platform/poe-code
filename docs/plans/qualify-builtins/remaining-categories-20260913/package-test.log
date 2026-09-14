@@ -1,0 +1,165 @@
+
+> @poe-code/safe-js@0.0.1 pretest:unit
+> node scripts/numberformat-data.mjs && npm run typecheck:fs
+
+{"numberFormatLocales":766,"sourceBytes":5153552,"pluralLocales":224}
+
+> @poe-code/safe-js@0.0.1 typecheck:fs
+> node scripts/fs-type-contract.mjs
+
+{"resolution":"NodeNext","environment":"Node-only","contracts":25,"ok":true}
+{"resolution":"NodeNext","environment":"DOM","contracts":25,"ok":true}
+{"resolution":"Bundler","environment":"Node-only","contracts":25,"ok":true}
+{"resolution":"Bundler","environment":"DOM","contracts":25,"ok":true}
+
+> @poe-code/safe-js@0.0.1 test:unit
+> cd ../.. && vitest run packages/safe-js/src packages/safe-js/test
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/methods/regex-cursor.independent.test.ts (1027 tests) 24978ms
+     ✓ 'matchAll' /'(?:)'/'ms' from -2 on '''' matches native  317ms
+stdout | packages/safe-js/test/integration/input-error-projection.test.ts
+{"mode":"capture","leftDomain":"modeled","apiMode":"source","publicRuntimeURL":"source-bundle","status":"ok"}
+
+ ❯ packages/safe-js/test/integration/input-error-projection.test.ts (19 tests | 1 failed) 19773ms
+     ✓ flushes the complete serialized observation beyond the pipe buffer  866ms
+     ✓ captures the unchanged original profile with complete native values and provenance 2ms
+     ✓ classifies complete proof 1 against the same capture and request  793ms
+     ✓ classifies complete proof 1 against the same capture and request: completed replay  802ms
+     ✓ classifies complete proof 2 against the same capture and request  874ms
+     ✓ classifies complete proof 2 against the same capture and request: completed replay  755ms
+     ✓ classifies minimal proof 1 against the same capture and request  820ms
+     × classifies minimal proof 1 against the same capture and request: completed replay 5006ms
+     ✓ classifies minimal proof 2 against the same capture and request  934ms
+     ✓ classifies minimal proof 2 against the same capture and request: completed replay  1067ms
+     ✓ classifies native-fields proof 1 against the same capture and request  862ms
+     ✓ classifies native-fields proof 1 against the same capture and request: completed replay  982ms
+     ✓ classifies native-fields proof 2 against the same capture and request  829ms
+     ✓ classifies native-fields proof 2 against the same capture and request: completed replay  741ms
+     ✓ preserves raw-left proof provenance with the complete right receipt  774ms
+     ✓ preserves raw-left proof provenance with the complete right receipt: completed replay  735ms
+     ✓ preserves genuine-null-left proof provenance with the complete right receipt  773ms
+     ✓ preserves genuine-null-left proof provenance with the complete right receipt: completed replay  788ms
+     ✓ records raw public-input qualification without substituting it for O12  550ms
+FAIL packages/safe-js/test/integration/input-error-projection.test.ts > O12 exact modeled Error proof projection > classifies minimal proof 1 against the same capture and request: completed replay
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/safe-js/test/integration/input-error-projection.test.ts:606:7
+    604|       });
+    605|
+    606|       it(`${title}: completed replay`, async () => {
+       |       ^
+    607|         expect(completedProof?.status).toBe("ok");
+    608|         const completedReplay = await observe(
+
+ ✓ packages/safe-js/src/interp/methods/string-split.independent.test.ts (808 tests) 22207ms
+     ✓ preserves typed slots for /'(b*)'/'gims' on ''ab'', limit 2  1046ms
+ ✓ packages/safe-js/src/interp/float32-camera.test.ts (11 tests) 10835ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-0-1  2156ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-2-3  1527ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-4-5  1095ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-0-1  1167ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-2-3  1389ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-4-4  908ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-offset-handoff-typed:samples-0-1  1308ms
+     ✓ matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-offset-handoff-typed:samples-2-3  1280ms
+ ✓ packages/safe-js/src/interp/globals/math-function-metadata.test.ts (186 tests) 9335ms
+ ✓ packages/safe-js/src/modules/namespace-identity-mc-002-validation.test.ts (18 tests) 10691ms
+     ✓ matches all native-anchored fields with object/object registries  1168ms
+     ✓ matches all native-anchored fields with object/map registries  1048ms
+     ✓ matches all native-anchored fields with map/object registries  1051ms
+     ✓ matches all native-anchored fields with map/map registries  988ms
+     ✓ matches the complete original graph through the public memfs harness  1100ms
+     ✓ keeps aliases through three completed object-registry replays  1443ms
+     ✓ keeps aliases through three completed map-registry replays  1384ms
+     ✓ restores identity after a 25-step checkpoint with +0 calls  743ms
+     ✓ restores identity after a 900-step checkpoint with 1 calls  781ms
+     ✓ restores identity after a 1800-step checkpoint with 2 calls  825ms
+ ✓ packages/safe-js/src/interp/globals/collections-iteration-validation.test.ts (112 tests) 8292ms
+ ✓ packages/safe-js/src/run.cbi-001-validation.test.ts (29 tests) 8253ms
+     ✓ retains original registration after first  441ms
+     ✓ recaptures first to second to completed without consuming new deliveries as history  354ms
+     ✓ recaptures first to second to completed without consuming new deliveries as history  379ms
+     ✓ retains original registration after first  919ms
+     ✓ retains original registration after second  843ms
+     ✓ retains original registration after completed  820ms
+     ✓ recaptures first to second to completed without consuming new deliveries as history  1215ms
+     ✓ recaptures first to second to completed without consuming new deliveries as history  309ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-nested-yields.test.ts (70 tests) 8014ms
+   ✓ resumes suspension inside yield arguments: 'let count=0;function input(){count++;…' (async=false, operation='return')  312ms
+ ✓ packages/safe-js/src/interp/source-exceptions-validation.test.ts (98 tests) 7409ms
+     ✓ matches complete native output and tick log: '02-auto-dependency-closures'  399ms
+     ✓ matches complete native output and tick log: '03-maplimit-lexical-state'  411ms
+ ✓ packages/safe-js/src/interp/globals/foreign-newtarget-default.test.ts (135 tests) 7332ms
+   ✓ keeps foreign newTarget realm through replay: function Target(){}  361ms
+ ✓ packages/safe-js/src/run.retained-callback.test.ts (21 tests) 6859ms
+     ✓ restores at first without losing a new delivery  357ms
+     ✓ preserves new callback history through successive and completed checkpoints  351ms
+     ✓ preserves new callback history through successive and completed checkpoints  357ms
+     ✓ preserves new callback history through successive and completed checkpoints  308ms
+     ✓ delivers repeated events uninterrupted  316ms
+     ✓ restores at first without losing a new delivery  909ms
+     ✓ restores at second without losing a new delivery  849ms
+     ✓ preserves new callback history through successive and completed checkpoints  1061ms
+ ✓ packages/safe-js/src/interp/methods/regex-last-index.test.ts (287 tests) 6946ms
+ ✓ packages/safe-js/src/run.references.test.ts (99 tests) 5812ms
+     ✓ checks the const temporal dead zone at the right operation  338ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-closures.test.ts (24 tests) 6205ms
+   ✓ restores the originating realm for '()=>[]'  308ms
+   ✓ restores the originating realm for '(()=>{class C { value=[] };return ()=…'  338ms
+   ✓ restores the originating realm for '(()=>{class C { #value={};get(){retur…'  323ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  319ms
+   ✓ restores the originating realm for '(()=>{function* f(){while(true)yield …'  490ms
+ ✓ packages/safe-js/src/interp/methods/array-nested-reads.test.ts (202 tests) 6538ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-iteration-continuations.test.ts (50 tests) 6007ms
+ ✓ packages/safe-js/src/interp/methods/regex-metadata-order.independent.test.ts (169 tests) 6120ms
+ ✓ packages/safe-js/src/run.replay.stress.test.ts (65 tests) 5152ms
+     ✓ matches native random reaction ordering across 32 rounds  426ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-catch-iterator.test.ts (28 tests) 5026ms
+   ✓ restores catch binding and body: 'try{throw new Set([1,2])}catch([a]){t…' async=false  324ms
+ ✓ packages/safe-js/src/interp/methods/callback-this.test.ts (141 tests) 4190ms
+ ✓ packages/safe-js/test/ppr2-integration-adjudication.test.ts (19 tests) 4288ms
+     ✓ 'reduction': native trace, public/signal/completed checkpoints and recapture  525ms
+     ✓ 'callback': native trace, public/signal/completed checkpoints and recapture  876ms
+     ✓ 'retry-reissue': native trace, public/signal/completed checkpoints and recapture  718ms
+     ✓ 'retry-external': native trace, public/signal/completed checkpoints and recapture  599ms
+     ✓ 'co': native trace, public/signal/completed checkpoints and recapture  1273ms
+ ✓ packages/safe-js/src/interp/methods/string-receivers.test.ts (264 tests) 4285ms
+ ✓ packages/safe-js/src/named-host-policy.test.ts (46 tests) 3797ms
+ ✓ packages/safe-js/src/interp/iterator-result-creation-realm.test.ts (78 tests) 4229ms
+ ✓ packages/safe-js/src/run.promise-aliases.test.ts (19 tests) 3515ms
+     ✓ matches the full native workflow and restores both inputs (pending: false)  1188ms
+     ✓ matches the full native workflow and restores both inputs (pending: true)  1028ms
+ ✓ packages/safe-js/src/interp/methods/string.match-no-match.independent.test.ts (189 tests) 3647ms
+ ✓ packages/safe-js/src/snapshot/mixed-source-closures.test.ts (16 tests) 4185ms
+   ✓ preserves distinct function bodies and captured state from return ()=>1  316ms
+   ✓ preserves distinct function bodies and captured state from class C { #value=1;read(){return this.#value} };return ()=>new C().read()  312ms
+   ✓ preserves distinct function bodies and captured state from const c=Promise.withResolvers();const p=(async()=>{await c.promise;return 1})();return async()=>{c.resolve();return await p}  321ms
+   ✓ preserves distinct function bodies and captured state from async function* f(){yield 0;yield 1};const g=f();await g.next();return async()=>(await g.next()).value  321ms
+   ✓ preserves distinct function bodies and captured state from function* f(){try {yield 0}finally {yield 1}};const g=f();g.next();return ()=>g.next().value  340ms
+   ✓ preserves distinct function bodies and captured state from class Base {read(){return 1}}class Derived extends Base {read(){return super.read()}}return ()=>new Derived().read()  341ms
+   ✓ preserves distinct function bodies and captured state from const value=1;const read=eval('()=>value');return ()=>read()  319ms
+ ✓ packages/safe-js/src/lint/mutable-closures.stress.test.ts (25 tests) 3031ms
+       ✓ matches native JavaScript at width 24  990ms
+       ✓ matches native JavaScript at width 24  598ms
+       ✓ matches native JavaScript at width 24  361ms
+ ✓ packages/safe-js/src/interp/globals/uri-globals.test.ts (113 tests) 3042ms
+ ✓ packages/safe-js/src/run.control.test.ts (12 tests) 2738ms
+     ✓ allows a host turn to pause CPU-bound guest work  360ms
+     ✓ preserves an async function's synchronous prefix across a CPU pause  641ms
+     ✓ preserves an async function's synchronous prefix across a CPU pause  535ms
+   ✓ lets a parent pause and resume successive children independently  742ms
+ ✓ packages/safe-js/src/migrate.test.ts (31 tests) 2527ms
+ ✓ packages/safe-js/src/interp/methods/array-receivers.test.ts (199 tests) 3289ms
+ ✓ packages/safe-js/src/host-error-identity.test.ts (70 tests) 2809ms
+ ✓ packages/safe-js/src/interp/accessor-properties.test.ts (132 tests) 2729ms
+ ✓ packages/safe-js/src/run.promise-generic.test.ts (52 tests) 2837ms
+npm error Lifecycle script `test:unit` failed with error:
+npm error code 143
+npm error path /Users/kjopek/Workspace/poe-code/packages/safe-js
+npm error workspace @poe-code/safe-js@0.0.1
+npm error location /Users/kjopek/Workspace/poe-code/packages/safe-js
+npm error command failed
+npm error command sh -c cd ../.. && vitest run packages/safe-js/src packages/safe-js/test

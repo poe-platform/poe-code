@@ -18,6 +18,10 @@ export interface ParsedField {
   separated: boolean;
   unsupported: boolean;
   separator?: XmlElement;
+  instructions: XmlElement[];
+  unsafe: boolean;
+  endPath?: readonly number[];
+  instructionNested?: boolean;
 }
 export const fieldAttribute = (node: XmlElement, name: string) => node.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value;
 
@@ -42,13 +46,14 @@ export function parseFields(root: XmlElement, path: readonly number[], budget: D
   mark(root);
   const fail = () => { throw new UnsupportedEditError("Malformed field boundaries or instruction text."); };
   const begin = (node: XmlElement, path: readonly number[], simple: boolean, unsafe: boolean) => {
-    const field: ParsedField = { node, path, form: simple ? "simple" : "complex", instruction: simple ? fieldAttribute(node, "instr") ?? "" : "", result: "", kind: "", update: ["1", "true", "on"].includes(fieldAttribute(node, "dirty") ?? ""), locked: ["1", "true", "on"].includes(fieldAttribute(node, "fldLock") ?? ""), nested: [], text: [], separated: simple, unsupported: unsafe };
+    const field: ParsedField = { node, path, form: simple ? "simple" : "complex", instruction: simple ? fieldAttribute(node, "instr") ?? "" : "", result: "", kind: "", update: ["1", "true", "on"].includes(fieldAttribute(node, "dirty") ?? ""), locked: ["1", "true", "on"].includes(fieldAttribute(node, "fldLock") ?? ""), nested: [], text: [], instructions: [], unsafe, separated: simple, unsupported: unsafe };
     if (simple && fieldAttribute(node, "instr") === undefined) fail();
     for (const name of ["dirty", "fldLock"]) {
       const value = fieldAttribute(node, name);
-      if (value !== undefined && !["0", "1", "true", "false", "on", "off"].includes(value)) field.unsupported = true;
+      if (value !== undefined && !["0", "1", "true", "false", "on", "off"].includes(value)) field.unsupported = field.unsafe = true;
     }
     for (const parent of stack) if (parent.separated) parent.unsupported = true;
+    if (stack.at(-1) && !stack.at(-1)!.separated) stack.at(-1)!.instructionNested = true;
     stack.at(-1)?.nested.push(field);
     fields.push(field); stack.push(field);
     budget.charge("retainedBytes", 256 + path.length * 8);
@@ -94,13 +99,14 @@ export function parseFields(root: XmlElement, path: readonly number[], budget: D
         const field = stack.at(-1);
         if (!field || field.form !== "complex") fail();
         if (type === "separate") { if (field!.separated) fail(); field!.separated = true; field!.separator = node; }
-        else if (type === "end") { finish(stack.pop()!); }
+        else if (type === "end") { field!.endPath = path; finish(stack.pop()!); }
         else fail();
       }
     } else if (name === "instrText") {
       const field = stack.at(-1);
       if (!field || field.form !== "complex" || field.separated || node.children.length) fail();
       field!.instruction += node.text;
+      field!.instructions.push(node);
       budget.charge("retainedBytes", node.text.length * 2);
     } else if (["t", "tab", "br", "cr"].includes(name)) {
       const value = name === "t" ? node.text : name === "tab" ? "\t" : "\n";

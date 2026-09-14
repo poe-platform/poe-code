@@ -300,7 +300,7 @@ function validateEffects(operation: string, options: Record<string, unknown>, sc
     if (options.find === "") usage("Search text must not be empty.");
     if (Number(options.first === true) + Number(options.all === true) + Number(has("occurrence")) !== 1) usage("Choose exactly one text match cardinality.");
   }
-  if (operation.endsWith(".set") && !operation.startsWith("model.") && !Object.keys(schema.sdkFields).some(key => has(key) && !["name", "variant", "kind", "covered"].includes(key))) usage("Set requires an effect field.");
+  if (operation.endsWith(".set") && !operation.startsWith("model.") && !Object.keys(schema.sdkFields).some(key => has(key) && (!["name", "variant", "kind", "covered"].includes(key) || operation === "fields.set" && key === "kind"))) usage("Set requires an effect field.");
   if (has("style") && has("level")) usage("Style and heading level conflict.");
   if (options.superscript === true && options.subscript === true) usage("Conflicting baseline formatting.");
   if (operation === "tables.set" && has("text") && !has("cell") && !has("select")) usage("Table text requires a cell.");

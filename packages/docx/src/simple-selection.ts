@@ -8,7 +8,7 @@ import type { DocumentScope } from "./location-index.js";
 
 const resourceKinds: Readonly<Record<string, LocationKind>> = {
   lists: "paragraph", paragraphs: "paragraph", runs: "run", tables: "table", images: "image",
-  headers: "story", footers: "story", text: "paragraph", links: "link", bookmarks: "bookmark", fields: "field"
+  headers: "story", footers: "story", text: "paragraph", links: "link", bookmarks: "bookmark", fields: "field", toc: "field", captions: "field"
 };
 
 /** Resolve admitted input only; feature editors consume these revision-bound targets. */
@@ -18,10 +18,10 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   const { operation, options } = invocation;
   const resource = operation.split(".")[0]!;
   const inserting = operation.endsWith(".add") && !operation.startsWith("tables.rows.") && !operation.startsWith("tables.columns.");
-  const targetKind = inserting && ["images", "runs", "links", "bookmarks"].includes(resource) ? "paragraph"
+  const targetKind = inserting && ["images", "runs", "links", "bookmarks", "fields", "toc", "captions"].includes(resource) ? "paragraph"
     : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? "story"
     : operation === "text.get" && options.section === undefined ? "story" : resourceKinds[resource];
-  if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "bookmark" && ["links", "bookmarks"].includes(resource)) && !(key === "field" && resource === "fields")) || resource !== "links" && options.link !== undefined)
+  if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "bookmark" && ["links", "bookmarks"].includes(resource)) && !(key === "field" && ["fields", "toc", "captions"].includes(resource))) || resource !== "links" && options.link !== undefined)
     throw new UnsupportedEditError("This resource selector is not implemented.");
   const mutable = docxOperationSchemas[operation]!.mutates;
   const text = resource === "text";

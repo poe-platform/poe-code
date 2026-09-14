@@ -4,6 +4,8 @@ import { validateDocxInvocation, type DocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { dialectForNamespace } from "./dialect.js";
 import { fieldAttribute, parseFields, type ParsedField } from "./field-parser.js";
+import { editFieldInstruction } from "./field-instruction.js";
+import { addDocumentFields } from "./field-creation.js";
 import { addressKey, LocationIndex, type DocumentScope } from "./location-index.js";
 import { closedRecord, encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
@@ -18,10 +20,11 @@ import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 export interface FieldListData {
   readonly items: readonly { readonly location: Location<"field">; readonly form: "simple" | "complex"; readonly kind: string; readonly instruction: string; readonly result: string; readonly update: boolean; readonly locked: boolean; readonly nested: readonly Location<"field">[] }[];
 }
-export interface FieldEditRequest { readonly operation: "fields.set"; readonly options: DocxOperationArguments<"fields.set">; readonly input?: PublicationInput }
+export type FieldEditOperation = "fields.add" | "fields.set" | "toc.add" | "toc.set" | "captions.add" | "captions.set";
+export type FieldEditRequest = { [K in FieldEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[FieldEditOperation];
 export interface FieldEditData {
   readonly changed: boolean;
-  readonly changes: readonly { readonly kind: "replace"; readonly before: Location; readonly after: Location }[];
+  readonly changes: readonly { readonly kind: "replace" | "insert"; readonly before: Location; readonly after: Location }[];
   readonly output: { readonly path: string | null; readonly bytes: number; readonly sha256: string } | null;
   readonly dryRun: boolean;
 }
@@ -82,24 +85,41 @@ export async function inspectDocumentFields(input: Uint8Array, options: DocxOper
   return data;
 }
 
-/** Replace selected plain cached results, preserving instruction and formatting tokens. */
+/** Create or edit inert structures, keeping instruction edits separate from cached text. */
 export async function editDocumentFields(input: Uint8Array, request: FieldEditRequest, context: PublicationContext): Promise<FieldEditData> {
   closedRecord(request, ["operation", "options", "input"]);
-  if (request.operation !== "fields.set") throw new DocxUsageError("Expected fields.set.");
-  const settings = archiveSettings(context), options = request.options;
-  const invocation = validateDocxInvocation({ operation: request.operation, inputs: [request.input?.path ?? "document"], options }, settings.budget);
+  if (!["fields.add", "fields.set", "toc.add", "toc.set", "captions.add", "captions.set"].includes(request.operation)) throw new DocxUsageError("Expected a field editing operation.");
+  const settings = archiveSettings(context);
+  const invocation = validateDocxInvocation({ operation: request.operation, inputs: [request.input?.path ?? "document"], options: request.options }, settings.budget);
+  if (request.operation.endsWith(".add")) return addDocumentFields(input, request, invocation, context);
+  const options = { ...request.options, ...("text" in request.options ? { result: request.options.text } : {}) } as DocxOperationArguments<"fields.set">;
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(i => [i.name, i.value])));
   const { archive, editors, items, all, main } = await openFields(input, invocation, { ...settings, budget });
   assertDocumentEditable(archive, { ...settings, budget });
   for (const { field } of items) {
-    if (!["MERGEFIELD", "PAGE", "NUMPAGES", "REF", "PAGEREF", "SEQ", "TOC"].includes(field.kind) || field.unsupported || !field.separated)
+    if (!["MERGEFIELD", "PAGE", "NUMPAGES", "REF", "PAGEREF", "SEQ", "TOC"].includes(field.kind) || field.unsafe || options.result !== undefined && field.unsupported || !field.separated)
       throw new UnsupportedEditError("Selected field result cannot be edited while preserving its structure.");
+    if (request.operation === "toc.set" && field.kind !== "TOC" || request.operation === "captions.set" && field.kind !== "SEQ") throw new UnsupportedEditError("Selected field has the wrong kind.");
     if (options.result !== undefined && [...options.result].some(c => "\t\r\n".includes(c)) && field.text.some(node => node.content.some(part => part.kind !== "text" && part.kind !== "cdata")))
       throw new UnsupportedEditError("Structural field text conversion cannot discard embedded XML content.");
   }
-  const changed = items.filter(({ field }) => options.result !== undefined && options.result !== field.result || options.update !== undefined && options.update !== field.update);
+  const instructions = new Map<ParsedField, string>();
+  for (const { field } of items) if (options.kind !== undefined || options.target !== undefined || options.levels !== undefined) {
+    if (field.instructionNested) throw new UnsupportedEditError("Nested instruction edits are unsupported.");
+    instructions.set(field, editFieldInstruction(field.instruction, options));
+  }
+  const changed = items.filter(({ field }) => options.result !== undefined && options.result !== field.result || options.update !== undefined && options.update !== field.update || instructions.has(field) && instructions.get(field) !== field.instruction);
   for (const { field, editor } of changed) {
     await budget.checkpoint();
+    const instruction = instructions.get(field);
+    if (instruction !== undefined && instruction !== field.instruction) {
+      if (field.form === "simple") editor.setAttribute(field.node, { namespace: field.node.namespace, localName: "instr" }, instruction);
+      else field.instructions.forEach((node, i) => {
+        const parts = node.content.filter(part => part.kind === "text" || part.kind === "cdata");
+        if (!parts.length) editor.insertChildren(node, xmlValue(i === 0 ? instruction : ""));
+        else parts.forEach((part, j) => editor.setText(part, i === 0 && j === 0 ? instruction : ""));
+      });
+    }
     if (options.result !== undefined && options.result !== field.result) {
       if (!field.text.length) {
         if (field.form === "simple") editor.insertChildren(field.node, paragraphTextRun(field.node.namespace, options.result));

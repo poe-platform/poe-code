@@ -39,7 +39,7 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (resource === "tables" && pieces.length === 3 && !has("table") && !token)
     reject("Row and column operations require a table.");
   if (operation === "tables.split" && !has("cell") && !token) reject("Table split requires a cell.");
-  if (action === "add" && ["runs", "links", "fields", "notes", "images", "equations"].includes(resource) && !has("paragraph") && !token)
+  if (action === "add" && ["runs", "links", "fields", "toc", "captions", "notes", "images", "equations"].includes(resource) && !has("paragraph") && !token)
     reject("Inline insertion requires a paragraph.");
   if (operation === "equations.replace" && !token) reject("Equation replacement requires a location token.");
   if (["bookmarks.add", "comments.add", "revisions.add"].includes(operation)) {

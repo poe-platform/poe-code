@@ -59,7 +59,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let writingDiagnostics = false;
       let output: Uint8Array;
       let exitCode = 0;
-      const fieldOperation = invocation.operation === "fields.set";
+      const fieldOperation = ["fields.add", "fields.set", "toc.add", "toc.set", "captions.add", "captions.set"].includes(invocation.operation);
       const bookmarkOperation = ["bookmarks.add", "bookmarks.set", "bookmarks.remove"].includes(invocation.operation);
       const linkOperation = ["links.add", "links.set", "links.remove"].includes(invocation.operation);
       const tableOperation = ["tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.merge", "tables.split"].includes(invocation.operation);

@@ -30,10 +30,23 @@ it("advertises only bounded field listing and result editing", () => {
   const discovery = (...args: string[]) => docx.getDocxDiscovery(docx.parseDocxArguments(args.map(s => new TextEncoder().encode(s))))!;
   expect(discovery("schema", "fields", "list").data).toMatchObject({ operations: [{ id: "fields.list", support: "read" }] });
   expect(discovery("schema", "fields", "set").data).toMatchObject({ operations: [{ id: "fields.set", support: "edit" }] });
-  expect(discovery("schema", "fields", "add").data).toMatchObject({ operations: [{ id: "fields.add", support: "reject" }] });
+  expect(discovery("schema", "fields", "add").data).toMatchObject({ operations: [{ id: "fields.add", support: "edit" }] });
+  expect(discovery("schema", "fields", "add").data).toMatchObject({ operations: [{ result: { oneOf: [{ properties: { data: { properties: { changes: { items: { properties: { kind: { enum: ["insert", "replace"] } } } } } } } }, {}] } }] });
   expect(discovery("help", "fields", "set").human).toContain("Never execute");
   expect(discovery("help", "fields", "set").human).not.toContain("--run ");
   expect(discovery("schema", "fields", "list").data).toMatchObject({ operations: [{ input: { properties: { field: { type: "integer", minimum: 1 } } } }] });
+});
+it.each([
+  ["fields", "add", "--kind", "PAGE", "--result", "4", "--update", "false"],
+  ["toc", "add", "--levels", "2-4", "--title", "Contents"],
+  ["captions", "add", "--label", "Figure", "--text", "River"],
+  ["captions", "add", "--label", "Plate A", "--text", "River", "--static", "true"]
+])("publishes typed field structure flags through the command engine: %j", async (...args) => {
+  const bytes = await textFixture(`<w:p>${run("Start")}</w:p>`);
+  const result = await command(bytes, [...args, "input.docx", "--paragraph", "1", "--output", "-"]);
+  expect(result.exitCode, result.stderr).toBe(0);
+  const fields = await docx.inspectDocumentFields(result.stdout, {}, textContext);
+  expect(fields.items).toHaveLength(args.includes("--static") ? 0 : 1);
 });
 it.each(["--run", "--image", "--link", "--bookmark", "--control", "--revision", "--shape"])("rejects inapplicable field selector %s", flag => {
   expect(() => docx.parseDocxArguments(["fields", "list", "input.docx", flag, "1"].map(s => new TextEncoder().encode(s)))).toThrow();
@@ -42,4 +55,6 @@ it.each(["--run", "--image", "--link", "--bookmark", "--control", "--revision", 
 it("excludes inapplicable selectors from both typed field list surfaces", () => {
   expectTypeOf<docx.DocxOperationArguments<"fields.list">>().not.toHaveProperty("bookmark");
   expectTypeOf<docx.DocxBatchArgumentMap["fields.list"]>().not.toHaveProperty("bookmark");
+  expectTypeOf<docx.DocxBatchArgumentMap["fields.add"]>().not.toHaveProperty("output");
+  expectTypeOf<docx.DocxBatchArgumentMap["toc.set"]>().not.toHaveProperty("inPlace");
 });

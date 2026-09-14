@@ -85,6 +85,7 @@ export {
 export { docxValueSchema, getDocxOperationSchema, type DocxJsonSchema } from "./operation-json-schema.js";
 export type {
   DocxOperationArguments, DocxOperationArgumentMap, DocxValidatedOperation,
+  DocxFieldKind, DocxFieldLevels, DocxFieldSelection,
   DocxBatchArgumentMap, DocxBatchItemMap, DocxBatchItem, DocxBatchOperationId,
   DocxBinaryInput, DocxVfsPath, DocxLength, DocxDirectLength, DocxModelHandle,
   DocxBindingRecord, DocxRunInput, DocxBlock, DocxContent, DocxTransportContext,
@@ -130,4 +131,4 @@ export { editDocumentTables, type TableEditRequest, type TableEditData, type Tab
 export type { DocxTableInput, DocxTableFormat, DocxTableBorders, DocxTableRowOptions, DocxCellInput, DocxCellMargins } from "./operation-types.js";
 export { inspectDocumentBookmarks, editDocumentBookmarks, type BookmarkListData, type BookmarkEditData, type BookmarkEditRequest, type BookmarkEditOperation } from "./bookmarks.js";
 
-export { inspectDocumentFields, editDocumentFields, type FieldListData, type FieldEditRequest, type FieldEditData } from "./fields.js";
+export { inspectDocumentFields, editDocumentFields, type FieldListData, type FieldEditRequest, type FieldEditData, type FieldEditOperation } from "./fields.js";

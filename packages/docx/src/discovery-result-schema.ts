@@ -66,13 +66,32 @@ const textData = object({ text: string, view: { enum: ["final", "original", "all
     formatting: object({ bold: nullableBoolean, italic: nullableBoolean, rtl: nullableBoolean, hidden: nullableBoolean, style: nullableString,
       language: { type: "object", additionalProperties: true }, fonts: { type: "object", additionalProperties: true },
       paragraph: object({ style: nullableString, bidi: nullableBoolean }) }) })) });
+const styleMutationData = object({ ...mutationData.properties, changes: array(object({ kind: { const: "style" }, id: string })) });
+const styleNumber: DocxJsonSchema = { oneOf: [{ type: "number" }, { type: "null" }] };
+const styleProperties = object({ bold: nullableBoolean, italic: nullableBoolean, font: nullableString, size: styleNumber, color: nullableString,
+  outlineLevel: styleNumber, keepWithNext: nullableBoolean, spaceBefore: styleNumber, spaceAfter: styleNumber,
+  numbering: { oneOf: [object({ id: nullableString, level: styleNumber }), { type: "null" }] } });
+const styleInspectionData = object({
+  styles: array(object({ id: string, name: string, type: string, builtin: boolean, base: nullableString, next: nullableString,
+    linkedStyle: nullableString, defaultForType: boolean, priority: styleNumber, hidden: boolean, locked: boolean, quickStyle: boolean,
+    unhideWhenUsed: boolean, direct: styleProperties, effective: { oneOf: [styleProperties, { type: "null" }] },
+    runXml: nullableString, paragraphXml: nullableString, tableXml: nullableString })),
+  defaults: object({ run: styleProperties, paragraph: styleProperties }), latentXml: nullableString,
+  diagnostics: array(object({ code: string, part: string, location: string, message: string }))
+});
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
+  ["styles.list", "Inspect style definitions, inherited properties, document defaults and relationship diagnostics.", ["F14"], styleInspectionData],
+  ["styles.get", "Inspect one style by exact name without creating missing definitions.", ["F14"], styleInspectionData],
+  ["styles.defaults.get", "Inspect document run and paragraph defaults without mutation.", ["F14"], styleInspectionData],
+  ["styles.add", "Create a paragraph, character or table style with a collision-free ID; matching names are never overwritten.", ["F14"], styleMutationData],
+  ["styles.set", "Edit selected style properties and relationships; null removes direct formatting and omissions preserve metadata.", ["F14"], styleMutationData],
+  ["styles.defaults.set", "Edit document run and paragraph defaults; null removes direct values and omissions preserve metadata.", ["F14"], styleMutationData],
   ["paragraphs.set", "Set direct paragraph properties; null resets inheritance. Text replaces run content and formatting while retaining paragraph properties and annotation boundaries. Tabs, borders and shading accept --tab-stops-json, --borders-json and --shading-json. Model batches remain pending.", ["F02", "F04", "F13"], paragraphEditData],
-  ["paragraphs.add", "Append a block to a story or cell; a paragraph anchor inserts after, or --before. A collapsed paragraph range splits at its Unicode scalar caret and retains the suffix and section properties. Heading creation remains pending.", ["F02", "F04", "F13"], paragraphEditData],
+  ["paragraphs.add", "Append a block to a story or cell; a paragraph anchor inserts after, or --before. A collapsed paragraph range splits at its Unicode scalar caret and retains the suffix and section properties. Level 0 creates Title; levels 1-9 create headings while preserving conflicting user style definitions. An explicit style and level cannot be combined.", ["F02", "F04", "F13", "F15"], paragraphEditData],
   ["runs.add", "Append text and an optional --break line|page|column inside a paragraph. A collapsed paragraph range inserts inline without dropping suffix text or formatting.", ["F02", "F04", "F13"], paragraphEditData],
   ["runs.set", "Format selected runs or a fingerprinted run/paragraph scalar range. Omission leaves direct properties unchanged; null removes them. Explicit false/default overrides inheritance. Preserve complex-script and CJK properties. Whole-text assignment and model batches remain pending.", ["F02", "F04", "F09", "F12"], runFormatData],
   ["text.replace", "Replace literal paragraph text across formatting runs; exactly one of --first, --all or --occurrence is required. Field, object, revision and container boundaries stop matches. Inherit the first matched run; --bold/--italic explicitly override those properties.", ["F02", "F04", "F05", "F10"], mutationData],
-  ["create", "Create an original DOCX/DOTX or append typed blocks to an admitted template; explicit dialect and content settings.", ["F01", "F02", "F03", "F11"], mutationData],
+  ["create", "Create an original DOCX/DOTX or append typed blocks to an admitted template; explicit dialect and content settings.", ["F01", "F02", "F03", "F11", "F15"], mutationData],
   ["inspect", "Inventory package parts, metadata and document structure without rendering or linked-resource access.", ["F06"], inspectionData],
   ["validate", "Validate document bytes against the partial core-v1 profile without repairs.", ["F49"], validationData],
   ["text.get", "Extract logical story text with locations, direct formatting and revision views.", ["F08", "F09"], textData],
@@ -80,5 +99,5 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["xml.set", "Replace one complete XML part with validated bytes; preserve opaque content and unrelated parts.", ["F04", "F07"], mutationData]
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
-  warnings: array(diagnostic), errors: empty, affected: ["text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
+  warnings: array(diagnostic), errors: empty, affected: ["styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
 }), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: { type: "object" } }, affected: { const: 0 }, locations: empty })] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;

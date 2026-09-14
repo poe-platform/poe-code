@@ -70,6 +70,14 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
   checkLengths(options);
   const has = (name: string) => options[name] !== undefined;
   const reject = (message: string): never => { throw new DocxUsageError(message); };
+  if (operation.startsWith("styles.")) {
+    for (const key of ["name", "base", "next", "linkedStyle"]) {
+      const value = options[key];
+      if (value !== undefined && value !== null && (typeof value !== "string" || !value || [...value].some(c => c.charCodeAt(0) < 32))) reject("Style references require nonempty names without control characters.");
+    }
+    if (has("priority") && Number(options.priority) < 0) reject("Style priority must be nonnegative.");
+    if (has("color") && options.color !== null && (typeof options.color !== "string" || options.color.length !== 6 || [...options.color].some(c => !"0123456789abcdefABCDEF".includes(c)))) reject("Style color requires six hexadecimal digits.");
+  }
   if (operation === "paragraphs.set") {
     const paragraph = options as DocxOperationArguments<"paragraphs.set">;
     if (paragraph.lineSpacing !== undefined && paragraph.lineSpacingRule !== undefined && !(paragraph.lineSpacing === null && paragraph.lineSpacingRule === null)) {
@@ -139,7 +147,7 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
     if (value !== undefined && (!(value >= 0) || Number((options[name] as { value: number }).value) < 0)) reject("Spacing and margins must be nonnegative.");
   }
   if (["runs.set", "runs.fonts.set"].includes(operation) && has("language") && options.language !== null && !languageTag(options.language)) reject("Font language must be a nonempty BCP-47 tag.");
-  if (operation === "runs.set") {
+  if (operation === "runs.set" || ["styles.add", "styles.set", "styles.defaults.set"].includes(operation)) {
     for (const key of ["underline", "highlight"]) if ((options[key] as { name?: string } | null)?.name === "INHERITED") reject("Use null for inherited formatting.");
     const size = magnitude(options.size);
     if (size !== undefined && (Math.round(size / 6350) < 1 || Math.round(size / 6350) > 3276)) reject("Font size must round to 1 through 3276 half-points.");

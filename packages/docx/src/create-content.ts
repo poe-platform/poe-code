@@ -50,7 +50,7 @@ export function pageGeometry(page: DocxContent["page"], existing?: XmlElement, w
 }
 
 export function renderContent(content: DocxContent, w: string, budget: DocumentBudget, stylesRoot?: XmlElement, containerWidth = 9360) {
-  const styles = new Map<string, { id: string; type: string; outline?: string | undefined }>();
+  const styles = new Map<string, { id: string; type: string; outline?: string | undefined; builtin?: boolean }>();
   const ids = new Set<string>();
   for (const style of stylesRoot?.children ?? []) {
     if (style.namespace !== w || style.localName !== "style") continue;
@@ -63,7 +63,7 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
       if (styles.has(value)) throw new InvalidValueError("Ambiguous style name in template.");
       const properties = style.children.find(child => child.namespace === w && child.localName === "pPr");
       const outline = properties?.children.find(child => child.namespace === w && child.localName === "outlineLvl");
-      styles.set(value, { id, type, outline: outline ? attribute(outline, "val") : undefined });
+      styles.set(value, { id, type, outline: outline ? attribute(outline, "val") : undefined, builtin: !["1", "true", "on"].includes(attribute(style, "customStyle") ?? "") });
     }
   }
   const added: string[] = [];
@@ -77,7 +77,7 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     const formatting = (style.font === undefined ? "" : `<w:rFonts w:ascii="${xmlValue(style.font)}" w:hAnsi="${xmlValue(style.font)}"/>`) +
       (size === undefined ? "" : `<w:sz w:val="${size}"/>`) +
       (style.bold === undefined ? "" : `<w:b w:val="${Number(style.bold)}"/>`) + (style.italic === undefined ? "" : `<w:i w:val="${Number(style.italic)}"/>`);
-    added.push(`<w:style xmlns:w="${w}" w:type="${style.type}" w:styleId="${id}"><w:name w:val="${xmlValue(style.name)}"/>${formatting ? `<w:rPr>${formatting}</w:rPr>` : ""}</w:style>`);
+    added.push(`<w:style xmlns:w="${w}" w:type="${style.type}" w:customStyle="1" w:styleId="${id}"><w:name w:val="${xmlValue(style.name)}"/>${formatting ? `<w:rPr>${formatting}</w:rPr>` : ""}</w:style>`);
   }
   const resolve = (name: string, type: string): string => {
     const style = styles.get(name);
@@ -88,13 +88,21 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
   const heading = (level: number) => {
     if (headings.has(level)) return headings.get(level)!;
     const name = level === 0 ? "Title" : `Heading ${level}`;
-    const found = styles.get(name);
-    if (found?.type === "paragraph" && (level === 0 || found.outline === String(level - 1))) { headings.set(level, found.id); return found.id; }
-    const id = allocate();
+    const stem = level === 0 ? "Title" : `Heading${level}`;
+    const found = [...styles.entries()].find(([label, style]) => {
+      const suffix = style.id.slice(stem.length);
+      const identity = style.id === stem || style.id.startsWith(stem) && suffix.length > 0 && [...suffix].every(c => c >= "0" && c <= "9");
+      return identity && style.builtin && style.type === "paragraph" &&
+        (label === name || label.startsWith(name + " ")) && (level === 0 || style.outline === String(level - 1));
+    })?.[1];
+    if (found) { headings.set(level, found.id); return found.id; }
+    let id = stem;
+    for (let n = 1; ids.has(id); n++) id = `${stem}${n}`;
+    ids.add(id);
     let label = name;
     for (let n = 1; styles.has(label); n++) label = `${name} ${n}`;
-    styles.set(label, { id, type: "paragraph" });
-    added.push(`<w:style xmlns:w="${w}" w:type="paragraph" w:styleId="${id}"><w:name w:val="${label}"/>${level ? `<w:pPr><w:outlineLvl w:val="${level - 1}"/></w:pPr>` : ""}</w:style>`);
+    styles.set(label, { id, type: "paragraph", builtin: true, outline: level ? String(level - 1) : undefined });
+    added.push(`<w:style xmlns:w="${w}" w:type="paragraph" w:customStyle="0" w:styleId="${id}"><w:name w:val="${label}"/><w:qFormat/>${level ? `<w:pPr><w:outlineLvl w:val="${level - 1}"/></w:pPr>` : ""}</w:style>`);
     headings.set(level, id); return id;
   };
   const run = (input: DocxRunInput): string => {

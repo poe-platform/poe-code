@@ -1,7 +1,7 @@
 import { archiveSettings, InvalidValueError } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation } from "./command.js";
-import { xmlValue } from "./create-content.js";
+import { renderContent, xmlValue } from "./create-content.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
 import { addressKey, LocationIndex } from "./location-index.js";
 import { closedRecord, encodeLocation, type Location } from "./location-token.js";
@@ -16,6 +16,7 @@ import { assertDocumentEditable, publishDocumentArchive, type PublicationContext
 import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { UnsupportedEditError } from "./xml-write.js";
+import { addDocumentStylesPart } from "./styles-part.js";
 
 export type ParagraphEditOperation = "paragraphs.set" | "paragraphs.add" | "runs.add";
 export type ParagraphEditRequest = { [K in ParagraphEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[ParagraphEditOperation];
@@ -36,12 +37,11 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
   const document = await openDocumentLocations(input, { ...settings, budget });
   const selected = resolveDocxSelection(document, invocation);
-  const archive = document.snapshot();
+  let archive = document.snapshot();
   assertDocumentEditable(archive, { ...settings, budget });
-  const editor = new DocumentArchiveEditor(archive, {}, undefined, budget);
   const body = document.list("story", { scope: "body" })[0]!;
   const main = body.value.part.slice(1);
-  const dialect = dialectForNamespace(editor.xml(main).root.namespace)!;
+  const dialect = dialectForNamespace(parseDocumentXml(archive.members.find(m => m.name === main)!.bytes, {}, budget).root.namespace)!;
   const w = documentDialects[dialect].w;
   const graph = new DocumentPackage(archive, settings.limits, budget);
   const stylesEdge = graph.relationships("/" + main).find(edge => edge.reltype === documentDialects[dialect].r + "/styles");
@@ -53,7 +53,23 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     styleId = found[0]!.attributes.find(a => a.namespace === w && a.localName === "styleId")?.value;
     if (!styleId) throw new InvalidValueError("Selected style has no identifier.");
   }
-  if (opts.level !== undefined) throw new UnsupportedEditError("Heading-style creation is a separate pending operation subset.");
+  let headingStyles = "";
+  if (opts.level !== undefined) {
+    if (opts.style !== undefined) throw new DocxUsageError("Heading level and style cannot be combined.");
+    const rendered = renderContent({ version: 1, blocks: [{ kind: "paragraph", level: opts.level }] }, w, budget, styles);
+    const paragraph = parseDocumentXml(new TextEncoder().encode(rendered.body), {}, budget).root;
+    styleId = paragraph.children[0]!.children[0]!.attributes.find(a => a.namespace === w && a.localName === "val")!.value;
+    headingStyles = rendered.styles;
+    if (headingStyles && !stylesEdge) {
+      archive = addDocumentStylesPart(archive, { package: graph, mainPart: main, dialect }, headingStyles, budget).archive;
+      headingStyles = "";
+    }
+  }
+  const editor = new DocumentArchiveEditor(archive, {}, undefined, budget);
+  if (headingStyles) {
+    const xml = editor.xml(stylesEdge!.target_part.name);
+    xml.insertChildren(xml.root, headingStyles);
+  }
   const updates: { before: Location; path: readonly number[]; kind: "format" | "replace" | "insert" }[] = [];
   for (const before of selected) {
     budget.charge("work", 1);

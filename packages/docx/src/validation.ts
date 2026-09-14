@@ -210,6 +210,40 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   const completedStyles = new Set<Node>();
   for (const [key, entries] of definitions) {
     if (!key.endsWith(":style")) continue;
+    const defaults = new Set<string>();
+    for (const style of entries.values()) {
+      const type = attr(style, "type") ?? "";
+      if (["1", "true", "on"].includes(attr(style, "default") ?? "0")) {
+        if (defaults.has(type)) issue(style, "style-default", "A style type has multiple defaults.");
+        defaults.add(type);
+      }
+      for (const [tag, code] of [["basedOn", "style-base-type"], ["next", "style-next-type"], ["link", "style-link-type"]]) {
+        const reference = children(style, tag!)[0];
+        const target = reference && entries.get(attr(reference, "val") ?? "");
+        if (!target) continue;
+        const targetType = attr(target, "type");
+        const compatible = tag === "link" ? type === "paragraph" && targetType === "character" || type === "character" && targetType === "paragraph"
+          : tag === "next" ? type === "paragraph" && targetType === "paragraph" : type === targetType;
+        if (!compatible) issue(reference!, code!, "Style relationship has incompatible types.");
+      }
+    }
+    const completedLinks = new Set<Node>();
+    for (const start of entries.values()) {
+      const path = new Map<Node, number>();
+      let current: Node | undefined = start;
+      while (current && !completedLinks.has(current)) {
+        budget.charge("work", 1);
+        const previous = path.get(current);
+        if (previous !== undefined) {
+          if (path.size - previous !== 2) issue(current, "style-link-cycle", "Linked styles contain a cycle beyond a reciprocal pair.");
+          break;
+        }
+        path.set(current, path.size);
+        const link: Node | undefined = children(current, "link")[0];
+        current = link ? entries.get(attr(link, "val") ?? "") : undefined;
+      }
+      for (const node of path.keys()) completedLinks.add(node);
+    }
     for (const start of entries.values()) {
       const chain = new Set<Node>();
       let current: Node | undefined = start;

@@ -142,3 +142,18 @@ it.each([12.24, 12.25, 12.26])("rounds a %s point style directly from EMUs to ha
     expect(sizes.map(node => node.attributes[`{${w}}val`])).toEqual([value < 12.25 ? "24" : "25"]);
   }
 });
+
+it("keeps an original conflicting title and outline style and reuses generated heading identities", async () => {
+  const template = await textFixture(paragraph("Original cover"), { styles: { kind: "styles", xml: '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:latentStyles w:count="99"/><w:style w:type="paragraph" w:customStyle="1" w:styleId="Style1"><w:name w:val="Title"/><w:rPr><w:i/></w:rPr></w:style><w:style w:type="paragraph" w:customStyle="1" w:styleId="Style2"><w:name w:val="Heading 1"/><w:pPr><w:outlineLvl w:val="0"/></w:pPr></w:style></w:styles>' } });
+  const headings = { version: 1, blocks: Array.from({ length: 10 }, (_, level) => ({ kind: "paragraph" as const, level, text: `Coast ${level}` })) } as const;
+  const first = await bytes({ template, content: headings });
+  const second = await bytes({ template: first, content: headings });
+  const styles = (input: Uint8Array) => new TextDecoder().decode(readPackage(input).get("word/styles.xml"));
+  expect(styles(first)).toContain(styles(template).slice(styles(template).indexOf('<w:latentStyles'), -11));
+  const main = sdk.parseDocumentXml(readPackage(first).get("word/document.xml")!).root;
+  const ids = main.children[0]!.children.flatMap(p => p.children.filter(c => c.localName === "pPr").flatMap(p => p.children.filter(c => c.localName === "pStyle").map(s => s.attributes.find(a => a.localName === "val")!.value)));
+  expect(ids).toHaveLength(10);
+  expect(ids).not.toContain("Style1"); expect(ids).not.toContain("Style2");
+  expect(styles(second)).toBe(styles(first));
+  assertPackageLinks(readPackage(second)); assertWordReferences(readPackage(second));
+});

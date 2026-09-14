@@ -244,6 +244,8 @@ export type DocxOperationId =
   | "runs.add"
   | "runs.set"
   | "runs.remove"
+  | "styles.defaults.get"
+  | "styles.defaults.set"
   | "styles.list"
   | "sections.list"
   | "headers.list"

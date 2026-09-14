@@ -12,6 +12,12 @@ coverage. Exact paragraph, tab, break and unit mappings, D23 handle drift and th
 unchanged pending model/inherited/enum inventory statuses are recorded in the
 [bounded task plan](../plans/docx-paragraph-editing.md#standards-and-exact-languagesecurity-mappings).
 
+The [style and heading utility milestone](styles.md) adds named definition/default
+operations and heading levels 0–9. Its [bounded task record](../plans/docx-styles.md)
+reconciles D05–D08 and D22, additive command routes and exact JS/security mappings.
+Live styles, inherited members, underscore-prefixed types, latent mutation and
+enum/model inventory statuses remain pending; utility tests do not promote them.
+
 ## Sources and baseline
 
 - [Published API and user guides](https://python-docx.readthedocs.io/en/latest/).

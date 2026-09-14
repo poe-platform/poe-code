@@ -9,7 +9,7 @@ import { closedRecord } from "./location-token.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationOptions, type PublicationContext } from "./publication.js";
 import { pageGeometry, renderContent, renderTheme, xmlValue } from "./create-content.js";
-import { relativePartTarget } from "./part-uri.js";
+import { addDocumentStylesPart } from "./styles-part.js";
 
 export interface DocumentCreateOptions {
   readonly kind?: "docx" | "dotx";
@@ -116,22 +116,7 @@ async function populateTemplate(template: AdmittedDocumentArchive, content: Docx
   if (rendered.body) editor.insertChildren(body, rendered.body, section);
   if (rendered.styles && stylesEditor) stylesEditor.insertChildren(stylesEditor.root, rendered.styles);
   const archive = { ...template, members: template.members.map(member => member === main ? { ...member, bytes: editor.serialize() } : member === stylesMember && rendered.styles ? { ...member, bytes: stylesEditor!.serialize() } : member) };
-  if (rendered.styles && !stylesEditor) {
-    const name = template.package.allocatePartName("/word/styles", ".xml");
-    const types = archive.members.find(member => member.name === "[Content_Types].xml")!;
-    const typesEditor = new DocumentXmlEditor(types.bytes, {}, undefined, budget);
-    typesEditor.insertChildren(typesEditor.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(name)}" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>`);
-    const split = main.name.lastIndexOf("/");
-    const relationshipsName = main.name.slice(0, split + 1) + "_rels/" + main.name.slice(split + 1) + ".rels";
-    const relationships = archive.members.find(member => member.name === relationshipsName);
-    const namespace = "http://schemas.openxmlformats.org/package/2006/relationships";
-    const relEditor = new DocumentXmlEditor(relationships?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${namespace}"/>`), {}, undefined, budget);
-    const id = template.package.allocateRelationshipId("/" + main.name);
-    relEditor.insertChildren(relEditor.root, `<Relationship xmlns="${namespace}" Id="${id}" Type="${r}/styles" Target="${xmlValue(relativePartTarget("/" + main.name, name))}"/>`);
-    archive.members = archive.members.map(member => member === types ? { ...member, bytes: typesEditor.serialize() } : member === relationships ? { ...member, bytes: relEditor.serialize() } : member);
-    if (!relationships) archive.members.push({ name: relationshipsName, bytes: relEditor.serialize(), directory: false, modified: new Date("1980-01-01T00:00:00Z") });
-    archive.members.push({ name: name.slice(1), bytes: new TextEncoder().encode(`<w:styles xmlns:w="${w}">${rendered.styles}</w:styles>`), directory: false, modified: new Date("1980-01-01T00:00:00Z") });
-  }
+  if (rendered.styles && !stylesEditor) return admitCreated(addDocumentStylesPart(archive, template, rendered.styles, budget).archive, context);
   return admitCreated(archive, context);
 }
 

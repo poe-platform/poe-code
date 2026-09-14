@@ -222,3 +222,16 @@ it("formats all paragraphs in a nested cell and leaves body neighbors intact", a
   expect(result.xml).toContain(paragraph("Outside"));
   expect(result.text.text).toContain("Inner A\nInner B");
 });
+
+it.each([0, 1, 9])("adds heading level %s through paragraph edits with a materialized reusable style", async level => {
+  const result = await edit(paragraph("Existing coast"), "paragraphs.add", { paragraph: 1, level, text: "Survey heading" });
+  const info = await docx.inspectDocumentStyles(result.bytes, {}, textContext);
+  expect(info.styles).toHaveLength(1);
+  expect(info.styles[0]).toMatchObject({ name: level === 0 ? "Title" : `Heading ${level}`, type: "paragraph", direct: { outlineLevel: level === 0 ? null : level - 1 } });
+  expect(result.text.text).toContain("Survey heading");
+  const volume = Volume.fromJSON({ "/out": "" });
+  await docx.editDocumentParagraphs(result.bytes, { operation: "paragraphs.add", options: { paragraph: 1, level, text: "Second heading", output: "-" } }, {
+    ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }
+  });
+  expect((await docx.inspectDocumentStyles(new Uint8Array(volume.readFileSync("/out") as Buffer), {}, textContext)).styles).toHaveLength(1);
+});

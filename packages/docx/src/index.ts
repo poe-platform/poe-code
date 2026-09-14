@@ -107,3 +107,5 @@ export { editDocumentParagraphs, type ParagraphEditRequest, type ParagraphEditOp
 export type { DocxTabStop, DocxParagraphBorder, DocxParagraphBorders, DocxParagraphShading } from "./operation-types.js";
 export type { TextData, TextView, TextSegment, TextFormatting } from "./text-traversal.js";
 export { getDocumentXml, replaceDocumentXmlPart, type XmlOptions, type XmlData, type XmlMutationData } from "./xml-parts.js";
+export { inspectDocumentStyles, editDocumentStyles, type StyleEditOptions, type StyleInspectionOptions, type StyleInfo, type StyleInspectionData, type StyleMutationData } from "./styles.js";
+export type { StyleProperties } from "./style-properties.js";

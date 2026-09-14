@@ -2695,3 +2695,14 @@ Fixed-offset support on Node18/20, nonboolean yes aliases, reversed Temporal ran
 Delivery is isolated on fetched remote main `2976916aafe9967d14b50593a6a74894978f2cb3`; unrelated shared working/index changes are preserved. The remote-based candidate's selected build, eight built-import checks, scoped ESLint, and post-build **672/672 Intl/snapshot/SDK tests** pass. Its smaller test count excludes inherited untracked drafts and includes the five new regressions. The first pre-build attempt failed loading generated Intl data and is not reported as a pass.
 
 Local commit, verified remote-main delivery and root/scoped publication are pending in this candidate report; terminal receipts will be recorded separately. No issue was explicitly associated.
+
+
+## qualify-shared-memory — callback export capture rejection (2026-09-14)
+
+**Acceptance remains OPEN.** [Reproduction, repair and disposition](qualify-shared-memory/callback-export-rejection/qualification.md) starts from fetched remote main `da2ff844e7e72e96fc74e059e896822b0e920a86`, Node **22.23.2 / ICU 78.2**, Darwin arm64. The published editions and explicitly tracked newer APIs remain unchanged. An isolated detached checkout preserves the original divergent main and dirty/staged work.
+
+A new callback-only shared-storage export reproduced original **7** versus completed replay **0**. The candidate explicitly rejects new capture of these histories through the existing missing-replay-capability path, including nested views, async results, thrown data and pending capture. Original execution remains available. Independent native-worker scheduling and ordinary-data/confined-memory controls qualify the restriction. Existing public boundary and low-level wait assertions are unchanged.
+
+Raw argument histories, legacy unmarked snapshots, required-runtime growth and full agent/backend qualification remain blockers. This increment must not be read as a deterministic arbitrary-shared-memory guarantee. Final maintained checks and separate delivery/publication receipts follow in the linked report.
+
+Final candidate gates: **29,651 package tests passed / 47 explicitly accounted skips**, 1,367 files passed / two skipped, exit 0. Selected-workspace build closure, eight built-import checks and scoped ESLint pass. Built recovery QA passes six exact Node versions including 18.18.0; **Bun 1.3.11-canary.1+687700d84 fails original shared aliasing**, independently reproduced in native structuredClone. That backend failure is not relabeled passing. The enclosing Conventional Commit is a partial capture-rejection repair; overall task acceptance and publication remain open until their separate receipts.

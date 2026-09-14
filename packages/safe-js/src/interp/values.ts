@@ -242,6 +242,7 @@ export type SandboxGenerator = {
 type CopyFromSandboxOptions = {
   wrapClosure?: (value: SandboxClosure) => unknown;
   unwrapHostObject?: (value: SandboxObject) => unknown;
+  onSharedBuffer?: (value: SharedArrayBuffer) => void;
   compilation?: CompileScope;
 };
 
@@ -1991,6 +1992,7 @@ function copyFromSandbox(
     if (existing !== undefined) return existing;
     const copy = isSandboxDataView(value) ? copyDataViewStorage(value, state) : copyArrayBufferStorage(value, state);
     state.seen.set(value, copy);
+    if (isSandboxSharedArrayBuffer(copy)) options.onSharedBuffer?.(copy);
     if (isSandboxDataView(value)) copyFromSandbox(dataViewBuffer(value), state, `${path}.buffer`, options, depth + 1);
     for (const [key, descriptor] of isSandboxDataView(value) ? dataViewDataProperties(value) : arrayBufferDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor,

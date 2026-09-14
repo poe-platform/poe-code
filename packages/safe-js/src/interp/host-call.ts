@@ -25,7 +25,7 @@ import {
 } from "./values.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
 import { CompileScope } from "./regex/compile-guard.js";
-import { createReplayEncodingContext, decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
+import { createReplayEncodingContext, decodeReplayData, encodeReplayData, MissingReplayCapabilityError, type ReplayData } from "../snapshot/replay-data.js";
 import { validateSnapshotData } from "../snapshot/validation.js";
 import {
   pendingHostCallResumeIdentityMatches,
@@ -161,6 +161,7 @@ export class UnresolvedReplayCapabilityError extends TypeError {
 
 export class HostCallJournal {
   private disposed = false;
+  private sharedCallbackExported = false;
   private readonly pendingReconciliations = new Set<() => void>();
   private readonly promiseReplay = promiseReplayContext.getStore();
   readonly runId: string;
@@ -400,6 +401,12 @@ export class HostCallJournal {
     if (this.exposedSharedStorage.has(block)) return;
     this.budget?.setRetainedDataUsage(this.exposedSharedStorage, this.exposedSharedStorage.size + 1);
     this.exposedSharedStorage.set(block, value);
+  }
+
+  markSharedCallbackExport(): void {
+    // Callback results are not replay events. Neither their storage association
+    // nor subsequent writes through the host's retained alias are captured.
+    this.sharedCallbackExported = true;
   }
 
   captureSharedPrefix(record:HostCallRecord):void {
@@ -907,6 +914,10 @@ export class HostCallJournal {
   }
 
   snapshotReplay(): HostCallReplay {
+    if (this.sharedCallbackExported)
+      throw new MissingReplayCapabilityError(
+        "Shared storage exported by a guest callback has no deterministic recovery history."
+      );
     for (const [callId, entries] of this.importedPromiseMemo) {
       for (const [node, promise] of entries) {
         if (!this.proofImportedPromises.has(promise)) continue;

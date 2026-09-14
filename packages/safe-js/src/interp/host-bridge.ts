@@ -746,6 +746,7 @@ function wrapSandboxClosureForHost(
     let leaveCall: (() => void) | undefined;
     const wrapClosure = (nestedClosure: SandboxClosure) =>
       wrapSandboxClosureForHost(nestedClosure, stackFrames, budget, compileOwner, callbacks);
+    const onSharedBuffer = callbacks?.journal?.markSharedCallbackExport.bind(callbacks.journal);
 
     try {
       leaveRunning = enterRunningState(closure);
@@ -770,7 +771,8 @@ function wrapSandboxClosureForHost(
         if (isSandboxLikeValue(error)) {
           throw deepCopyFromSandbox(error, {
             compilation,
-            wrapClosure
+            wrapClosure,
+            onSharedBuffer
           });
         }
 
@@ -779,7 +781,8 @@ function wrapSandboxClosureForHost(
 
       return await (deepCopyFromSandbox(normalizeClosureResult(result, budget), {
         compilation,
-        wrapClosure
+        wrapClosure,
+        onSharedBuffer
       }) as Promise<unknown>);
     } catch (error) {
       if (isFatalBridgeError(error)) promiseReplayContext.getStore()?.fail(error);

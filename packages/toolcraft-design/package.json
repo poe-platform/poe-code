@@ -28,6 +28,10 @@
     "sisteransi": "^1.0.5"
   },
   "exports": {
+    "./escape-terminal-text": {
+      "types": "./dist/escape-terminal-text.d.ts",
+      "import": "./dist/escape-terminal-text.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"

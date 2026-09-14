@@ -34,7 +34,8 @@ Original tests established these failures before their respective changes:
 
 Evidence logs are disposable local outputs: `/tmp/docx-adapter-focused-red.log`,
 `/tmp/docx-help-result-schema-red.log`, `/tmp/docx-help-sdk-limit-red.log`,
-`/tmp/docx-help-alias-red.log` and `/tmp/docx-help-alias-sdk-red.log`.
+`/tmp/docx-help-alias-red.log`, `/tmp/docx-help-alias-sdk-red.log` and
+`/tmp/docx-help-cancel-red.log`.
 The meaningful regressions are original source tests and need none of these logs.
 
 ## Checks and QA procedure
@@ -64,8 +65,13 @@ root test resolver or loading the design package's ambient terminal modules.
 
 ## Delivery
 
-Foundation committed locally on main as `d2ed02508`
-(`feat(design): escape untrusted terminal text`). No push or release.
+Committed locally on main:
+
+- `d2ed02508` — `feat(design): escape untrusted terminal text`.
+- `28bb6def6` — `feat(docx): implement discovery and bounded output`.
+
+No push or release. Independent delegated review confirmed the corrected failure
+schemas, SDK output ceilings, help-alias limits and cancellation handling.
 
 ## DOCX verification
 
@@ -95,4 +101,20 @@ ongoing red tests; another overlapped a separately interrupted build that remove
 shared output. Both were interrupted, not counted as passes. The missing build
 output was restored through the maintained full build, then type/workflow lint
 and the affected screenshot were rerun sequentially. No product change was made
-to hide those setup failures. Final root unit execution is pending.
+to hide those setup failures.
+
+Final sequential `npm test` completed with exit 0, including declared workspace
+unit tasks, prerequisite builds, native lifecycle scripts and root posttest.
+Evidence: `/tmp/docx-help-unit-gate.log`.
+
+- Shared Vitest: 31,059 passes; 2 tests skipped (1,247 passing files).
+- Python workspace: 29 passes.
+- Safe-bash runner checks: 515 passes; main suite: 38,078 passes, 823 skips,
+  zero failures.
+- Safe-js: 28,932 passes, 47 skips (1,301 passing files), with all four
+  filesystem type-contract configurations passing.
+- Terminal-pilot: 288 passes across 8 files, including its maintained pretest build.
+- Root posttest lint stress: 2 passes.
+
+Skipped cases are not passes. Only `help-errors-and-output` is complete; all
+later pipeline tasks remain pending. Unrelated work remains untouched.

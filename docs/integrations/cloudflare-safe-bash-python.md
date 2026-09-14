@@ -1,12 +1,14 @@
 # Cloudflare safe-bash Python integration boundary
 
 Status: **unavailable / production qualification blocked**.
-The [current hash-bound handoff and QA](../plans/cloudflare-handoff-cf15c987.md)
-confirms five public Python invocations return 127 and zero production contracts
-pass at `cf15c987a6306de2e945063caee2d1e8ff6bfa82`. Its 2,213-file inventory
-identifies observed source/build bytes without a rebuild. Independent review
-confirms the missing adapter. Earlier reports linked from that checklist are
-historical evidence. No existing application Worker has been integrated or modified.
+The [current public user edge review](../plans/cloudflare-user-edge-review-937588145.md)
+at `937588145` records seven unavailable Python routes, concurrent absence,
+shell recovery and repeated disposal against 2,372 hashed observed source/build
+inputs. Zero production contracts pass. No rebuild or source-to-build
+reproducibility claim is made. Independent review verified every inventoried hash and reproduced absence;
+absence validation cannot substitute for production acceptance. Older reports
+are historical evidence. No existing application Worker has been integrated
+or modified.
 
 ## Embedding in an existing JavaScript Worker
 

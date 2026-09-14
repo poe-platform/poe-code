@@ -115,3 +115,58 @@ Verified on 2026-09-14 after the final schema/selector changes:
 
 No native Word/page-layout rendering, large downloaded-corpus qualification,
 modern/threaded semantic editing, complete live model or release is claimed.
+
+## Verification review: hyperlink-adjacent anchors
+
+Reviewed the bounded task at local `51ea0c732` on 2026-09-14. The independent
+pipeline-plan edit and index entries remain outside ownership. Re-read the shared
+contracts and schema-v2 API inventory: its 920 records retain planned live
+Comment/Comments, Document/Run and inherited/package obligations. Existing
+comment_id/timestamp and documentation-error mappings above remain applicable;
+this correction does not promote whole-model coverage.
+
+Inspected the retained body-assignment and discovery red logs, final 1,832-test
+green log, lint/build/export logs and historical shell output/screenshots. The
+initial nine-test red described above is not independently recoverable from those
+retained logs. New field-range probes failed at existing selection admission,
+before comment editing, so they did not establish a field defect and caused no
+product change. Their disposable logs remain separate from confirmed evidence.
+
+Two original memfs regressions then reproduced one offset defect: text inside a
+preceding hyperlink was omitted when locating comment endpoints. A valid range
+after the link failed, and selecting the link could instead annotate an equally
+long following run. `/tmp/docx-comments-review-confirmed-red.log` records both
+failures with the original 17 comment tests passing before the product change.
+The editor now counts descendant-run text by its direct paragraph child. Existing
+unsafe-container checks reject selected hyperlink content, while adjacent plain
+runs use the correct offsets. Tests verify no publication on rejection and exact
+link/bookmark/document XML preservation after add/remove.
+
+Final verification of the corrected source:
+
+- Focused comment tests: 19/19 passed; `/tmp/docx-comments-review-green.log`.
+- `npm run test --workspace=docx`: 74 files, 1,834 tests passed;
+  `/tmp/docx-comments-review-verified-tests.log`.
+- `npm run lint --workspace=docx`: ESLint and both TypeScript checks passed;
+  `/tmp/docx-comments-review-verified-lint.log`.
+- `npm run build:workspaces -- --workspace=docx`: declared five-workspace
+  closure and postbuild passed; `/tmp/docx-comments-review-verified-build.log`.
+- `npx vitest run scripts/docx-exports.test.ts`: 2/2 passed;
+  `/tmp/docx-comments-review-exports.log`.
+- Existing seven safe-bash DOCX integration/registration files: serial Node
+  execution passed 52/52 with no skips. The maintained discovery assertion
+  passed 1/1 and confirmed those exact files. This is scoped adapter evidence,
+  not a full virtual-bash test/typecheck gate or a comments-specific adapter test.
+- Actual source-imported safe-bash/memfs QA verified rejected hyperlink range
+  exit 1 with zero published bytes, successful adjacent-run add/get/remove,
+  explicit identity/time, unchanged input and exact restored document XML.
+  `/tmp/docx-comments-hyperlink-qa-20260914.txt` and its inspected, unclipped PNG
+  are disposable evidence, excluded from the commit. The original historical
+  workflow was inspected separately, not rerun or overwritten.
+- `git diff --check` passed. One atomic correction owns only comments.ts,
+  comments.test.ts and this plan update.
+
+No native reference build, product networking, downloaded fixtures, README
+changes, push or release are part of this review. Native document rendering,
+modern/threaded editing, cross-paragraph creation, comment batches and full live
+model coverage remain unqualified; the bounded utility passes are not those gates.

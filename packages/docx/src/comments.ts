@@ -98,12 +98,16 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
     const fields = parseFields(ancestors[owner.value.path.length]!, owner.value.path, budget, editor.compatibility.content);
     let offset = 0;
     let first: typeof p | undefined, last: typeof p | undefined;
-    const runs = state.document.list("run", { scope: "body" }).filter(l => l.value.part === before.value.part && l.value.path.length === before.value.path.length + 1 && before.value.path.every((v, i) => l.value.path[i] === v));
+    const runs = state.document.list("run", { scope: "body" }).filter(l => l.value.part === before.value.part && l.value.path.length > before.value.path.length && before.value.path.every((v, i) => l.value.path[i] === v));
+    const lengths = new Map<number, number>();
+    for (const run of runs) {
+      const child = run.value.path[before.value.path.length]!;
+      lengths.set(child, (lengths.get(child) ?? 0) + [...state.document.text({ select: run.token }).text].length);
+    }
     for (const node of p.children) {
       budget.charge("work", 1);
       if (node.namespace === w && ["pPr", "bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "proofErr", "permStart", "permEnd"].includes(node.localName)) continue;
-      const text = runs.find(l => l.value.path.at(-1) === p.children.indexOf(node));
-      const count = text ? [...state.document.text({ select: text.token }).text].length : 0;
+      const count = lengths.get(p.children.indexOf(node)) ?? 0;
       if (offset === range.start && count) first = node;
       if (offset + count === range.end && count) last = node;
       if (offset < range.end && offset + count > range.start) {

@@ -174,6 +174,24 @@ it("replaces a plain multi-paragraph body and preserves metadata", async () => {
   expect(await xml(output)).toBe(await xml(input));
 });
 
+it("counts preceding hyperlink text before choosing comment endpoints", async () => {
+  const link = `<w:bookmarkStart w:id="7" w:name="Survey"/><w:hyperlink w:anchor="Survey">${run("Map")}</w:hyperlink><w:bookmarkEnd w:id="7"/>`;
+  const input = await textFixture(`<w:p>${link}${run("Ocean")}</w:p>`);
+  const output = await edit(input, "add", { select: await range(input, 3, 8), author: "", timestamp });
+  expect(await xml(output)).toContain(`${link}<cm:commentRangeStart`);
+  expect((await read(output)).items[0]!.issues).toEqual([]);
+  expect(await xml(await edit(output, "remove", { comment: 1 }))).toBe(await xml(input));
+});
+
+it("rejects a hyperlink range instead of anchoring the following run", async () => {
+  const input = await textFixture(`<w:p><w:bookmarkStart w:id="7" w:name="Survey"/><w:hyperlink w:anchor="Survey">${run("Map")}</w:hyperlink><w:bookmarkEnd w:id="7"/>${run("Bay")}</w:p>`);
+  const volume = Volume.fromJSON({ "/out": "" });
+  await expect(docx.editDocumentComments(input, { operation: "comments.add", options: {
+    select: await range(input, 0, 3), author: "", timestamp, output: "-"
+  } }, { ...editContext, stdout: { async write(b) { volume.appendFileSync("/out", b); } } })).rejects.toMatchObject({ code: "unsupported-edit" });
+  expect(volume.readFileSync("/out").length).toBe(0);
+});
+
 it("reads comment JSON through the CLI with matching SDK data and stable failure statuses", async () => {
   const bytes = await textFixture(`<w:p>${markers("Ocean")}</w:p>`, stories(body()));
   for (const action of ["list", "get"] as const) {

@@ -56,6 +56,12 @@ it("retains nullable names and IDs across every style class", async () => {
     style.style_id = null; expect(style.style_id).toBeNull();
   }
 });
+it.each([null, ""])("uses the default for an absent lookup ID even when a style has ID %s", async id => {
+  const { styles } = await model(definition("Detail") + definition("Default", "paragraph", "", ' w:default="1"'));
+  styles.at("Detail").style_id = id;
+  expect(styles.get_by_id(id, WD_STYLE_TYPE.PARAGRAPH)?.name).toBe("Default");
+  expect(styles.get_by_id(id, WD_STYLE_TYPE.CHARACTER)).toBeNull();
+});
 it("distinguishes builtin metadata and omitted paragraph type from style names", async () => {
   const { styles } = await model(lexical.map((value, index) => definition(`Mark${index}`, "paragraph", "", value === undefined ? "" : ` w:customStyle="${value}"`)).join("") + definition("Unspecified", ""));
   for (const [index, value] of lexical.entries()) expect(styles.at(`Mark${index}`).builtin).toBe(!["1", "on", "true"].includes(value ?? "0"));

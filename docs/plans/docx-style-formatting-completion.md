@@ -76,3 +76,12 @@ The serializers, live model, schema, SDK-backed commands and original tests form
 one interdependent feature improvement and are committed together with these
 plans and the audit reconciliation. Only explicit owned files are staged.
 Unrelated work is preserved. No push or release is authorized for this task.
+
+## Independent bounded verification
+
+The follow-up review reproduced absent-ID lookup selecting a nondefault style
+with a cleared ID. Two original memfs cases failed before the domain correction.
+The verification procedure is to run the maintained DOCX unit/lint routes and
+selected build closure, inspect retained output and audit mappings, then stage
+only the correction, its regressions and this evidence update. Results and
+remaining QA limits are in `docs/docx/style-formatting-verification.md`.

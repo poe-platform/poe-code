@@ -117,6 +117,7 @@ export class Styles implements Iterable<BaseStyle> {
   get_by_id(style_id: string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle | null {
     if (style_id !== null && typeof style_id !== "string") throw new TypeError("Expected a style ID or null.");
     const type = typeName(style_type);
+    if (style_id === null || style_id === "") return this.default(style_type);
     return [...this].find(s => s.style_id === style_id && attr(s.element, "type") === type) ?? this.default(style_type);
   }
   get_style_id(style_or_name: BaseStyle | string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): string | null {

@@ -493,6 +493,7 @@ tasks:
     status:
       implement: open
       test: open
+finalization: pending
 ---
 
 # Pyodide in an existing Cloudflare JavaScript Worker
@@ -589,3 +590,12 @@ unidentified at plan creation; their required qualification stays open. Missing
 credentials or unmet same-isolate guarantees likewise remain blockers, never
 skipped passes. Independent production acceptance reviews the final artifact
 before teardown can authorize its push and verified GitHub publication.
+
+## Teardown acceptance correction — September 14, 2026
+
+All eleven implementation/test states remain open: their acceptance criteria
+have not passed. The previous done values conflicted with the recorded blocked
+evidence and current source availability. Finalization remains pending.
+See [the teardown acceptance report](pyodide-cloudflare-teardown-acceptance.md)
+for current checks, independent review, exact blockers and delivery state.
+No production feature publication is permitted while these gates remain open.

@@ -2192,7 +2192,7 @@ tasks:
       code, comments, tests, fixtures or CLI output.
     status:
       implement: done
-      test: open
+      test: done
   - id: multilevel-numbering
     title: Implement lists restarts and numbering definitions
     prompt: |

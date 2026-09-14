@@ -4,8 +4,7 @@ export function resolveBrowserOpBuild(rootDir) {
   const options = resolveBrowserShellBuild(rootDir);
   return {
     ...options,
-    entryPoints: { "commands/op/index.browser": path.join(rootDir, "packages/safe-bash/src/commands/op/index.ts") },
-    alias: { ...options.alias, "@poe-platform/op": path.join(rootDir, "packages/op/src/index.ts") }
+    entryPoints: { "commands/op/index.browser": options.entryPoints["commands/op/index.browser"] }
   };
 }
 
@@ -16,6 +15,7 @@ export function resolveBrowserShellBuild(rootDir) {
   return {
     absWorkingDir: rootDir,
     entryPoints: {
+      "commands/op/index.browser": path.join(directory, "src/commands/op/index.ts"),
       "commands/llm/index.browser": path.join(directory, "src/commands/llm/index.ts"),
       "commands/llm/providers/index.browser": path.join(directory, "src/commands/llm/providers/index.ts"),
       "core.browser": path.join(directory, "src/core.browser.ts"),
@@ -43,7 +43,7 @@ export function resolveBrowserShellBuild(rootDir) {
     metafile: true,
     write: false,
     external: ["poe-code/safe-fs/core"],
-    alias: { "node:stream/web": platform },
+    alias: { "node:stream/web": platform, "@poe-platform/op": path.join(rootDir, "packages/op/src/index.ts") },
     inject: [platform],
     plugins: [{
       name: "portable-shell-capabilities",

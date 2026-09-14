@@ -10,7 +10,7 @@ import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
 import { mergeRuntimeBundleOutputs, resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 import { copyNativeAssets, nativeImportMapping, readNativeRegistry } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { collectCanonicalNativeAssets, readBoundedNativeBytes } from "../packages/package-lint/dist/native-assets.js";
-import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import {
   canonicalFs,
   collectCanonicalDeclarations,
@@ -264,15 +264,6 @@ await publishBundleOutputs(shellBundle, {
   workingDirectory: rootDir
 });
 consumerBuilds.push(shellBundle);
-
-const browserOpOptions = resolveBrowserOpBuild(rootDir);
-const browserOp = await esbuild.build(browserOpOptions);
-await publishBundleOutputs(browserOp, {
-  outdir: path.join(rootDir, "packages/safe-bash/dist"),
-  entryPoints: Object.values(browserOpOptions.entryPoints),
-  workingDirectory: rootDir
-});
-consumerBuilds.push(browserOp);
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
 // don't need @poe-code/* workspace deps at runtime.

@@ -160,3 +160,43 @@ No CLI screenshot or document rendering fidelity claim is appropriate for this
 codec-only task. No downloads, ignored QA fixtures, generated dist, README
 additions or unrelated changes are included. One atomic local Conventional
 Commit contains this plan and the owned implementation/tests. No push or release.
+
+## Verification review at 536abb201
+
+Inspected the actual prior initial/boundary/mismatch red logs and final green,
+build and lint logs listed above. Fresh baseline verification passed all 285
+tests, the selected DOCX workspace build and package lint/type checks.
+
+One additional defect was reproduced: an application-defined extension directly
+under AlternateContent was treated as ignored when its namespace was ignorable
+and not understood. Part 3 section 9.2 explicitly excludes application-defined
+extension elements from ignored/unwrapped marking; section 9.4 step 3(a) requires
+a mismatch for a surviving non-Choice/Fallback child. The read now raises
+UnsupportedProfileError before processing that extension's controls. A real edit
+likewise refuses with code `unsupported-profile`; clean serialization remains
+byte-identical. No new API, profile field, error mapping or CLI behavior is added.
+
+The original memfs regression failed before the two-line correction:
+`/tmp/docx-mce-review-extension-red.log` records 1 failed and 285 passed, with
+the expected UnsupportedProfileError missing. After correction:
+
+- `npm run test --workspace=docx`: 286 passed across nine files;
+  `/tmp/docx-mce-review-extension-green.log`.
+- `npm run build:workspaces -- --workspace=docx`: passed the declared three-package
+  dependency closure; `/tmp/docx-mce-review-build.log`.
+- `npm run lint --workspace=docx`: ESLint, production and test TypeScript passed;
+  `/tmp/docx-mce-review-lint.log`.
+- Built `docx` ESM consumer with memfs: inspected actual serialized XML after an
+  unrelated edit, retained the ignored extension and both branches/declarations,
+  selected Fallback, and verified the custom extension profile rejects reading
+  and editing with unchanged bytes.
+- `git diff --check`: passed.
+
+The parsed public API inventory still contains 920 research records: 410 planned,
+378 security-mapped, 124 language-mapped and eight documentation-error records.
+This correction does not promote any model API coverage. The existing legacy
+PreserveElements/Attributes policy and JS/security mappings above remain valid.
+CLI adapters/schema/capabilities, full model API parity, downloaded-corpus edits,
+rendering and CLI screenshot QA remain unverified by this bounded codec review.
+No native reference build, product network/ambient filesystem access, README edit,
+push or release was performed. Historical evidence and unrelated work are retained.

@@ -167,6 +167,8 @@ export class MarkupCompatibility {
             if ((node.kind === "text" || node.kind === "cdata") && tokens(node.text).length) invalid();
             continue;
           }
+          if (settings.extensionElements!.some(name => matches(node, name)))
+            throw new UnsupportedProfileError("An alternate-content extension survives compatibility processing.");
           const childScope = scopeFor(node, scope);
           if (node.namespace !== mc) {
             if (!childScope.ignorable.has(node.namespace)) invalid();

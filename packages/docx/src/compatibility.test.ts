@@ -204,3 +204,16 @@ it.each(['mc:Ignorable="w"', 'mc:Ignorable="x" mc:ProcessContent="x:*"'])("repor
   const source = wrap('<mc:AlternateContent>'+child+'<mc:Choice Requires="w"/></mc:AlternateContent>', attributes);
   expect(() => new DocumentXmlEditor(bytes(source)).compatibility).toThrow(UnsupportedProfileError);
 });
+
+it("rejects an alternate extension child that cannot be ignored and preserves the source", () => {
+  const source = wrap('<w:p>before</w:p><mc:AlternateContent><x:extra/><mc:Choice Requires="w"><w:p>choice</w:p></mc:Choice></mc:AlternateContent>', 'mc:Ignorable="x"');
+  const fs = Volume.fromJSON({ "/document.xml": source });
+  const editor = new DocumentXmlEditor(new Uint8Array(fs.readFileSync("/document.xml") as Uint8Array), {}, {
+    understoodNamespaces: [w], extensionElements: [{ namespace: "urn:future", localName: "extra" }]
+  });
+  expect(() => editor.compatibility).toThrow(UnsupportedProfileError);
+  expect(() => editor.setText(editor.root.children[0]!.content[0]!, "after")).toThrow(expect.objectContaining({ code: "unsupported-profile" }));
+  fs.writeFileSync("/result.xml", editor.serialize());
+  expect(fs.readFileSync("/result.xml")).toEqual(fs.readFileSync("/document.xml"));
+  expect(editor.dirtyNodes).toEqual([]);
+});

@@ -1,6 +1,8 @@
 # Content control inspection and filling
 
-Status: only ordered task 63 implementation and verification active. Task 62 passed 80 files/1,952
+Status: ordered task 63 verified and committed locally as `70f724ec0` on main.
+All final checks below pass; only its isolated pipeline status record remains.
+Task 62 passed 80 files/1,952
 DOCX tests, lint, selected build closure, public exports, independent review and
 49 real Shell tests; committed locally as `2b18313fb`, isolated status
 `a2dafe398840b9aa36221956a223b7e46c73b4b8` on main. Index is empty. Unrelated

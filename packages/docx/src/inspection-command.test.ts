@@ -3,6 +3,8 @@ import { Volume } from "memfs";
 import { createDocumentArchive } from "./create.js";
 import { writeDocumentArchive } from "./document-write.js";
 import { createDocxInspectionCommandEngine } from "./inspection-command.js";
+import { inspectDocument } from "./inspection.js";
+import { createDocumentFixture } from "../tests/fixtures/documents.js";
 
 const limits = { maxArchiveBytes: 65536, maxEntryBytes: 16384, maxTotalBytes: 65536, maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxExtraBytes: 1024, maxCommentBytes: 1024, maxRetainedBytes: 500000, chunkSize: 1024 };
 const signal = new AbortController().signal;
@@ -83,4 +85,22 @@ it("classifies a failed diagnostic sink without masking it as invalid document",
   const bytes = await fixture();
   const result = await createDocxInspectionCommandEngine({ limits }).execute({ args: ["inspect", "-"].map(value => encoder.encode(value)), cwd: "/", filesystem: { async readFile() { return bytes; } }, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write() {} }, stderr: { async write() { throw new Error("diagnostic sink denied"); } }, signal });
   expect(result.exitCode).toBe(3);
+});
+
+it("matches SDK inventory for an invalid table without requiring editing admission", async () => {
+  const { bytes } = await createDocumentFixture("museum", "invalid-grid");
+  const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes) });
+  const before = volume.toJSON();
+  const expected = await inspectDocument(bytes, { limits, signal });
+  let stdout = "";
+  const result = await createDocxInspectionCommandEngine({ limits }).execute({
+    args: ["inspect", "/input.docx", "--json"].map(value => encoder.encode(value)), cwd: "/",
+    filesystem: { async readFile(path) { expect(path).toBe("/input.docx"); return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("implicit stdin"); } }; } },
+    stdout: { async write(value) { stdout += new TextDecoder().decode(value); } }, stderr: { async write() {} }, signal
+  });
+  expect(result.exitCode).toBe(0);
+  expect(JSON.parse(stdout).data).toEqual(expected);
+  expect(JSON.parse(stdout).locations).toEqual(expected.stories.filter(story => story.kind === "body").map(story => story.location));
+  expect(volume.toJSON()).toEqual(before);
 });

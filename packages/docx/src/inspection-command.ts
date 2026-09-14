@@ -48,7 +48,10 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const locations: Location[] = [];
         if (invocation.operation === "inspect") {
           const selected = invocation.options;
-          {
+          if ("stories" in data && !["select", "section", "comment", "note", "table", "cell", "paragraph", "run", "image"].some(key => selected[key] !== undefined)) {
+            const scope = selected.scope ?? "body";
+            locations.push(...data.stories.filter(story => scope === "all-stories" || story.kind === scope).map(story => story.location));
+          } else {
             const document = await openDocumentLocations(bytes, context);
             if (typeof selected.select === "string") locations.push(document.resolve(selected.select));
             else {

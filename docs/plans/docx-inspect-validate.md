@@ -125,3 +125,50 @@ same two red failures; it is not counted as a separate focused pass.
 The atomic correction owns only inspection.ts, its original test file and this
 plan update. No README, model mapping, unrelated index entry, push or release
 is included.
+
+## Verification correction: plain inspection parity (2026-09-14)
+
+Actual CLI/SDK comparison using the original museum invalid-grid fixture found
+plain CLI inspection exiting 1 while the SDK returned an inventory. The command
+reopened the bytes through DocumentLocations, whose editor snapshot applies
+editing admission. An original memfs regression reproduced exit 1 versus expected
+0 before code changed (eight existing command cases passed).
+
+Plain and story-scope inspection now reuses the SDK's existing story locations.
+Explicit structural/token selectors retain the existing location engine and its
+admission requirements; invalid documents are not promised selectable targets.
+Validation remains independent and returns invalid-package grid diagnostics with
+exit 1 and null envelope data. No new edit capability is introduced.
+
+Final maintained checks: package tests 755/755 in 27 files; selected docx build
+closure five declared tasks; package ESLint and production/test TypeScript checks;
+safe-bash focused reporting route 10/10; original public export/browser checks
+`npx vitest run scripts/docx-exports.test.ts` 2/2. Lint caught a yield-free
+generator in the new test; replacing it with the existing explicit iterator
+pattern passed lint and the focused command suite again (9/9). No product code
+changed after the full passing package/build checks.
+
+Ad hoc QA executed 12 actual command-engine calls: inspect/validate, JSON/human,
+against original garden-empty, museum-valid and museum-invalid-grid documents in
+memfs. JSON data matched the SDK, invalid validation exited 1 with located errors,
+and all filesystem snapshots stayed identical. The initial QA formatter failed
+on an optional features field; a corrected attempt exposed the parity regression
+above. Only the final complete run counts as QA evidence. The terminal renderer
+captured real summaries/diagnostics at `/tmp/docx-verification-20260914.png`;
+visual inspection confirmed readable counts, cached/unmeasured distinctions and
+partial-validation statuses. This disposable image is not committed. This is
+command-engine visual QA, not a root CLI invocation or rendered-document test.
+
+Prior implementation red/green evidence remains historical prose and Git changes;
+no archived raw red logs were independently authenticated. Current original
+tests cover the bounded inventory fields, deterministic results, malformed
+inputs, unchanged bytes and absence of fetch calls. No downloads, native
+reference build, product networking, ambient product I/O, full repository gate,
+rendering, signature verification or whole-model API conformance is claimed.
+The existing language/security mappings remain authoritative: owned Uint8Array,
+always-async admission, nullable measurements, neutral operation camelCase versus
+retained model snake_case, and explicit filesystem/time/font capabilities.
+
+The second atomic correction owns only inspection-command.ts, its original test
+file and this appended evidence. Unrelated plan edits and archive moves remain
+untouched; no push or release is authorized.

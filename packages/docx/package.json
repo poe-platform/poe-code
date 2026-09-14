@@ -1,0 +1,38 @@
+{
+  "name": "docx",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.txt"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/docx",
+    "test:unit": "cd ../.. && vitest run packages/docx",
+    "lint": "eslint src tests && tsc --noEmit && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@poe-code/office-package": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/docx"
+  },
+  "devDependencies": {
+    "memfs": "4.56.10",
+    "saxes": "6.0.0"
+  }
+}

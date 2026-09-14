@@ -52,7 +52,7 @@ describe("independent document assertions", () => {
       [end + 4, 1, 2],
       [30, 47, 1],
       [central + 46, 47, 1]
-    ]) {
+    ] as const) {
       const bad = bytes.slice();
       const view = new DataView(bad.buffer);
       if (width === 4) view.setUint32(offset, value, true);
@@ -187,7 +187,7 @@ describe("independent document assertions", () => {
       ["[Content_Types].xml", "wordprocessingml.document.main+xml", "wordprocessingml.styles+xml"],
       ["word/_rels/document.xml.rels", '/styles"', '/header"'],
       ["_rels/.rels", '/officeDocument"', '/header"']
-    ])
+    ] as const)
       expect
         .soft(() =>
           assertPackageLinks(
@@ -236,7 +236,7 @@ describe("independent document assertions", () => {
     const volume = Volume.fromJSON({ "/extracted.bmp": Buffer.from(image) });
     assertImage(volume.readFileSync("/extracted.bmp") as Buffer, image);
     const bad = image.slice();
-    bad[54] ^= 1;
+    bad[54] = bad[54]! ^ 1;
     volume.writeFileSync("/extracted.bmp", bad);
     expect(() => assertImage(volume.readFileSync("/extracted.bmp") as Buffer, image)).toThrow();
     expect(() => assertImage(image.slice(0, 20), image)).toThrow();

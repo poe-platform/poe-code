@@ -120,7 +120,7 @@ export function xmlStructure(bytes: Uint8Array): XmlNode {
       attributes: Object.fromEntries(
         Object.values(tag.attributes)
           .filter((a) => a.uri !== "http://www.w3.org/2000/xmlns/")
-          .map((a) => [expanded(a.uri, a.local), a.value])
+          .map((a) => [expanded(a.uri, a.local), a.value] as const)
           .sort(([a], [b]) => a.localeCompare(b))
       ),
       children: []
@@ -191,7 +191,7 @@ export function assertPackageLinks(parts: Parts): void {
     return `${name.slice(0, slash + 1)}_rels/${name.slice(slash + 1)}.rels`;
   };
   const declarations = nodes(partXml(parts, "[Content_Types].xml"));
-  assert.equal(declarations[1].name, expanded(ct, "Types"), "content types namespace");
+  assert.equal(declarations[1]!.name, expanded(ct, "Types"), "content types namespace");
   const overrides = declarations.filter((n) => n.name === expanded(ct, "Override"));
   const defaults = declarations.filter((n) => n.name === expanded(ct, "Default"));
   unique(
@@ -203,7 +203,7 @@ export function assertPackageLinks(parts: Parts): void {
     "content defaults"
   );
   for (const n of overrides)
-    assert(parts.has(n.attributes["{}PartName"].slice(1)), "orphan content type");
+    assert(parts.has(n.attributes["{}PartName"]!.slice(1)), "orphan content type");
   const contentType = (name: string) => {
     const declaration =
       overrides.find((n) => n.attributes["{}PartName"] === `/${name}`) ??
@@ -215,7 +215,7 @@ export function assertPackageLinks(parts: Parts): void {
     if (name === "[Content_Types].xml") continue;
     const type = contentType(name);
     if (name.endsWith(".xml")) {
-      const root = nodes(xmlStructure(bytes))[1];
+      const root = nodes(xmlStructure(bytes))[1]!;
       for (const node of nodes(xmlStructure(bytes)))
         if (
           Object.keys(node.attributes).some((key) =>
@@ -249,7 +249,7 @@ export function assertPackageLinks(parts: Parts): void {
     if (!name.endsWith(".rels")) continue;
     assert.equal(type, "application/vnd.openxmlformats-package.relationships+xml");
     const tree = nodes(xmlStructure(bytes));
-    assert.equal(tree[1].name, expanded(pr, "Relationships"), "relationships namespace");
+    assert.equal(tree[1]!.name, expanded(pr, "Relationships"), "relationships namespace");
     const edges = tree.slice(2);
     assert(
       edges.every((n) => n.name === expanded(pr, "Relationship")),
@@ -275,7 +275,7 @@ export function assertPackageLinks(parts: Parts): void {
       const targetName = decodeURIComponent(target.pathname.slice(1));
       assert(parts.has(targetName), `missing target ${target.pathname}`);
       if (targetName.endsWith(".xml")) {
-        const targetRoot = nodes(partXml(parts, targetName))[1];
+        const targetRoot = nodes(partXml(parts, targetName))[1]!;
         const local = targetRoot.name.slice(targetRoot.name.indexOf("}") + 1);
         const role = local === "document" ? "officeDocument" : wordRoots[local];
         if (role)
@@ -308,7 +308,7 @@ export function assertPackageLinks(parts: Parts): void {
 }
 
 export function assertWordReferences(parts: Parts): void {
-  const root = nodes(partXml(parts, "word/document.xml"))[1];
+  const root = nodes(partXml(parts, "word/document.xml"))[1]!;
   const w =
     root.name === "{http://purl.oclc.org/ooxml/wordprocessingml/main}document"
       ? "http://purl.oclc.org/ooxml/wordprocessingml/main"
@@ -345,7 +345,7 @@ export function assertWordReferences(parts: Parts): void {
     for (const [tags, ids] of refs)
       for (const tag of tags)
         for (const n of nodes(tree, expanded(w, tag)))
-          assert(ids.has(attr(n, "val")), `${name} dangling ${tag}`);
+          assert(ids.has(attr(n, "val")!), `${name} dangling ${tag}`);
     for (const properties of nodes(tree, expanded(w, "numPr"))) {
       const id = nodes(properties, expanded(w, "numId"))[0];
       if (!id || attr(id, "val") === "0") continue;
@@ -355,7 +355,7 @@ export function assertWordReferences(parts: Parts): void {
       )!;
       const abstractId = nodes(num, expanded(w, "abstractNumId"))[0];
       const definition = nodes(numbering, expanded(w, "abstractNum")).find(
-        (n) => attr(n, "abstractNumId") === attr(abstractId, "val")
+        (n) => attr(n, "abstractNumId") === attr(abstractId!, "val")
       );
       assert(definition, "missing abstract numbering");
       const level = nodes(properties, expanded(w, "ilvl"))[0];
@@ -379,7 +379,7 @@ export function assertWordReferences(parts: Parts): void {
         ? ["commentReference", "commentRangeStart", "commentRangeEnd"]
         : [`${kind}Reference`])
         for (const n of nodes(tree, expanded(w, tag)))
-          assert(ids.has(attr(n, "id")), `${name} dangling ${tag}`);
+          assert(ids.has(attr(n, "id")!), `${name} dangling ${tag}`);
     }
     for (const kind of ["bookmark", "commentRange"]) {
       const starts = unique(
@@ -393,9 +393,9 @@ export function assertWordReferences(parts: Parts): void {
       assert.deepEqual(starts, ends, `${name} unmatched ${kind}`);
       const open = new Set<string>();
       for (const node of nodes(tree)) {
-        if (node.name === expanded(w, `${kind}Start`)) open.add(attr(node, "id"));
+        if (node.name === expanded(w, `${kind}Start`)) open.add(attr(node, "id")!);
         if (node.name === expanded(w, `${kind}End`))
-          assert(open.delete(attr(node, "id")), `${name} reversed ${kind}`);
+          assert(open.delete(attr(node, "id")!), `${name} reversed ${kind}`);
       }
     }
   }

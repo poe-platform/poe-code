@@ -63,7 +63,7 @@ describe("original document fixtures", () => {
         for (const edge of edges) {
           if (edge.attributes.TargetMode === "External") continue;
           const target = new URL(
-            edge.attributes.Target,
+            edge.attributes.Target!,
             `https://fixture.invalid/${directory}`
           ).pathname.slice(1);
           expect(parts.has(target), `${name} -> ${target}`).toBe(true);
@@ -191,7 +191,7 @@ describe("original document fixtures", () => {
       const { parts } = await createDocumentFixture("garden", variant);
       const facts = xmlFacts(parts.get("word/document.xml")!);
       if (variant === "strict")
-        expect(facts.tags[0].uri).toBe("http://purl.oclc.org/ooxml/wordprocessingml/main");
+        expect(facts.tags[0]!.uri).toBe("http://purl.oclc.org/ooxml/wordprocessingml/main");
       if (variant === "template")
         expect(decoder.decode(parts.get("[Content_Types].xml"))).toContain(
           "wordprocessingml.template.main+xml"

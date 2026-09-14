@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "node",
+      "packages/safe-js/dist/cli.js",
+      "--max-steps",
+      "102",
+      "docs/plans/qualify-resource-and-timing-behavior/descriptor-review-20260914/budget-control.safejs"
+    ],
+    "exit": 0,
+    "stdout": "{\"ok\":true,\"returnValue\":false}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "packages/safe-js/dist/cli.js",
+      "--max-steps",
+      "100",
+      "docs/plans/qualify-resource-and-timing-behavior/descriptor-review-20260914/budget-control.safejs"
+    ],
+    "exit": 3,
+    "stdout": "",
+    "stderr": "SandboxError: Sandbox budget exceeded for steps: 101 > 100.\n\nBudget exceeded: steps (101 > 100)\n"
+  }
+]

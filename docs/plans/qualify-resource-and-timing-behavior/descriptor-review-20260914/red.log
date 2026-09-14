@@ -1,0 +1,42 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/measure-symbol-mutation.test.ts (3 tests | 1 failed) 6ms
+   × omits a symbol removed by its descriptor trap without executing getters 4ms
+   ✓ captures surviving symbol data before retained callbacks mutate it 1ms
+   ✓ preserves descriptor errors and leaves failed reconciliation accounting unchanged 1ms
+FAIL packages/safe-js/src/interp/measure-symbol-mutation.test.ts > omits a symbol removed by its descriptor trap without executing getters
+TypeError: Cannot use 'in' operator to search for 'value' in undefined
+ ❯ visit packages/safe-js/src/interp/values.ts:959:13
+    957|         usage += 1;
+    958|         visit(key, depth + 1);
+    959|         if ("value" in descriptor) visit(descriptor.value, depth + 1);
+       |             ^
+    960|         else for (const closure of retainedAccessorClosures(descriptor…
+    961|       }
+ ❯ measureSandboxData packages/safe-js/src/interp/values.ts:1282:31
+ ❯ packages/safe-js/src/interp/measure-symbol-mutation.test.ts:18:10
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/measure-symbol-mutation.test.ts > omits a symbol removed by its descriptor trap without executing getters
+TypeError: Cannot use 'in' operator to search for 'value' in undefined
+ ❯ visit packages/safe-js/src/interp/values.ts:959:13
+    957|         usage += 1;
+    958|         visit(key, depth + 1);
+    959|         if ("value" in descriptor) visit(descriptor.value, depth + 1);
+       |             ^
+    960|         else for (const closure of retainedAccessorClosures(descriptor…
+    961|       }
+ ❯ measureSandboxData packages/safe-js/src/interp/values.ts:1282:31
+ ❯ packages/safe-js/src/interp/measure-symbol-mutation.test.ts:18:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  15:51:28
+   Duration  1.59s (transform 1.15s, setup 33ms, import 1.49s, tests 6ms, environment 0ms)
+

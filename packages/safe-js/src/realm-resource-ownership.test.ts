@@ -1,5 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import { createRealm } from "./realm.js";
+import { defineExtension } from "./extensions.js";
 
 const workers = vi.hoisted(() => [] as Array<{ terminate: ReturnType<typeof vi.fn> }>);
 vi.mock("node:worker_threads", async () => {
@@ -47,4 +48,37 @@ it("keeps distinct realm workers alive until their own owner closes", async () =
     expect(await second.evaluate("return 42;")).toMatchObject({ ok: true, returnValue: 42 });
   } finally { await first.close(); await second.close(); }
   expect(workers[1].terminate).toHaveBeenCalledTimes(1);
+});
+
+it("does not create an unowned worker when cleanup registration is refused", async () => {
+  const cleanup = vi.fn();
+  const realm = createRealm({
+    limits: { cleanups: 1 },
+    extensions: [defineExtension({
+      manifest: { version: 1, name: "occupy-cleanup" },
+      setup(context) { context.onCleanup(cleanup); return {}; }
+    })]
+  });
+  try {
+    await expect(realm.evaluate(
+      "return await Atomics.waitAsync(new Int32Array(new SharedArrayBuffer(4)),0,0).value;"
+    )).rejects.toThrow("Realm cleanup limit exceeded.");
+    expect(workers).toHaveLength(0);
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  } finally { await realm.close(); }
+});
+
+it("reports worker termination failure while still running every other disposer", async () => {
+  const cleanup = vi.fn();
+  const failure = new Error("termination failed");
+  const realm = createRealm({ extensions: [defineExtension({
+    manifest: { version: 1, name: "cleanup-control" },
+    setup(context) { context.onCleanup(cleanup); return {}; }
+  })] });
+  await realm.evaluate("return await Atomics.waitAsync(new Int32Array(new SharedArrayBuffer(4)),0,0).value;");
+  workers[0].terminate.mockRejectedValue(failure);
+  await expect(realm.close()).rejects.toMatchObject({ errors: [failure] });
+  await expect(realm.close()).rejects.toMatchObject({ errors: [failure] });
+  expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+  expect(cleanup).toHaveBeenCalledTimes(1);
 });

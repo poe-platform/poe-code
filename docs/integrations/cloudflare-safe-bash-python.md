@@ -1,23 +1,12 @@
 # Cloudflare safe-bash Python integration boundary
 
-Status: unavailable in the reviewed checkout; production qualification blocked.
-The [final user edge audit](../plans/cloudflare-user-final-edge-audit-ce83eedb.md)
-records fresh public-API cases at `ce83eedb79b7a062cc45fe7e6a458b127468fbf8`.
-Python is absent; default pipeline status can hide command absence, so validation
-must check expected bytes and stage failures (or enable `pipefail`). Its selected
-source/build hashes establish availability observations, not runtime qualification.
-The [current handoff review](../plans/cloudflare-adapter-handoff-current.md)
-records fresh built-public-API observations at
-`51ea26d96f61b74ffb0ef70aeaef48d5cc423d4e`, with a source/build byte inventory
-and independent review. All production contracts remain blocked. The rechecks
-below are historical evidence, not certification of a finished adapter.
-The [current user edge recheck](../plans/cloudflare-user-edge-current-recheck.md)
-binds fresh built-public-API observations to source and build hashes at
-`bb272573292ee712a09c1c5fdb1516f7a655dc97`; it confirms availability failure,
-not Python acceptance. Independent review confirms the same missing adapter.
-See [the final requirement checklist](../plans/cloudflare-adapter-final-review.md)
-for evidence identities and acceptance requirements. No existing application
-Worker has been integrated or modified.
+Status: **unavailable / production qualification blocked**.
+The [current hash-bound handoff and QA](../plans/cloudflare-handoff-cf15c987.md)
+confirms five public Python invocations return 127 and zero production contracts
+pass at `cf15c987a6306de2e945063caee2d1e8ff6bfa82`. Its 2,213-file inventory
+identifies observed source/build bytes without a rebuild. Independent review
+confirms the missing adapter. Earlier reports linked from that checklist are
+historical evidence. No existing application Worker has been integrated or modified.
 
 ## Embedding in an existing JavaScript Worker
 

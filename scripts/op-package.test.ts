@@ -15,7 +15,10 @@ it("ships the opt-in op plugin through poe-code without a public op package or b
     import: "./packages/safe-bash/dist/commands/op/index.js"
   });
   expect(shell.exports["./commands/op"]).toEqual({
-    types: "./dist/commands/op/index.d.ts", import: "./dist/commands/op/index.js"
+    types: "./dist/commands/op/index.d.ts",
+    workerd: "./dist/commands/op/index.browser.js",
+    browser: "./dist/commands/op/index.browser.js",
+    import: "./dist/commands/op/index.js"
   });
   expect(shell.devDependencies[op.name]).toBe("*");
   expect(root.dependencies["@kayahr/text-encoding"]).toBe(op.dependencies["@kayahr/text-encoding"]);

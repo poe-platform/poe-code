@@ -149,3 +149,49 @@ An independent read-only Shell review passed its eight focused tests and found n
 adapter authority defect; its failure-coverage gaps were addressed with an
 additional forced-destination/ambiguity regression. It correctly retained the
 advanced model boundary above.
+
+## Verification review — 2026-09-14
+
+Reviewed the committed utility against F18, the shared CLI/SDK contracts, the
+public API audit and the numbering-related inherited/public inventory rows.
+The exact language/security mappings and pending live-model boundaries above
+remain accurate. Original test names and historical evidence remain intact.
+The unrelated integration-plan edit and the initially empty index were preserved.
+
+One correction was validated: restarting an instance accepted an opaque
+`startOverride` attribute or child and discarded that content when materializing
+the replacement start. Two original memfs regressions failed before product
+changes (promise resolved instead of unsupported-edit). The same cases first
+verify the unrelated instance stays byte-identical and follow the ordinary
+paragraph's instance/override to its requested start. Resolution now rejects
+unknown start-override attributes and child elements before publication.
+No new API, adapter, root wiring or dependency was needed.
+
+Evidence inspected:
+
+- Historical unit logs show 1,477 then 1,480 passes; the Shell red log shows the
+  erroneous expected exit 4 versus actual 1, followed by 27 passes in its final
+  log. The initial absent-function red run is recorded above but its raw log was
+  not located; it is not claimed independently replayed by this review.
+- New `/tmp/docx-lists-review-red.log`: two failing original cases before the
+  correction. `/tmp/docx-lists-review-green.log`: all 27 list cases passed.
+- `npm test --workspace=docx`: 57 files, 1,482 passing tests after the correction.
+- `npm run lint --workspace=docx`: ESLint and both TypeScript checks passed.
+- `npm run build:workspaces -- --workspace=docx`: selected maintained dependency
+  closure passed, including native postbuild checks.
+- `npx vitest run scripts/docx-exports.test.ts`: both checks passed.
+- `node --import tsx --test packages/safe-bash/tests/commands/docx/*.test.ts`:
+  all 27 actual adapter/Shell cases passed after the correction.
+- Maintained runner case `default normal runner passes every discovered active
+  file`: passed, with no membership changes.
+- Inspected historical `/tmp/docx-lists-cli-final.png` and newly captured
+  `/tmp/docx-lists-review-cli.png`. Actual human/JSON command executions reject
+  the opaque override with exit 1, unsupported-edit, null data and zero affected
+  locations. An initial manual invocation omitted the required boolean value for
+  `--restart` and returned usage exit 2; only the corrected `--restart true`
+  invocation establishes this semantic QA result.
+
+All logs/images remain disposable local evidence, not committed fixtures.
+No downloaded corpus, glyph rendering, native reference build, full-root suite,
+complete public model, arbitrary level setters, push or release was performed
+or claimed. Commit only this plan and the two corrected package files.

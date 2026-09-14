@@ -151,7 +151,12 @@ export class NumberingGraph {
       if (local.has(index) || !levels.has(index)) throw new UnsupportedEditError("Duplicate or unresolved numbering override.");
       local.add(index);
       const start = numberingChild(node, "startOverride");
-      if (start) { integer(numberingAttribute(start)); starts.set(index, start); }
+      if (start) {
+        this.attributes(start, ["val"]);
+        if (start.children.length) throw new UnsupportedEditError("Extended numbering start overrides cannot be edited.");
+        integer(numberingAttribute(start));
+        starts.set(index, start);
+      }
       const level = numberingChild(node, "lvl");
       if (level) this.validateLevel(level, index);
       if (node.children.some(c => c.namespace !== node.namespace || !["startOverride", "lvl"].includes(c.localName))) throw new UnsupportedEditError("Unsupported numbering override.");

@@ -253,3 +253,16 @@ it("rejects unverified numbering attributes instead of guessing their counter se
   const input = await fixture(item("Extended"), '<w:abstractNum w:abstractNumId="0" xmlns:q="urn:counter-policy" q:restart="always">' + level(0) + '</w:abstractNum>' + instance(4, 0));
   await expect(edit(input, "lists.set", { paragraph: 1, restart: true }).then(() => undefined)).rejects.toMatchObject({ code: "unsupported-edit" });
 });
+
+it.each([
+  '<w:startOverride xmlns:q="urn:counter-policy" w:val="9" q:restart="always"/>',
+  '<w:startOverride w:val="9"><q:counter xmlns:q="urn:counter-policy"/></w:startOverride>'
+])("preserves opaque start overrides and rejects affected restarts: case %#", async start => {
+  const opaque = instance(4, 0, '<w:lvlOverride w:ilvl="0">' + start + '</w:lvlOverride>');
+  const input = await fixture(item("Opaque counter") + item("Ordinary counter", 8), abstract(0) + opaque + instance(8, 0));
+  const unrelated = await edit(input, "lists.set", { paragraph: 2, restart: true, start: 2 });
+  expect(new TextDecoder().decode(unrelated.archive.members.find(m => m.name === "word/numbering.xml")!.bytes)).toContain(opaque);
+  expect(attr(binding(unrelated, unrelated.body.children[0]!).num, "numId")).toBe("4");
+  expect(attr(child(binding(unrelated, unrelated.body.children[1]!).override, "startOverride"))).toBe("2");
+  await expect(edit(input, "lists.set", { paragraph: 1, restart: true, start: 2 }).then(() => undefined)).rejects.toMatchObject({ code: "unsupported-edit" });
+});

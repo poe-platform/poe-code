@@ -1640,7 +1640,7 @@
       "name": "Strict and Transitional",
       "requiredBehavior": "Detect both, read both, edit supported structures in the original dialect. No silent dialect conversion.",
       "targetLevel": "edit",
-      "operationIds": ["inspect", "validate", "text.replace"],
+      "operationIds": ["create", "inspect", "validate", "text.replace"],
       "tests": ["feature.F02"],
       "implemented": false,
       "sdkRows": []
@@ -10583,6 +10583,13 @@
             "flag": "--template",
             "required": false
           },
+          "dialect": {
+            "type": "strict|transitional",
+            "flag": "--dialect",
+            "required": false,
+            "default": { "kind": "value", "value": "transitional" },
+            "templatePolicy": "Omission retains template dialect; explicit conflict is unsupported-edit."
+          },
           "contentFile": {
             "type": "VfsInput",
             "flag": "--content-file",
@@ -10596,8 +10603,8 @@
         },
         "unknownFields": "reject"
       },
-      "description": "Original template; explicit output kind and optional bounded structured content. Timestamp required when initializing dated properties.",
-      "featureIds": ["F01", "F03", "F11", "F12", "F13", "F15", "F19", "F32"],
+      "description": "Original template; explicit output kind/dialect and optional bounded structured content. Timestamp required when initializing dated properties.",
+      "featureIds": ["F01", "F02", "F03", "F11", "F12", "F13", "F15", "F19", "F32"],
       "help": ["docx", "help", "create"],
       "schema": ["docx", "schema", "create"],
       "result": "OfficeResultV1",
@@ -10609,6 +10616,7 @@
         "controlFlags": false,
         "optionalEdits": "unchanged",
         "kind": "docx",
+        "dialect": "transitional unless a template supplies its retained dialect",
         "content": {
           "version": 1,
           "blocks": []
@@ -10634,6 +10642,12 @@
           "template": {
             "type": "BinaryInput",
             "required": false
+          },
+          "dialect": {
+            "type": "strict|transitional",
+            "required": false,
+            "default": { "kind": "value", "value": "transitional" },
+            "templatePolicy": "Omission retains template dialect; explicit conflict is unsupported-edit."
           },
           "content": {
             "type": "OriginalDocumentContentV1",
@@ -129570,7 +129584,8 @@
       "assertions": [
         "Invoke public CLI and SDK operation with identical typed inputs; compare data/effects/errors.",
         "Generated help/schema expose exact accepted fields; reject unknown/inapplicable/repeated flags; verify option profile and publication rules.",
-        "Original template; explicit output kind and optional bounded structured content. Timestamp required when initializing dated properties.",
+        "Original template; explicit output kind/dialect and optional bounded structured content. Timestamp required when initializing dated properties.",
+        "Create both dialects; omission uses Transitional or retains the supplied template dialect. Reject unknown/null dialect and explicit template conflicts; never infer from suffix or convert a document dialect.",
         "Use docs/specs/docx.md sections 6.1–6.7: independently assert exact defaults, absence/null/empty behavior, result data type, stable error/exit, owner scope and prepublication file preservation; do not derive the expected result from the operation implementation."
       ]
     },

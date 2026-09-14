@@ -1,6 +1,7 @@
 import { DocumentPackage } from "./package.js";
-import { asciiKey, invalidPackage as invalid } from "./part-uri.js";
-import { xml, UnsupportedProfileError } from "./package-xml.js";
+import { asciiKey } from "./part-uri.js";
+import { InvalidPackageError, parseDocumentXml, UnsupportedProfileError } from "./package-xml.js";
+import { validatePackageDialect, type DocumentDialect } from "./dialect.js";
 export { InvalidPackageError, InvalidXmlError, UnsupportedProfileError } from "./package-xml.js";
 import {
   CancellationError,
@@ -13,7 +14,7 @@ import {
 
 export interface AdmittedDocumentArchive extends DocumentArchive {
   readonly kind: "docx" | "dotx";
-  readonly dialect: "strict" | "transitional";
+  readonly dialect: DocumentDialect;
   readonly mainPart: string;
   readonly package: DocumentPackage;
 }
@@ -28,10 +29,6 @@ const macroTypes = new Set([
   "application/vnd.ms-office.vbaproject",
   "application/vnd.ms-word.vbadata+xml"
 ]);
-const dialects = {
-  strict: "http://purl.oclc.org/ooxml/wordprocessingml/main",
-  transitional: "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-};
 const officeRelationships = new Set([
   "http://purl.oclc.org/ooxml/officeDocument/relationships/officeDocument",
   "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"
@@ -70,31 +67,17 @@ export async function readDocumentArchive(
   const mainRelationships = graph
     .relationships("/")
     .filter((edge) => officeRelationships.has(edge.reltype));
-  if (
-    mainRelationships.length !== 1 ||
-    mainRelationships[0]!.is_external ||
-    mainRelationships[0]!.fragment !== null
-  )
-    invalid();
+  if (mainRelationships.length !== 1)
+    throw new InvalidPackageError("The package must contain exactly one main document relationship.");
+  if (mainRelationships[0]!.is_external || mainRelationships[0]!.fragment !== null)
+    throw new InvalidPackageError("The main document relationship must be internal and have no fragment.");
   const main = mainRelationships[0]!.target_part;
   const type = asciiKey(main.content_type);
   const kind =
     type === documentTypes.docx ? "docx" : type === documentTypes.dotx ? "dotx" : undefined;
   if (!kind)
     throw new UnsupportedProfileError("The package is not a supported Word document or template.");
-  let dialect: AdmittedDocumentArchive["dialect"] | undefined;
-  xml(main.bytes, (tag, depth) => {
-    if (depth !== 1) return;
-    if (tag.localName !== "document") invalid();
-    dialect =
-      tag.namespace === dialects.strict
-        ? "strict"
-        : tag.namespace === dialects.transitional
-          ? "transitional"
-          : undefined;
-    if (!dialect) invalid();
-  });
-  if (!dialect) invalid();
+  const dialect = validatePackageDialect(graph, mainRelationships[0]!, parseDocumentXml(main.bytes).root);
   if (signal.aborted) throw new CancellationError("Document admission cancelled.");
   return { ...archive, kind, dialect, mainPart: main.name, package: graph };
 }

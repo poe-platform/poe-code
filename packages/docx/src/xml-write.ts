@@ -4,7 +4,8 @@ import {
   type XmlContent, type XmlElement, type XmlAttribute
 } from "./package-xml.js";
 
-import { MarkupCompatibility, compatibilitySettings, documentCompatibilityProfile, hasCompatibilityMarkup, type CompatibilityProfile } from "./compatibility.js";
+import { MarkupCompatibility, compatibilitySettings, documentCompatibilityProfile, hasCompatibilityMarkup, type CompatibilityProfile, type ExpandedXmlName } from "./compatibility.js";
+import { dialectForNamespace, validateXmlDialect, type DocumentDialect } from "./dialect.js";
 
 type Token = XmlContent | XmlAttribute;
 interface Span { start: number; end: number; owner: XmlContent; }
@@ -119,10 +120,13 @@ export class DocumentXmlEditor {
   readonly #patches = new Map<Token, string>();
   readonly #namespaces = new Map<ReadonlyMap<string, string>, Map<string, string>>();
   readonly #elements = new Set<XmlElement>();
+  readonly #dialect: DocumentDialect | undefined;
 
   constructor(bytes: Uint8Array, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile) {
     this.#profile = compatibilitySettings(profile);
     this.#document = parseDocumentXml(bytes, limits);
+    this.#dialect = dialectForNamespace(this.#document.root.namespace);
+    this.#guardCompatibility = this.#dialect !== undefined;
     this.#limits = { ...limits };
     this.#source = new TextDecoder(this.#document.encoding, { fatal: true, ignoreBOM: true }).decode(this.#document.bytes);
     this.#spans = indexSource(this.#document, this.#source);
@@ -166,11 +170,14 @@ export class DocumentXmlEditor {
     this.#stage(node, text, node.text, node.kind === "text");
   }
 
-  setAttribute(element: XmlElement, name: string, value: string): void {
-    if (typeof name !== "string" || typeof value !== "string")
-      throw new InputTypeError("Expected an XML attribute name and string value.");
+  setAttribute(element: XmlElement, name: string | ExpandedXmlName, value: string): void {
+    if ((typeof name !== "string" && (!name || typeof name !== "object" || Array.isArray(name) ||
+      typeof name.namespace !== "string" || typeof name.localName !== "string" ||
+      Object.keys(name).some(key => key !== "namespace" && key !== "localName"))) || typeof value !== "string")
+      throw new InputTypeError("Expected an XML attribute name or expanded name and string value.");
     if (!this.#elements.has(element)) unsupported();
-    const attribute = element.attributes.find(item => item.name === name);
+    const attribute = element.attributes.find(item => typeof name === "string" ? item.name === name :
+      item.namespace === name.namespace && item.localName === name.localName);
     if (!attribute || attribute.namespace === "http://www.w3.org/2000/xmlns/") unsupported();
     this.#stage(attribute, value, attribute.value, true);
   }
@@ -197,7 +204,8 @@ export class DocumentXmlEditor {
     try {
       // Validate the whole candidate before accepting a staged mutation. This also
       // checks characters, document siblings, encoding and cumulative output limits.
-      parseDocumentXml(this.serialize(), this.#limits);
+      const candidate = parseDocumentXml(this.serialize(), this.#limits);
+      if (this.#dialect && this.#patches.size) validateXmlDialect(candidate.root, this.#dialect, this.#profile);
     } catch (error) {
       this.#patches.clear();
       for (const [key, patch] of before) this.#patches.set(key, patch);

@@ -59,7 +59,7 @@ it("rejects affected move ranges and preserves unrelated review bytes on replace
   expect(new TextDecoder().decode(await docx.getDocumentXml(output, textContext, { part: "/word/document.xml", raw: true }) as Uint8Array)).toContain(review);
 });
 
-it("shares revision JSON and selectors with the command engine and advertises only reads", async () => {
+it("shares revision JSON and selectors with the command engine and advertises bounded review operations", async () => {
   const bytes = await textFixture(`<w:p><w:ins ${identity}>${run("Pier")}</w:ins></w:p>`);
   const volume = Volume.fromJSON({ "/input": Buffer.from(bytes) });
   let output = "";
@@ -70,7 +70,7 @@ it("shares revision JSON and selectors with the command engine and advertises on
   });
   expect(result.exitCode).toBe(0);
   expect(JSON.parse(output)).toMatchObject({ operation: "revisions.list", ok: true, affected: 0, data: await docx.inspectDocumentRevisions(bytes, { revision: 1 }, textContext) });
-  for (const [name, support] of [["list", "read"], ["accept", "reject"], ["reject", "reject"]]) {
+  for (const [name, support] of [["list", "read"], ["accept", "edit"], ["reject", "edit"]]) {
     const schema = docx.getDocxDiscovery(docx.parseDocxArguments(["schema", "revisions", name!].map(s => new TextEncoder().encode(s))))!;
     expect(schema.data).toMatchObject({ operations: [expect.objectContaining({ id: "revisions." + name, support })] });
   }

@@ -84,7 +84,7 @@ describe("tracked creation placement and schema", () => {
 });
 
 
-it("advertises bounded tracked creation while keeping accept/reject unsupported", () => {
+it("advertises bounded tracked creation alongside bounded revision decisions", () => {
   const schema = getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!.data as DocxSchemaData;
   expect(schema.operations.filter(item => ["revisions.add", "text.replace", "revisions.accept", "revisions.reject"].includes(item.id)).map(({ id, support, featureIds }) => ({ id, support, featureIds }))).toEqual(expect.arrayContaining([
     expect.objectContaining({ id: "revisions.add", support: "edit", featureIds: expect.arrayContaining(["F26"]) }),
@@ -92,7 +92,7 @@ it("advertises bounded tracked creation while keeping accept/reject unsupported"
   ]));
   for (const operation of ["revisions.accept", "revisions.reject"]) {
     const declared = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation } })!.data as DocxSchemaData;
-    expect(declared.operations).toMatchObject([{ id: operation, support: "reject" }]);
+    expect(declared.operations).toMatchObject([{ id: operation, support: "edit", featureIds: ["F26"] }]);
   }
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!.data as DocxCapabilitiesData;
   expect(capabilities).toMatchObject({ features: expect.arrayContaining([

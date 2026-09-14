@@ -23,6 +23,14 @@ The bounded scoped direct-formatting operation is described in
 [run formatting evidence](../docx/run-formatting.md). It does not promote the
 planned live object model, run whole-text setters or batch execution to implemented.
 
+The bounded tracked text creation milestone is recorded in
+[tracked text evidence](../docx/tracked-text-evidence.md). Its original tests
+qualify creation only; decision edits, live review owners, corpus/renderer QA
+and whole public API conformance require separate verified evidence.
+The later [bounded decision evidence](../docx/revision-decisions-evidence.md)
+qualifies selected inline text and exposed-property acceptance/rejection only;
+live owners, ordered batches and whole-format conformance remain pending.
+
 The bounded paragraph operations are described in
 [paragraph editing evidence](../docx/paragraph-editing.md). They add paragraph
 properties and explicit whole-paragraph text assignment, plus block/inline caret
@@ -980,6 +988,34 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   Author/time are escaped/validated explicit values, with the shared UTC timestamp
   precision; no ambient identity or clock is consulted. Creation does not imply
   support for acceptance/rejection, live review owners or ordered batches.
+  Acceptance/rejection editing support is distinct from revision-list read
+  interpretation. The bounded editing subset is ordinary inline insertion and
+  deletion wrappers containing admitted text runs, plus direct run/paragraph
+  property history with a single supported exposed-field snapshot. Accepting an
+  insertion unwraps its text; accepting a deletion removes its text. Rejecting
+  an insertion removes its text; rejecting a deletion unwraps its text and
+  restores deletion-text elements to ordinary text elements. Required paragraph
+  and run containers remain. Accepting supported property history removes only
+  its history and retains current properties; rejecting restores the exact
+  admitted old property container rather than deep-merging old and current
+  formatting. Unknown or compound property state is not an implicit rollback.
+  Nested/overlapping review owners, paragraph-mark/row revision marks, moves,
+  table/section changes, opaque history and affected unsupported field/control/
+  range boundaries reject the entire affected operation. Unselected changes
+  remain intact. All selected candidates are validated before any staged edit;
+  annotation/bookmark/field ranges and namespace scopes must remain faithful.
+  Removing a review owner must also preserve effective inherited XML language
+  and whitespace semantics on surviving content, including explicit descendant
+  overrides. Unsupported inherited XML semantics reject before mutation.
+  Whole revision tokens or one-based revision ordinals select inside the explicit
+  scope; scoped multi-revision mutation requires all. Text-range tokens do not
+  imply revision selection. Reports retain before identities and describe removed
+  review owners without claiming their tokens remain live. Repeated operations
+  resolve against the new input; no match rejects unless allowEmpty is explicit.
+  Acceptance preserves the selected current/final text and rejection restores the
+  selected original text within this subset; unrelated existing review views
+  remain distinct. These operations do not promise universal reversibility or
+  ordered-batch/live-owner support.
 - **Controls/templates.** Control set requires exactly one text/checked/choice/
   date/file field matching the control kind. Date is a valid `YYYY-MM-DD` calendar
   date; no timezone inference. Choice uses a declared option value, not its label.

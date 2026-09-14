@@ -42,6 +42,12 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (action === "add" && ["runs", "links", "fields", "toc", "captions", "notes", "images", "equations"].includes(resource) && !has("paragraph") && !token)
     reject("Inline insertion requires a paragraph.");
   if (operation === "equations.replace" && !token) reject("Equation replacement requires a location token.");
+  if (["revisions.accept", "revisions.reject"].includes(operation) && token) {
+    let range;
+    try { range = decodeLocation(options.select as string).range; }
+    catch { reject("Invalid revision selection token."); }
+    if (range !== null) reject("Revision decisions require a whole revision token.");
+  }
   if (operation === "revisions.add") {
     if (!token) {
       if (!has("paragraph") && !has("run") && !all) reject("Tracked creation requires a paragraph or run selection, or explicit all scope.");

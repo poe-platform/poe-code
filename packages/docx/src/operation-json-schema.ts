@@ -176,6 +176,14 @@ export function getDocxOperationSchema(id: string, transport: "sdk" | "cli" | "b
     { properties: { trackChanges: { const: true } }, required: ["trackChanges", "author", "timestamp"] },
     { properties: { trackChanges: { const: false } }, not: { anyOf: [{ required: ["author"] }, { required: ["timestamp"] }] } },
   ] });
+  if (["revisions.accept", "revisions.reject"].includes(id)) {
+    const owners = ["section", "paragraph", "run", "table", "cell", "image", "comment", "note", "link", "control", "shape", "field", "bookmark"];
+    conditions.push({ anyOf: [
+      { required: ["revision"], properties: { all: { const: false } }, not: { required: ["select"] } },
+      { required: ["select"], properties: { all: { const: false } }, not: { anyOf: ["revision", "scope", ...owners].map(name => ({ required: [name] })) } },
+      { required: ["all"], properties: { all: { const: true } }, not: { anyOf: ["revision", "select", ...owners].map(name => ({ required: [name] })) } },
+    ] });
+  }
   if (id === "revisions.add") conditions.push({ anyOf: [
     { properties: { kind: { const: "insert" } }, required: ["text"] },
     { properties: { kind: { const: "delete" } }, not: { required: ["text"] } },

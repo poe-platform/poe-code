@@ -1,5 +1,6 @@
 import { inspectDocumentRevisions } from "./revisions.js";
 import { executeRevisionEditCommand } from "./revision-edit-command.js";
+import { executeRevisionDecisionCommand } from "./revision-decisions-command.js";
 import { executeCommentsCommand } from "./comments-command.js";
 import { executeFieldsCommand } from "./fields-command.js";
 import { executeNotesCommand } from "./notes-command.js";
@@ -65,7 +66,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let exitCode = 0;
       const fieldOperation = ["fields.add", "fields.set", "toc.add", "toc.set", "captions.add", "captions.set"].includes(invocation.operation);
       const commentOperation = ["comments.list", "comments.get", "comments.add", "comments.set", "comments.remove"].includes(invocation.operation);
-      const revisionEditOperation = invocation.operation === "revisions.add";
+      const revisionEditOperation = ["revisions.add", "revisions.accept", "revisions.reject"].includes(invocation.operation);
       const noteOperation = ["notes.list", "notes.get", "notes.add", "notes.set", "notes.remove"].includes(invocation.operation);
       const bookmarkOperation = ["bookmarks.add", "bookmarks.set", "bookmarks.remove"].includes(invocation.operation);
       const linkOperation = ["links.add", "links.set", "links.remove"].includes(invocation.operation);
@@ -98,7 +99,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } });
         acquiring = false;
         if (revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = revisionEditOperation ? await executeRevisionEditCommand(invocation, bytes, inputIdentity, request, context)
+          output = revisionEditOperation ? invocation.operation === "revisions.add"
+            ? await executeRevisionEditCommand(invocation, bytes, inputIdentity, request, context)
+            : await executeRevisionDecisionCommand(invocation, bytes, inputIdentity, request, context)
             : commentOperation ? await executeCommentsCommand(invocation, bytes, inputIdentity, request, context)
             : noteOperation ? await executeNotesCommand(invocation, bytes, inputIdentity, request, context)
             : fieldOperation ? await executeFieldsCommand(invocation, bytes, inputIdentity, request, context)

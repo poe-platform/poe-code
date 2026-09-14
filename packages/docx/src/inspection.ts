@@ -219,7 +219,8 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     ["F01", true, "read"], ["F02", true, "read"], ["F03", archive.kind === "dotx", "read"], ["F05", compatibility, "read"], ["F06", true, "read"],
     ["F19", counts.tables > 0, "read"], ["F21", relationships.some(r => r.type.endsWith("/hyperlink")), "read"], ["F22", counts.fields > 0, "read"],
     ["F24", counts.footnotes + counts.endnotes > 0, "read"], ["F25", counts.comments > 0, "read"], ["F26", annotations.some(a => a.kind !== "comment"), "read"],
-    ["F27", counts.controls > 0, "read"], ["F30", properties.length > 0, "read"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
+    ["F27", annotations.some(a => ["moveFrom", "moveTo", "tblPrChange", "tcPrChange", "sectPrChange"].includes(a.kind)), "read"],
+    ["F28", counts.controls > 0, "read"], ["F30", properties.length > 0, "read"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
     ["F41", relationships.some(r => r.type.endsWith("/customXml") || r.type.endsWith("/glossaryDocument")) || parts.some(p => p.contentType.includes("glossary") || p.name.startsWith("/customXml/")), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => p.contentType.endsWith(".settings+xml") || p.contentType.endsWith(".fontTable+xml")), "read"], ["F43", signatureParts.length > 0, "preserve"]
   ];
   const result: InspectionData = { kind: archive.kind, dialect: archive.dialect, sizes: { archiveBytes: owned.length, expandedBytes: parts.reduce((sum, p) => sum + p.bytes, 0), mediaBytes: media.reduce((sum, p) => sum + p.bytes, 0) }, parts, relationships,

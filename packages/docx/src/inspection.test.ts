@@ -182,3 +182,18 @@ it("rejects macro-bearing package declarations in byte validation", async () => 
   await expect(inspectDocument(bytes, context())).rejects.toMatchObject({ code: "unsupported-profile" });
   await expect(validateDocument(bytes, context())).rejects.toMatchObject({ code: "unsupported-profile" });
 });
+
+it.each([
+  { markup: '<w:sdt><w:sdtPr/><w:sdtContent><w:p/></w:sdtContent></w:sdt>', controls: true, review: false },
+  { markup: '<w:p><w:moveFrom w:id="7" w:author="Editor"><w:r><w:t>Moved text</w:t></w:r></w:moveFrom></w:p>', controls: false, review: true }
+])("distinguishes control and complex review feature families: $controls/$review", async ({ markup, controls, review }) => {
+  const bytes = await enriched(fs => {
+    const main = fs.readFileSync("/word/document.xml", "utf8") as string;
+    fs.writeFileSync("/word/document.xml", main.replace("</w:body>", markup + "</w:body>"));
+  }, true);
+  const before = bytes.slice();
+  const result = await inspectDocument(bytes, context());
+  expect(result.features.find(feature => feature.id === "F27")).toMatchObject({ detected: review });
+  expect(result.features.find(feature => feature.id === "F28")).toMatchObject({ detected: controls });
+  expect(bytes).toEqual(before);
+});

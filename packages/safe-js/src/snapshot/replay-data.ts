@@ -426,6 +426,9 @@ type ReplayDecodingWork = {
   initialize: Array<() => void>;
   capture: Array<() => void>;
   settle: Array<() => void>;
+  activate: Array<() => void>;
+  committed: boolean;
+  schedulingIds: Set<number>;
   detach: Array<() => void>;
   rollback: Array<() => void>;
   scopes: Array<{ scope: CompileScope; parent?: CompileScope }>;
@@ -451,7 +454,8 @@ export function decodeReplayData(
   initialDepth = 0
 ): SandboxValue {
   const ownsWork = pendingWork === undefined;
-  const work = pendingWork ?? { initialize: [], capture: [], settle: [], detach: [], rollback: [], scopes: [] };
+  const work = pendingWork ?? { initialize: [], capture: [], settle: [], activate: [], committed: false,
+    schedulingIds: new Set<number>(), detach: [], rollback: [], scopes: [] };
   const compilation = new CompileScope(parent?.owner);
   work.scopes.push({ scope: compilation, parent });
   const sharedStorageBudget = compilation.owner?.budget ?? new Budget();
@@ -573,12 +577,24 @@ export function decodeReplayData(
           restored.set(id, existing);
           return existing;
         }
+        if (scheduleId !== undefined) {
+          if (work.schedulingIds.has(scheduleId as number))
+            throw new TypeError("Duplicate imported Promise scheduling identity.");
+          work.schedulingIds.add(scheduleId as number);
+        }
         let resolve!: (value: SandboxValue) => void;
         let reject!: (value: unknown) => void;
         const native = new Promise<SandboxValue>((yes, no) => { resolve = yes; reject = no; });
         void native.catch(() => undefined);
         const promise = createSandboxPromise(native, { trackReplay: false, importCompileOwner: compilation.owner });
         importedPromises.add(promise);
+        work.rollback.push(() => {
+          importedPromises.delete(promise);
+          importedPromiseSnapshots.delete(promise);
+          importedPromisePropertySnapshots.delete(promise);
+          promiseProperties.delete(promise);
+          promiseStates.delete(promise);
+        });
         restored.set(id, promise);
         if (globalMemo !== undefined && graphId !== undefined) {
           let entries = globalMemo.get(graphId);
@@ -609,12 +625,17 @@ export function decodeReplayData(
         }
         if (pending) {
           work.settle.push(() => {
-            try {
-              const resumed = Promise.resolve().then(() => options.resumePendingImportedPromise!(graphId!, id));
-              const tracked = scheduleId !== undefined && options.restoreScheduledPromise !== undefined
-                ? options.restoreScheduledPromise(scheduleId as number, resumed, promise) : resumed;
-              void tracked.then(resolve, reject);
-            } catch (error) { reject(error); }
+            const resumed = new Promise<SandboxValue>((yes, no) => {
+              work.activate.push(() => {
+                void Promise.resolve().then(() => options.resumePendingImportedPromise!(graphId!, id)).then(yes, no);
+              });
+            });
+            const tracked = scheduleId !== undefined && options.restoreScheduledPromise !== undefined
+              ? options.restoreScheduledPromise(scheduleId as number, resumed, promise) : resumed;
+            void tracked.then(
+              value => { if (work.committed) resolve(value); },
+              error => { if (work.committed) reject(error); }
+            );
           });
           return promise;
         }
@@ -630,10 +651,18 @@ export function decodeReplayData(
           work.settle.push(() => {
             if (scheduleId !== undefined && options.restoreScheduledPromise !== undefined) {
               const settled = status === "fulfilled" ? Promise.resolve(value) : Promise.reject(value);
-              options.restoreScheduledPromise(scheduleId as number, settled, promise).then(resolve, reject);
+              // Scheduling can throw before installing its own rejection handler.
+              // Guest rejection tracking belongs to the restored wrapper.
+              void settled.catch(() => undefined);
+              void options.restoreScheduledPromise(scheduleId as number, settled, promise).then(
+                value => { if (work.committed) resolve(value); },
+                error => { if (work.committed) reject(error); }
+              );
             } else {
-              promiseStates.set(promise, { status: status as "fulfilled" | "rejected", value });
-              if (status === "fulfilled") resolve(value); else reject(value);
+              work.activate.push(() => {
+                promiseStates.set(promise, { status: status as "fulfilled" | "rejected", value });
+                if (status === "fulfilled") resolve(value); else reject(value);
+              });
             }
           });
         });
@@ -1047,11 +1076,13 @@ export function decodeReplayData(
       for (const initialize of work.initialize) initialize();
       for (const capture of work.capture) capture();
       for (const detach of work.detach) detach();
+      for (const settle of work.settle) settle();
       for (let index = work.scopes.length - 1; index >= 0; index--) {
         const { scope, parent: owner } = work.scopes[index]!;
         if (owner !== undefined) scope.forward(scope.tickets, owner);
       }
-      for (const settle of work.settle) settle();
+      work.committed = true;
+      for (const activate of work.activate) activate();
     }
     if (options.memo !== undefined)
       for (const [id, value] of restored) options.memo.values.set(id, value);
@@ -1060,7 +1091,12 @@ export function decodeReplayData(
     if (ownsWork) for (let index = work.rollback.length - 1; index >= 0; index--) work.rollback[index]!();
     throw error;
   } finally {
-    if (ownsWork) for (let index = work.scopes.length - 1; index >= 0; index--) work.scopes[index]!.scope.dispose();
+    if (ownsWork) {
+      for (let index = work.scopes.length - 1; index >= 0; index--) work.scopes[index]!.scope.dispose();
+      work.initialize.length = work.capture.length = work.settle.length = work.activate.length =
+        work.detach.length = work.rollback.length = work.scopes.length = 0;
+      work.schedulingIds.clear();
+    }
   }
 }
 

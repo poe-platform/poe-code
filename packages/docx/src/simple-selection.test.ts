@@ -61,6 +61,29 @@ it("keeps image occurrence selection isolated unless shared intent is explicit",
   expect(sdk.resolveDocxSelection(document, parse(...args))).toHaveLength(1);
   expect(sdk.resolveDocxSelection(document, parse(...args, "--shared"))).toHaveLength(2);
 });
+it.each(["headers", "footers"] as const)("resolves explicit section-local unlink intent for shared %s", async resource => {
+  const document = await fixture(resource === "footers" ? files => {
+    const entries = [...files];
+    files.clear();
+    for (const [name, xml] of entries) files.set(name.replaceAll("header", "footer"),
+      xml.replaceAll("header", "footer").replaceAll("w:hdr", "w:ftr"));
+  } : undefined);
+  const original = document.snapshot();
+  for (const text of [undefined, "Local heading"]) {
+    const options = { section: 2, linkToPrevious: false, dryRun: true, ...(text === undefined ? {} : { text }) };
+    const selected = sdk.resolveDocxSelection(document, { operation: `${resource}.set`, inputs: ["in"], options });
+    const cli = parse(resource, "set", "in", "--section", "2", "--link-to-previous", "false", "--dry-run",
+      ...(text === undefined ? [] : ["--text", text]));
+    expect(sdk.resolveDocxSelection(document, cli)).toEqual(selected);
+    expect(selected).toHaveLength(1);
+    expect(selected[0]!.positions.section).toBe(2);
+    expect(document.references(selected[0]!.token)).toHaveLength(2);
+    expect(() => sdk.resolveDocxSelection(document, { operation: `${resource}.set`, inputs: ["in"],
+      options: { select: selected[0]!.token, linkToPrevious: false, dryRun: true } }))
+      .toThrowError(expect.objectContaining({ code: "ambiguous-selection" }));
+  }
+  expect(document.snapshot()).toEqual(original);
+});
 it("preserves fresh tokens and rejects stale and wrong-kind tokens", async () => {
   const document = await fixture();
   const token = document.at("paragraph", 1).token;

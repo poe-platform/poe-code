@@ -70,7 +70,9 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
       ...(mutable && options.allowEmpty !== undefined ? { allowEmpty: options.allowEmpty as boolean } : {})
     }, mutable || operation.endsWith(".get") ? "mutation" : "read").map(location => local.get(location.token)!);
   }
-  if (!text && mutable && options.shared !== true && selected.some(location => document.references(location.token).length > 1))
+  const unlinkSection = (resource === "headers" || resource === "footers") &&
+    options.linkToPrevious === false && options.section !== undefined;
+  if (!text && mutable && options.shared !== true && !unlinkSection && selected.some(location => document.references(location.token).length > 1))
     throw new SelectionError("ambiguous-selection", selected.map(location => location.token));
   if (resource === "images" && options.shared === true) {
     const expanded = new Map<string, Location>();

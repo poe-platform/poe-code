@@ -51,3 +51,26 @@ simple-selection.test.ts,location-index.ts,locations.ts,index.ts}, this plan,
 and docs/docx/simple-selector-ergonomics.md. No command.ts change was needed.
 The main pipeline's preexisting edits and unrelated archive move remain untouched
 and unstaged. No subsequent task, README, corpus cleanup, push or release occurs.
+
+## Verification correction, 2026-09-14
+
+Reviewed implementation commit `8ac6a4d32` against the task and shared contracts.
+Own only simple-selection.ts, simple-selection.test.ts, this plan and the
+existing selector evidence receipt. Leave the main pipeline and archive move
+alone. No safe-bash implementation changes or delegation are needed.
+
+The baseline maintained package test passed all 711 cases; lint and selected
+build closure passed. DOCX section 6.5 explicitly permits section-local
+header/footer unlinking. Two new original memfs cases failed before the fix:
+`resolveDocxSelection` threw `ambiguous-selection` for section 2 with
+`linkToPrevious: false`. Permit that explicit section-local intent at selection;
+keep shared tokens without a selected section ambiguous. Paired SDK/CLI cases
+cover unlink alone and unlink with text, retained section positions and unchanged
+source snapshots. They do not implement the later clone/rebind editor.
+
+Final package test: 713 passing, 24 files, no skips. Lint and maintained selected
+build closure passed again after the code correction. Inspect the retained
+error screenshot and actual test output, check the owned diff, then commit only
+the four owned paths. Detailed results and acceptance gaps are in
+docs/docx/simple-selector-ergonomics.md. Do not mark complete end-to-end routine
+editing or whole-model acceptance as passed.

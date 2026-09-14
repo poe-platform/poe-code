@@ -3101,3 +3101,59 @@ are required before pushing. **Local repair commit: recorded after creation.
 Verified remote-main delivery: none yet. Publication: none for this candidate.**
 Overall acceptance remains open until the clean candidate and delivery gates
 are evidenced. Historical non-Node limitations are not silently waived.
+
+
+## qualify-snapshot-adversarial-input — Nested runtime data validation, 2026-09-14
+
+Source anchor `14a791781` plus the preserved working candidate; Node **22.23.2 /
+ICU 78.2**. The pinned ECMA-262 edition 16, ECMA-402 edition 12, Test262 revision
+and tracked newer APIs remain unchanged. A new counter-based regression shows
+that an enumerable getter in caller-added metadata on a real run snapshot is
+invoked **twice** by restore. The root-envelope repair alone is insufficient.
+
+Runtime payload traversal now reads descriptors, rejects caller accessors
+including non-enumerable properties and array slots, and avoids caller-supplied
+array traversal methods. Unregistered proxies reject before their traps run.
+Registered intrinsic proxies retain their existing runtime treatment. Only
+engine-created wrapper getter functions are recognized by an internal weak
+identity registry; a frozen Promise lookalike grants no authority. Recognized
+getters are invoked with Reflect.apply, never a caller-modifiable `.call`
+property. The additional `.call` regression fails once before this correction.
+No budget, assertion, runtime support or timeout is relaxed.
+
+Compatibility experiments initially rejected legitimate closure getter/proxy
+wrappers: two runs each report **12 failed**, followed by **130/130** passing
+compatibility controls. Those failed experiments are retained, not counted as
+passes. Expanded snapshot/migration/run/checkpoint/harness coverage passes
+**2,663/2,663 in 194 files**, zero failures/skips, 160.23 s. Following the final
+Reflect.apply correction and allocation-neutral descriptor loop, the two caller
+regression files and unchanged mutation corpus pass **15/15 in 3 files**. The
+mutation test completes in 700 ms including its setup; its internal cap remains
+750 ms for 96 cases, seed `0x5a902026`. Final TypeScript and changed-file ESLint
+exit 0. The final clean delivered-source workspace gate remains required.
+
+Reproduce using the broad command in the preceding caller-envelope section,
+then:
+
+```sh
+npx vitest run packages/safe-js/src/snapshot/caller-mutated-nested-snapshot.test.ts packages/safe-js/src/snapshot/caller-mutated-run-snapshot.test.ts packages/safe-js/test/adversarial/snapshot-mutation.test.ts
+npx eslint packages/safe-js/src/snapshot/validation.ts packages/safe-js/src/interp/values.ts packages/safe-js/src/snapshot/caller-mutated-nested-snapshot.test.ts
+npx tsc -p packages/safe-js/tsconfig.json --noEmit
+```
+
+The nested fixtures reject through restore and run with zero host/getter calls,
+then recover after removal of invalid metadata. Existing legacy aliases,
+Promise tables/weak registrations, intrinsic state, compile tickets and live
+charge rollback controls remain intact. The getter registry records engine
+function provenance using weak references, not active wait or realm ownership.
+
+Earlier cross-runtime semantic/legacy probes pass on Node 18.18/18.20/20/22/24/26,
+Bun and Workerd for the preceding candidate. Concurrent timed corpus probes fail
+at 846.0, 1098.1 and 832.6 ms on Node 18.20.8, 20.20.2 and 26.8.2; these remain
+failed receipts pending isolated final-candidate diagnosis, with the same 750 ms
+cap. No portable Workerd wall-time or native-GC timing guarantee is claimed.
+
+Raw logs are retained in `caller-accessor-20260914/` under the task evidence
+directory. Unrelated staged content remains byte-for-byte identical. This
+increment receives a separate local commit. **Remote-main delivery: none yet.
+Publication: none for this candidate. Overall task closure remains open.**

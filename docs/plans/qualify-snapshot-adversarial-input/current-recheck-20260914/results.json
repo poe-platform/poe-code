@@ -1,0 +1,37 @@
+{
+  "sourceHead": "f4bd98107cf0f9bd3f98b4c17bd3198af0f20049",
+  "node": "22.23.2",
+  "icu": "78.2",
+  "baseline": {
+    "passed": 2617,
+    "files": 188,
+    "seconds": 128.76,
+    "exitCode": 0
+  },
+  "red": {
+    "failed": 1,
+    "passed": 3,
+    "exitCode": 1
+  },
+  "focused": {
+    "passed": 44,
+    "files": 6,
+    "exitCode": 0
+  },
+  "final": {
+    "passed": 2633,
+    "files": 192,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 104.02,
+    "exitCode": 0
+  },
+  "harness": {
+    "passed": 7,
+    "exitCode": 0
+  },
+  "typecheckExitCode": 0,
+  "eslintExitCode": 0,
+  "remoteDelivery": null,
+  "releaseReceipt": null
+}

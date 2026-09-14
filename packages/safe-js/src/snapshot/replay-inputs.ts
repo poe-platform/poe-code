@@ -7,7 +7,7 @@ import {
   isSandboxMap,
   isSandboxSet,
   isSandboxPromise,
-  getPromiseProperties,
+  promiseProperties,
   type SandboxClosure,
   type SandboxPromise,
   type SandboxValue
@@ -127,7 +127,7 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
         continue;
       }
       if (key === "properties" && isSandboxPromise(value)) {
-        value = getPromiseProperties(value);
+        value = promiseProperties.get(value);
         continue;
       }
       if (value === null || typeof value !== "object") return undefined;

@@ -446,3 +446,133 @@ For Workerd, replace the filesystem reads with bundled JSON imports of the same
 fixture files, use the individual built run/restore/dump/host-bridge modules, and
 wrap the assertions in an async fetch handler as above. Do not give the guest
 filesystem access.
+
+## Installed publication checks
+
+Use a separate consumer directory, pin actual registry versions, and install with
+`--ignore-scripts`. Run the maintained `safe-packages-fs-only.mjs` on its own
+SafeFS installation, then the maintained `safe-packages-smoke.mjs` with all three
+matching scoped packages, on Node and Bun. Run `npm audit signatures` against the
+registry-installed dependency graph. Independently download each registry
+tarball, compare SHA-512/SHA-1 with registry metadata, and inspect its provenance
+source commit and workflow invocation. A publication log alone does not qualify
+an unavailable registry version or an untested installed artifact.
+
+Run this additional public-API probe from the consumer with `SAFEJS_ARTIFACT`
+set to `@poe-platform/safe-js` and, separately, `poe-code/safejs`. Repeat using
+Node and Bun. For genuine legacy coverage, run the earlier legacy block with
+its public import replaced by the same explicit artifact module; fixture reads
+point to the checkout's existing JSON files. No guest filesystem authority is
+provided.
+
+```js
+import assert from "node:assert/strict";
+const target = process.env.SAFEJS_ARTIFACT;
+assert.ok(target);
+const { run, dump, restore, inspectSnapshotMigration, migrateSnapshot } = await import(target);
+let effects = 0;
+const effect = () => ++effects;
+const source = "effect(); const a={}; a.self=a; return [a,a];";
+const original = await run(source, {bindings: {effect}});
+assert.equal(original.ok, true);
+assert.equal(effects, 1);
+const wire = JSON.parse(await dump(original));
+const replay = await run(source, {snapshot: restore(wire, {source}), bindings: {effect}});
+assert.equal(replay.ok, true);
+assert.equal(replay.returnValue[0], replay.returnValue[1]);
+assert.equal(replay.returnValue[0].self, replay.returnValue[0]);
+assert.equal(effects, 1);
+assert.throws(() => restore(wire, {source: "return 42;"}), {name: "SnapshotMismatchError"});
+for (const mutate of [
+  s => { s.version = 999; },
+  s => { s.extra = "x".repeat(1_000_001); },
+  s => { s["x".repeat(1_000_001)] = 0; },
+  s => { s.extra = Array(100_001); }
+]) {
+  const invalid = JSON.parse(JSON.stringify(wire));
+  mutate(invalid);
+  effects = 0;
+  assert.throws(() => restore(invalid, {source}), {name: "SnapshotValidationError"});
+  await assert.rejects(run(source, {snapshot: invalid, bindings: {effect}}),
+    {name: "SnapshotValidationError"});
+  assert.equal(effects, 0);
+}
+for (const key of ["version", "sourceHash", "clock", "random", "promiseReplay", "extra"]) {
+  const plainSource = "effect(); return 7;";
+  const result = await run(plainSource, {bindings: {effect}});
+  let invocations = 0;
+  const previous = Object.getOwnPropertyDescriptor(result.snapshot, key);
+  Object.defineProperty(result.snapshot, key, {enumerable: true, configurable: true,
+    get() {invocations++; return previous?.value;}});
+  effects = 0;
+  assert.throws(() => restore(result.snapshot, {source: plainSource}),
+    error => error.name === "SnapshotValidationError" && error.code === "invalidType");
+  await assert.rejects(run(plainSource, {snapshot: result.snapshot, bindings: {effect}}),
+    error => error.name === "SnapshotValidationError" && error.code === "invalidType");
+  assert.equal(invocations, 0);
+  assert.equal(effects, 0);
+}
+for (const enumerable of [true, false]) {
+  const result = await run("return 7;");
+  let invocations = 0;
+  result.snapshot.extra = Object.defineProperty({}, "value", {
+    enumerable, get() {invocations++; return 7;}
+  });
+  assert.throws(() => restore(result.snapshot, {source: "return 7;"}),
+    error => error.name === "SnapshotValidationError" && error.code === "invalidType");
+  await assert.rejects(run("return 7;", {snapshot: result.snapshot}),
+    error => error.name === "SnapshotValidationError" && error.code === "invalidType");
+  assert.equal(invocations, 0);
+}
+const namespaceSource = 'import * as host from "host"; return host.read();';
+let namespaceCalls = 0;
+const modules = {host: {read: () => ++namespaceCalls}};
+const namespaceResult = await run(namespaceSource, {modules});
+assert.equal(namespaceResult.ok, true);
+assert.equal((await run(namespaceSource, {snapshot: namespaceResult.snapshot, modules})).returnValue, 1);
+assert.equal(namespaceCalls, 1);
+for (const enumerable of [true, false]) {
+  const guestSource = 'effect(); const a={}; Object.defineProperty(a,"x",{value:1}); a.self=a; return [a,a];';
+  const result = await run(guestSource, {bindings: {effect}});
+  let invocations = 0;
+  result.snapshot.extra = Object.defineProperty({}, "value", {
+    enumerable, get() {invocations++; return 7;}
+  });
+  effects = 0;
+  assert.throws(() => restore(result.snapshot, {source: guestSource}),
+    error => error.name === "SnapshotValidationError" && error.code === "invalidType");
+  await assert.rejects(run(guestSource, {snapshot: result.snapshot, bindings: {effect}}),
+    error => error.name === "SnapshotValidationError" && error.code === "invalidType");
+  assert.equal(invocations, 0);
+  assert.equal(effects, 0);
+  delete result.snapshot.extra;
+  const recovered = await run(guestSource, {snapshot: result.snapshot, bindings: {effect}});
+  assert.equal(recovered.ok, true);
+  assert.equal(recovered.returnValue[0], recovered.returnValue[1]);
+  assert.equal(recovered.returnValue[0].self, recovered.returnValue[0]);
+  assert.equal(effects, 0);
+}
+const oldSource = "return 1;";
+const old = JSON.parse(await dump(await run(oldSource)));
+const inspection = inspectSnapshotMigration(old, {source: oldSource});
+assert.equal(inspection.unresolvedCalls.length, 0);
+const state = {};
+state.self = state;
+state.alias = [state, state];
+const targetSource = "effect(); const s=import.meta.migration; return [s===s.self,s.alias[0]===s,s.alias[0]===s.alias[1]];";
+const migrated = migrateSnapshot(old, {source: oldSource, targetSource, state,
+  reconciliation: {checkpointDigest: inspection.checkpointDigest, quiescent: true, calls: []}});
+effects = 0;
+const migratedRun = await run(targetSource, {snapshot: migrated, bindings: {effect}});
+assert.equal(migratedRun.ok, true);
+assert.deepEqual(migratedRun.returnValue, [true, true, true]);
+assert.equal(effects, 1);
+const missingCapability = JSON.parse(JSON.stringify(migrated));
+missingCapability.migration.state.root = {tag: "capability", id: "absent"};
+effects = 0;
+await assert.rejects(run(targetSource, {snapshot: missingCapability, bindings: {effect}}),
+  error => String(error).includes("Missing replay"));
+assert.equal(effects, 0);
+console.log(JSON.stringify({target, node: process.versions.node, bun: process.versions.bun,
+  icu: process.versions.icu, passed: true, checks: "identity, malformed/oversized data, root/nested accessors, explicit migration, absent capability"}));
+```

@@ -1096,6 +1096,30 @@ function validateGenericValue(
     fail("budgetExceeded", path, `exceeds aggregate data limit ${state.limits.maxDataSize}`);
 }
 
+// A guest-state fallback must not discard active caller data that occurs after
+// the first value requiring portable serialization. Inspect descriptors without
+// following cycles or consulting caller Proxy traps before conversion begins.
+export function validateRuntimeSnapshotDescriptors(snapshot: object): void {
+  const pending = [{ value: snapshot, path: "$", depth: 0 }];
+  const seen = new WeakSet<object>();
+  let entries = 0;
+  while (pending.length > 0) {
+    const { value, path, depth } = pending.pop()!;
+    if (types.isProxy(value) && getIntrinsicIdentity(value) === undefined && !isSandboxModuleNamespace(value))
+      fail("invalidType", path, "proxy objects are not snapshot data");
+    if (seen.has(value)) continue;
+    seen.add(value);
+    if (depth > MAX_DATA_DEPTH)
+      fail("budgetExceeded", path, `exceeds nesting limit ${MAX_DATA_DEPTH}`);
+    for (const [key, entry] of ownSnapshotDataEntries(value, path, true)) {
+      if (++entries > DEFAULT_MAX_ENTRIES)
+        fail("budgetExceeded", path, `exceeds aggregate entry limit ${DEFAULT_MAX_ENTRIES}`);
+      if (entry !== null && typeof entry === "object")
+        pending.push({ value: entry, path: `${path}${formatKey(key)}`, depth: depth + 1 });
+    }
+  }
+}
+
 function snapshotDataEntries(value: object, path: string, checkedPrototypes?: WeakSet<object>): Array<[string, unknown]> {
   const prototype = Object.getPrototypeOf(value);
   if (

@@ -49,3 +49,7 @@ export {
   type CompatibilityProfile, type CompatibilityElement, type CompatibilityContent,
   type CompatibilityBranch, type ExpandedXmlName
 } from "./compatibility.js";
+
+export { validateDocumentArchive, documentValidationProfile, SemanticValidationError, type ValidationOptions, type ValidationData, type ValidationDiagnostic } from "./validation.js";
+
+export { writeDocumentArchive } from "./document-write.js";

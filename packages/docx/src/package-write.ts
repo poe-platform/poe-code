@@ -1,3 +1,4 @@
+import { validateDocumentArchive, SemanticValidationError } from "./validation.js";
 import { InputTypeError, InvalidValueError, type DocumentArchive } from "./archive.js";
 import { DocumentXmlEditor } from "./xml-write.js";
 import { documentXmlSettings, type DocumentXmlLimits } from "./package-xml.js";
@@ -44,7 +45,7 @@ export class DocumentArchiveEditor {
   }
 
   snapshot(): DocumentArchive {
-    return {
+    const staged = {
       comment: new Uint8Array(this.#archive.comment),
       members: this.#archive.members.map(member => ({
         ...member,
@@ -52,5 +53,10 @@ export class DocumentArchiveEditor {
         modified: new Date(member.modified.getTime())
       }))
     };
+    if (staged.members.some(member => member.name.toLowerCase() === "[content_types].xml")) {
+      const report = validateDocumentArchive(staged);
+      if (!report.valid) throw new SemanticValidationError(report.diagnostics);
+    }
+    return staged;
   }
 }

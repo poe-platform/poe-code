@@ -4,6 +4,9 @@ export type { XmlElement, XmlContent, XmlAttribute } from "@poe-code/safe-fs/xml
 
 export class InvalidPackageError extends Error {
   readonly code = "invalid-package";
+  constructor(message: string, readonly part?: string, readonly location = "/", readonly diagnosticCode = "package-structure") {
+    super(message);
+  }
 }
 export class InvalidXmlError extends Error {
   readonly code = "invalid-xml";

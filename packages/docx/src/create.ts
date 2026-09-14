@@ -1,6 +1,6 @@
 import { InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
-import { writeArchive } from "./archive-write.js";
+import { writeDocumentArchive } from "./document-write.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 
 export interface DocumentCreateOptions {
@@ -31,7 +31,7 @@ export async function createDocumentArchive(options: DocumentCreateOptions, cont
       directory: false, modified: new Date("1980-01-01T00:00:00Z") }))
   };
   const chunks: Uint8Array[] = [];
-  await writeArchive(archive, { async write(bytes) { chunks.push(new Uint8Array(bytes)); } },
+  await writeDocumentArchive(archive, { async write(bytes) { chunks.push(new Uint8Array(bytes)); } },
     { order: "name", compression: "store" }, context);
   const bytes = new Uint8Array(chunks.reduce((total, chunk) => total + chunk.length, 0));
   let offset = 0;

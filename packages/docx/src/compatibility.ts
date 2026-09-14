@@ -24,7 +24,20 @@ export const documentCompatibilityProfile: CompatibilityProfile = Object.freeze(
     "http://schemas.openxmlformats.org/drawingml/2006/picture",
     "http://purl.oclc.org/ooxml/drawingml/picture",
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
-    "http://purl.oclc.org/ooxml/officeDocument/relationships"
+    "http://purl.oclc.org/ooxml/officeDocument/relationships",
+    "http://schemas.openxmlformats.org/officeDocument/2006/math",
+    "http://purl.oclc.org/ooxml/officeDocument/math",
+    "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
+    "http://purl.oclc.org/ooxml/officeDocument/extendedProperties",
+    "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties",
+    "http://purl.oclc.org/ooxml/officeDocument/customProperties",
+    "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+    "http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes",
+    "http://schemas.openxmlformats.org/package/2006/content-types",
+    "http://schemas.openxmlformats.org/package/2006/relationships",
+    "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+    "http://purl.org/dc/elements/1.1/",
+    "http://purl.org/dc/terms/"
   ]),
   extensionElements: Object.freeze(drawingNamespaces.map(namespace => Object.freeze({ namespace, localName: "ext" })))
 });

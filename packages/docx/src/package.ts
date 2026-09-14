@@ -7,7 +7,7 @@ import {
   type ArchiveMember,
   type DocumentArchive
 } from "./archive.js";
-import { xml } from "./package-xml.js";
+import { xml, InvalidPackageError } from "./package-xml.js";
 import {
   asciiKey,
   invalidPackage,
@@ -39,6 +39,21 @@ export interface PackageRelationship {
   readonly is_external: boolean;
   readonly fragment: string | null;
   readonly target_part: PackagePart;
+}
+
+function metadataXml(part: string, bytes: Uint8Array, visit: (tag: XmlElement, depth: number) => void): void {
+  let location = "/";
+  let index = 0;
+  try {
+    xml(bytes, (tag, depth) => {
+      location = `/${tag.localName}[${++index}]`;
+      visit(tag, depth);
+    }, true);
+  } catch (error) {
+    if (error instanceof InvalidPackageError)
+      throw new InvalidPackageError(error.message, part, location, error.diagnosticCode);
+    throw error;
+  }
 }
 
 function attributes(tag: XmlElement, allowed: readonly string[]): void {
@@ -143,8 +158,8 @@ export class DocumentPackage {
     const overrides = new Map<string, string>();
     const defaultValues: ContentTypeDefault[] = [];
     const overrideValues: ContentTypeOverride[] = [];
-    xml(
-      types.bytes,
+    metadataXml(
+      "/[Content_Types].xml", types.bytes,
       (tag, depth) => {
         if (tag.namespace !== contentTypesNamespace) invalidPackage();
         if (depth === 1) {
@@ -190,8 +205,7 @@ export class DocumentPackage {
           defaults.set(key, content_type);
           defaultValues.push(Object.freeze({ extension: name, content_type }));
         }
-      },
-      true
+      }
     );
     this.defaults = Object.freeze(defaultValues);
     this.overrides = Object.freeze(overrideValues);
@@ -218,8 +232,8 @@ export class DocumentPackage {
         invalidPackage();
       const ids = new Set<string>();
       const relationships: PackageRelationship[] = [];
-      xml(
-        part.bytes,
+      metadataXml(
+        part.partname, part.bytes,
         (tag, depth) => {
           if (tag.namespace !== relationshipsNamespace) invalidPackage();
           if (depth === 1) {
@@ -255,8 +269,7 @@ export class DocumentPackage {
               }
             })
           );
-        },
-        true
+        }
       );
       this.edges.set(asciiKey(owner), Object.freeze(relationships));
       this.reservedIds.set(asciiKey(owner), ids);

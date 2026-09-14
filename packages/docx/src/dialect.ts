@@ -95,13 +95,13 @@ export function validatePackageDialect(graph: DocumentPackage, mainEdge: Package
   for (const owner of ["/", ...graph.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)]) {
     for (const edge of graph.relationships(owner)) {
       if (edge.reltype.startsWith(opposite.r + "/"))
-        throw new InvalidPackageError("A package relationship uses the opposite document dialect.");
+        throw new InvalidPackageError("A package relationship uses the opposite document dialect.", owner, "/", "relationship-dialect");
       const prefix = documentDialects[dialect].r + "/";
       const relationshipName = edge.reltype.startsWith(prefix) ? edge.reltype.slice(prefix.length).toLowerCase() : "";
       if (Object.hasOwn(wordRoots, relationshipName) && !relationshipName.includes(".") &&
         (edge.is_external || edge.target_part.content_type.toLowerCase() !==
           `application/vnd.openxmlformats-officedocument.wordprocessingml.${relationshipName}+xml`))
-        throw new InvalidPackageError("A WordprocessingML relationship target has an incompatible content type.");
+        throw new InvalidPackageError("A WordprocessingML relationship target has an incompatible content type.", owner, "/", "relationship-content-type");
     }
   }
   for (const part of graph.parts) {
@@ -113,11 +113,11 @@ export function validatePackageDialect(graph: DocumentPackage, mainEdge: Package
     const partRoot = part === main ? root : parseDocumentXml(part.bytes).root;
     const partDialect = dialectForNamespace(partRoot.namespace);
     if (partDialect && partDialect !== dialect)
-      throw new InvalidPackageError("A document part root uses the opposite document dialect.");
+      throw new InvalidPackageError("A document part root uses the opposite document dialect.", part.partname, "/", "part-root");
     const name = type.slice(prefix.length, -4);
     const expected = word && Object.hasOwn(wordRoots, name) ? wordRoots[name] : undefined;
     if (word && (partRoot.namespace !== documentDialects[dialect].w || (expected && partRoot.localName !== expected)))
-      throw new InvalidPackageError("A WordprocessingML part root disagrees with its content type.");
+      throw new InvalidPackageError("A WordprocessingML part root disagrees with its content type.", part.partname, "/", "part-root");
     const view = validateXmlDialect(partRoot, dialect);
     if (part === main) {
       const document = view.content.find(node => "source" in node && node.source === root);

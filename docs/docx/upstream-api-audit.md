@@ -1,7 +1,9 @@
 # DOCX Public API Documentation Audit
 
 Status: Pinned documentation/source reconciliation completed on 2026-09-13;
-mapping status reconciled on 2026-09-14; SDK implementation not started.
+mapping status reconciled on 2026-09-14; document object model implementation not started.
+Bounded package primitives now have separate evidence in the
+[validation profile](validation-profile.md); they do not establish model API coverage.
 
 ## Sources and baseline
 
@@ -56,9 +58,14 @@ Every public member needs a row recording target signature/defaults/return/side 
 
 ## Validation status
 
+Current package-engine evidence is recorded separately in the
+[bounded validation profile](validation-profile.md). The historical inventory
+and counts below concern the model mapping task, not the absence of all utility
+code. No model row is promoted by the package-validation milestone.
+
 The pinned inventory/reconciliation task is complete within its declared research
-scope; no JavaScript API has been implemented or tested. Existing Python test
-passes establish only the pinned reference baseline. The subsequent
+scope; no documented document-object-model API is claimed implemented by that
+research task. Existing Python test passes establish only the pinned reference baseline. The subsequent
 [test crosswalk](test-case-map.json) maps all 2,259 source cases to original target
 acceptance obligations; mapping is not an executed test pass. The
 [API map](public-api-map.json) includes 1,337 proposed rows and original guide

@@ -128,3 +128,4 @@ export { type TableConstructionRequest } from "./paragraph-edit.js";
 export { inspectDocumentTable, type TableInspectionData, type TableDetails } from "./table-read.js";
 export { editDocumentTables, type TableEditRequest, type TableEditData, type TableEditOperation } from "./table-edit.js";
 export type { DocxTableInput, DocxTableFormat, DocxTableBorders, DocxTableRowOptions, DocxCellInput, DocxCellMargins } from "./operation-types.js";
+export { inspectDocumentBookmarks, editDocumentBookmarks, type BookmarkListData, type BookmarkEditData, type BookmarkEditRequest, type BookmarkEditOperation } from "./bookmarks.js";

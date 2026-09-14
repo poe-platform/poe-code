@@ -849,9 +849,9 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   row removal. Live table model batches, span insertion and column removal remain pending.
 - **Links/bookmarks/fields.** Link add/set requires exactly one target or bookmark;
   external target accepts absolute https/http/mailto only and is never fetched;
-  bookmark must exist. Removing a link unwraps its visible content. Bookmark
-  names are nonempty, at most 40 Unicode scalars, start with an ASCII letter and
-  thereafter use ASCII letters/digits/underscore; collisions fail. Rename/remove
+  destinations may remain unresolved (section 9.1). Removing a link unwraps its
+  visible content. Bookmark names are 1–40 ASCII letters/digits/underscore, begin
+  with a letter or underscore, and must be unique; collisions fail. Rename/remove
   require the explicit references policy; unknown/opaque dependent references
   block edits. Add uses a selected nonempty admitted text range. Fields require
   target for REF/PAGEREF/SEQ and forbid it for PAGE/NUMPAGES/TOC. Result defaults
@@ -1893,6 +1893,20 @@ longer referenced in the owning XML part may be removed; other owners and
 unselected compatibility branches retain their relationships. The bounded editor
 accepts direct paragraph hyperlinks and rejects tracked/controlled wrappers,
 opaque affected edits, ranges and ambiguous shared header/footer mutation.
+
+The bounded [bookmark range milestone](../plans/docx-bookmarks.md) implements
+bookmarks list/add/set/remove. Add uses a nonempty paragraph scalar-range token,
+including multi-run and table-cell ranges. Inspection reports duplicate IDs/names,
+missing or reversed ends, illegal boundaries, nested overlaps and crossings.
+Malformed structures yield document-wide issues and no usable location items.
+Rename updates internal anchors and literal simple/complex REF/PAGEREF operands
+only with explicit `references: "update"`; `reject` refuses dependent edits.
+Removal requires `remove` or `reject`, retains bookmark content, and unwraps
+supported simple references under `remove`. Complex-field removal and opaque or
+unsafe dependencies reject. Fields are never executed. Existing multi-paragraph
+ranges within one admitted container can be renamed/removed; creation is limited
+to one paragraph. The bounded profile requires document-wide name/ID uniqueness
+and refuses shared-story edits. General field and live-model APIs remain pending.
 
 Rendered page-break objects describe stored layout metadata, not measured pages
 or newly requested hard breaks. Presence, order and preceding/following paragraph

@@ -134,7 +134,7 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
   if (["bookmarks.add", "bookmarks.set"].includes(operation) && has("name")) {
     const name = options.name;
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    if (typeof name !== "string" || !name || [...name].length > 40 || !letters.includes(name[0]!) ||
+    if (typeof name !== "string" || !name || [...name].length > 40 || !(letters + "_").includes(name[0]!) ||
       [...name].some(character => !(letters + "0123456789_").includes(character))) reject("Invalid bookmark name.");
   }
   if (["links.add", "links.set"].includes(operation) && has("target")) {

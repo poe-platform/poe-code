@@ -8,7 +8,7 @@ import type { DocumentScope } from "./location-index.js";
 
 const resourceKinds: Readonly<Record<string, LocationKind>> = {
   lists: "paragraph", paragraphs: "paragraph", runs: "run", tables: "table", images: "image",
-  headers: "story", footers: "story", text: "paragraph", links: "link"
+  headers: "story", footers: "story", text: "paragraph", links: "link", bookmarks: "bookmark"
 };
 
 /** Resolve admitted input only; feature editors consume these revision-bound targets. */
@@ -18,10 +18,10 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   const { operation, options } = invocation;
   const resource = operation.split(".")[0]!;
   const inserting = operation.endsWith(".add") && !operation.startsWith("tables.rows.") && !operation.startsWith("tables.columns.");
-  const targetKind = inserting && ["images", "runs", "links"].includes(resource) ? "paragraph"
+  const targetKind = inserting && ["images", "runs", "links", "bookmarks"].includes(resource) ? "paragraph"
     : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? "story"
     : operation === "text.get" && options.section === undefined ? "story" : resourceKinds[resource];
-  if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "bookmark" && resource === "links")) || resource !== "links" && options.link !== undefined)
+  if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "bookmark" && ["links", "bookmarks"].includes(resource))) || resource !== "links" && options.link !== undefined)
     throw new UnsupportedEditError("This resource selector is not implemented.");
   const mutable = docxOperationSchemas[operation]!.mutates;
   const text = resource === "text";
@@ -32,12 +32,12 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   };
   let selected: readonly Location[];
   if (typeof options.select === "string") {
-    const location = document.resolve(options.select);
+    const location = document.resolve<LocationKind>(options.select, resource === "bookmarks" ? inserting ? "paragraph" : "bookmark" : undefined);
     const acceptable = text ? ["story", "paragraph", "run", "table", "cell"]
       : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? ["story", "cell", "paragraph"]
       : operation === "runs.set" && location.value.range !== null ? ["run", "paragraph"]
       : resource === "tables" ? ["table", "cell"] : [targetKind];
-    if (!text && !["runs.set", "runs.add", "paragraphs.add", "tables.add"].includes(operation) && location.value.range !== null) throw new InvalidValueError("Whole resource operations require a resource token, not a text range.");
+    if (!text && !["runs.set", "runs.add", "paragraphs.add", "tables.add", "bookmarks.add"].includes(operation) && location.value.range !== null) throw new InvalidValueError("Whole resource operations require a resource token, not a text range.");
     if (!acceptable.includes(location.kind)) throw new SelectionError("missing-selection");
     if ((resource === "headers" || resource === "footers") &&
       !document.list("story", { scope: resource }).some(story => story.token === location.token))
@@ -54,8 +54,8 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
         throw new InvalidValueError("Note selection requires an explicit footnotes or endnotes scope.");
       owner = document.at("story", (options.comment ?? options.note) as number, { scope });
     }
-    for (const kind of ["table", "cell", "paragraph", "run", "image", "link"] as const) {
-      if (options[kind] === undefined) continue;
+    for (const kind of ["table", "cell", "paragraph", "run", "image", "link", "bookmark"] as const) {
+      if (options[kind] === undefined || kind === "bookmark" && resource === "links") continue;
       if (kind === "cell") owner = document.cell(owner!.token, options.cell as string);
       else owner = document.at(kind, options[kind] as number, owner ? { owner: owner.token } : query);
     }

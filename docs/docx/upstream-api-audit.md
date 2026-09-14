@@ -129,6 +129,13 @@ bookmark-destination grammar correction. Hyperlink/Paragraph live model members,
 including inherited `part`, remain visible in the inventory with their existing
 planned/security-mapped obligations; utility execution is not whole-model parity.
 
+The bounded [bookmark range milestone](../plans/docx-bookmarks.md) adds original
+utility inspection/creation/rename/removal with explicit reference policies.
+Its exact JS/security mapping retains Hyperlink, inherited part, Paragraph
+traversal, story/table owners, enums and collection obligations as separately
+pending. The pinned inventory remains historical. General field/model APIs and
+whole-public-API coverage are not completed by these utility regressions.
+
 Current package-engine evidence is recorded separately in the
 [bounded validation profile](validation-profile.md). The historical inventory
 and counts below concern the model mapping task, not the absence of all utility

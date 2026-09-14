@@ -119,7 +119,7 @@ export class LocationIndex {
       if (seen.has(id)) return;
       seen.add(id);
       this.#add({ kind: "story", part, story: id, path: this.#paths.get(node)!, node, scope, positions });
-      const counts = { paragraph: 0, table: 0, image: 0, run: 0, link: 0 };
+      const counts = { paragraph: 0, table: 0, image: 0, run: 0, link: 0, bookmark: 0 };
       let bodySection = 1;
       const visit = (current: XmlElement, inherited: LocationPositions) => {
         budget.charge("work", 1);
@@ -136,12 +136,14 @@ export class LocationIndex {
           else if (current.localName === "hyperlink") { kind = "link"; pos = { ...inherited, link: ++counts.link }; }
           else if (current.localName === "tbl") { kind = "table"; pos = { ...inherited, table: ++counts.table }; }
           else if (current.localName === "tc") kind = "cell";
-          else if (["comment", "bookmarkStart", "commentRangeStart", "ins", "del", "moveFrom", "moveTo"].includes(current.localName)) kind = "annotation";
+          else if (current.localName === "bookmarkStart") { kind = "bookmark"; pos = { ...inherited, bookmark: ++counts.bookmark }; }
+          else if (["comment", "commentRangeStart", "ins", "del", "moveFrom", "moveTo"].includes(current.localName)) kind = "annotation";
         }
         if ((current.namespace === a && current.localName === "blip") ||
           (current.namespace === "urn:schemas-microsoft-com:vml" && current.localName === "imagedata")) {
           kind = "image"; pos = { ...inherited, image: ++counts.image };
         }
+        if (kind === "bookmark") this.#add({ kind: "annotation", part, story: id, path: this.#paths.get(current)!, node: current, scope, positions: inherited });
         if (kind) this.#add({ kind, part, story: id, path: this.#paths.get(current)!, node: current, scope, positions: pos });
         for (const child of this.children.get(current) ?? []) visit(child, pos);
         if (scope === "body" && current.namespace === w && current.localName === "p") {
@@ -242,6 +244,7 @@ export class LocationIndex {
       if (node.namespace !== this.#w) { unsupported = true; return; }
       const name = node.localName;
       if (name === "pPr" || name === "rPr" || name === "lastRenderedPageBreak") return;
+      if (["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "proofErr", "permStart", "permEnd"].includes(name) && !node.children.length && !node.text.trim()) return;
       if (name === "t") {
         this.#budget.charge("work", node.text.length);
         for (let i = 0; i < node.text.length; length++) i += node.text.codePointAt(i)! > 0xffff ? 2 : 1;

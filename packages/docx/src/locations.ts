@@ -112,7 +112,7 @@ class DocumentLocations {
       throw new InvalidValueError("Story variants require header or footer scope.");
     if (query.section !== undefined && (kind === "part" || query.scope !== undefined && !["body", "headers", "footers", "all-stories"].includes(query.scope)))
       throw new InvalidValueError("Section selection requires body, header or footer scope.");
-    if (!["section", "part", "story", "paragraph", "run", "table", "cell", "image", "link", "annotation"].includes(kind))
+    if (!["section", "part", "story", "paragraph", "run", "table", "cell", "image", "link", "bookmark", "annotation"].includes(kind))
       throw new InvalidValueError("Unknown location kind.");
     if (query.scope !== undefined && (!documentScopes.includes(query.scope) || kind === "part"))
       throw new InvalidValueError("Unknown or inapplicable story scope.");
@@ -142,7 +142,7 @@ class DocumentLocations {
         if (storyScoped ? !referencedStories.has(entry.story) : query.section !== undefined && entry.positions.section !== query.section) continue;
       }
       this.#budget.check("matches", result.length + 1);
-      const position = ["paragraph", "run", "table", "image", "link"].includes(kind) ? { [kind]: result.length + 1 } : {};
+      const position = ["paragraph", "run", "table", "image", "link", "bookmark"].includes(kind) ? { [kind]: result.length + 1 } : {};
       result.push(this.#location({ ...entry, positions: { ...entry.positions, ...position, ...(query.section !== undefined ? { section: query.section } : {}) } }) as Location<K>);
     }
     return Object.freeze(result);

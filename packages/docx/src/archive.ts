@@ -48,16 +48,12 @@ export class CancellationError extends Error {
 
 const zip = createZipCodec(undefined, { zip64: true, rejectDuplicateNames: true, utcDates: true });
 
-export async function readArchive(
-  input: Uint8Array,
-  context: ArchiveContext
-): Promise<DocumentArchive> {
-  if (
-    !(input instanceof Uint8Array) ||
-    !context ||
-    !context.limits ||
-    !(context.signal instanceof AbortSignal)
-  )
+export function archiveSettings(context: ArchiveContext): {
+  limits: ArchiveLimits;
+  signal: AbortSignal;
+  codecLimits: ZipLimits;
+} {
+  if (!context || !context.limits || !(context.signal instanceof AbortSignal))
     throw new InputTypeError("Expected bytes, explicit limits and a cancellation signal.");
   const limits = { ...context.limits };
   const signal = context.signal;
@@ -87,6 +83,15 @@ export async function readArchive(
     maxPaxBytes: limits.maxExtraBytes,
     maxTextBytes: limits.maxCommentBytes
   };
+  return { limits, signal, codecLimits };
+}
+
+export async function readArchive(
+  input: Uint8Array,
+  context: ArchiveContext
+): Promise<DocumentArchive> {
+  if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes.");
+  const { limits, signal, codecLimits } = archiveSettings(context);
   try {
     signal.throwIfAborted();
     // Reserve input, parser snapshot, detached metadata/payloads and extra-field scratch.

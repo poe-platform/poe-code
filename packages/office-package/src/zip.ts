@@ -21,6 +21,7 @@ export interface ZipProfile {
   readonly zip64?: boolean;
   readonly rejectDuplicateNames?: boolean;
   readonly utcDates?: boolean;
+  readonly validatePayloads?: boolean;
 }
 const defaults: ZipRuntime = {
   yieldTurn: defaultRuntime.yieldTurn,
@@ -141,7 +142,8 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     rawName: Uint8Array,
     comment: Uint8Array,
     central: boolean,
-    limits: ZipLimits
+    limits: ZipLimits,
+    writing = false
   ): ExtraMetadata {
     number(bytes.length, Math.min(limits.maxPaxBytes, 65535), "extra field");
     const result: ExtraMetadata = {};
@@ -156,7 +158,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       if (offset + length > bytes.length) fail("ZIP truncated extra field payload");
       if (seen.has(identifier)) fail("ZIP duplicate extra field");
       seen.add(identifier);
-      if (identifier === 1 && !profile.zip64) fail("ZIP64 is unsupported");
+      if (identifier === 1 && (!profile.zip64 || writing)) fail("ZIP64 is unsupported");
       if (
         identifier === 0x9901 ||
         identifier === 0x0017 ||
@@ -290,14 +292,18 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     return { values, retained };
   }
 
-  function entryBounds(entry: ZipEntry, limits: ZipLimits): void {
+  function entryBounds(
+    entry: ZipEntry,
+    limits: ZipLimits,
+    dataLimit = limits.maxArchiveBytes
+  ): void {
     pathBytes(entry.name, limits);
     number(
       entry.size,
       Math.min(limits.maxEntryBytes, limits.maxTotalBytes, 0xfffffffe),
       "entry byte"
     );
-    number(entry.data.length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "compressed byte");
+    number(entry.data.length, Math.min(dataLimit, 0xfffffffe), "compressed byte");
     number(entry.crc32, 0xffffffff, "CRC32");
     number(entry.mode, 0xffff, "mode");
     format(
@@ -672,21 +678,34 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
   async function makeZipEntry(
     name: string,
     bytes: Uint8Array,
-    attributes: { modified: Date; mode: number; directory: boolean; symlink: boolean },
+    attributes: {
+      modified: Date;
+      mode: number;
+      directory: boolean;
+      symlink: boolean;
+      compression?: "auto" | "store" | "deflate";
+    },
     limits: ZipLimits,
     signal: AbortSignal
   ): Promise<ZipEntry> {
     const chunkSize = admit(limits, signal);
+    const { compression = "auto", ...metadata } = attributes;
+    if (!["auto", "store", "deflate"].includes(compression))
+      fail("ZIP unsupported compression choice");
     const entry: ZipEntry = {
       name,
       data: bytes,
       size: bytes.length,
       method: 0,
       crc32: 0,
-      ...attributes,
+      ...metadata,
       modified: new Date(attributes.modified.getTime())
     };
-    entryBounds(entry, limits);
+    entryBounds(
+      entry,
+      limits,
+      compression === "deflate" ? limits.maxEntryBytes : limits.maxArchiveBytes
+    );
     bytes = new Uint8Array(bytes);
     entry.data = bytes;
     for (let offset = 0; offset < bytes.length; offset += chunkSize) {
@@ -700,15 +719,19 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       signal
     );
     try {
-      if (bytes.length && !entry.directory && !entry.symlink) {
+      if (
+        compression === "deflate" ||
+        (compression === "auto" && bytes.length && !entry.directory && !entry.symlink)
+      ) {
         const chunks: Uint8Array[] = [];
         let length = 0;
         for await (const chunk of codec(reader, { mode: "deflate-raw", chunkSize }, signal)) {
           length += chunk.length;
-          if (length >= bytes.length) break;
+          if (compression === "auto" && length >= bytes.length) break;
+          number(length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "compressed byte");
           chunks.push(new Uint8Array(chunk));
         }
-        if (length < bytes.length) {
+        if (compression === "deflate" || length < bytes.length) {
           entry.data = new Uint8Array(length);
           let offset = 0;
           for (const chunk of chunks) {
@@ -717,14 +740,15 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
             await yieldTurn(signal);
           }
           entry.method = 8;
+          signal.throwIfAborted();
           return entry;
         }
       }
-      entry.data = new Uint8Array(bytes.length);
-      await copyBytes(bytes, entry.data, 0, chunkSize, signal);
+      signal.throwIfAborted();
       return entry;
     } finally {
       await reader.close();
+      signal.throwIfAborted();
     }
   }
 
@@ -760,6 +784,48 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     const chunkSize = admit(limits, signal);
     number(archive.entries.length, Math.min(limits.maxMembers, 65534), "member");
     number(archive.comment.length, Math.min(limits.maxTextBytes, 65535), "archive comment");
+    if (profile.validatePayloads) {
+      let serialized = 22 + archive.comment.length;
+      let decoded = 0;
+      const prepared = archive.entries.map((entry) => {
+        entryBounds(entry, limits);
+        decoded += entry.size;
+        number(decoded, limits.maxTotalBytes, "total byte");
+        const rawName = entry.rawName ?? pathBytes(entry.name, limits);
+        number(rawName.length, Math.min(limits.maxPathBytes, 65535), "raw path byte");
+        if (entry.localName && !equal(rawName, entry.localName))
+          fail("ZIP retained filename metadata mismatch");
+        const localExtra = entry.localExtra ?? timestampExtra(entry.modified);
+        const centralExtra = entry.centralExtra ?? timestampExtra(entry.modified);
+        const comment = entry.comment ?? new Uint8Array();
+        number(localExtra.length, Math.min(limits.maxPaxBytes, 65535), "extra field");
+        number(centralExtra.length, Math.min(limits.maxPaxBytes, 65535), "extra field");
+        number(comment.length, Math.min(limits.maxTextBytes, 65535), "entry comment");
+        serialized +=
+          76 +
+          2 * rawName.length +
+          localExtra.length +
+          centralExtra.length +
+          comment.length +
+          entry.data.length;
+        number(serialized, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
+        return { ...entry, rawName, localExtra, centralExtra, comment };
+      });
+      number(serialized, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
+      archive = {
+        comment: new Uint8Array(archive.comment),
+        entries: prepared.map((entry) => ({
+          ...entry,
+          modified: new Date(entry.modified.getTime()),
+          data: new Uint8Array(entry.data),
+          rawName: new Uint8Array(entry.rawName),
+          localName: new Uint8Array(entry.localName ?? entry.rawName),
+          localExtra: new Uint8Array(entry.localExtra),
+          centralExtra: new Uint8Array(entry.centralExtra),
+          comment: new Uint8Array(entry.comment)
+        }))
+      };
+    }
     let length = 22 + archive.comment.length;
     let localLength = 0;
     let total = 0;
@@ -780,8 +846,22 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       if (flags & 0x800) text(comment);
       const localExtra = entry.localExtra ?? timestampExtra(entry.modified);
       const centralExtra = entry.centralExtra ?? timestampExtra(entry.modified);
-      const localMetadata = extras(localExtra, rawName, comment, false, limits);
-      const centralMetadata = extras(centralExtra, rawName, comment, true, limits);
+      const localMetadata = extras(
+        localExtra,
+        rawName,
+        comment,
+        false,
+        limits,
+        profile.validatePayloads
+      );
+      const centralMetadata = extras(
+        centralExtra,
+        rawName,
+        comment,
+        true,
+        limits,
+        profile.validatePayloads
+      );
       if (
         nameFrom(rawName, flags, centralMetadata, limits) !== entry.name ||
         (localMetadata.name !== undefined &&
@@ -884,6 +964,20 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
         chunkSize,
         signal
       );
+      if (profile.validatePayloads) {
+        const stored = {
+          ...entry,
+          data: bytes.subarray(
+            offset + 30 + rawName.length + localExtra.length,
+            offset + 30 + rawName.length + localExtra.length + entry.data.length
+          )
+        };
+        for await (const chunk of decodeZipEntry(stored, limits, signal)) {
+          // Consume bounded decoded chunks to verify the bytes that will be published.
+          signal.throwIfAborted();
+          void chunk;
+        }
+      }
       view.setUint32(central, 0x02014b50, true);
       view.setUint16(central + 4, entry.versionMadeBy ?? 0x31e, true);
       view.setUint16(central + 6, version, true);

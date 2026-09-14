@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createCompressionCodec } from "./compression.js";
 import { createZipCodec, type ZipEntry } from "./zip.js";
 
 const limits = {
@@ -125,13 +126,23 @@ async function decoded(bytes: Uint8Array, extended = false): Promise<Uint8Array>
 describe("bounded package archive", () => {
   it("preserves a leading byte order mark as literal filename content", async () => {
     const zip = createZipCodec();
-    const entry = await zip.makeZipEntry("\uFEFFx", content, {
-      modified: new Date("2020-01-01T00:00:00Z"),
-      mode: 0o100644,
-      directory: false,
-      symlink: false
-    }, limits, signal);
-    const bytes = await zip.writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal);
+    const entry = await zip.makeZipEntry(
+      "\uFEFFx",
+      content,
+      {
+        modified: new Date("2020-01-01T00:00:00Z"),
+        mode: 0o100644,
+        directory: false,
+        symlink: false
+      },
+      limits,
+      signal
+    );
+    const bytes = await zip.writeZipArchive(
+      { entries: [entry], comment: new Uint8Array() },
+      limits,
+      signal
+    );
     expect(bytes.subarray(30, 34)).toEqual(Uint8Array.of(0xef, 0xbb, 0xbf, 0x78));
     expect((await zip.readZipArchive(bytes, limits, signal)).entries[0]!.name).toBe("\uFEFFx");
   });
@@ -323,5 +334,234 @@ describe("bounded package archive", () => {
       if (previous === undefined) delete process.env.TZ;
       else process.env.TZ = previous;
     }
+  });
+});
+
+describe("checked package writing", () => {
+  const attributes = {
+    modified: new Date("2020-01-01Z"),
+    mode: 0o100644,
+    directory: false,
+    symlink: false
+  };
+  const zip = createZipCodec(undefined, { zip64: true, validatePayloads: true });
+
+  it.each(["store", "deflate"] as const)(
+    "honors explicit %s for empty and binary parts",
+    async (compression) => {
+      for (const payload of [
+        new Uint8Array(),
+        Uint8Array.of(0, 255, 128, 1),
+        new Uint8Array(1024)
+      ]) {
+        const entry = await zip.makeZipEntry(
+          "part",
+          payload,
+          { ...attributes, compression },
+          limits,
+          signal
+        );
+        expect(entry.method).toBe(compression === "store" ? 0 : 8);
+        const output = await zip.writeZipArchive(
+          { entries: [entry], comment: new Uint8Array() },
+          limits,
+          signal
+        );
+        expect(await decoded(output)).toEqual(payload);
+      }
+    }
+  );
+
+  it("rejects invalid payload declarations before returning an archive", async () => {
+    const entry = (await zip.readZipArchive(archive(8, 0), limits, signal)).entries[0]!;
+    for (const patch of [
+      { size: 8 },
+      { size: 10 },
+      { crc32: 0 },
+      { data: Uint8Array.of(...compressed, 0) }
+    ]) {
+      await expect(
+        zip.writeZipArchive(
+          { entries: [{ ...entry, ...patch }], comment: new Uint8Array() },
+          limits,
+          signal
+        )
+      ).rejects.toThrow();
+    }
+    const stored = { ...entry, method: 0, data: content, crc32: 0 };
+    await expect(
+      zip.writeZipArchive({ entries: [stored], comment: new Uint8Array() }, limits, signal)
+    ).rejects.toThrow("CRC32");
+  });
+
+  it("rejects unsupported writer flags and retained extended fields", async () => {
+    const entry = (await zip.readZipArchive(archive(0, 0), limits, signal)).entries[0]!;
+    for (const patch of [
+      { flags: 1 },
+      { flags: 16 },
+      { flags: 6 },
+      { localExtra: Uint8Array.of(1, 0, 0, 0) },
+      { centralExtra: Uint8Array.of(1, 0, 0, 0) }
+    ]) {
+      await expect(
+        zip.writeZipArchive(
+          { entries: [{ ...entry, ...patch }], comment: new Uint8Array() },
+          limits,
+          signal
+        )
+      ).rejects.toThrow();
+    }
+  });
+
+  it("bounds forced compression output even when it grows the input", async () => {
+    await expect(
+      zip.makeZipEntry(
+        "x",
+        content,
+        { ...attributes, compression: "deflate" },
+        { ...limits, maxArchiveBytes: 10 },
+        signal
+      )
+    ).rejects.toThrow("compressed byte");
+  });
+
+  it("retains caller ordering across many empty members and rejects count overflow", async () => {
+    const zip = createZipCodec(
+      {
+        yieldTurn: async (signal) => {
+          signal.throwIfAborted();
+        },
+        fail: (message) => {
+          throw new Error(message);
+        },
+        compression: createCompressionCodec()
+      },
+      { validatePayloads: true }
+    );
+    const countLimits = { ...limits, maxMembers: 2048, maxArchiveBytes: 512 * 1024 };
+    const empty = await zip.makeZipEntry("x", new Uint8Array(), attributes, limits, signal);
+    const entries = Array.from({ length: 1024 }, (_, index) => ({
+      ...empty,
+      name: `parts/${1024 - index}`
+    }));
+    const output = await zip.writeZipArchive(
+      { entries, comment: new Uint8Array() },
+      countLimits,
+      signal
+    );
+    const parsed = await zip.readZipArchive(output, countLimits, signal);
+    expect(parsed.entries.map((entry) => entry.name)).toEqual(entries.map((entry) => entry.name));
+    await expect(
+      zip.writeZipArchive(
+        { entries, comment: new Uint8Array() },
+        { ...countLimits, maxMembers: 1023 },
+        signal
+      )
+    ).rejects.toThrow("member");
+  });
+
+  it("observes cancellation during empty entry cleanup", async () => {
+    const controller = new AbortController();
+    const compression = createCompressionCodec();
+    const zip = createZipCodec({
+      yieldTurn: async (signal) => {
+        signal.throwIfAborted();
+      },
+      fail: (message) => {
+        throw new Error(message);
+      },
+      compression: {
+        ...compression,
+        CodecReader: class extends compression.CodecReader {
+          override async close() {
+            await super.close();
+            controller.abort(new Error("creation cancelled"));
+          }
+        }
+      }
+    });
+    await expect(
+      zip.makeZipEntry(
+        "x",
+        new Uint8Array(),
+        { ...attributes, compression: "store" },
+        limits,
+        controller.signal
+      )
+    ).rejects.toThrow("creation cancelled");
+  });
+
+  it("rejects an aborted write before exposing archive bytes", async () => {
+    const entry = await zip.makeZipEntry("x", content, attributes, limits, signal);
+    const controller = new AbortController();
+    const pending = zip.writeZipArchive(
+      { entries: [entry], comment: new Uint8Array() },
+      limits,
+      controller.signal
+    );
+    controller.abort(new Error("writing cancelled"));
+    await expect(pending).rejects.toThrow("writing cancelled");
+  });
+
+  it("admits compressible raw bytes separately from the compressed output budget", async () => {
+    const entry = await zip.makeZipEntry(
+      "x",
+      new Uint8Array(4096).fill(65),
+      { ...attributes, compression: "deflate" },
+      { ...limits, maxArchiveBytes: 256 },
+      signal
+    );
+    expect(entry.size).toBe(4096);
+    expect(entry.data.length).toBeLessThan(256);
+  });
+
+  it("charges all serialized metadata against the archive budget", async () => {
+    const entry = await zip.makeZipEntry("x", new Uint8Array(), attributes, limits, signal);
+    await expect(
+      zip.writeZipArchive(
+        { entries: [{ ...entry, comment: new Uint8Array(100) }], comment: new Uint8Array(100) },
+        { ...limits, maxArchiveBytes: 250 },
+        signal
+      )
+    ).rejects.toThrow("archive byte");
+  });
+
+  it("owns validated filename bytes before strict serialization yields", async () => {
+    const rawName = new TextEncoder().encode("harbor");
+    const entry = await createZipCodec().makeZipEntry(
+      "harbor",
+      new Uint8Array(),
+      {
+        modified: new Date(Date.UTC(1980, 0, 1)),
+        mode: 0o100644,
+        directory: false,
+        symlink: false,
+        compression: "store"
+      },
+      limits,
+      signal
+    );
+    entry.rawName = rawName;
+    let turns = 0;
+    const zip = createZipCodec(
+      {
+        async yieldTurn() {
+          if (++turns === 2) rawName[0] = 99;
+        },
+        fail(message) {
+          throw new Error(message);
+        },
+        compression: createCompressionCodec()
+      },
+      { validatePayloads: true }
+    );
+    const output = await zip.writeZipArchive(
+      { entries: [entry], comment: new Uint8Array() },
+      limits,
+      signal
+    );
+    expect(rawName[0]).toBe(99);
+    const parsed = await createZipCodec().readZipArchive(output, limits, signal);
+    expect(parsed.entries.map((item) => item.name)).toEqual(["harbor"]);
   });
 });

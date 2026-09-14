@@ -10,3 +10,9 @@ export {
   type ArchiveMember,
   type DocumentArchive
 } from "./archive.js";
+export {
+  writeArchive,
+  SinkError,
+  type ArchiveWriteOptions,
+  type ArchiveSink
+} from "./archive-write.js";

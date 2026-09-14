@@ -27,12 +27,11 @@ export async function executeTest262(filename: string, source: string, options: 
       results.push({ mode: variant.mode, status: "unsupported", reason: "module" });
       continue;
     }
-    if (prepared.flags.includes("CanBlockIsFalse") || prepared.flags.includes("CanBlockIsTrue")) {
+    if (prepared.flags.includes("CanBlockIsTrue")) {
       results.push({ mode: variant.mode, status: "unsupported", reason: "blocking-mode" });
       continue;
     }
     const requirement = variant.harness.includes("agent.js") || variant.harness.includes("atomicsHelper.js") ? "agent"
-      : prepared.features.some(feature => ["SharedArrayBuffer", "Atomics", "Atomics.waitAsync"].includes(feature)) ? "shared-memory"
       : prepared.features.includes("IsHTMLDDA") ? "IsHTMLDDA" : undefined;
     if (requirement !== undefined) {
       results.push({ mode: variant.mode, status: "unsupported", reason: requirement });

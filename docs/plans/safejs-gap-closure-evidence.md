@@ -2745,3 +2745,18 @@ is still propagating at this checkpoint. Root publication is pending a successor
 containing all changes; cancelled/skipped predecessors are not release success.
 Terminal receipts are recorded separately in the delivery folder after monitoring.
 No explicitly associated issue was supplied. Original staged/unrelated work is preserved.
+
+
+### Non-agent shared-memory fixture admission redelivery — 2026-09-14
+
+[Fresh TDD, source hashes and pinned upstream receipts](qualify-shared-memory/non-agent-admission/qualification.md)
+qualify the remaining local admission change against parent
+`711f06c1c5e291c29d58c801f637d7d26960ea9d`, Node22.23.2/ICU78.2.
+Two regressions fail before repair; all 254 conformance-runner tests pass after,
+with scoped lint/typecheck passing. The unchanged 3,000ms upstream selection
+finishes **730 passed, 18 failed, 238 unsupported / 986 variants**, exit1.
+Failures are immutable-buffer extension helper cases; unsupported variants are
+224 agent and14 blocking-mode cases. None is counted as passing. This admits
+non-agent shared operations and CanBlockIsFalse without enabling host blocking.
+The enclosing atomic test/conformance commit and subsequent release receipts are
+separate. Overall task remains **OPEN**, with unchanged edition/runtime targets.

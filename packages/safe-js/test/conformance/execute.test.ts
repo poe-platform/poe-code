@@ -66,7 +66,6 @@ it.each([
 
 it.each([
   ["includes: [agent.js]", "agent"],
-  ["features: [SharedArrayBuffer]", "shared-memory"],
   ["features: [IsHTMLDDA]", "IsHTMLDDA"]
 ])("accounts for unqualified capability requirements: %s", async (metadata, reason) => {
   expect(await executeTest262("capability.js", `/*---\nflags: [onlyStrict]\n${metadata}\n---*/\n0`, { harness, timeoutMs: 1000 }))
@@ -147,7 +146,7 @@ it.each([
   expect(result).toMatchObject({ results: [{ status, ...(reason ? { reason } : {}) }] });
 });
 
-it.each(["CanBlockIsFalse", "CanBlockIsTrue"])("accounts for %s as a host blocking-mode boundary", async flag => {
+it.each(["CanBlockIsTrue"])("accounts for %s as a host blocking-mode boundary", async flag => {
   expect(await executeTest262("blocking.js", `/*---\nflags: [onlyStrict, ${flag}]\n---*/\nthrow 42`, { harness, timeoutMs: 1000 }))
     .toMatchObject({ results: [{ status: "unsupported", reason: "blocking-mode" }] });
 });

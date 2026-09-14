@@ -5,6 +5,7 @@ import { SelectionError, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentArchiveEditor } from "./package-write.js";
+import { documentDialects } from "./dialect.js";
 import { revisionInfo, type RevisionInfo } from "./revision-markup.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 
@@ -33,6 +34,11 @@ export async function inspectDocumentRevisions(input: Uint8Array, options: DocxO
       node = node.children[i]!;
       const ancestor = revisionInfo(node);
       omitted ||= view === "final" && (ancestor?.type === "delete" || ancestor?.markup.startsWith("moveFrom") === true) || view === "original" && (ancestor?.type === "insert" || ancestor?.markup.startsWith("moveTo") === true);
+      if (node.localName === "tr" && (node.namespace === documentDialects.transitional.w || node.namespace === documentDialects.strict.w)) {
+        const properties = node.children.find(child => child.namespace === node.namespace && child.localName === "trPr");
+        omitted ||= properties?.children.some(child => child.namespace === node.namespace &&
+          (view === "final" && child.localName === "del" || view === "original" && child.localName === "ins")) === true;
+      }
     }
     if (omitted) continue;
     const info = revisionInfo(node);

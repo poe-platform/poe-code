@@ -1,5 +1,10 @@
 # Revision read views
 
+Supplemental verification recovery is recorded in
+[the requalification record](docx-revision-read-requalification.md). It preserves
+the historical evidence below and qualifies row visibility, story-level range
+safety and the supported direct-property snapshot boundary separately.
+
 Status: implemented and verified on 2026-09-14.
 Scope: only `revision-read-views`. Tracked change creation, acceptance/rejection,
 review-model owners and later pipeline tasks remain pending. The pre-existing

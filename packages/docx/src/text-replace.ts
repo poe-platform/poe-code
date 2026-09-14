@@ -1,4 +1,4 @@
-import { containsRevision, revisionInfo } from "./revision-markup.js";
+import { assertOutsideRevisionRanges, containsRevision, revisionInfo } from "./revision-markup.js";
 import { archiveSettings } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
@@ -162,6 +162,8 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
   const chosen = opts.first ? matches.slice(0, 1) : opts.occurrence === undefined ? matches : matches.slice(opts.occurrence - 1, opts.occurrence);
   if (!chosen.length && !opts.allowEmpty) throw new SelectionError("missing-selection");
   if (chosen.some(match => match.unsupported)) throw new UnsupportedEditError("Complex revision text cannot be edited.");
+  for (const match of chosen) for (const { leaf } of match.leaves)
+    assertOutsideRevisionRanges(leaf.editor.root, leaf.run, budget, leaf.editor.compatibility.branches);
   if (chosen.some(match => document.references(match.paragraph.token).length > 1)) throw new SelectionError("ambiguous-selection");
   const explicit = opts.bold !== undefined || opts.italic !== undefined;
   const changedMatches = chosen.filter(match => opts.find !== opts.with || explicit || match.leaves.some(item => item.leaf.run !== match.leaves[0]!.leaf.run));

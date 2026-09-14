@@ -130,3 +130,40 @@ it("keeps existing annotation ordinals in XML encounter order", async () => {
   expect(document.at("annotation", 1).positions).toMatchObject({ paragraph: 1, section: 1 });
   expect(document.list("annotation", { section: 1 })).toHaveLength(2);
 });
+
+it.each(["del", "ins"])("filters revision descendants by the enclosing %s row before assigning ordinals", async kind => {
+  const row = `<w:tr><w:trPr><w:${kind} w:id="1"/></w:trPr><w:tc><w:p><w:r><w:rPr><w:rPrChange w:id="2"><w:rPr><w:b/></w:rPr></w:rPrChange></w:rPr><w:t>Harbor</w:t></w:r></w:p></w:tc></w:tr>`;
+  const bytes = await textFixture(`<w:tbl><w:tblGrid><w:gridCol/></w:tblGrid>${row}</w:tbl><w:p><w:ins w:id="3">${run("Coast")}</w:ins><w:r>${history}<w:t>Dock</w:t></w:r></w:p>`);
+  const view = kind === "del" ? "final" : "original";
+  const items = (await docx.inspectDocumentRevisions(bytes, { view }, textContext)).items;
+  expect(items.map(item => item.id)).toEqual(kind === "del" ? ["3", "7"] : ["7"]);
+  expect((await docx.inspectDocumentRevisions(bytes, { view, revision: 1 }, textContext)).items).toEqual([items[0]]);
+  expect((await docx.inspectDocumentRevisions(bytes, { view, table: 1 }, textContext)).items).toEqual([]);
+});
+
+it.each(["moveTo", "customXmlIns"])("rejects replacement within a story-level %s range but permits later text", async kind => {
+  const bytes = await textFixture(`<w:${kind}RangeStart w:id="7"/>${paragraph("Harbor")}<w:${kind}RangeEnd w:id="7"/>${paragraph("Coast")}`);
+  const context = { ...textContext, encoding: { order: "input", compression: "store" } as const };
+  await expect(docx.replaceDocumentText(bytes, { find: "Harbor", with: "Pier", all: true, dryRun: true }, context)).rejects.toMatchObject({ code: "unsupported-edit" });
+  await expect(docx.replaceDocumentText(bytes, { find: "Coast", with: "Shore", all: true, dryRun: true }, context)).resolves.toMatchObject({ changed: true });
+});
+
+it.each(["rPr", "pPr"])("keeps unverified %s snapshot contents opaque without claiming rollback", async name => {
+  const props = `<w:${name}><w:${name === "rPr" ? "b" : "bidi"}/><w:${name}Change w:id="7"><w:${name}><w:unverified/></w:${name}></w:${name}Change></w:${name}>`;
+  const bytes = await textFixture(`<w:p>${name === "pPr" ? props : ""}<w:r>${name === "rPr" ? props : ""}<w:t>Harbor</w:t></w:r></w:p>`);
+  expect((await docx.inspectDocumentRevisions(bytes, {}, textContext)).items[0]).toMatchObject({ id: "7", support: "opaque" });
+  const data = await docx.extractDocumentText(bytes, textContext, { view: "original" });
+  expect(data.segments[0]!.formatting).toMatchObject(name === "rPr" ? { bold: true } : { paragraph: { bidi: true } });
+  expect(data.warnings).toContainEqual(expect.objectContaining({ code: "opaque-revision" }));
+});
+
+it.each(['<w:b w:val="banana"/>', '<w:b/><w:b w:val="0"/>', '<w:b>Opaque</w:b>', 'Opaque<w:b/>', '<w:b>\u00a0</w:b>', '\u00a0<w:b/>'])("does not interpret malformed direct history: %s", async old => {
+  const bytes = await textFixture(`<w:p><w:r><w:rPr><w:i/><w:rPrChange w:id="7"><w:rPr>${old}</w:rPr></w:rPrChange></w:rPr><w:t>Harbor</w:t></w:r></w:p>`);
+  expect((await docx.inspectDocumentRevisions(bytes, {}, textContext)).items[0]).toMatchObject({ support: "opaque" });
+  expect((await docx.extractDocumentText(bytes, textContext, { view: "original" })).segments[0]!.formatting).toMatchObject({ italic: true, bold: null });
+});
+
+it("rejects a historical style reference missing its required value", async () => {
+  const bytes = await textFixture(`<w:p><w:r><w:rPr><w:rPrChange w:id="7"><w:rPr><w:rStyle/></w:rPr></w:rPrChange></w:rPr><w:t>Harbor</w:t></w:r></w:p>`);
+  await expect(docx.inspectDocumentRevisions(bytes, {}, textContext)).rejects.toMatchObject({ code: "invalid-package" });
+});

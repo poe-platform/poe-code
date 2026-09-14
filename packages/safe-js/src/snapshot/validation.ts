@@ -16,6 +16,7 @@ import { validateDataViewStorage } from "./data-view.js";
 import { restoreDateTime } from "../interp/date.js";
 import { validateBoxedProperties } from "./boxed.js";
 import { hasGuestObjectState, isGuestClosure } from "../interp/object-model.js";
+import { getIntrinsicIdentity } from "../interp/intrinsics.js";
 import { isSandboxClosure } from "../interp/values.js";
 import { validateGuestHeapNode, validateGuestHeapGraphs } from "./guest-heap-validation.js";
 import { validateGuestFunctionAst } from "./guest-ast-validation.js";
@@ -410,10 +411,23 @@ export function validateInterpreterSnapshot(
     limits,
     validateTaggedPayloads: true
   };
-  validateGenericValue(snapshot, "$", 0, {
+  const dataState: ValidationState = {
     ...state, allowUndefined: true, validateTaggedPayloads: false, dataPropertiesOnly: true,
     dataPrototypes: new WeakSet()
-  });
+  };
+  let preflightBudgetError: SnapshotValidationError | undefined;
+  try {
+    validateGenericValue(snapshot, "$", 0, dataState);
+  } catch (error) {
+    if (!(error instanceof SnapshotValidationError) || error.code !== "budgetExceeded") throw error;
+    // Preserve semantic field diagnostics for small realm budgets without
+    // dropping the wire-budget rejection. Before inspecting those fields,
+    // complete a bounded, callback-free data-safety check.
+    validateGenericValue(snapshot, "$", 0, {
+      ...dataState, entries: 0, dataSize: 0, limits: defaultLimits(), dataPrototypes: new WeakSet()
+    });
+    preflightBudgetError = error;
+  }
   const root = requireRecord(snapshot, "$");
   requireNonEmptyString(root.sourceHash, "$.sourceHash", limits);
   requireNodeId(root.currentAstNodeId, "$.currentAstNodeId", nodeById);
@@ -516,6 +530,7 @@ export function validateInterpreterSnapshot(
   validateDumpReferences(root, "$", 0, state, heapIds, heap, "root");
   try { validateGuestHeapGraphs(heap); }
   catch (error) { fail("invalidValue", "$.heap", String(error)); }
+  if (preflightBudgetError !== undefined) throw preflightBudgetError;
   for (const [key, value] of Object.entries(heap)) {
     const source = value as Record<string, unknown>;
     if (source.kind === "guest-source" || source.kind === "guest-script") {
@@ -1048,6 +1063,16 @@ function validateGenericValue(
     const entries = state.dataPropertiesOnly
       ? snapshotDataEntries(value, path, state.dataPrototypes)
       : Object.entries(value);
+    if (state.dataPropertiesOnly) {
+      // Registered intrinsics carry realm state even when an earlier sibling
+      // is an ordinary runtime closure. Diagnose that state before rejecting
+      // the closure's transport shape; identity lookup never reads input keys.
+      for (const [key, entry] of entries) {
+        if (typeof entry === "object" && entry !== null &&
+            getIntrinsicIdentity(entry) !== undefined && hasGuestObjectState(entry))
+          fail("invalidState", `${path}${formatKey(key)}`, "mutated intrinsics require a serialized snapshot");
+      }
+    }
     for (const [key, entry] of entries) {
       const entryPath = `${path}${formatKey(key)}`;
       requireString(key, entryPath, state.limits);

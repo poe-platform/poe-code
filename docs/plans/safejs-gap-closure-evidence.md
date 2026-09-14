@@ -3030,3 +3030,24 @@ qualification, as recorded in the existing working-candidate evidence. Native GC
 asserted. **Verified remote-main delivery: none for this increment. Publication:
 none; no release receipt.** No push was requested or performed. Historical
 releases do not qualify this dirty candidate or this new local test commit.
+
+
+## qualify-snapshot-adversarial-input — Remote-based preflight reconciliation, 2026-09-14
+
+The isolated main candidate starts at remote `2f2c4dd236ad0db6f48bc5d6ececc685499bcaa4`.
+Six existing snapshot task commits were cherry-picked; append-only evidence
+conflicts preserve both histories. Shared staged/unstaged work is untouched.
+Node 22.23.2 / ICU 78.2; the pinned ECMA-262/402 editions and tracked APIs remain
+unchanged. `npm ci` passed. `npm run build:workspaces -- --workspace=@poe-code/safe-js`
+passed, including eight built imports. A preceding targeted attempt failed at
+import for absent generated Intl data and counts as no test execution.
+
+Before reconciling the previously uncommitted publication/preflight repairs,
+`npx vitest run packages/safe-js/src/snapshot/adversarial-capability-publication.test.ts packages/safe-js/src/snapshot/adversarial-publication-entrypoints.test.ts packages/safe-js/src/snapshot/preflight-budget-diagnostics.test.ts packages/safe-js/src/snapshot/caller-mutated-run-snapshot.test.ts`
+reproduced 17 failures / 14 passes. The first three files pass 25/25 after
+reconciliation; the six caller-mutated envelope failures belong to the next
+atomic repair. Scoped ESLint passed for these three regression files and their
+three production files. Existing assertions, budgets and limits remain unchanged.
+Full candidate qualification and delivery are pending; no remote or publication
+receipt is claimed here. Raw logs are in the source workspace under
+`docs/plans/qualify-snapshot-adversarial-input/caller-accessor-20260914/`.

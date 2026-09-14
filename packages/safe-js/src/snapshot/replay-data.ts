@@ -754,7 +754,9 @@ export function decodeReplayData(
         });
         const metadata = capability.properties === undefined ? undefined : hostFunctionMetadata.get(capability.properties);
         if (copy.properties !== undefined && metadata !== undefined) hostFunctionMetadata.set(copy.properties, metadata);
-        options.onCapabilityRestored?.(capability, copy);
+        // Do not publish a partial graph before later nodes and deferred
+        // property initializers have passed validation.
+        work.capture.push(() => options.onCapabilityRestored?.(capability, copy));
         const moduleFunction = moduleFunctionOrigins.get(capability);
         if (moduleFunction !== undefined) moduleFunctionOrigins.set(copy, moduleFunction);
         return copy;

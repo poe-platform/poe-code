@@ -14,12 +14,18 @@ export function xmlValue(value: string): string {
   return result;
 }
 
-export function twips(value: DocxLength, positive = true): number {
+function lengthEmu(value: DocxLength, positive = true): number {
   if (value.value < 0 || positive && value.value === 0) throw new InvalidValueError("Document length must be nonnegative or positive for this setting.");
   const scale = { emu: 1, in: 914400, cm: 360000, mm: 36000, pt: 12700, twip: 635 }[value.unit];
   const emu = Math.round(value.value * scale);
-  const result = Math.round(emu / 635);
-  if (!Number.isSafeInteger(emu) || !Number.isSafeInteger(result) || result < (positive ? 1 : 0) || result > 31680)
+  if (!Number.isSafeInteger(emu)) throw new InvalidValueError("Document length is outside the safe integer range.");
+  if (Math.round(emu / 635) > 31680) throw new InvalidValueError("Document length is outside the supported page range.");
+  return emu;
+}
+
+export function twips(value: DocxLength, positive = true): number {
+  const result = Math.round(lengthEmu(value, positive) / 635);
+  if (result < (positive ? 1 : 0))
     throw new InvalidValueError("Document length is outside the supported page range.");
   return result;
 }
@@ -66,7 +72,7 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     if (styles.has(style.name)) throw new InvalidValueError("A declared style name already exists.");
     const id = allocate();
     styles.set(style.name, { id, type: style.type });
-    const size = style.size === undefined ? undefined : Math.round(twips(style.size) / 10);
+    const size = style.size === undefined ? undefined : Math.round(lengthEmu(style.size) / 6350);
     if (size !== undefined && size < 1) throw new InvalidValueError("Font size must round to a positive half-point value.");
     const formatting = (style.font === undefined ? "" : `<w:rFonts w:ascii="${xmlValue(style.font)}" w:hAnsi="${xmlValue(style.font)}"/>`) +
       (size === undefined ? "" : `<w:sz w:val="${size}"/>`) +

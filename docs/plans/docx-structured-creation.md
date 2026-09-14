@@ -109,3 +109,67 @@ One atomic local feature commit includes implementation, original regressions,
 the narrow spec declaration and this record. No later task, unrelated pipeline
 edit, archive move or QA fixture is included. The resulting hash is reported in
 the completion response; no push or release is performed.
+
+## Verification review — 2026-09-14
+
+Reviewed entry commit `6ed37ca31aca9bd87f7be5baa1748c1fefe6359a` against this
+bounded task, the format specification, shared CLI/SDK contracts and the API
+audit/inventory. Existing unrelated pipeline edits and archive moves remain
+untouched; the index was empty at entry. No implementation replay or reference
+runtime execution was used.
+
+The original creation red sequence is recorded above. Available historical logs
+were inspected: the first whole-workspace green has 815 tests and the final green
+has 816, consistent with the later heading-collision regression. Standalone logs
+for that implementation's initial red sequence were not located, so that red
+history is documentary evidence, not independently replayed evidence.
+
+One new defect was reproduced with original memfs package-output tests before
+changing product code: a 12.24-point named style serialized as 25 half-points
+instead of 24. Rounding through integer twips introduced a second quantization.
+The fix converts to integer EMUs, then rounds directly to half-points; page/table
+twip conversion, negative-value rejection and the prior admitted upper length
+bound remain in place. The 12.25 and 12.26 boundary cases, both dialects and
+independent ZIP/CRC/namespace-aware XML assertions cover the correction.
+
+Evidence: `/tmp/docx-creation-review-rounding-red2.log` records the actual product
+failure (expected `24`, received `25`), with the two neighboring cases passing.
+The preceding `rounding-red.log` exposed an error in the newly authored assertion's
+document-root traversal; it is retained and is not product-defect evidence.
+The focused green log records 17/17 creation and command tests. Logs are disposable
+and are not staged.
+
+Maintained review checks:
+
+- `npm test --workspace=docx`: 819/819 in 33 files, no skips.
+- `npm run lint --workspace=docx`: ESLint and production/test TypeScript pass.
+- `npm run build:workspaces -- --workspace=docx`: five declared dependency-closure
+  builds pass with lifecycle checks.
+- Existing safe-bash `xml-parts.test.ts`, `io.test.ts` and
+  `docx-registration.test.ts` through `node --import tsx --test`: 28/28, no skips.
+- `npx vitest run scripts/docx-exports.test.ts`: 2/2.
+- Built CLI/SDK memfs creation comparison: identical 2,363-byte packages;
+  independent styles XML contains `<w:sz w:val="24"/>`, with empty stderr.
+- Read-only adapter review executed 13 actual Shell calls: repeatable creation
+  across DOCX/DOTX and Strict/Transitional, Unicode, blank five-part output,
+  template append/payload retention, JSON dry-run, shared-stdin rejection and
+  executable-field rejection. Product filesystem calls were guarded against use.
+- Inspected the two existing creation PNGs listed above. Help and diagnostics
+  are legible; the previously recorded missing terminal glyphs remain visible.
+  The correction changes package font-size values, not CLI presentation.
+
+The 920 inventory rows still comprise 410 planned, 378 security-mapped,
+124 language-mapped and eight documentation-error records, with zero implemented
+model rows. Neutral model spellings, inherited/underscore-prefixed public APIs,
+enums and collection obligations remain accounted for in the research register.
+Creation retains the documented asynchronous owned-byte/VFS boundaries, closed
+nonexecutable content, explicit time/identity and integer-EMU language mapping.
+This review does not promote model coverage or alter the full proposed spec's
+implementation marker.
+
+Gaps: no full OOXML schema certification, document-rendering/repair-warning QA,
+browser runtime qualification or complete model API conformance is claimed.
+Prior screenshot inspection is not a new document render. The task's maintained
+scoped checks pass; repository-wide unrelated checks were not run. Commit only
+the font-rounding correction, its original regressions and this appended record,
+using a local Conventional Commit on main. No push or release.

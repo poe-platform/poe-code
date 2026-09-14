@@ -129,3 +129,16 @@ it("rejects negative lengths before rounding and font sizes that round to zero",
     { styles: [{ name: "Tiny", type: "paragraph", size: { value: 1, unit: "twip" } }] }
   ]) await expect(bytes({ content: { version: 1, blocks: [], ...settings } } as sdk.DocumentCreateOptions)).rejects.toMatchObject({ code: "usage" });
 });
+
+it.each([12.24, 12.25, 12.26])("rounds a %s point style directly from EMUs to half-points", async value => {
+  for (const dialect of ["strict", "transitional"] as const) {
+    const parts = readPackage(await bytes({ dialect, content: { version: 1, blocks: [],
+      styles: [{ name: "Harbor label", type: "paragraph", size: { value, unit: "pt" } }]
+    } }));
+    assertPackageLinks(parts); assertWordReferences(parts);
+    const w = dialect === "strict" ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+    const flatten = (node: ReturnType<typeof xmlStructure>): ReturnType<typeof xmlStructure>[] => [node, ...node.children.flatMap(child => typeof child === "string" ? [] : flatten(child))];
+    const sizes = flatten(xmlStructure(parts.get("word/styles.xml")!)).filter(node => node.name === `{${w}}sz`);
+    expect(sizes.map(node => node.attributes[`{${w}}val`])).toEqual([value < 12.25 ? "24" : "25"]);
+  }
+});

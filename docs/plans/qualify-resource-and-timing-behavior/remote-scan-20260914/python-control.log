@@ -195,4 +195,3 @@ AssertionError: expected 'strict TypeError (\'strict_errors() t…' to be 'stric
       Tests  3 failed (3)
    Start at  17:31:02
    Duration  2.45s (transform 1.78s, setup 0ms, import 2.27s, tests 93ms, environment 0ms)
-

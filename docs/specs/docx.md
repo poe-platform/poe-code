@@ -26,8 +26,13 @@ support for every structure that can occur inside it.
 
 The public utility MUST be named `docx`. Public and internal identifiers,
 comments, examples, tests and shipped metadata MUST use original terminology and
-content. Tests MUST derive from this contract, original authored examples and
-the document-format standards, not another implementation's test suite.
+content. Tests MUST assert this contract and the document-format standards using
+original wording and authored in-memory assets. Behavioral cases discovered in
+other test suites MUST be adapted as required by section 11, including their
+meaningful parameter boundaries. Adaptation MUST NOT copy project identities,
+incidental mock mechanics or binary fixtures into the product. Contract-based
+language, security and correctness differences require explicit original
+acceptance cases; they are not grounds to discard applicable behavior.
 
 ## 2. Goals and non-goals
 
@@ -294,8 +299,11 @@ over original selected text. Inserted replacement text is not searched again.
 Replacement formatting inherits the first matched run unless explicitly supplied;
 surviving prefixes/suffixes retain their properties. Empty search strings fail.
 
-Unambiguous selection is required. Multiple matches require an explicit occurrence
-or `--all`; missing matches fail unless `allowMissing` is explicitly selected.
+Unambiguous selection is required. `text replace` MUST require exactly one of `--first`, `--all`, `--occurrence N`,
+even when there is only one match. Missing or conflicting cardinality flags are
+usage errors. Missing matches fail unless operation option `allowEmpty` or CLI
+`--allow-empty` is explicitly selected; this permits a zero-change result, not
+ambiguous selection or invalid options. There is no alternate missing-match alias.
 Source locations MUST detect stale fingerprints. Broad operations MUST report
 all affected locations within bounded structured output or fail admission.
 
@@ -304,21 +312,176 @@ versus one-occurrence intent. Editing one occurrence MUST clone/rebind only the
 necessary part instead of accidentally modifying every reference.
 
 Image changes MUST retain original drawing properties unless specifically
-changed. Raster format is determined from bytes, not extension. Checked EMU/pixel
-conversion for explicitly supplied generic pixel values uses 96 DPI. Native
-picture sizing uses admitted image DPI, with a 72-DPI fallback when metadata is
-absent, through both model `add_picture` and the matching CLI image operation.
-One explicit dimension preserves aspect ratio; two explicit dimensions determine
-both extents. These API conventions are not ECMA requirements. Dimensions, crop fractions,
-rotation and coordinates are range-checked. Unsupported vector/native formats
-MUST remain inert and preserve fallback relationships. Alt text is distinct from
-filenames and optional decorative status.
+changed. Raster format is determined from bytes, not extension. Explicit CLI
+pixel values use 96 DPI (9,525 EMU per pixel), independent of embedded DPI;
+physical-unit values use the shared checked conversion and half-away rounding.
+This conversion MUST NOT set the model API's native-image size default.
+
+For model `Document.add_picture`, `Run.add_picture` and admitted-image dimension
+helpers, absent width and height use pixel width / horizontal DPI and pixel
+height / vertical DPI, each multiplied by 914,400 EMU per inch. Each missing DPI
+axis independently falls back to 72. Invalid metadata MUST NOT cause division
+by zero, nonfinite dimensions or unbounded parsing; characterization reports
+invalid/unsupported metadata under the admission contract. A single explicit
+dimension scales the native physical aspect ratio; two explicit dimensions set
+both extents. Model numeric dimensions are EMUs, not implicit pixels. The CLI
+image insertion default without dimensions follows this native sizing too;
+explicit pixel dimensions alone use the CLI's 96-DPI convention. Replacement
+preserves existing drawing extents unless resizing is requested. Shared rounding
+and safe-range validation apply to all computed extents. These conventions are
+API contracts, not ECMA requirements.
+
+Characterization MUST cover PNG, JPEG JFIF/Exif, GIF87a/89a, BMP and both-endian
+TIFF using bounded byte signatures and header/metadata traversal. Retain exact
+bytes, MIME type, pixel dimensions and per-axis DPI; reject truncated headers,
+invalid dimensions and unsafe offsets before mutation. No host decoder is
+required. A documented image `sha1` is compatibility metadata only; provenance
+and package identity use SHA-256. Linked-only drawings MUST NOT satisfy the
+embedded-picture predicate or cause target acquisition; requesting their embedded
+image fails with a neutral missing/unsupported-content error.
+
+Dimensions, crop fractions, rotation and coordinates are range-checked according
+to their declared schema, without silently clamping admitted values. Unsupported
+vector/native formats MUST remain inert and preserve fallback relationships.
+Alt text is distinct from filenames and optional decorative status.
 
 Read-only protection and locked controls MUST NOT be silently bypassed. Signed
 documents require explicit signature removal before mutation. Field result
 updates MUST preserve instructions and MUST NOT execute them; a subsequent Word
 recalculation may replace cached values. Page counts read from metadata MUST be
 labeled cached, not measured rendered pages.
+
+### 9.1 Public model semantics
+
+These requirements refine F01–F50 without narrowing the shared SDK surface.
+Public inherited members, collections, enum values/aliases, helpers, returned
+views and documented underscore-prefixed types MUST retain evidence-backed
+coverage, including behaviors without a collected source test. The research
+register supplies per-member signatures and discrepancy provenance; this format
+contract and the shared contracts govern conflicts.
+
+**Tables (F19–F20).** Physical cells and logical grid slots MUST remain distinct.
+Leading/trailing omitted slots are reported by `grid_cols_before` and
+`grid_cols_after`; they MUST NOT become fabricated empty cells. Horizontal spans
+and vertical continuations resolve to their owning cell; repeated logical slots
+MUST observe the same edits and owner/node equality, without requiring wrapper
+allocation identity. Row access includes horizontal repetition and vertical
+continuation resolution. Nested block traversal retains paragraph/table order.
+Cell replacement and table insertion MUST retain required terminal paragraphs.
+Rectangular merges preserve cell content in reading order and combine defined
+widths; nonrectangular or partial-overlap merges reject before mutation. Split
+behavior remains an additive format requirement and MUST NOT be inferred from
+source merge coverage. `table_direction`, nullable alignment and widths retain
+their distinct read/write types; no `direction` alias is introduced.
+
+**Sections and stories (F16–F17).** All default/first/even header and footer
+variants are exposed separately. Absent definitions inherit recursively from the
+previous section. An initial section with no definition reads as an empty story;
+model content access that requires a definition may materialize it as documented.
+Unlinking materializes a local definition, while relinking removes the local
+binding/definition only when no remaining reference needs it. Such transitions
+MUST retain required empty paragraphs and section properties. Editing a linked
+model story changes its shared owner; CLI one-occurrence edits instead require
+the explicit clone/rebind intent above. Read-only inspection MUST use noncreating
+queries and leave package bytes unchanged. First/even display settings do not
+delete the corresponding story definitions. Orientation assignment alone MUST
+NOT swap page width and height. Section block traversal preserves document order.
+
+**Styles and formatting (F09, F12–F15).** Direct values and inherited absence
+MUST remain distinguishable; explicit false is not absence. Base-style chains,
+defaults, linked styles and next-paragraph style are retained without flattening
+formatting. Resolution MUST be bounded and diagnose cycles. Unknown assignment
+names fail; reading a dangling style reference may return the applicable default.
+Deleting a definition MUST NOT delete styled content. Styles use string names,
+not numeric or enum indexing; deprecated ID fallback remains explicitly described
+as such, not an alternate naming algorithm. Built-in names retain spaces and
+custom names are exact. `base_style` exists only on the applicable style types;
+`priority` retains its spelling. Next-paragraph-style null assignment resets to
+the documented self fallback. Defined-style hidden/locked/gallery/unhide flags
+reset to false on null assignment; latent overrides retain null/inheritance.
+Latent default priority and load count allow their documented null reset.
+
+The complete font flags, language/complex-script/RTL properties, underline
+boolean/enum states, RGB/theme/null behavior, tabs/leaders, spacing and pagination
+properties MUST remain covered. Tab insertion/movement maintains position order;
+a moved handle follows its current node and detached XML views fail as stale.
+Line-spacing numbers denote multiples; `Length` values denote physical spacing.
+Run text assignment retains run formatting; paragraph text assignment replaces
+runs and removes their formatting while retaining paragraph formatting. Both
+`w:cr` and line `w:br` read as newlines; new line breaks serialize as `w:br`.
+Clear operations retain the documented owning container properties. These
+setters MUST NOT be substituted for preserving literal replacement.
+
+**Numbering (F18).** Concrete numbering instances, abstract definitions, levels,
+style links and start/restart overrides MUST retain scoped reference integrity.
+Restarting one list MUST NOT reset other instances sharing its abstract definition.
+Removing one list retains still-referenced definitions and picture-bullet media.
+Missing definitions, invalid levels and cycles require bounded diagnostics;
+ambiguous edits reject. Low source numbering coverage does not reduce this scope.
+
+**Links and cached breaks (F08, F13, F21–F23).** Paragraph traversal MUST preserve
+run/hyperlink order. Hyperlink text, runs, address, fragment, assembled URL and
+history flag remain distinct values, including internal fragment-only targets.
+No getter follows external targets. Relationship ownership is story-relative.
+The model `url` is empty for a fragment-only internal link; otherwise it is
+the address, with `#` plus the separate fragment appended when present. The
+address itself remains unnormalized data, including any embedded fragment.
+Rendered page-break objects describe stored layout metadata, not measured pages
+or newly requested hard breaks. Presence, order and preceding/following paragraph
+fragments MUST be exposed without modifying source content. Missing fragments
+at paragraph boundaries return null. Returned fragments are detached paragraphs;
+mutating a fragment MUST NOT edit the source document. A cached break inside a hyperlink places
+the whole hyperlink in the preceding fragment and starts the following fragment
+after it, preserving the documented extraction convention without relocating
+source XML. No fragment query recalculates layout. Cached-break metadata MUST
+NOT add a visible newline to ordinary paragraph/run text.
+
+**Comments (F25).** Anchors require a nonempty contiguous range at run boundaries
+within an admitted story; cross-story, nested-comment and header/footer anchors
+reject. Anchoring spans every run between the selected endpoints. Rich comment
+bodies retain ordered paragraphs/tables and run content including admitted images.
+`comment_id` and `timestamp` remain read-only; lookup by absent ID returns null.
+Omitted text means an empty string; null text rejects before mutation. Paragraphs
+own `add_run`; comment collections have no `paragraphs` member and comments have
+no direct `add_run` alias. Author/initials defaults are empty strings, null initials
+removes the attribute, and time comes from explicit context. Modern/threaded
+metadata remains preserve-only until separately verified.
+
+### 9.2 JavaScript values and authority
+
+The shared SDK's always-async admission/publication and synchronous admitted
+model access MUST apply consistently. Paths require supplied VFS authority;
+bytes are owned `Uint8Array` copies. Model names stay neutral snake_case, while
+operation options retain shared camelCase. Python sequence protocols map to
+`.length`, `Symbol.iterator`, zero-based access and explicit `.at`; negative
+indices and `.slice` are supported only by the documented sequence surface.
+Keyed styles/relationships keep key semantics; relationships retain `get` and
+`items`, with keyed `at` for throwing lookup. No extra spelling aliases arise
+from language mapping. Owner/node `.equals` replaces private wrapper identity.
+
+EMU/inch/cm/mm/point/twip helpers MUST use safe integer EMU storage and shared
+nearest, halfway-away-from-zero conversion, including negative supported values.
+Enum symbols, values, aliases and XML conversions remain typed; unmapped values
+fail and documentation typos MUST NOT invent enum members. RGB strings require
+exactly six ASCII hex digits, accept either case and serialize uppercase; no
+prefix, whitespace or coercion is accepted. Color transforms outside the declared
+model remain preserved, without inventing an unlisted luminance setter.
+
+Dates MUST be copied UTC instants, normalized before whole-second serialization;
+invalid assignments fail. Missing/invalid stored core dates read null, with
+validation diagnostics as applicable. Core string assignments require strings
+of at most 255 Unicode code points; revision reads may yield zero but writes
+require positive safe integers. Nullable reads MUST NOT imply nullable writes.
+
+Source type/value/index/key failures map to neutral typed input-type,
+invalid-value/semantic-validation, bounds and missing-key errors with the shared
+operation-context codes; nullable lookups stay null. `.element`, `._drawing` and
+`.part` expose owner-bound, bounded XML/package views: tags/namespaces, attributes,
+ordered children, text/tail, bytes, content types and scoped relationships with
+validated mutation. They MUST NOT expose arbitrary XPath, evaluation, dynamic
+method dispatch, host resources or dependency runtime APIs. Private loader/mock
+mechanics require an explicit observable-equivalence rationale; public behavior
+MUST NOT be excluded merely because its type name begins with an underscore.
 
 ## 10. Failure, security and observability
 
@@ -341,6 +504,11 @@ MAY contain counts, byte totals, elapsed time and feature/profile diagnostics;
 they MUST distinguish measured values from estimates and configured ceilings.
 
 ## 11. Corpus and original test contract
+
+The [contract reconciliation evidence](../docx/contract-reconciliation.md)
+records feature-by-feature original acceptance targets and intentional behavior
+differences. Its linked API and test registers retain individual identities and
+pending evidence; their counts MUST NOT be presented as implementation coverage.
 
 The implementation MUST account for every collected parameter variant and expanded
 BDD example in the pinned research inventory. Adapt every applicable behavioral

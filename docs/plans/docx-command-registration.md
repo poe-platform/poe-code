@@ -189,3 +189,28 @@ guarded lint stress cases (2/2).
 
 Final guarded ESLint after all current integration fixes passed with zero
 errors and the same 12 unrelated cached-example warnings.
+
+## Local delivery
+
+Implementation committed on main as `a2d7dbf65` (`feat(docx): add opt-in
+command and public exports`). The unchanged actual-HEAD archive acceptance then
+passed using the maintained reporting wrapper:
+
+```sh
+cd packages/safe-bash
+node scripts/test-reporting.mjs --import tsx tests/integration/s3-http-exports/exports.test.ts
+```
+
+Result: 212 passed, zero failed, zero skipped; log
+`/tmp/docx-committed-head-acceptance.log`. The committed artifact passed runtime
+and declaration checks without source fallback or product network requests.
+
+The full `npm test` invocation was not itself green: its 40 failures are recorded
+above. Every failure subsequently passed its corresponding maintained focused
+rerun, including the real-HEAD gate after commit. The entire long suite was not
+repeated after those fixes. Root build, ESLint, type lint, workflow lint, posttest
+lint stress, and private-workspace typechecks passed. Existing skipped profiles
+are not counted as passes.
+
+No push or release was performed. Later parser, schema, model and operation tasks
+remain pending. The unrelated pipeline-plan edits and plan move remain uncommitted.

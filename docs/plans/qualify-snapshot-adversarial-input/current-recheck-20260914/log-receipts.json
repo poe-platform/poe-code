@@ -1,0 +1,34 @@
+{
+  "capability-red.log": {
+    "sha256": "b4f208293ba34b6a543a5da10953eb9e96bc065e7392cd83a3a869cf3a170e7b",
+    "archive": "capability-red.log.gz"
+  },
+  "lint.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "lint.log.gz"
+  },
+  "acceptance.log": {
+    "sha256": "7c77042d81fdbfa7fe9ec9ecfe65f106462d1b160eb62392250bedeac42042ef",
+    "archive": "acceptance.log.gz"
+  },
+  "typecheck.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "typecheck.log.gz"
+  },
+  "harness-integration.log": {
+    "sha256": "5bf1f700835c6a24b3c6527768553ccf688da391dd791fd1f0a9b5424496e89a",
+    "archive": "harness-integration.log.gz"
+  },
+  "final-acceptance.log": {
+    "sha256": "a7ed3a6374a4d35c7bc46f36581b36a9df5679bfab42f9f705807017c07cfd0e",
+    "archive": "final-acceptance.log.gz"
+  },
+  "capability-controls-red.log": {
+    "sha256": "b31496a2ac615c4804bd250a6e96ca1ff7b85efd0fb154edb2f2b724b6de2170",
+    "archive": "capability-controls-red.log.gz"
+  },
+  "capability-green.log": {
+    "sha256": "874bb792b4a81df8520e0d58d04c182d5686e5940b8e2b17f0ed06f1df2af6a0",
+    "archive": "capability-green.log.gz"
+  }
+}

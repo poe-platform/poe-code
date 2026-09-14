@@ -2921,3 +2921,14 @@ recover 0 instead of 7 and may perform an effect with 0 before later rejection.
 The reproduction is retained and its zero process exit is not a semantic pass.
 An ownership/history or resumable-state design must resolve this before closure.
 No arbitrary live-realm interoperability or exactly-once side effects are claimed.
+
+
+## qualify-snapshot-adversarial-input — capability lookup recheck, 2026-09-14
+
+**Local Node qualification passes; released-runtime closure remains open.** The [recheck report](qualify-snapshot-adversarial-input/current-recheck-20260914/report.md) re-audits the existing entrypoint inventory and reproduces an additional defect: a rejected forged capability path retained a newly created property table on an existing Promise. The failing in-memory regression is recorded before the two-line lookup repair. A valid nested capability preserves exact identity without execution; two late-scheduler controls prove rollback after the replacement table has actually been installed.
+
+Source anchor: `f4bd98107cf0f9bd3f98b4c17bd3198af0f20049` plus the preserved dirty candidate and this repair. Node **22.23.2 / ICU 78.2**, Darwin arm64. ECMA-262 edition 16 / ECMA-402 edition 12, the pinned Test262 revision and separately tracked newer APIs remain unchanged. Full source hashes, exact commands, expected failures and preservation receipts are retained alongside the report.
+
+Fresh baseline **2,617/2,617**; final expanded acceptance **2,633/2,633 in 192 files**, zero failures/skips/unhandled errors, 104.02s; focused lookup/budget/transaction controls **44/44**; maintained harness loader integration **7/7**. TypeScript and scoped ESLint exit 0. The 96 mutations, seed `0x5a902026`, 750ms corpus cap and 2s timeout are unchanged. No budget, assertion, runtime support or host-authority boundary is weakened.
+
+This repair and its evidence receive a separate local commit. Unrelated staged content and pre-existing TypeScript edits are preserved. **Remote-main delivery: none in this turn. Release receipts: none for this increment.** No push was requested or performed; independent Bun/Workerd and clean delivered-source qualification remain unverified. The report explicitly keeps those acceptance gaps open rather than relabeling local tests as publication or full runtime qualification.

@@ -599,3 +599,10 @@ evidence and current source availability. Finalization remains pending.
 See [the teardown acceptance report](pyodide-cloudflare-teardown-acceptance.md)
 for current checks, independent review, exact blockers and delivery state.
 No production feature publication is permitted while these gates remain open.
+
+## Current teardown revalidation at bde51059c
+
+The parsed task states are open because no acceptance criteria pass in the
+current checkout. Finalization remains pending. See
+[the current teardown gate](pyodide-cloudflare-teardown-current-gate.md) for
+fresh public-API evidence, independent review and the release boundary.

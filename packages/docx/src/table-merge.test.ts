@@ -57,6 +57,34 @@ it.each([1, 2, 3])("deletes row %s through a vertical span retaining its owner c
 });
 
 it.each([
+  { kind: "bookmark", start: '<w:bookmarkStart w:id="1" w:name="range"/>', end: '<w:bookmarkEnd w:id="1"/>' },
+  { kind: "complex field", start: '<w:r><w:fldChar w:fldCharType="begin"/><w:instrText>DATE</w:instrText><w:fldChar w:fldCharType="separate"/></w:r>', end: '<w:r><w:fldChar w:fldCharType="end"/></w:r>' }
+].flatMap(markers => ["owner", "neighbor"].map(position => ({ ...markers, position }))))("rejects span deletion that changes a $kind range in the $position cells", async ({ start, end, position }) => {
+  let source = table(
+    row(cell("Owner", '<w:vMerge w:val="restart"/>'), cell("InsideRange")),
+    row(cell("", '<w:vMerge/>'), cell("Delete")),
+    row(cell("Tail", '<w:vMerge/>'), cell("OutsideRange"))
+  );
+  const first = position === "owner" ? "Owner" : "InsideRange";
+  const last = position === "owner" ? "Tail" : "OutsideRange";
+  source = source.replace(paragraph(first), `<w:p>${start}<w:r><w:t>${first}</w:t></w:r></w:p>`)
+    .replace(paragraph(last), `<w:p><w:r><w:t>${last}</w:t></w:r>${end}</w:p>`);
+  await expect(edit(source, "tables.rows.remove", { index: 2, join: "paragraphs" })).rejects.toMatchObject({ code: "unsupported-edit" });
+});
+
+it("retains range markers in a vertical span when deleting a separate row", async () => {
+  const marked = '<w:p><w:bookmarkStart w:id="1" w:name="range"/><w:r><w:t>Kept</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>';
+  const source = table(
+    row(cell("Kept", '<w:vMerge w:val="restart"/>'), cell("First")),
+    row(cell("", '<w:vMerge/>'), cell("Second")),
+    row(cell("Delete"), cell("Last"))
+  ).replace(paragraph("Kept"), marked);
+  const result = await edit(source, "tables.rows.remove", { index: 3 });
+  expect(result.details.rows).toBe(2);
+  expect(result.xml).toContain(marked);
+});
+
+it.each([
   { from: "A1", to: "B2" }, { from: "B2", to: "A1", join: "paragraphs" },
   { from: "A1", to: "C2", join: "paragraphs" }, { from: "A1", to: "B2", join: "reject" }
 ])("rejects invalid merge rectangles and content policies: %j", async options => {

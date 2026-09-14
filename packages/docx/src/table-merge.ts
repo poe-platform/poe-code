@@ -121,6 +121,17 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
     if (grid.rows.length === 1) throw new InvalidValueError("Removal must retain one row.");
     const crossing = grid.owners.filter(o => o.rowSpan > 1 && o.row <= r && o.row + o.rowSpan > r);
     if (crossing.length && options.join !== "paragraphs") throw new InvalidValueError("Deleting through spans requires an explicit paragraphs join.");
+    if (crossing.length) {
+      // Joining continuations can cross ranges anchored in neighboring retained cells.
+      const pending = [table];
+      while (pending.length) {
+        const node = pending.pop()!;
+        budget.charge("work", 1);
+        if (node.namespace === table.namespace && ["fldChar", "bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd"].includes(node.localName))
+          throw new UnsupportedEditError("Deleting through spans cannot move range markers or complex fields.");
+        for (const child of node.children) pending.push(child);
+      }
+    }
     for (const owner of crossing) {
       const retained = owner.physical.filter(p => p.row !== r), first = retained[0]!;
       const content = owner.physical.filter(p => p.node === owner.node || !empty(p.node)).map(p => blocks(xml, p.node)).join("");

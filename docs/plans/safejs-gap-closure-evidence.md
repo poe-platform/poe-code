@@ -3313,3 +3313,24 @@ namespace fix is on main, its successor workflows are being monitored, and the
 portable-fallback fix must also reach a successful successor publication.
 No package was locally published, unpublished or rolled back. Receipt JSON,
 attestations and compressed logs are in the delivery evidence directory.
+
+
+## 2026-09-14 approved README release recovery
+
+Concurrent integration `2d2a3a83407fabddf86a075dcb9de39ac84a5aef` contains both
+snapshot repair commits, but its scoped and root package checks failed because
+`packages/safe-python/README.md` was missing. The other 16 package rules passed.
+The user explicitly approved the prepared README through hey-boss task
+`fb4477fb-5a8d-43e5-a62b-1dcb81644f64` (terminal status `ok`, result
+“Approve the drafted README”). The exact approved text is now added. No package
+rule was weakened. Source API/options and absence of direct runtime environment
+configuration were checked against this integration SHA.
+
+A second isolated checkout on `main`, `/tmp/poe-snapshot-successor-20260914`,
+keeps the original full test run stable at `ae8449c83`. Normal `npm ci` and
+`npm run build` succeed in the integrated checkout. `npm run lint:packages`
+now passes **all 17 rules / 73 packages**, including `package-readme-required`.
+This documentation repair is committed and delivered separately from a concurrent
+`op` export declaration repair. Its required root/schema successors, final
+integrated snapshot checks and root publication are still pending. The approval,
+failed release, successful build and package lint receipts are retained.

@@ -1,6 +1,10 @@
 # Cloudflare safe-bash Python integration boundary
 
 Status: unavailable in the reviewed checkout; production qualification blocked.
+The [current user edge recheck](../plans/cloudflare-user-edge-current-recheck.md)
+binds fresh built-public-API observations to source and build hashes at
+`bb272573292ee712a09c1c5fdb1516f7a655dc97`; it confirms availability failure,
+not Python acceptance. Independent review confirms the same missing adapter.
 See [the final requirement checklist](../plans/cloudflare-adapter-final-review.md)
 for evidence identities and acceptance requirements. No existing application
 Worker has been integrated or modified.

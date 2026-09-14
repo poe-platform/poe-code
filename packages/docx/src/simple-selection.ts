@@ -8,7 +8,7 @@ import type { DocumentScope } from "./location-index.js";
 
 const resourceKinds: Readonly<Record<string, LocationKind>> = {
   lists: "paragraph", paragraphs: "paragraph", runs: "run", tables: "table", images: "image",
-  headers: "story", footers: "story", text: "paragraph"
+  headers: "story", footers: "story", text: "paragraph", links: "link"
 };
 
 /** Resolve admitted input only; feature editors consume these revision-bound targets. */
@@ -18,10 +18,10 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   const { operation, options } = invocation;
   const resource = operation.split(".")[0]!;
   const inserting = operation.endsWith(".add") && !operation.startsWith("tables.rows.") && !operation.startsWith("tables.columns.");
-  const targetKind = inserting && ["images", "runs"].includes(resource) ? "paragraph"
+  const targetKind = inserting && ["images", "runs", "links"].includes(resource) ? "paragraph"
     : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? "story"
     : operation === "text.get" && options.section === undefined ? "story" : resourceKinds[resource];
-  if (!targetKind || ["link", "control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined))
+  if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "bookmark" && resource === "links")) || resource !== "links" && options.link !== undefined)
     throw new UnsupportedEditError("This resource selector is not implemented.");
   const mutable = docxOperationSchemas[operation]!.mutates;
   const text = resource === "text";
@@ -54,7 +54,7 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
         throw new InvalidValueError("Note selection requires an explicit footnotes or endnotes scope.");
       owner = document.at("story", (options.comment ?? options.note) as number, { scope });
     }
-    for (const kind of ["table", "cell", "paragraph", "run", "image"] as const) {
+    for (const kind of ["table", "cell", "paragraph", "run", "image", "link"] as const) {
       if (options[kind] === undefined) continue;
       if (kind === "cell") owner = document.cell(owner!.token, options.cell as string);
       else owner = document.at(kind, options[kind] as number, owner ? { owner: owner.token } : query);

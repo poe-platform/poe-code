@@ -138,9 +138,25 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
       [...name].some(character => !(letters + "0123456789_").includes(character))) reject("Invalid bookmark name.");
   }
   if (["links.add", "links.set"].includes(operation) && has("target")) {
+    const target = options.target as string;
+    if (!target || [...target].some(c => c.charCodeAt(0) <= 32 || c.charCodeAt(0) === 127 || c === "\\")) reject("Link targets cannot contain whitespace, controls or backslashes.");
+    for (let i = 0; i < target.length; i++) if (target[i] === "%") {
+      if (target.slice(i + 1, i + 3).length !== 2 || [...target.slice(i + 1, i + 3)].some(c => !"0123456789abcdefABCDEF".includes(c))) reject("Malformed link percent escape.");
+      i += 2;
+    }
     let url: URL;
-    try { url = new URL(String(options.target)); } catch { return reject("Link targets require absolute HTTP, HTTPS or mailto URLs."); }
+    try { url = new URL(target); } catch { return reject("Link targets require absolute HTTP, HTTPS or mailto URLs."); }
     if (!["http:", "https:", "mailto:"].includes(url.protocol)) reject("Unsupported link scheme.");
+    if (url.protocol === "mailto:" ? !url.pathname || target.slice(7).startsWith("//") : !target.toLowerCase().startsWith(url.protocol + "//") || !target.slice(url.protocol.length + 2).split("/")[0] || !url.hostname || !!url.username || !!url.password)
+      reject("Malformed absolute link target.");
+  }
+  if (["links.add", "links.set"].includes(operation) && has("bookmark")) {
+    const name = options.bookmark as string;
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_";
+    if (!name || name.length > 40 || !letters.includes(name[0]!) || [...name].some(c => !(letters + "0123456789").includes(c))) reject("Invalid internal link anchor.");
+  }
+  if (operation.startsWith("links.")) {
+    if (["run", "image", "control", "revision", "shape", "field", "shared"].some(has) || operation === "links.add" && (has("link") || has("all"))) reject("Unsupported link selection.");
   }
   if (["lists.add", "lists.set"].includes(operation) && has("start") && Number(options.start) < 0)
     reject("List starts must be nonnegative.");

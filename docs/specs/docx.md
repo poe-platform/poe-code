@@ -54,6 +54,11 @@ insertion/deletion. The bounded [merged-cell milestone](../plans/docx-merged-cel
 adds explicit content-preserving merge/split and row deletion through spans.
 Live table owners remain pending.
 
+The bounded [hyperlink milestone](../plans/docx-hyperlinks.md) adds `links list`,
+`links add`, `links set` and `links remove` through the shared CLI/SDK engine.
+Removal unwraps visible label runs by default; `deleteContent: true` explicitly
+deletes the label. Shared-story mutation and the live hyperlink model remain pending.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong
@@ -556,7 +561,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `tables remove`         | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F44                                                                                                |
 | `links add`             | selectedEdit | `text!`: string; `target?`: string; `bookmark?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F21                                                                                                |
 | `links set`             | selectedEdit | `target?`: string; `bookmark?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | MutationData     | F21                                                                                                |
-| `links remove`          | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F21                                                                                                |
+| `links remove`          | selectedEdit | `deleteContent?`: boolean (default false; presence switch `--delete-content`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F21                                                                                                |
 | `bookmarks add`         | selectedEdit | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F21                                                                                                |
 | `bookmarks set`         | selectedEdit | `name!`: string; `references!`: update / reject                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F21                                                                                                |
 | `bookmarks remove`      | selectedEdit | `references!`: remove / reject                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | MutationData     | F21                                                                                                |
@@ -1869,6 +1874,26 @@ No getter follows external targets. Relationship ownership is story-relative.
 The model `url` is empty for a fragment-only internal link; otherwise it is
 the address, with `#` plus the separate fragment appended when present. The
 address itself remains unnormalized data, including any embedded fragment.
+
+The bounded link utility appends new label text to a selected paragraph. Exactly
+one of `target` or `bookmark` is required for add/set. `bookmark` here is a string
+destination name, not the numeric bookmark selector used by other resources.
+Names use ASCII letters or underscore first, then letters/digits/underscore,
+at most 40 characters; this permits conventional hidden anchors. References need
+not resolve to an existing bookmark, and no bookmark is created implicitly.
+Targets allow absolute HTTP, HTTPS and mailto URLs only; no network or host I/O
+is performed. Controls, raw whitespace/backslashes, malformed percent escapes,
+HTTP URLs without an explicit authority, credentials and empty mailto paths reject.
+Percent escapes and target fragments remain stored data, never decoded/normalized
+into a replacement address. Set replaces the destination and clears the old
+separate anchor/document location while retaining label runs and history.
+Remove unwraps those runs without changing formatting, or deletes the complete
+link content only with explicit `deleteContent: true`. Only relationships no
+longer referenced in the owning XML part may be removed; other owners and
+unselected compatibility branches retain their relationships. The bounded editor
+accepts direct paragraph hyperlinks and rejects tracked/controlled wrappers,
+opaque affected edits, ranges and ambiguous shared header/footer mutation.
+
 Rendered page-break objects describe stored layout metadata, not measured pages
 or newly requested hard breaks. Presence, order and preceding/following paragraph
 fragments MUST be exposed without modifying source content. Missing fragments

@@ -113,6 +113,8 @@ const styleInspectionData = object({
   diagnostics: array(object({ code: string, part: string, location: string, message: string }))
 });
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
+  ["links.list", "List inert links with stored address, separate anchor, label and owner location.", ["F21"], object({ items: array(object({ location, text: string, address: string, fragment: string, url: string, history: boolean, contains_page_break: boolean })) })],
+  ...["links.add", "links.set", "links.remove"].map(id => [id, id === "links.add" ? "Append a hyperlink label to a selected paragraph." : id === "links.set" ? "Change the target while preserving label runs and owner relationships." : "Remove a hyperlink: unwrap its visible label by default; --delete-content deletes it.", ["F21"], object({ ...mutationData.properties, changes: array(object({ kind: { enum: ["insert", "target", "unwrap", "remove"] }, before: location, after: location })) })]),
   ["tables.get", "Inspect one table's 1-based logical cell anchors, spans, omitted slots and exact text.", ["F19", "F20"], tableReadData],
   ["tables.merge", "Merge a complete rectangle with an explicit content join policy.", ["F20"], tableEditData],
   ["tables.split", "Restore a merged cell's existing grid slots with explicit content distribution.", ["F20"], tableEditData],

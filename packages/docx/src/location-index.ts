@@ -119,7 +119,7 @@ export class LocationIndex {
       if (seen.has(id)) return;
       seen.add(id);
       this.#add({ kind: "story", part, story: id, path: this.#paths.get(node)!, node, scope, positions });
-      const counts = { paragraph: 0, table: 0, image: 0, run: 0 };
+      const counts = { paragraph: 0, table: 0, image: 0, run: 0, link: 0 };
       let bodySection = 1;
       const visit = (current: XmlElement, inherited: LocationPositions) => {
         budget.charge("work", 1);
@@ -133,6 +133,7 @@ export class LocationIndex {
         if (current.namespace === w) {
           if (current.localName === "p") { kind = "paragraph"; counts.run = 0; pos = { ...inherited, paragraph: ++counts.paragraph }; }
           else if (current.localName === "r") { kind = "run"; pos = { ...inherited, run: ++counts.run }; }
+          else if (current.localName === "hyperlink") { kind = "link"; pos = { ...inherited, link: ++counts.link }; }
           else if (current.localName === "tbl") { kind = "table"; pos = { ...inherited, table: ++counts.table }; }
           else if (current.localName === "tc") kind = "cell";
           else if (["comment", "bookmarkStart", "commentRangeStart", "ins", "del", "moveFrom", "moveTo"].includes(current.localName)) kind = "annotation";

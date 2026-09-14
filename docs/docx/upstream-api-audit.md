@@ -123,6 +123,12 @@ Every public member needs a row recording target signature/defaults/return/side 
 
 ## Validation status
 
+The bounded [hyperlink utility record](../plans/docx-hyperlinks.md) documents
+executed link list/add/set/remove behavior, exact JS/security mappings and the
+bookmark-destination grammar correction. Hyperlink/Paragraph live model members,
+including inherited `part`, remain visible in the inventory with their existing
+planned/security-mapped obligations; utility execution is not whole-model parity.
+
 Current package-engine evidence is recorded separately in the
 [bounded validation profile](validation-profile.md). The historical inventory
 and counts below concern the model mapping task, not the absence of all utility

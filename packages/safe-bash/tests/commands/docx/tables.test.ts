@@ -285,3 +285,79 @@ test("docx merge and split preserve cell data with explicit policies through she
     assert.deepEqual(JSON.parse(restored.stdout).data.item.details.cells.map((cell: { text: string }) => cell.text), ["Harbor", "0012", "Island", "12.00"]);
   } finally { await shell.dispose(); }
 });
+
+test("docx links preserve source on output publication and distinguish unwrapping from content deletion", async () => {
+  const { shell, volume } = await fixture();
+  try {
+    const before = volume.toJSON();
+    const add = "docx links add source.docx --paragraph 1 --text '  Coast & harbor 🌊  ' --target 'https://coast.invalid/map?q=north&scale=2#pier'";
+    const dry = await shell.exec(`${add} --dry-run --json`);
+    assert.equal(dry.exitCode, 0, dry.stderr);
+    assert.equal(JSON.parse(dry.stdout).affected, 1);
+    assert.deepEqual(volume.toJSON(), before);
+    const added = await shell.exec(`${add} --output linked.docx --json`);
+    assert.equal(added.exitCode, 0, added.stderr);
+    assert.equal(volume.toJSON()["/work/source.docx"], before["/work/source.docx"]);
+    const listed = await shell.exec("docx links list linked.docx --json");
+    assert.equal(listed.exitCode, 0, listed.stderr);
+    const items = JSON.parse(listed.stdout).data.items;
+    assert.equal(items.length, 1);
+    assert.equal(items[0].text, "  Coast & harbor 🌊  ");
+    assert.equal(items[0].address, "https://coast.invalid/map?q=north&scale=2#pier");
+    const set = await shell.exec("docx links set linked.docx --link 1 --bookmark Harbor --in-place --json");
+    assert.equal(set.exitCode, 0, set.stderr);
+    const internal = await shell.exec("docx links list linked.docx --json");
+    assert.equal(internal.exitCode, 0, internal.stderr);
+    assert.equal(JSON.parse(internal.stdout).data.items[0].fragment, "Harbor");
+    assert.equal(JSON.parse(internal.stdout).data.items[0].address, "");
+    assert.equal(JSON.parse(internal.stdout).data.items[0].text, items[0].text);
+    const remove = await shell.exec("docx links remove linked.docx --link 1 --output unwrapped.docx --json");
+    assert.equal(remove.exitCode, 0, remove.stderr);
+    const unwrapped = await shell.exec("docx links list unwrapped.docx --json");
+    assert.deepEqual(JSON.parse(unwrapped.stdout).data.items, []);
+    const kept = await shell.exec("docx text get unwrapped.docx --json");
+    assert.ok(kept.stdout.includes("Coast & harbor 🌊"));
+    const deleted = await shell.exec("docx links remove linked.docx --link 1 --delete-content --in-place --json");
+    assert.equal(deleted.exitCode, 0, deleted.stderr);
+    const gone = await shell.exec("docx text get linked.docx --json");
+    assert.equal(gone.exitCode, 0, gone.stderr);
+    assert.ok(!gone.stdout.includes("Coast & harbor 🌊"));
+    assert.ok(gone.stdout.includes("North coast"));
+    assert.deepEqual(volume.readdirSync("/work").sort(), ["linked.docx", "source.docx", "unwrapped.docx"]);
+  } finally { await shell.dispose(); }
+});
+
+test("docx invalid link mutations preserve forced output and source bytes", async () => {
+  const { shell, volume } = await fixture();
+  try {
+    volume.writeFileSync("/work/output.docx", "Approved coast chart");
+    const before = volume.toJSON();
+    for (const target of ["javascript:alert(1)", "file:///work/private.txt", "data:text/plain,hidden", "https:coast.invalid", "https://coast.invalid/%zz"]) {
+      const result = await shell.exec(`docx links add source.docx --paragraph 1 --text Coast --target '${target}' --output output.docx --force --json`);
+      assert.equal(result.exitCode, 2, result.stderr);
+      assert.equal(JSON.parse(result.stdout).errors[0].code, "usage");
+      assert.deepEqual(volume.toJSON(), before);
+    }
+    const missing = await shell.exec("docx links add source.docx --paragraph 99 --text Coast --target https://coast.invalid --output output.docx --force --json");
+    assert.equal(missing.exitCode, 1, missing.stderr);
+    assert.deepEqual(volume.toJSON(), before);
+  } finally { await shell.dispose(); }
+});
+
+test("docx link targets remain inert through shell creation inspection editing and removal", async t => {
+  const fetch = t.mock.method(globalThis, "fetch", async () => { throw new Error("External link execution is forbidden"); });
+  const { shell } = await fixture();
+  try {
+    for (const operation of [
+      "add --paragraph 1 --text 'Send chart' --target 'mailto:charts@coast.invalid?subject=Harbor%20map'",
+      "list",
+      "set --link 1 --target 'http://coast.invalid/chart#east'",
+      "list",
+      "remove --link 1"
+    ]) {
+      const result = await shell.exec(`docx links ${operation} source.docx${operation === "list" ? "" : " --in-place"} --json`);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    assert.equal(fetch.mock.callCount(), 0);
+  } finally { await shell.dispose(); }
+});

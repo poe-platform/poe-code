@@ -122,6 +122,7 @@ export { editDocumentSections, inspectDocumentSections, type SectionInfo, type S
 export { editDocumentStories, inspectDocumentStories, type StoryInfo, type StoryReadRequest, type StoryReadData, type StoryEditRequest, type StoryEditData } from "./stories.js";
 
 export { editDocumentLists, type ListEditRequest, type ListEditOperation, type ListEditData } from "./lists.js";
+export { editDocumentLinks, inspectDocumentLinks, type LinkEditRequest, type LinkEditOperation, type LinkEditData, type LinkListData } from "./links.js";
 
 export { type TableConstructionRequest } from "./paragraph-edit.js";
 export { inspectDocumentTable, type TableInspectionData, type TableDetails } from "./table-read.js";

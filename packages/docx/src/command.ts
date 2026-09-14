@@ -35,7 +35,7 @@ export class SourceError extends Error {
 
 const selectors = ["section", "paragraph", "run", "table", "cell", "image", "comment", "note", "link", "control", "revision", "shape", "field", "bookmark"];
 const publication = ["output", "outputDir", "inPlace", "force", "dryRun", "json", "limit", "timestamp", "author"];
-const switches = new Set(["json", "inPlace", "force", "dryRun", "allowEmpty", "allowPartialOutput", "first", "all", "raw", "pretty", "unique", "shared", "before"]);
+const switches = new Set(["json", "inPlace", "force", "dryRun", "allowEmpty", "allowPartialOutput", "first", "all", "raw", "pretty", "unique", "shared", "before", "deleteContent"]);
 const sourceFields = new Set(["file", "fallback", "template", "contentFile", "dataFile", "opsFile"]);
 export const docxInvocationBudgets = new WeakMap<DocxInvocation, DocumentBudget>();
 const errorContexts = new WeakMap<Error, { operation: string; json: boolean; budget: DocumentBudget }>();
@@ -276,14 +276,14 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
 }
 
 function validateSelections(operation: string, options: Record<string, unknown>): void {
-  const selected = selectors.filter(key => options[key] !== undefined);
+  const selected = selectors.filter(key => options[key] !== undefined && !(key === "bookmark" && ["links.add", "links.set"].includes(operation)));
   if (options.select !== undefined) {
     try { decodeLocation(options.select as string); } catch { usage("Invalid selection token."); }
     if (selected.length || options.scope !== undefined) usage("Token and simple selection cannot be combined.");
   }
   if (options.run !== undefined && options.paragraph === undefined) usage("Run selection requires paragraph.");
   if (options.cell !== undefined && options.table === undefined) usage("Cell selection requires table.");
-  if (options.comment !== undefined && options.note !== undefined || ["image", "link", "control", "revision", "shape", "field", "bookmark"].filter(key => options[key] !== undefined).length > 1) usage("Sibling selectors cannot be combined.");
+  if (options.comment !== undefined && options.note !== undefined || ["image", "link", "control", "revision", "shape", "field", "bookmark"].filter(key => selected.includes(key)).length > 1) usage("Sibling selectors cannot be combined.");
   const paragraphOwner = operation === "paragraphs.set" && selected.length > 0 && selected.every(key => ["section", "table", "cell", "note", "comment"].includes(key));
   if (options.all === true && operation !== "text.replace" && (selected.length && !paragraphOwner || options.select !== undefined)) usage("All conflicts with a target selection.");
   if (options.before === true && options.paragraph === undefined && !(operation === "paragraphs.add" && options.select !== undefined)) usage("Before requires a paragraph anchor.");

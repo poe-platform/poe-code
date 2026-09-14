@@ -259,7 +259,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
     }
     if (options[file!] !== undefined) {
       const source = options[file!]; path(source);
-      sources.push({ argument: semantic!, path: source, format: "json", type: type! });
+      sources.push({ argument: semantic!, path: source, format: "json", type: type === "BatchV1" ? type : schema.sdkFields[semantic!]!.type });
       delete options[file!];
     }
   }

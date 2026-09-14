@@ -6,6 +6,7 @@ import { InvalidValueError, type ArchiveLimits, type DocumentArchive } from "./a
 import { DocumentPackage } from "./package.js";
 import { InvalidPackageError, parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { SelectionError, type LocationKind, type LocationPositions } from "./location-token.js";
+import { tableRows } from "./table-rows.js";
 
 export type DocumentScope = "body" | "headers" | "footers" | "footnotes" | "endnotes" | "comments" | "text-boxes" | "all-stories";
 export const documentScopes: readonly DocumentScope[] = Object.freeze([
@@ -300,7 +301,7 @@ export class LocationIndex {
     if (!grid) {
       grid = new Map();
       const columns = this.named(this.named(node, "tblGrid")[0]!, "gridCol").length;
-      const rows = this.named(node, "tr");
+      const rows = tableRows(node, node => node, node => this.children.get(node) ?? [], this.#budget);
       this.#budget.table(rows.length, columns);
       let above = new Map<number, { node: XmlElement; start: number; span: number }>();
       rows.forEach((tr, i) => {

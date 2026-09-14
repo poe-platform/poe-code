@@ -1,6 +1,8 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { technicalBitmap } from "../tests/fixtures/documents.js";
+import { parseDocumentXml } from "./package-xml.js";
+import { MarkupCompatibility, documentCompatibilityProfile } from "./compatibility.js";
 import { DocumentXmlEditor, DocumentArchiveEditor, InvalidXmlError, UnsupportedEditError, UnsupportedProfileError } from "./index.js";
 
 const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
@@ -216,4 +218,15 @@ it("rejects an alternate extension child that cannot be ignored and preserves th
   fs.writeFileSync("/result.xml", editor.serialize());
   expect(fs.readFileSync("/result.xml")).toEqual(fs.readFileSync("/document.xml"));
   expect(editor.dirtyNodes).toEqual([]);
+});
+it("admits only exact native repeat names and owned attributes without activating namespace choices", () => {
+  const root = parseDocumentXml(new TextEncoder().encode('<w:sdtPr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:v="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="v"><v:repeatingSection unknown="x"><v:sectionTitle v:val="Rows" v:unknown="x"/><v:future/></v:repeatingSection><v:repeatingSectionItem/><mc:AlternateContent><mc:Choice Requires="v"><w:text/></mc:Choice><mc:Fallback><w:richText/></mc:Fallback></mc:AlternateContent></w:sdtPr>')).root;
+  const compatibility = new MarkupCompatibility(root); expect(compatibility.canEdit(root.children[0]!)).toBe(true); expect(compatibility.canEdit(root.children[0]!.attributes[0]!)).toBe(false);
+  expect(compatibility.canEdit(root.children[0]!.children[0]!.attributes[0]!)).toBe(true); expect(compatibility.canEdit(root.children[0]!.children[0]!.attributes[1]!)).toBe(false); expect(compatibility.canEdit(root.children[0]!.children[1]!)).toBe(false);
+  expect(compatibility.branches[0]!.selected!.localName).toBe("Fallback"); expect(documentCompatibilityProfile.understoodNamespaces).not.toContain("http://schemas.microsoft.com/office/word/2012/wordml");
+});
+
+it("admits exact positive transform dimension ext while keeping drawing extensions opaque", () => {
+  const root = parseDocumentXml(new TextEncoder().encode('<a:xfrm xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:ext cx="12" cy="34"/></a:xfrm>')).root;
+  expect(new MarkupCompatibility(root).canEdit(root.children[0]!)).toBe(true);
 });

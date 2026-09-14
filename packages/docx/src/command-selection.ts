@@ -29,7 +29,7 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (resource === "sections" && has("scope")) reject("Sections are package-global resources.");
   if (["styles", "properties", "settings", "fonts", "signatures", "custom-xml", "glossary"].includes(resource) &&
     (selected.length || token || has("scope"))) reject("Global resources reject story selectors.");
-  if (all && operation !== "text.replace" && operation !== "lorem.set" && operation !== "revisions.add" &&
+  if (all && operation !== "text.replace" && operation !== "lorem.set" && operation !== "revisions.add" && !["controls.repeat", "controls.bind"].includes(operation) &&
     !["set", "remove", "accept", "reject"].includes(action)) reject("All is not applicable to this operation.");
 
   if (["headers", "footers"].includes(resource) && ["get", "set", "remove"].includes(action) && !has("section") && !token)
@@ -42,7 +42,7 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (action === "add" && ["runs", "links", "fields", "toc", "captions", "notes", "images", "equations"].includes(resource) && !has("paragraph") && !token)
     reject("Inline insertion requires a paragraph.");
   if (operation === "equations.replace" && !token) reject("Equation replacement requires a location token.");
-  if (["controls.list", "controls.set"].includes(operation) && token) {
+  if (["controls.list", "controls.set", "controls.repeat", "controls.bind"].includes(operation) && token) {
     let range;
     try { range = decodeLocation(options.select as string).range; }
     catch { reject("Invalid control selection token."); }

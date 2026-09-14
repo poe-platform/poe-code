@@ -33,8 +33,11 @@ live owners, ordered batches and whole-format conformance remain pending.
 
 The later [bounded control evidence](../docx/content-control-values.md) qualifies
 typed utility inspection/filling and existing PNG picture-control replacement.
-Repeating/binding synchronization, live owners and corpus/renderer qualification
-remain pending; this does not promote the complete format contract.
+The later [bounded repeat/binding evidence](../docx/repeat-controls-bindings.md)
+qualifies native row/block expansion, contained classic-comment/bookmark/inline
+PNG graph remapping and explicit singleton custom-XML synchronization. Live
+owners, ordered batches, template apply and corpus/renderer qualification remain
+pending; neither milestone promotes the complete format contract.
 
 The bounded paragraph operations are described in
 [paragraph editing evidence](../docx/paragraph-editing.md). They add paragraph
@@ -581,7 +584,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `fields list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F22                                                                                                |
 | `notes list`            | selectedRead | `kind?`: footnote / endnote | NoteReadData | F24                                                                                                |
 | `comments list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F25                                                                                                |
-| `controls list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ControlReadData | F28                                                                                                |
+| `controls list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ControlReadData | F28 F29                                                                                                |
 | `images list`           | selectedRead | `unique?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ResourceListData | F31, F34, F35                                                                                      |
 | `styles get` | read | `name!`: string | StyleInspectionData | F14 |
 | `styles add` | edit | `name!`: string; `type!`: paragraph / character / table / numbering; optional StyleDefinitionFields below | StyleMutationData | F14 |
@@ -1063,6 +1066,8 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   unsupported candidates in all-selection fail atomically. Bound controls are
   inspected and preserved here; filling them rejects until an explicit supported
   synchronization operation is available, without detaching dataBinding.
+  Native repeating-section/item snapshots have their explicit kinds and null
+  scalar value; controls set cannot treat repeat owners as rich-text scalars.
   Locked controls reject. Bound controls require the declared binding path and
   synchronized custom-XML value; missing/unsupported mapping rejects instead of
   detaching. Repeat requires one data source containing an array; empty array
@@ -1072,6 +1077,72 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   Repetition is bounded, data records cannot introduce bindings, and missing/
   extra/duplicate keys fail. A template data array uses exactly one declared
   repeating region; ambiguous regions fail. No implicit concatenation of docs.
+  The bounded repeat/bind utility routes require whole-owner control tokens,
+  one-based scoped control ordinals or explicit all; text ranges reject. Repeat
+  requires exactly one CLI data-file/data-json source whose value is an array of
+  DeclaredControlRecord, matching the required SDK data array. Bind requires its
+  explicit binding key and typed scalar value; false, zero and empty string retain
+  their identity and are never treated as omitted.
+  A binding key is an exact declared control tag. It identifies one logical
+  declaration, not necessarily one physical control. Multiple controls with that
+  tag may share one store-item/namespace-resolved selector/scalar-kind declaration;
+  conflicting declarations for the same key are ambiguous and reject. Binding
+  synchronization MUST update the singleton custom-XML value and every admitted
+  bound recipient for that target, including differently tagged aliases, within
+  the explicit selection/scope. An incomplete selection or scope rejects before
+  mutation; callers may explicitly select all within all-stories to include
+  header/note recipients. No ordinary body operation silently edits other stories.
+  Locks, unsupported recipients and conflicting scalar declarations reject the
+  entire synchronization; dataBinding is preserved, never detached.
+  Store-item identity requires one internal custom-XML item and its internal
+  customXmlProps relationship with a matching datastoreItem itemID. Missing,
+  external or duplicate store declarations reject. The bounded selector is an
+  absolute nonempty child-only path of QName steps, including the root step;
+  each step resolves exactly one element. Prefixed names use explicit stored
+  prefixMappings XML namespace declarations; unprefixed names match no namespace.
+  Duplicate/invalid mappings or unbound prefixes reject. Descendant/parent axes,
+  wildcards, predicates, attribute steps, functions, unions and executable
+  expressions are unsupported. The selected element must be a singleton scalar
+  text leaf containing only text content; element/comment/PI or mixed children
+  reject. No arbitrary XPath engine is used.
+  Text/rich-text, choice and date declarations use strings; checkbox uses boolean.
+  Choice stores the declared value and displays its label; date stores a validated
+  YYYY-MM-DD day and uses the admitted deterministic display formats. Supported
+  explicit XML Schema instance types are string/boolean and, for ordinary bound
+  text, integer/double: integer requires a safe integer, double a finite number.
+  Numeric lexical output is deterministic JavaScript decimal/exponent spelling;
+  boolean lexical output is true/false. Unsupported or conflicting type
+  declarations reject; no host locale or value-based type inference.
+  Repeating regions use namespace
+  http://schemas.microsoft.com/office/word/2012/wordml repeatingSection/repeatingSectionItem
+  declarations on outer/item SDT properties. A row region is a direct table-child
+  outer SDT; each item contains exactly one valid unmerged grid row with required
+  cells/paragraphs. A block region is a direct admitted story-root or cell-child
+  outer SDT; each item contains nonempty paragraph/table blocks without sectPr.
+  Outer content contains only item SDTs; exactly one first structural prototype
+  is used and prior items must share its admitted schema/layout independently of
+  filled values/remapped IDs. Nested repeats, bound repeat owners/items/fields,
+  section/header-boundary changes, merge fragments, crossing annotations and
+  affected opaque/review/modern-comment structures reject before cloning.
+  Each record supplies exactly the prototype's distinct tagged scalar keys.
+  Expansion replaces prior data items with the requested number of independently
+  owned items. Empty data retains exactly one native reusable placeholder item,
+  not a data repetition: clear tagged scalar displays/date/choice current state, reset
+  checkbox state to its declared unchecked glyph and mark placeholder state.
+  Preserve required row/cell/paragraph shape, control declarations and unrelated
+  template decorations, without stale prior field values. Nonempty filling clears
+  current placeholder state using the same bounded value rules.
+  Validate and remap control IDs, bookmark names/IDs and contained internal
+  references, classic comment anchors/body IDs and DrawingML drawing IDs per item.
+  Clone admitted comment bodies with their stored author/time; modern review or
+  cross-boundary ownership rejects. Relationship IDs are occurrence/owner-local,
+  retaining admitted shared media and unrelated edges; no resource fetch occurs.
+  The maintained matches budget bounds record/item count, alongside tableRows,
+  tableCells and insertedNodes for expanded structures. Count/node/work/media/output
+  budgets MUST be admitted before clone copies
+  and publication; unsupported candidates fail atomically. Exact repeat extension
+  admission does not declare the entire namespace understood or activate inactive
+  compatibility choices.
 - **Properties.** Unqualified names search core, extended and custom namespaces;
   collision across classes fails rather than choosing. `core:`, `extended:` and
   `custom:` explicitly qualify. Core string keys are title, subject, author,
@@ -1313,7 +1384,8 @@ within table budgets; zero blocks in a cell becomes one required empty paragraph
 The additive TableConstructionFormat and cell-format fields are defined in the
 construction contract in section 6.5; they apply to nested table blocks too.
 No implicit merges or binary fixtures are embedded in content. Each binding entry
-ID must match exactly one declared control tag; scalar type comes from its
+ID must match exactly one logical control-tag declaration, which may have multiple
+physical recipients with the same admitted target/type; scalar type comes from its
 admitted control/custom-XML declaration, including date represented as a validated
 string. Dynamic JSON property names are avoided by the values array. Duplicate
 bindings and null values reject. Repeated controls may repeat the same schema
@@ -1425,7 +1497,7 @@ type ControlReadData = { items: ControlSnapshot[] };
 type ControlSnapshot = {
   location: Location;
   kind: "plain-text" | "rich-text" | "checkbox" | "dropdown" | "combo-box" |
-    "date" | "picture" | "unsupported";
+    "date" | "picture" | "repeating-section" | "repeating-item" | "unsupported";
   id: string | null; tag: string | null; alias: string | null;
   lock: string; placeholder: boolean;
   binding: { storeItemId: string | null; xpath: string | null;

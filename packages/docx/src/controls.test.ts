@@ -34,6 +34,11 @@ it("indexes nested controls independently and scopes their ordinals", async () =
 });
 
 export const control = (properties: string, content = run("Old")) => `<w:sdt><w:sdtPr><w:id w:val="7"/><w:tag w:val="bay"/><w:alias w:val="Name"/>${properties}</w:sdtPr><w:sdtContent>${content}</w:sdtContent></w:sdt>`;
+it.each(["repeatingSection", "repeatingSectionItem"])("inventories native %s as an explicit non-scalar owner", async name => {
+  const module = await import("./controls.js"); const body = `<w:p>${control(`<v:${name} xmlns:v="http://schemas.microsoft.com/office/word/2012/wordml"/>`)}</w:p>`;
+  expect((await module.inspectDocumentControls(await textFixture(body), {}, textContext)).items[0]).toMatchObject({ kind: name === "repeatingSection" ? "repeating-section" : "repeating-item", value: null });
+  await expect(fill(body, { text: "New" }).then(() => undefined)).rejects.toMatchObject({ code: "unsupported-edit" });
+});
 it("lists typed controls through the actual command engine", async () => {
   const input = await textFixture(`<w:p>${control("<w:text/>")}</w:p>`);
   const fs = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "" });

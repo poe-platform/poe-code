@@ -2,6 +2,7 @@ import { inspectDocumentRevisions } from "./revisions.js";
 import { executeRevisionEditCommand } from "./revision-edit-command.js";
 import { executeRevisionDecisionCommand } from "./revision-decisions-command.js";
 import { executeControlsCommand } from "./controls-command.js";
+import { executeControlTemplateCommand } from "./control-template-command.js";
 import { executeCommentsCommand } from "./comments-command.js";
 import { executeFieldsCommand } from "./fields-command.js";
 import { executeNotesCommand } from "./notes-command.js";
@@ -65,7 +66,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let writingDiagnostics = false;
       let output: Uint8Array;
       let exitCode = 0;
-      const controlOperation = ["controls.list", "controls.set"].includes(invocation.operation);
+      const controlTemplateOperation = ["controls.repeat", "controls.bind"].includes(invocation.operation);
+      const controlOperation = controlTemplateOperation || ["controls.list", "controls.set"].includes(invocation.operation);
       const fieldOperation = ["fields.add", "fields.set", "toc.add", "toc.set", "captions.add", "captions.set"].includes(invocation.operation);
       const commentOperation = ["comments.list", "comments.get", "comments.add", "comments.set", "comments.remove"].includes(invocation.operation);
       const revisionEditOperation = ["revisions.add", "revisions.accept", "revisions.reject"].includes(invocation.operation);
@@ -89,7 +91,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const input = invocation.inputs[0]!;
         acquiring = true;
         let inputIdentity: PublicationInput | undefined;
-        if ((invocation.operation === "controls.set" || (commentOperation && !["comments.list", "comments.get"].includes(invocation.operation)) || (noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || revisionEditOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
+        if ((controlTemplateOperation || invocation.operation === "controls.set" || (commentOperation && !["comments.list", "comments.get"].includes(invocation.operation)) || (noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || revisionEditOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -101,7 +103,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } });
         acquiring = false;
         if (controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = controlOperation ? await executeControlsCommand(invocation, bytes, inputIdentity, request, context)
+          output = controlOperation ? controlTemplateOperation
+            ? await executeControlTemplateCommand(invocation, bytes, inputIdentity, request, context)
+            : await executeControlsCommand(invocation, bytes, inputIdentity, request, context)
             : revisionEditOperation ? invocation.operation === "revisions.add"
             ? await executeRevisionEditCommand(invocation, bytes, inputIdentity, request, context)
             : await executeRevisionDecisionCommand(invocation, bytes, inputIdentity, request, context)

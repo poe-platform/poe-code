@@ -29,13 +29,13 @@ it("requires exactly one value in public types", () => {
 it("encodes exact typed value alternatives in all input schemas", () => {
   for (const transport of ["cli", "sdk", "batch"] as const) expect(getDocxOperationSchema("controls.set", transport).allOf).toContainEqual({ oneOf: ["text", "checked", "choice", "date", "file"].map(name => ({ required: [name] })) });
 });
-it("advertises bounded control inspection and filling while bindings remain proposed", () => {
+it("advertises bounded inspection, scalar filling and the separate binding synchronization profile", () => {
   for (const operation of ["controls.list", "controls.set"]) {
     const schema = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation } })!.data as DocxSchemaData;
-    expect(schema.operations).toMatchObject([{ id: operation, support: operation.endsWith("set") ? "edit" : "read", featureIds: ["F28"] }]);
+    expect(schema.operations).toMatchObject([{ id: operation, support: operation.endsWith("set") ? "edit" : "read", featureIds: operation === "controls.list" ? ["F28", "F29"] : ["F28"] }]);
   }
-  const proposed = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "controls.bind" } })!.data as DocxSchemaData;
-  expect(proposed.operations).toMatchObject([{ support: "reject" }]);
+  const binding = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "controls.bind" } })!.data as DocxSchemaData;
+  expect(binding.operations).toMatchObject([{ support: "edit", featureIds: ["F29"] }]);
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!.data as DocxCapabilitiesData;
   expect(capabilities.features.find(item => item.id === "F28")).toMatchObject({ level: "edit", subsets: expect.arrayContaining([expect.objectContaining({ name: "control-values", level: "edit" })]) });
 });
@@ -52,7 +52,7 @@ it("describes exact snapshot fields in successful control inspection results", (
   expect(item).toMatchObject({ type: "object", additionalProperties: false,
     required: ["location", "kind", "id", "tag", "alias", "lock", "placeholder", "binding", "value", "choices", "support", "reason"],
     properties: {
-      kind: { enum: ["plain-text", "rich-text", "checkbox", "dropdown", "combo-box", "date", "picture", "unsupported"] },
+      kind: { enum: ["plain-text", "rich-text", "checkbox", "dropdown", "combo-box", "date", "picture", "repeating-section", "repeating-item", "unsupported"] },
       support: { enum: ["supported", "unsupported"] },
       binding: { anyOf: [{ properties: { storeItemId: { oneOf: [{ type: "string" }, { type: "null" }] }, xpath: { oneOf: [{ type: "string" }, { type: "null" }] }, prefixMappings: { oneOf: [{ type: "string" }, { type: "null" }] } } }, { type: "null" }] },
     },

@@ -42,10 +42,13 @@ export const documentCompatibilityProfile: CompatibilityProfile = Object.freeze(
     "http://purl.org/dc/terms/"
   ]),
   extensionElements: Object.freeze(drawingNamespaces.map(namespace => Object.freeze({ namespace, localName: "ext" }))),
-  understoodElements: Object.freeze(["checkbox", "checked", "checkedState", "uncheckedState"].map(localName => Object.freeze({
+  understoodElements: Object.freeze([... ["checkbox", "checked", "checkedState", "uncheckedState"].map(localName => Object.freeze({
     namespace: "http://schemas.microsoft.com/office/word/2010/wordml", localName,
     attributes: Object.freeze((localName === "checkbox" ? [] : localName === "checked" ? ["val"] : ["val", "font"]).map(name => Object.freeze({ namespace: "http://schemas.microsoft.com/office/word/2010/wordml", localName: name })))
-  })))
+  })), ...["repeatingSection", "repeatingSectionItem", "sectionTitle", "doNotAllowInsertDeleteSection"].map(localName => Object.freeze({
+    namespace: "http://schemas.microsoft.com/office/word/2012/wordml", localName,
+    attributes: Object.freeze((localName === "sectionTitle" || localName === "doNotAllowInsertDeleteSection" ? ["val"] : []).map(name => Object.freeze({ namespace: "http://schemas.microsoft.com/office/word/2012/wordml", localName: name })))
+  }))])
 });
 
 export function compatibilitySettings(profile: CompatibilityProfile): CompatibilityProfile {
@@ -172,15 +175,16 @@ export class MarkupCompatibility {
       const result: CompatibilityContent[] = [];
       for (const node of element.content) {
         budget.charge("work", 1);
-        if (node.kind === "element") result.push(...visit(node, scope, blocked));
+        if (node.kind === "element") result.push(...visit(node, scope, blocked, element));
         else { result.push(node); if (!blocked) this.#editable.add(node); }
       }
       return result;
     };
-    const visit = (element: XmlElement, parent: Scope, blocked: boolean): CompatibilityContent[] => {
+    const visit = (element: XmlElement, parent: Scope, blocked: boolean, owner?: XmlElement): CompatibilityContent[] => {
       const exact = settings.understoodElements!.find(name => matches(element, name));
       const exactAttribute = (attribute: XmlAttribute) => exact?.attributes.some(name => matches(attribute, name)) === true;
-      if (settings.extensionElements!.some(name => matches(element, name))) return [opaque(element)];
+      const dimensions = drawingNamespaces.includes(element.namespace) && element.localName === "ext" && owner?.namespace === element.namespace && owner.localName === "xfrm" && !element.children.length && element.content.every(node => node.kind === "text" && !node.text.trim()) && ["cx", "cy"].every(name => element.attributes.filter(attribute => attribute.namespace === "" && attribute.localName === name).length === 1) && element.attributes.every(attribute => attribute.namespace === xmlns || attribute.namespace === "" && ["cx", "cy"].includes(attribute.localName) && attribute.value.length > 0 && [...attribute.value].every(char => "0123456789".includes(char)) && Number.isSafeInteger(Number(attribute.value)) && Number(attribute.value) > 0);
+      if (!dimensions && settings.extensionElements!.some(name => matches(element, name))) return [opaque(element)];
       const scope = scopeFor(element, parent);
       if (scope.ignorable.has(element.namespace) && !understood.has(element.namespace) && !exact) {
         if (!scope.process.some(pair => matches(element, pair))) return [];

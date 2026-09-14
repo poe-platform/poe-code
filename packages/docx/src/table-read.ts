@@ -7,6 +7,9 @@ import type { DocxOperationArguments } from "./operation-types.js";
 import { parseDocumentXml } from "./package-xml.js";
 import { sectionAttribute, sectionChild } from "./section-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
+import { tableRows } from "./table-rows.js";
+import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
+import type { XmlElement } from "./package-xml.js";
 
 export interface TableDetails {
   readonly kind: "tables";
@@ -33,9 +36,10 @@ export async function inspectDocumentTable(input: Uint8Array, options: DocxOpera
     .sort((a, b) => b.value.path.length - a.value.path.length)[0];
   if (!owner) throw new SelectionError("missing-selection");
   const archive = document.snapshot();
-  let node = parseDocumentXml(archive.members.find(part => "/" + part.name === owner.value.part)!.bytes, {}, budget).root;
+  const root = parseDocumentXml(archive.members.find(part => "/" + part.name === owner.value.part)!.bytes, {}, budget).root; let node = root;
   for (const i of owner.value.path) node = node.children[i]!;
-  const rows = node.children.filter(child => child.namespace === node.namespace && child.localName === "tr");
+  const active = new Map<XmlElement, XmlElement[]>(); const index = (content: readonly CompatibilityContent[]) => { for (const child of content) if ("source" in child) { active.set(child.source, child.content.filter(child => "source" in child).map(child => child.source)); index(child.content); } }; index(new MarkupCompatibility(root, documentCompatibilityProfile, budget).content);
+  const rows = tableRows(node, node => node, node => active.get(node) ?? [], budget);
   const columns = sectionChild(node, "tblGrid")?.children.filter(child => child.namespace === node.namespace && child.localName === "gridCol").length ?? 0;
   budget.table(rows.length, columns);
   const cells = new Map<string, TableDetails["cells"][number]>();

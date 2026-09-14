@@ -1,4 +1,5 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
+import { DocumentBudget } from "./budget.js";
 import { Volume } from "memfs";
 import {
   DocumentXmlEditor, DocumentArchiveEditor, parseDocumentXml, readArchive, readDocumentArchive, writeArchive,
@@ -8,6 +9,34 @@ import {
 import { createDocumentFixture } from "../tests/fixtures/documents.js";
 
 const utf8 = (text: string) => new TextEncoder().encode(text);
+it("admits scalar-copy budgets before iterating replacement text", () => {
+  const budget = new DocumentBudget({ retainedBytes: 100000 }); const editor = new DocumentXmlEditor(utf8("<root>Old</root>"), {}, undefined, budget);
+  budget.charge("retainedBytes", budget.limits.retainedBytes - budget.usage.retainedBytes - 1);
+  const value = "Caller scalar awaiting admission", original = String.prototype[Symbol.iterator]; let entered = false;
+  const spy = vi.spyOn(String.prototype, Symbol.iterator).mockImplementation(function(this: string) { if (String(this) === value) entered = true; return original.call(this); });
+  try { expect(() => editor.replaceScalarText(editor.root, value)).toThrow(ResourceLimitError); expect(entered).toBe(false); expect(editor.dirtyNodes).toEqual([]); } finally { spy.mockRestore(); }
+});
+it.each(["UTF-8", "UTF-16LE", "UTF-16BE"])("replaces a scalar root text leaf faithfully in %s", encoding => {
+  const input = '<?xml version="1.0"?>\n<!--cover--><v:root xmlns:v="urn:harbor:records" marker = \'keep&#33;\'><![CDATA[Old]]></v:root><?tail keep?>';
+  const editor = new DocumentXmlEditor(encode(input, encoding));
+  editor.replaceScalarText(editor.root, "]]>\r<&");
+  const expected = input.replace("<![CDATA[Old]]>", "]]&gt;&#13;&lt;&amp;");
+  expect(editor.serialize()).toEqual(encode(expected, encoding));
+});
+it("refuses mixed or foreign scalar owners without staging", () => {
+  for (const xml of ["<root><child/></root>", "<root>Text<!--keep--></root>"]) {
+    const editor = new DocumentXmlEditor(utf8(xml)); expect(() => editor.replaceScalarText(editor.root, "New")).toThrow(UnsupportedEditError); expect(editor.dirtyNodes).toEqual([]);
+  }
+  const editor = new DocumentXmlEditor(utf8("<root/>")), foreign = new DocumentXmlEditor(utf8("<other/>"));
+  expect(() => editor.replaceScalarText(foreign.root, "New")).toThrow(UnsupportedEditError);
+});
+it("fills self-closing scalar root and nested leaf shells", () => {
+  for (const xml of ["<root marker = 'keep'/>", "<outer><root marker = 'keep'/></outer>"]) {
+    const editor = new DocumentXmlEditor(utf8(xml)), leaf = editor.root.children[0] ?? editor.root;
+    editor.replaceScalarText(leaf, "<&");
+    expect(new TextDecoder().decode(editor.serialize())).toBe(xml.replace("<root marker = 'keep'/>", "<root marker = 'keep'>&lt;&amp;</root>"));
+  }
+});
 const source = '<?xml version="1.0"?>\r\n<!--cover--><?review open?><d:page xmlns:d="urn:page" xmlns:x="urn:opaque" x:flag = \'keep&#33;\'><d:p xml:space="preserve"> A &amp; <x:wrap x:hint="a > b"><x:unknown/>opaque</x:wrap> B <![CDATA[<raw>&]]><?mark keep?><!--note--> C </d:p></d:page>\r\n<?review closed?>';
 
 function encode(text: string, encoding: string): Uint8Array {

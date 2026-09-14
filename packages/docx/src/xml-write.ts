@@ -217,6 +217,25 @@ export class DocumentXmlEditor {
     } catch (error) { this.#patches.delete(node); throw error; }
   }
 
+  /** Replace only scalar text content while preserving the exact owned element shell. */
+  replaceScalarText(node: XmlElement, text: string): void {
+    if (typeof text !== "string") throw new InputTypeError("Expected an XML text string.");
+    if (!this.#elements.has(node) || this.#patches.has(node) || node.content.some(token => token.kind !== "text" && token.kind !== "cdata")) unsupported();
+    if (this.#guardCompatibility && (!this.compatibility.canEdit(node) || node.content.some(token => !this.compatibility.canEdit(token)))) unsupported();
+    if (node.text === text) return;
+    const span = this.#spans.get(node)!;
+    const maximum = span.end - span.start + text.length * 6 + node.name.length + 3;
+    this.#budget.charge("retainedBytes", maximum * 8);
+    this.#budget.charge("work", maximum * 4);
+    this.#budget.charge("insertedNodes", text.length ? 1 : 0);
+    const patch = this.#source.slice(span.start, span.contentStart!) + (span.empty ? ">" : "") + escapeValue(text, false) + (span.empty ? `</${node.name}>` : this.#source.slice(span.contentEnd!, span.end));
+    this.#patches.set(node, patch);
+    try {
+      const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
+      if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
+    } catch (error) { this.#patches.delete(node); throw error; }
+  }
+
   /** Inserts admitted markup at an owned child boundary, retaining source tokens. */
   insertChildren(parent: XmlElement, xml: string, before?: XmlElement): void {
     if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");

@@ -144,3 +144,6 @@ export { editDocumentRevisionDecisions, type RevisionDecisionRequest, type Revis
 export { inspectDocumentControls, editDocumentControls, type ControlContext, type ControlSnapshot, type ControlReadData, type ControlEditData } from "./controls.js";
 export type { ControlBinaryResolver, ControlPicture } from "./control-picture.js";
 export type { RevisionInfo } from "./revision-markup.js";
+export { editDocumentControlBindings } from "./control-bindings.js";
+export { editDocumentControlRepeats } from "./control-repeat.js";
+export type { ControlTemplateData } from "./control-template-types.js";

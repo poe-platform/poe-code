@@ -5,6 +5,8 @@ import { DocumentPackage } from "./package.js";
 import { InvalidPackageError, InvalidXmlError, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { documentDialects, validatePackageDialect } from "./dialect.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityElement } from "./compatibility.js";
+import { tableRows } from "./table-rows.js";
+import { UnsupportedEditError } from "./xml-write.js";
 
 export interface ValidationOptions {
   readonly profile?: "core-v1";
@@ -392,7 +394,9 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     if (name === "tbl") {
       const grids = children(node, "tblGrid");
       const width = grids.length === 1 ? children(grids[0]!, "gridCol").length : 0;
-      const rows = children(node, "tr");
+      let rows: Node[] = [];
+      try { rows = tableRows(node, node => node.element.source, node => node.element.content.flatMap((child, index) => "source" in child ? [{ ...node, element: child, location: `${node.location}/${child.source.localName}[${index + 1}]` }] : []), budget); }
+      catch (error) { if (!(error instanceof UnsupportedEditError)) throw error; issue(node, "table-grid", error.message); }
       if (width && rows.length) budget.table(rows.length, width);
       if (!width) issue(node, "table-grid", "A table needs one nonempty grid.");
       let previous = new Map<number, number>();

@@ -10,7 +10,7 @@ export interface LocationPayload {
   readonly path: readonly number[];
   readonly range: Readonly<{ start: number; end: number }> | null;
 }
-export type LocationKind = "section" | "part" | "story" | "paragraph" | "run" | "table" | "cell" | "image" | "link" | "bookmark" | "annotation";
+export type LocationKind = "section" | "part" | "story" | "paragraph" | "run" | "table" | "cell" | "image" | "link" | "bookmark" | "field" | "annotation";
 export interface LocationPositions {
   readonly section?: number;
   readonly paragraph?: number;
@@ -20,6 +20,7 @@ export interface LocationPositions {
   readonly image?: number;
   readonly link?: number;
   readonly bookmark?: number;
+  readonly field?: number;
   readonly comment?: number;
   readonly note?: number;
 }

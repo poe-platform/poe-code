@@ -126,6 +126,7 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
       reject("Inserted revision text is required; empty text requires allow-empty.");
     if (options.kind === "delete" && has("text")) reject("Delete revisions do not accept text.");
   }
+  if (["fields.list", "fields.set"].includes(operation) && ["run", "image", "link", "bookmark", "control", "revision", "shape"].some(has)) reject("Unsupported field selection.");
   if (operation === "fields.add") {
     const requiresTarget = ["REF", "PAGEREF", "SEQ"].includes(String(options.kind));
     if (requiresTarget !== has("target")) reject("Field target does not match its kind.");

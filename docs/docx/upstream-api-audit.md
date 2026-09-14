@@ -123,6 +123,13 @@ Every public member needs a row recording target signature/defaults/return/side 
 
 ## Validation status
 
+The bounded [cached-field utility milestone](../plans/docx-fields.md) adds
+fields.list/set and records exact JS/security mappings, preserved instruction
+bytes and scoped CLI/SDK discovery. The pinned inventory has no field-specific
+public object entry; F22 remains an additive utility obligation. No live model,
+inherited member, enum/helper, collection or public underscore-prefixed type is
+promoted or excluded by this milestone. Field creation and later tasks remain pending.
+
 The bounded [hyperlink utility record](../plans/docx-hyperlinks.md) documents
 executed link list/add/set/remove behavior, exact JS/security mappings and the
 bookmark-destination grammar correction. Hyperlink/Paragraph live model members,

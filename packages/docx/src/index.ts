@@ -129,3 +129,5 @@ export { inspectDocumentTable, type TableInspectionData, type TableDetails } fro
 export { editDocumentTables, type TableEditRequest, type TableEditData, type TableEditOperation } from "./table-edit.js";
 export type { DocxTableInput, DocxTableFormat, DocxTableBorders, DocxTableRowOptions, DocxCellInput, DocxCellMargins } from "./operation-types.js";
 export { inspectDocumentBookmarks, editDocumentBookmarks, type BookmarkListData, type BookmarkEditData, type BookmarkEditRequest, type BookmarkEditOperation } from "./bookmarks.js";
+
+export { inspectDocumentFields, editDocumentFields, type FieldListData, type FieldEditRequest, type FieldEditData } from "./fields.js";

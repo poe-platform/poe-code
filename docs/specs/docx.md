@@ -59,6 +59,15 @@ The bounded [hyperlink milestone](../plans/docx-hyperlinks.md) adds `links list`
 Removal unwraps visible label runs by default; `deleteContent: true` explicitly
 deletes the label. Shared-story mutation and the live hyperlink model remain pending.
 
+The bounded [cached-field milestone](../plans/docx-fields.md) adds `fields list`
+and `fields set` through the shared CLI/SDK engine. It inventories simple, complex
+and nested fields and edits supported cached results without execution, preserving
+instructions, run formatting and omitted flags. Field creation, outer nested-result
+replacement, shared-story editing and the live model remain pending. The bounded
+`FieldListData` reports instruction keyword `kind`, simple/complex `form`, exact
+decoded `instruction`, cached `result`, `update`, `locked`, `nested` child locations
+and each owner `location`; it is separate from the full proposed ResourceDetails.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong

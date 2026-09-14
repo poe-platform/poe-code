@@ -22,7 +22,7 @@ interface Leaf { node: XmlElement; run: XmlElement; editor: DocumentXmlEditor; t
 interface Match { paragraph: Location; leaves: { leaf: Leaf; start: number; end: number }[]; unsupported: boolean; }
 interface Edit { start: number; end: number; insert: string; }
 
-function textMarkup(node: XmlElement, text: string): string {
+export function textMarkup(node: XmlElement, text: string): string {
   const prefix = node.name.includes(":") ? node.name.slice(0, node.name.indexOf(":")) + ":" : "";
   const name = node.localName === "delText" ? "delText" : "t";
   const namespace = prefix ? `xmlns:${prefix.slice(0, -1)}` : "xmlns";

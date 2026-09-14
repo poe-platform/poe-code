@@ -96,5 +96,60 @@ The source correction, five regression cases and this record form an atomic
 local fix. The subsequent exact case adaptation is a separate improvement;
 the pipeline test status remains open until its requirements are reconciled.
 
+A fresh ad hoc CLI capture after `8943f8923` was generated through
+`npm run screenshot` and visually inspected at
+`/tmp/docx-merge-range-rejection-verification.png`. An original in-memory marked
+table passed to `tables rows remove --table 1 --index 2 --join paragraphs
+--dry-run` reports `unsupported-edit` with exit 1 and no document text in the
+diagnostic. This verifies terminal output only, not rendered Word pages.
+
 No downloaded documents were opened, changed or removed. No corpus, rendering,
 full safe-bash unit gate, remote-main delivery or release result is claimed.
+
+## Original variant qualification
+
+The separate `table-merge-variants.test.ts` adds 63 original memfs cases.
+They cover empty/reject merges, omitted-property defaults and exact counts,
+pre-mutation spans 1/2/4, off-origin and previously merged rectangles, all logical
+aliases, rejected partial intersections, rich-block transfer and resulting
+physical gridSpan/vMerge markers. Width checks bind the selected owner rather
+than matching unrelated width attributes elsewhere in the output.
+
+These are verification additions to existing behavior. Initial runs passed
+except one test-authoring correction: reversed utility corners return the
+existing `usage` error. That correction is not a product defect or historical
+red evidence. The five range-regression cases above remain separate.
+
+- `npm test --workspace=docx` passed 62 files and 1,635 tests in
+  `/tmp/docx-merged-variants-final-20260914.log`.
+- Subsequent assertion-only refinements passed the 24 affected cases in
+  `/tmp/docx-merged-variants-targeted-final-20260914.log`, and the three
+  pre-mutation span cases in `/tmp/docx-merged-span-read-final-20260914.log`.
+  The full-suite run predates those refinements; unchanged cases were not rerun.
+- The final variant file SHA-256 is
+  `26533d57a19e6c3f85410f9ba866388fc3c6531d077cfa67513c47392f0b0ea2`.
+- `npm run lint --workspace=docx` passed on that final file, including ESLint
+  and both source/test TypeScript checks. Log:
+  `/tmp/docx-merged-variants-lint-final-20260914.log`.
+- The reference-identity scan of docx source/tests and explicit safe-bash docx
+  source/tests returned no matches; standalone legal notices were preserved.
+
+The [research supplement](../docx/merged-cell-case-verification.json) retains
+all 71 assigned source identities and exact bound parameters. Independent review
+checked source topology and expected geometry, donor/destination ordering,
+target titles and explicit many-to-one mappings. Its result is 71 verified
+utility-mapped behavioral dispositions, not unchanged source parity or complete
+live-model implementation. Ordered utility corners and conservative rich-content
+retention remain explicit differences. The public `_Cell.merge`, span/omission
+getters and full live table owners retain their later API obligations.
+
+The [integration record](docx-merged-cells-integration-verification.md) separates
+baseline checks, the corrected 47-test Shell run, 515 runner checks, export
+checks and maintained source/test/consumer typechecking. It retains the initial
+overlapping typecheck failure beside the stable sequential pass.
+
+Only F20's bounded utility behavior is qualified here. Broader F01–F50, full
+public API, corpus, independent rendered-document QA and later pipeline tasks
+are not completed by these tests. Required README delivery remains pending
+permission. The disposable corpus is retained for later campaigns; cleanup count
+is zero. The preexisting pipeline status edits remain outside owned staging.

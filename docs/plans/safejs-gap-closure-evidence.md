@@ -3258,3 +3258,58 @@ Raw red/green/CI logs are compressed in the delivery receipt directory.
 This is a separate release-repair commit; its remote delivery and successor
 publication remain pending. An additional portable-fallback accessor regression
 is being handled independently; qualification is not yet complete.
+
+
+## 2026-09-14 portable-fallback descriptor admission repair
+
+Source baseline: `8ad7cda6f674508806d7ede9ce43542958c98b28`, independently
+verified on fetched remote main after normal push hooks. A deterministic fixture
+with guest descriptor state followed by caller metadata reproduced a second
+rejection gap: `restore()` converted the runtime snapshot to portable data after
+an earlier `invalidState`, silently omitting the later accessor instead of
+rejecting it. The red test failed because restoration did not throw.
+
+Before this conversion, restore now performs a bounded, descriptor-only walk
+with a private visited set. Caller Proxies fail before traps; only existing
+engine identities/getters have runtime authority. Cycles terminate without
+turning them into host effects. The existing entry/depth limits remain in force;
+no budgets, assertions, timeout or runtime support changed. Four deterministic
+fixtures cover ordinary metadata getters, non-enumerable getters, accessors
+added directly to a guest object and Proxy metadata. Each checks zero local
+accessor/trap invocations, zero host calls, validation rejection, and subsequent
+cyclic/aliased graph recovery after removing only the offending property.
+
+On Node 22.23.2 / ICU 78.2 the four regressions pass; the expanded snapshot,
+restore, public migration/run/checkpoint and harness integration selection
+passes **2,703/2,703 in 193 files**, **176.18 s**, zero failures/skips. Exact
+selection is the previous focused command with public `restore.test.ts`, harness
+`loader/run.test.ts` and `testing/replay-equivalence.test.ts`; the command line is
+also in the focused log. Scoped ESLint passes. Full maintained `npm test` and
+`npm run lint` are running on this source and are not yet claimed as passed.
+An earlier full test/lint attempt was intentionally interrupted for this repair;
+its receipts are retained and do not count as passes.
+
+### Partial publication receipt: 0.1.599
+
+The [scoped workflow](https://github.com/poe-platform/poe-code/actions/runs/34872213219)
+completed successfully and published `@poe-platform/safe-fs`, `safe-js` and
+`safe-bash` at **0.1.599** from `50e1872b83aaa2817fda34cc344da8f8bdfccda8`.
+The SafeJS version metadata initially returned E404 while the official tarball
+and provenance attestation were available. Read-only retries later confirmed
+normal metadata and name-based installation. All three official tarball hashes
+match registry integrity (SafeJS also matched its attested SHA512 before metadata
+propagated). Sigstore 3.1.0 cryptographic verification succeeded for every SLSA
+bundle with the GitHub Actions issuer, the exact release-safe workflow identity,
+and the resolved source commit asserted. A clean name-based consumer's
+`npm audit signatures` verified **18 registry signatures / 12 attestations**.
+An independent filesystem-only consumer verified **3 signatures / 2 attestations**.
+
+Maintained installed Node and Bun scoped smoke checks pass, as do six genuine
+legacy fixtures / 12 replay cycles / zero host calls on each runtime. The
+expanded installed snapshot probe **fails at the known module namespace
+regression in 0.1.599**; the root `poe-code` release has not completed. Thus this
+is independently verified partial publication, not acceptance closure. The
+namespace fix is on main, its successor workflows are being monitored, and the
+portable-fallback fix must also reach a successful successor publication.
+No package was locally published, unpublished or rolled back. Receipt JSON,
+attestations and compressed logs are in the delivery evidence directory.

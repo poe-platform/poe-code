@@ -170,3 +170,29 @@ Scoped task checks passed before the implementation commit. After committing the
 owned files, rerun the committed-export check and full maintained test route with
 the matching lock. Final validation receipt will follow; no push or release is
 authorized.
+
+## Final committed validation
+
+Implementation commit: `bf7f37bda32f6c6dc9dd91ad6e1e676a40a6d126` on main.
+The original isolated packed-export test passed against that commit (1 passed,
+0 skipped), without changing or weakening its guard. Log:
+`/tmp/docx-namespace-s3-committed.log`.
+
+The final maintained `npm test` exited 0 against the committed source and lock.
+Its declaration-derived report records 44 test tasks, five required builds,
+uncached execution, concurrency one and no excluded workspace. Native pre/post
+hooks ran. Workspaces without declared test tasks retained
+`NO_DECLARED_TEST_NOT_A_PASS` dispositions. The shared parser's own focused
+113-case run remains separate evidence, not a fabricated workspace test task.
+
+The shell phase recorded 38,053 passed, 823 skipped and zero failures; SafeJS
+recorded 28,932 passed and 47 skipped across 1,301 passing and two skipped files.
+The subsequent terminal workspace passed 288 tests, and root posttest passed its
+two lint stress tests. Optional/unavailable cases remain skipped, not coverage
+passes. Full log: `/tmp/docx-namespace-npm-test-committed.log`.
+
+The task is complete within its bounded reading scope. The final receipt changes
+only this plan; all product/test/manifest bytes remain those verified in the
+implementation commit. Existing pipeline edits and the unrelated plan move are
+preserved. Serialization and every later task remain pending. No push or release
+was performed.

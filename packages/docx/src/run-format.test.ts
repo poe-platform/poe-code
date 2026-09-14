@@ -114,3 +114,15 @@ it("does not change unselected field instructions through a visible text range",
   const select = docx.encodeLocation({ ...paragraph.value, range: { start: 0, end: 5 } });
   await expect(format(body, { paragraph: undefined, run: undefined, select })).rejects.toMatchObject({ code: "stale-selection" });
 });
+
+it("rejects partial formatting of text containing comments without publishing", async () => {
+  const input = await textFixture('<w:p><w:r><w:t>co<!--retain note-->ast</w:t></w:r></w:p>');
+  const document = await docx.openDocumentLocations(input, textContext);
+  const selected = document.range(document.at("run", 1, { owner: document.at("paragraph", 1).token }).token, 1, 4);
+  const volume = Volume.fromJSON({ "/output": "unchanged" });
+  await expect(docx.formatDocumentRuns(input, { select: selected.token, bold: true, output: "-" }, {
+    ...textContext, encoding: { order: "input", compression: "store" },
+    stdout: { async write(bytes) { volume.appendFileSync("/output", bytes); } }
+  })).rejects.toMatchObject({ code: "unsupported-edit" });
+  expect(volume.readFileSync("/output", "utf8")).toBe("unchanged");
+});

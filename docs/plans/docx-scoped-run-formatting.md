@@ -117,3 +117,53 @@ Completed on 2026-09-14:
 
 The single owned commit contains this atomic formatting feature, tests, schema,
 contract clarifications and evidence. Later task status stays pending.
+
+## Verification review and comment-preservation correction
+
+Reviewed the implemented task at `5fc4014ec` on 2026-09-14 without replaying
+implementation. The original tests cover direct values/removal, exact scalar
+ranges, style and complex-script retention, equivalent selected-run merging,
+unit/enum validation, discovery and CLI/SDK parity. The API inventory and its
+language/security reconciliation still describe planned live model members;
+this review does not promote those rows or hide underscore-prefixed interfaces.
+
+One new defect was reproduced through the public SDK with an original memfs
+regression: formatting scalar range `[1,4)` in `co<!--retain note-->ast`
+published a changed archive instead of rejecting an unsupported partial edit.
+The split path reconstructed text and discarded the XML comment. The correction
+rejects non-text children in split run content, leaving whole-run and unchanged
+formatting paths intact. Property-container comments remain preserved as before.
+
+The first regression attempt omitted explicit archive encoding and failed with
+`usage`; that was fixture setup evidence, not the product defect. After adding
+the same explicit encoding as the existing helper, the pre-fix test failed with
+`promise resolved` and a published 2,704-byte archive. No product edit preceded
+that reproduction. The final test requires `unsupported-edit` and an unchanged
+memfs output sink.
+
+Fresh maintained checks after the correction:
+
+- `npm run test --workspace=docx`: 880/880 tests, 37/37 files, no skips.
+- `npm run lint --workspace=docx`: ESLint and production/test TypeScript passed.
+- `npm run build:workspaces -- --workspace=docx`: five declared dependency-closure
+  build tasks and applicable lifecycle checks passed.
+- `npx vitest run scripts/docx-exports.test.ts`: 2/2 portable export checks.
+- Existing safe-bash registration route above: 10/10, no skips. It proves generic
+  plugin integration; it is not a formatting-specific Shell acceptance suite.
+- Fresh CLI engine QA with original data and memfs confirmed the corrected range
+  returns exit 1, makes zero stdout writes, and retains input bytes and the
+  pre-existing output sink. Exact stderr: `docx: Document operation failed:
+  unsupported-edit`. The maintained `npm run screenshot` renderer captured
+  `/tmp/docx-comment-review-20260914.png`; visual inspection confirmed a readable
+  diagnostic. This is CLI engine/terminal evidence, not a fresh Shell invocation
+  or rendered DOCX page. The disposable QA script and image are not staged.
+- `git diff --check`: passed. Only the engine guard, original test-file addition
+  and this plan update belong to the atomic correction; no push or release.
+
+Historical evidence was preserved. The existing transcript and wrapped terminal
+screenshot were inspected; the visible four calls support success, text readback,
+invalid-size output and help. The earlier eleven-call QA and red/green claims
+remain historical summaries: standalone raw assertions/logs were not found in
+the task-named temporary artifacts inspected. No fresh document rendering,
+downloaded-corpus QA, native reference build or whole-model API pass is claimed.
+Unrelated plan edits and index entries remain outside this correction.

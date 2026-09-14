@@ -22,7 +22,8 @@ export interface RunFormatData {
 interface Target { location: Location; run: Location; start: number; end: number; whole: boolean; }
 
 function splitRun(editor: DocumentXmlEditor, run: XmlElement, start: number, end: number, properties: string): string {
-  if (run.content.some(c => c.kind !== "element") || run.children.some(c => c.namespace !== run.namespace || !["rPr", "t", "tab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(c.localName)))
+  if (run.content.some(c => c.kind !== "element") || run.children.some(c => c.namespace !== run.namespace || !["rPr", "t", "tab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(c.localName)
+    || c.localName !== "rPr" && c.content.some(child => child.kind !== "text")))
     throw new UnsupportedEditError("Partial formatting requires a simple text run without opaque content or field markers.");
   const props = run.children.find(c => c.localName === "rPr");
   const original = props ? editor.sourceXml(props) : "";

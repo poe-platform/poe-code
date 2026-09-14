@@ -518,7 +518,7 @@ export async function interpret(
       ? evaluateResourceScope(scope, budget, {...createCoercionContext(context), onSuspend: context.onSuspend, signal: context.signal}, () => evaluateNode(node, context))
       : evaluateNode(node, context);
     let evaluation = await withCancellationSignal(options.signal, () =>
-      options.nested ? runAsyncPrefix(execute) : jobs.run(execute)
+      options.nested ? runAsyncPrefix(execute, true) : jobs.run(execute)
     );
     if (!options.nested) await jobs.drain();
     if (options.script !== undefined && evaluation.kind === "error" && referenceErrorDiagnostics.has(evaluation.error)) {

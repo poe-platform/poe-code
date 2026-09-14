@@ -68,6 +68,31 @@ it("does not create an unowned worker when cleanup registration is refused", asy
   } finally { await realm.close(); }
 });
 
+it("shares the worker with callbacks and authorized nested evaluations", async () => {
+  let callback: unknown;
+  const wait = "await Atomics.waitAsync(new Int32Array(new SharedArrayBuffer(4)),0,0).value";
+  const realm = createRealm({
+    limits: { cleanups: 1 },
+    grants: ["source:nested"],
+    bindings: { save: (value: unknown) => { callback = value; } },
+    extensions: [defineExtension({
+      manifest: { version: 1, name: "nested-wait", capabilities: ["source:nested"], globals: ["nested"] },
+      setup(context) {
+        return { globals: { nested: context.nestedOperation(() => context.evaluateNested(`${wait};`)) } };
+      }
+    })]
+  });
+  try {
+    expect(await realm.evaluate(`save(async () => ${wait}); ${wait}; await nested(); return 1;`))
+      .toMatchObject({ ok: true, returnValue: 1 });
+    expect(await realm.invokeCallback(callback)).toBe("ok");
+    expect(workers).toHaveLength(1);
+    realm.releaseCallback(callback);
+    await expect(realm.invokeCallback(callback)).rejects.toThrow("revoked");
+  } finally { await realm.close(); }
+  expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+});
+
 it("reports worker termination failure while still running every other disposer", async () => {
   const cleanup = vi.fn();
   const failure = new Error("termination failed");

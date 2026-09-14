@@ -1,0 +1,4483 @@
+{
+  "schema_version": 1,
+  "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+  "source_url": "https://python-docx.readthedocs.io/en/latest/",
+  "retrieved_at": "2026-09-13T01:49:35.199606+00:00",
+  "method": "Pinned local RST directives and autodoc expanded using the pinned Python classes, members/exclusions/inheritance options; enum headings resolved against enum modules.",
+  "limitations": "Candidate documented API inventory, not a claim of an exact Sphinx build. Manually reconcile protocol methods, returned interfaces, prose-only APIs, enum aliases and published/source version drift. Download of published objects.inv returned 403; no bypass attempted.",
+  "object_count": 331,
+  "objects": [
+    {
+      "source_id": "docx.comments.Comments",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 13,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(comments_elm: 'CT_Comments', comments_part: 'CommentsPart')"
+    },
+    {
+      "source_id": "docx.comments.Comments.add_comment",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 13,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str' = '', author: 'str' = '', initials: 'str | None' = '') -> 'Comment'"
+    },
+    {
+      "source_id": "docx.comments.Comments.get",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 13,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, comment_id: 'int') -> 'Comment | None'"
+    },
+    {
+      "source_id": "docx.comments.Comment",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(comment_elm: 'CT_Comment', comments_part: 'CommentsPart')"
+    },
+    {
+      "source_id": "docx.comments.Comment.add_paragraph",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str' = '', style: 'str | ParagraphStyle | None' = None) -> 'Paragraph'"
+    },
+    {
+      "source_id": "docx.comments.Comment.add_table",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, rows: 'int', cols: 'int', width: 'Length') -> 'Table'"
+    },
+    {
+      "source_id": "docx.comments.Comment.author",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.comments.Comment.comment_id",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.comments.Comment.initials",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.comments.Comment.iter_inner_content",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self) -> 'Iterator[Paragraph | Table]'"
+    },
+    {
+      "source_id": "docx.comments.Comment.paragraphs",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.comments.Comment.tables",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.comments.Comment.text",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.comments.Comment.timestamp",
+      "documentation_file": "docs/api/comments.rst",
+      "line": 23,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.dml.color.ColorFormat",
+      "documentation_file": "docs/api/dml.rst",
+      "line": 14,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(rPr_parent: 'RPrParent')"
+    },
+    {
+      "source_id": "docx.dml.color.ColorFormat.rgb",
+      "documentation_file": "docs/api/dml.rst",
+      "line": 14,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.dml.color.ColorFormat.theme_color",
+      "documentation_file": "docs/api/dml.rst",
+      "line": 14,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.dml.color.ColorFormat.type",
+      "documentation_file": "docs/api/dml.rst",
+      "line": 14,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.Document",
+      "documentation_file": "docs/api/document.rst",
+      "line": 13,
+      "discovery": "autofunction",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(docx: 'str | IO[bytes] | None' = None) -> 'DocumentObject'"
+    },
+    {
+      "source_id": "docx.document.Document",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(element: 'CT_Document', part: 'DocumentPart')"
+    },
+    {
+      "source_id": "docx.document.Document.add_comment",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, runs: 'Run | Sequence[Run]', text: 'str | None' = '', author: 'str' = '', initials: 'str | None' = '') -> 'Comment'"
+    },
+    {
+      "source_id": "docx.document.Document.add_heading",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str' = '', level: 'int' = 1)"
+    },
+    {
+      "source_id": "docx.document.Document.add_page_break",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self)"
+    },
+    {
+      "source_id": "docx.document.Document.add_paragraph",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str' = '', style: 'str | ParagraphStyle | None' = None) -> 'Paragraph'"
+    },
+    {
+      "source_id": "docx.document.Document.add_picture",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, image_path_or_stream: 'str | IO[bytes]', width: 'int | Length | None' = None, height: 'int | Length | None' = None)"
+    },
+    {
+      "source_id": "docx.document.Document.add_section",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, start_type: 'WD_SECTION' = <WD_SECTION_START.NEW_PAGE: 2>)"
+    },
+    {
+      "source_id": "docx.document.Document.add_table",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, rows: 'int', cols: 'int', style: 'str | _TableStyle | None' = None)"
+    },
+    {
+      "source_id": "docx.document.Document.comments",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.document.Document.core_properties",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.document.Document.inline_shapes",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.document.Document.iter_inner_content",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self) -> 'Iterator[Paragraph | Table]'"
+    },
+    {
+      "source_id": "docx.document.Document.paragraphs",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.document.Document.part",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.document.Document.save",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, path_or_stream: 'str | IO[bytes]')"
+    },
+    {
+      "source_id": "docx.document.Document.sections",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.document.Document.settings",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.document.Document.styles",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.document.Document.tables",
+      "documentation_file": "docs/api/document.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties",
+      "documentation_file": "docs/api/document.rst",
+      "line": 49,
+      "discovery": "class",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(element: 'CT_CoreProperties')"
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.author",
+      "documentation_file": "docs/api/document.rst",
+      "line": 51,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.category",
+      "documentation_file": "docs/api/document.rst",
+      "line": 56,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.comments",
+      "documentation_file": "docs/api/document.rst",
+      "line": 62,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.content_status",
+      "documentation_file": "docs/api/document.rst",
+      "line": 66,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.created",
+      "documentation_file": "docs/api/document.rst",
+      "line": 70,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.identifier",
+      "documentation_file": "docs/api/document.rst",
+      "line": 74,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.keywords",
+      "documentation_file": "docs/api/document.rst",
+      "line": 79,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.language",
+      "documentation_file": "docs/api/document.rst",
+      "line": 84,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.last_modified_by",
+      "documentation_file": "docs/api/document.rst",
+      "line": 88,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.last_printed",
+      "documentation_file": "docs/api/document.rst",
+      "line": 93,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.modified",
+      "documentation_file": "docs/api/document.rst",
+      "line": 97,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.revision",
+      "documentation_file": "docs/api/document.rst",
+      "line": 101,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.subject",
+      "documentation_file": "docs/api/document.rst",
+      "line": 107,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.title",
+      "documentation_file": "docs/api/document.rst",
+      "line": 111,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.opc.coreprops.CoreProperties.version",
+      "documentation_file": "docs/api/document.rst",
+      "line": 115,
+      "discovery": "attribute",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Sections",
+      "documentation_file": "docs/api/section.rst",
+      "line": 16,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "ABCMeta",
+      "signature": "(document_elm: 'CT_Document', document_part: 'DocumentPart')"
+    },
+    {
+      "source_id": "docx.section.Section",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(sectPr: 'CT_SectPr', document_part: 'DocumentPart')"
+    },
+    {
+      "source_id": "docx.section.Section.bottom_margin",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.different_first_page_header_footer",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.even_page_footer",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.section.Section.even_page_header",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.section.Section.first_page_footer",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.section.Section.first_page_header",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.section.Section.footer",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "lazyproperty"
+    },
+    {
+      "source_id": "docx.section.Section.footer_distance",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.gutter",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.header",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "lazyproperty"
+    },
+    {
+      "source_id": "docx.section.Section.header_distance",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.iter_inner_content",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self) -> 'Iterator[Paragraph | Table]'"
+    },
+    {
+      "source_id": "docx.section.Section.left_margin",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.orientation",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.page_height",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.page_width",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.right_margin",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.start_type",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section.Section.top_margin",
+      "documentation_file": "docs/api/section.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section._Header",
+      "documentation_file": "docs/api/section.rst",
+      "line": 32,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(sectPr: 'CT_SectPr', document_part: 'DocumentPart', header_footer_index: 'WD_HEADER_FOOTER')"
+    },
+    {
+      "source_id": "docx.section._Header.add_paragraph",
+      "documentation_file": "docs/api/section.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str' = '', style: 'str | ParagraphStyle | None' = None) -> 'Paragraph'"
+    },
+    {
+      "source_id": "docx.section._Header.add_table",
+      "documentation_file": "docs/api/section.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, rows: 'int', cols: 'int', width: 'Length') -> 'Table'"
+    },
+    {
+      "source_id": "docx.section._Header.is_linked_to_previous",
+      "documentation_file": "docs/api/section.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section._Header.iter_inner_content",
+      "documentation_file": "docs/api/section.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self) -> 'Iterator[Paragraph | Table]'"
+    },
+    {
+      "source_id": "docx.section._Header.paragraphs",
+      "documentation_file": "docs/api/section.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.section._Header.tables",
+      "documentation_file": "docs/api/section.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.section._Footer",
+      "documentation_file": "docs/api/section.rst",
+      "line": 38,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(sectPr: 'CT_SectPr', document_part: 'DocumentPart', header_footer_index: 'WD_HEADER_FOOTER')"
+    },
+    {
+      "source_id": "docx.section._Footer.add_paragraph",
+      "documentation_file": "docs/api/section.rst",
+      "line": 38,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str' = '', style: 'str | ParagraphStyle | None' = None) -> 'Paragraph'"
+    },
+    {
+      "source_id": "docx.section._Footer.add_table",
+      "documentation_file": "docs/api/section.rst",
+      "line": 38,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, rows: 'int', cols: 'int', width: 'Length') -> 'Table'"
+    },
+    {
+      "source_id": "docx.section._Footer.is_linked_to_previous",
+      "documentation_file": "docs/api/section.rst",
+      "line": 38,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.section._Footer.iter_inner_content",
+      "documentation_file": "docs/api/section.rst",
+      "line": 38,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self) -> 'Iterator[Paragraph | Table]'"
+    },
+    {
+      "source_id": "docx.section._Footer.paragraphs",
+      "documentation_file": "docs/api/section.rst",
+      "line": 38,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.section._Footer.tables",
+      "documentation_file": "docs/api/section.rst",
+      "line": 38,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.settings.Settings",
+      "documentation_file": "docs/api/settings.rst",
+      "line": 9,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(element: 'BaseOxmlElement', parent: 't.ProvidesXmlPart | None' = None)"
+    },
+    {
+      "source_id": "docx.settings.Settings.element",
+      "documentation_file": "docs/api/settings.rst",
+      "line": 9,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.settings.Settings.odd_and_even_pages_header_footer",
+      "documentation_file": "docs/api/settings.rst",
+      "line": 9,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.shape.InlineShapes",
+      "documentation_file": "docs/api/shape.rst",
+      "line": 13,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(body_elm: 'CT_Body', parent: 'StoryPart')"
+    },
+    {
+      "source_id": "docx.shape.InlineShape",
+      "documentation_file": "docs/api/shape.rst",
+      "line": 30,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(inline: 'CT_Inline')"
+    },
+    {
+      "source_id": "docx.shape.InlineShape.height",
+      "documentation_file": "docs/api/shape.rst",
+      "line": 30,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.shape.InlineShape.type",
+      "documentation_file": "docs/api/shape.rst",
+      "line": 30,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.shape.InlineShape.width",
+      "documentation_file": "docs/api/shape.rst",
+      "line": 30,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.shared.Length",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 25,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(emu: 'int')"
+    },
+    {
+      "source_id": "docx.shared.Length.cm",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.shared.Length.emu",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.shared.Length.inches",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.shared.Length.mm",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.shared.Length.pt",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.shared.Length.twips",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.shared.Inches",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 29,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(inches: 'float')"
+    },
+    {
+      "source_id": "docx.shared.Cm",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 32,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(cm: 'float')"
+    },
+    {
+      "source_id": "docx.shared.Mm",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 35,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(mm: 'float')"
+    },
+    {
+      "source_id": "docx.shared.Pt",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 38,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(points: 'float')"
+    },
+    {
+      "source_id": "docx.shared.Twips",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 41,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(twips: 'float')"
+    },
+    {
+      "source_id": "docx.shared.Emu",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 44,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(emu: 'int')"
+    },
+    {
+      "source_id": "docx.shared.RGBColor",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 51,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(r: 'int', g: 'int', b: 'int')"
+    },
+    {
+      "source_id": "docx.shared.RGBColor.from_string",
+      "documentation_file": "docs/api/shared.rst",
+      "line": 51,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "classmethod"
+    },
+    {
+      "source_id": "docx.styles.styles.Styles",
+      "documentation_file": "docs/api/style.rst",
+      "line": 19,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(styles: 'CT_Styles')"
+    },
+    {
+      "source_id": "docx.styles.styles.Styles.add_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, name, style_type, builtin=False)"
+    },
+    {
+      "source_id": "docx.styles.styles.Styles.default",
+      "documentation_file": "docs/api/style.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, style_type: 'WD_STYLE_TYPE')"
+    },
+    {
+      "source_id": "docx.styles.styles.Styles.element",
+      "documentation_file": "docs/api/style.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.styles.Styles.latent_styles",
+      "documentation_file": "docs/api/style.rst",
+      "line": 19,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(style_elm: 'CT_Style')"
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.builtin",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.delete",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self)"
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.element",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.hidden",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.locked",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.name",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.priority",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.quick_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.type",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style.BaseStyle.unhide_when_used",
+      "documentation_file": "docs/api/style.rst",
+      "line": 31,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(style_elm: 'CT_Style')"
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.base_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.builtin",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.delete",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self)"
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.font",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.hidden",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.locked",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.name",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.priority",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.quick_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.CharacterStyle.unhide_when_used",
+      "documentation_file": "docs/api/style.rst",
+      "line": 41,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(style_elm: 'CT_Style')"
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.base_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.builtin",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.delete",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self)"
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.font",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.hidden",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.locked",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.name",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.next_paragraph_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.paragraph_format",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.priority",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.quick_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style.ParagraphStyle.unhide_when_used",
+      "documentation_file": "docs/api/style.rst",
+      "line": 52,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(style_elm: 'CT_Style')"
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.base_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.builtin",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.delete",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self)"
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.font",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.hidden",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.locked",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.name",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.next_paragraph_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.paragraph_format",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.priority",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.quick_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style._TableStyle.unhide_when_used",
+      "documentation_file": "docs/api/style.rst",
+      "line": 63,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.style._NumberingStyle",
+      "documentation_file": "docs/api/style.rst",
+      "line": 74,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(style_elm: 'CT_Style')"
+    },
+    {
+      "source_id": "docx.styles.latent.LatentStyles",
+      "documentation_file": "docs/api/style.rst",
+      "line": 83,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(element: 'BaseOxmlElement', parent: 't.ProvidesXmlPart | None' = None)"
+    },
+    {
+      "source_id": "docx.styles.latent.LatentStyles.add_latent_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 83,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, name)"
+    },
+    {
+      "source_id": "docx.styles.latent.LatentStyles.default_priority",
+      "documentation_file": "docs/api/style.rst",
+      "line": 83,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent.LatentStyles.default_to_hidden",
+      "documentation_file": "docs/api/style.rst",
+      "line": 83,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent.LatentStyles.default_to_locked",
+      "documentation_file": "docs/api/style.rst",
+      "line": 83,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent.LatentStyles.default_to_quick_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 83,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent.LatentStyles.default_to_unhide_when_used",
+      "documentation_file": "docs/api/style.rst",
+      "line": 83,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent.LatentStyles.element",
+      "documentation_file": "docs/api/style.rst",
+      "line": 83,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.latent.LatentStyles.load_count",
+      "documentation_file": "docs/api/style.rst",
+      "line": 83,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent._LatentStyle",
+      "documentation_file": "docs/api/style.rst",
+      "line": 93,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(element: 'BaseOxmlElement', parent: 't.ProvidesXmlPart | None' = None)"
+    },
+    {
+      "source_id": "docx.styles.latent._LatentStyle.delete",
+      "documentation_file": "docs/api/style.rst",
+      "line": 93,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self)"
+    },
+    {
+      "source_id": "docx.styles.latent._LatentStyle.element",
+      "documentation_file": "docs/api/style.rst",
+      "line": 93,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.latent._LatentStyle.hidden",
+      "documentation_file": "docs/api/style.rst",
+      "line": 93,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent._LatentStyle.locked",
+      "documentation_file": "docs/api/style.rst",
+      "line": 93,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent._LatentStyle.name",
+      "documentation_file": "docs/api/style.rst",
+      "line": 93,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.styles.latent._LatentStyle.priority",
+      "documentation_file": "docs/api/style.rst",
+      "line": 93,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent._LatentStyle.quick_style",
+      "documentation_file": "docs/api/style.rst",
+      "line": 93,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.styles.latent._LatentStyle.unhide_when_used",
+      "documentation_file": "docs/api/style.rst",
+      "line": 93,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table.Table",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(tbl: 'CT_Tbl', parent: 't.ProvidesStoryPart')"
+    },
+    {
+      "source_id": "docx.table.Table.add_column",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, width: 'Length')"
+    },
+    {
+      "source_id": "docx.table.Table.add_row",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self)"
+    },
+    {
+      "source_id": "docx.table.Table.alignment",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table.Table.autofit",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table.Table.cell",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, row_idx: 'int', col_idx: 'int') -> '_Cell'"
+    },
+    {
+      "source_id": "docx.table.Table.column_cells",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, column_idx: 'int') -> 'list[_Cell]'"
+    },
+    {
+      "source_id": "docx.table.Table.columns",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "lazyproperty"
+    },
+    {
+      "source_id": "docx.table.Table.row_cells",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, row_idx: 'int') -> 'list[_Cell]'"
+    },
+    {
+      "source_id": "docx.table.Table.rows",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "lazyproperty"
+    },
+    {
+      "source_id": "docx.table.Table.style",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table.Table.table_direction",
+      "documentation_file": "docs/api/table.rst",
+      "line": 16,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table._Cell",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(tc: 'CT_Tc', parent: 'TableParent')"
+    },
+    {
+      "source_id": "docx.table._Cell.add_paragraph",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str' = '', style: 'str | ParagraphStyle | None' = None)"
+    },
+    {
+      "source_id": "docx.table._Cell.add_table",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, rows: 'int', cols: 'int') -> 'Table'"
+    },
+    {
+      "source_id": "docx.table._Cell.grid_span",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Cell.iter_inner_content",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self) -> 'Iterator[Paragraph | Table]'"
+    },
+    {
+      "source_id": "docx.table._Cell.merge",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, other_cell: '_Cell')"
+    },
+    {
+      "source_id": "docx.table._Cell.paragraphs",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Cell.tables",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Cell.text",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table._Cell.vertical_alignment",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table._Cell.width",
+      "documentation_file": "docs/api/table.rst",
+      "line": 24,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table._Row",
+      "documentation_file": "docs/api/table.rst",
+      "line": 33,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(tr: 'CT_Row', parent: 'TableParent')"
+    },
+    {
+      "source_id": "docx.table._Row.cells",
+      "documentation_file": "docs/api/table.rst",
+      "line": 33,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Row.grid_cols_after",
+      "documentation_file": "docs/api/table.rst",
+      "line": 33,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Row.grid_cols_before",
+      "documentation_file": "docs/api/table.rst",
+      "line": 33,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Row.height",
+      "documentation_file": "docs/api/table.rst",
+      "line": 33,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table._Row.height_rule",
+      "documentation_file": "docs/api/table.rst",
+      "line": 33,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table._Row.table",
+      "documentation_file": "docs/api/table.rst",
+      "line": 33,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Column",
+      "documentation_file": "docs/api/table.rst",
+      "line": 40,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(gridCol: 'CT_TblGridCol', parent: 'TableParent')"
+    },
+    {
+      "source_id": "docx.table._Column.cells",
+      "documentation_file": "docs/api/table.rst",
+      "line": 40,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Column.table",
+      "documentation_file": "docs/api/table.rst",
+      "line": 40,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Column.width",
+      "documentation_file": "docs/api/table.rst",
+      "line": 40,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.table._Rows",
+      "documentation_file": "docs/api/table.rst",
+      "line": 47,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(tbl: 'CT_Tbl', parent: 'TableParent')"
+    },
+    {
+      "source_id": "docx.table._Rows.table",
+      "documentation_file": "docs/api/table.rst",
+      "line": 47,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.table._Columns",
+      "documentation_file": "docs/api/table.rst",
+      "line": 54,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(tbl: 'CT_Tbl', parent: 'TableParent')"
+    },
+    {
+      "source_id": "docx.table._Columns.table",
+      "documentation_file": "docs/api/table.rst",
+      "line": 54,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(p: 'CT_P', parent: 't.ProvidesStoryPart')"
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.add_run",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str | None' = None, style: 'str | CharacterStyle | None' = None) -> 'Run'"
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.alignment",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.clear",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self)"
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.contains_page_break",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.hyperlinks",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.insert_paragraph_before",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str | None' = None, style: 'str | ParagraphStyle | None' = None) -> 'Paragraph'"
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.iter_inner_content",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self) -> 'Iterator[Run | Hyperlink]'"
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.paragraph_format",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.rendered_page_breaks",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.runs",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.style",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.paragraph.Paragraph.text",
+      "documentation_file": "docs/api/text.rst",
+      "line": 11,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(element: 'BaseOxmlElement', parent: 't.ProvidesXmlPart | None' = None)"
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.alignment",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.first_line_indent",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.keep_together",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.keep_with_next",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.left_indent",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.line_spacing",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.line_spacing_rule",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.page_break_before",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.right_indent",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.space_after",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.space_before",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.tab_stops",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "lazyproperty"
+    },
+    {
+      "source_id": "docx.text.parfmt.ParagraphFormat.widow_control",
+      "documentation_file": "docs/api/text.rst",
+      "line": 18,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.hyperlink.Hyperlink",
+      "documentation_file": "docs/api/text.rst",
+      "line": 25,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(hyperlink: 'CT_Hyperlink', parent: 't.ProvidesStoryPart')"
+    },
+    {
+      "source_id": "docx.text.hyperlink.Hyperlink.address",
+      "documentation_file": "docs/api/text.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.hyperlink.Hyperlink.contains_page_break",
+      "documentation_file": "docs/api/text.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.hyperlink.Hyperlink.fragment",
+      "documentation_file": "docs/api/text.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.hyperlink.Hyperlink.runs",
+      "documentation_file": "docs/api/text.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.hyperlink.Hyperlink.text",
+      "documentation_file": "docs/api/text.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.hyperlink.Hyperlink.url",
+      "documentation_file": "docs/api/text.rst",
+      "line": 25,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.run.Run",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(r: 'CT_R', parent: 't.ProvidesStoryPart')"
+    },
+    {
+      "source_id": "docx.text.run.Run.add_break",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, break_type: 'WD_BREAK' = <WD_BREAK_TYPE.LINE: 6>)"
+    },
+    {
+      "source_id": "docx.text.run.Run.add_picture",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, image_path_or_stream: 'str | IO[bytes]', width: 'int | Length | None' = None, height: 'int | Length | None' = None) -> 'InlineShape'"
+    },
+    {
+      "source_id": "docx.text.run.Run.add_tab",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self) -> 'None'"
+    },
+    {
+      "source_id": "docx.text.run.Run.add_text",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, text: 'str')"
+    },
+    {
+      "source_id": "docx.text.run.Run.bold",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Run.clear",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self)"
+    },
+    {
+      "source_id": "docx.text.run.Run.contains_page_break",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.run.Run.font",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.run.Run.italic",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Run.iter_inner_content",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self) -> 'Iterator[str | Drawing | RenderedPageBreak]'"
+    },
+    {
+      "source_id": "docx.text.run.Run.mark_comment_range",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, last_run: 'Run', comment_id: 'int') -> 'None'"
+    },
+    {
+      "source_id": "docx.text.run.Run.style",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Run.text",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Run.underline",
+      "documentation_file": "docs/api/text.rst",
+      "line": 32,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(r: 'CT_R', parent: 'Any | None' = None)"
+    },
+    {
+      "source_id": "docx.text.run.Font.all_caps",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.bold",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.color",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.run.Font.complex_script",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.cs_bold",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.cs_italic",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.double_strike",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.emboss",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.hidden",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.highlight_color",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.imprint",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.italic",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.math",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.name",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.no_proof",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.outline",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.rtl",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.shadow",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.size",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.small_caps",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.snap_to_grid",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.spec_vanish",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.strike",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.subscript",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.superscript",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.underline",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.run.Font.web_hidden",
+      "documentation_file": "docs/api/text.rst",
+      "line": 39,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.pagebreak.RenderedPageBreak",
+      "documentation_file": "docs/api/text.rst",
+      "line": 46,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(lastRenderedPageBreak: 'CT_LastRenderedPageBreak', parent: 't.ProvidesStoryPart')"
+    },
+    {
+      "source_id": "docx.text.pagebreak.RenderedPageBreak.following_paragraph_fragment",
+      "documentation_file": "docs/api/text.rst",
+      "line": 46,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.pagebreak.RenderedPageBreak.preceding_paragraph_fragment",
+      "documentation_file": "docs/api/text.rst",
+      "line": 46,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStop",
+      "documentation_file": "docs/api/text.rst",
+      "line": 53,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(element)"
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStop.alignment",
+      "documentation_file": "docs/api/text.rst",
+      "line": 53,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStop.leader",
+      "documentation_file": "docs/api/text.rst",
+      "line": 53,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStop.position",
+      "documentation_file": "docs/api/text.rst",
+      "line": 53,
+      "discovery": "autodoc-expanded",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "property",
+      "readable": true,
+      "writable": true
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStops",
+      "documentation_file": "docs/api/text.rst",
+      "line": 60,
+      "discovery": "autoclass",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "type",
+      "signature": "(element)"
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStops.add_tab_stop",
+      "documentation_file": "docs/api/text.rst",
+      "line": 63,
+      "discovery": "automethod",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "function",
+      "signature": "(self, position, alignment=<WD_TAB_ALIGNMENT.LEFT: 0>, leader=<WD_TAB_LEADER.SPACES: 0>)"
+    },
+    {
+      "source_id": "docx.enum.dml.MSO_COLOR_TYPE",
+      "documentation_file": "docs/api/enum/MsoColorType.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "RGB",
+          "value": 1
+        },
+        {
+          "name": "THEME",
+          "value": 2
+        },
+        {
+          "name": "AUTO",
+          "value": 101
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.dml.MSO_THEME_COLOR_INDEX",
+      "documentation_file": "docs/api/enum/MsoThemeColorIndex.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "NOT_THEME_COLOR",
+          "value": 0
+        },
+        {
+          "name": "ACCENT_1",
+          "value": 5
+        },
+        {
+          "name": "ACCENT_2",
+          "value": 6
+        },
+        {
+          "name": "ACCENT_3",
+          "value": 7
+        },
+        {
+          "name": "ACCENT_4",
+          "value": 8
+        },
+        {
+          "name": "ACCENT_5",
+          "value": 9
+        },
+        {
+          "name": "ACCENT_6",
+          "value": 10
+        },
+        {
+          "name": "BACKGROUND_1",
+          "value": 14
+        },
+        {
+          "name": "BACKGROUND_2",
+          "value": 16
+        },
+        {
+          "name": "DARK_1",
+          "value": 1
+        },
+        {
+          "name": "DARK_2",
+          "value": 3
+        },
+        {
+          "name": "FOLLOWED_HYPERLINK",
+          "value": 12
+        },
+        {
+          "name": "HYPERLINK",
+          "value": 11
+        },
+        {
+          "name": "LIGHT_1",
+          "value": 2
+        },
+        {
+          "name": "LIGHT_2",
+          "value": 4
+        },
+        {
+          "name": "TEXT_1",
+          "value": 13
+        },
+        {
+          "name": "TEXT_2",
+          "value": 15
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.text.WD_PARAGRAPH_ALIGNMENT",
+      "documentation_file": "docs/api/enum/WdAlignParagraph.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "LEFT",
+          "value": 0
+        },
+        {
+          "name": "CENTER",
+          "value": 1
+        },
+        {
+          "name": "RIGHT",
+          "value": 2
+        },
+        {
+          "name": "JUSTIFY",
+          "value": 3
+        },
+        {
+          "name": "DISTRIBUTE",
+          "value": 4
+        },
+        {
+          "name": "JUSTIFY_MED",
+          "value": 5
+        },
+        {
+          "name": "JUSTIFY_HI",
+          "value": 7
+        },
+        {
+          "name": "JUSTIFY_LOW",
+          "value": 8
+        },
+        {
+          "name": "THAI_JUSTIFY",
+          "value": 9
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.style.WD_BUILTIN_STYLE",
+      "documentation_file": "docs/api/enum/WdBuiltinStyle.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "BLOCK_QUOTATION",
+          "value": -85
+        },
+        {
+          "name": "BODY_TEXT",
+          "value": -67
+        },
+        {
+          "name": "BODY_TEXT_2",
+          "value": -81
+        },
+        {
+          "name": "BODY_TEXT_3",
+          "value": -82
+        },
+        {
+          "name": "BODY_TEXT_FIRST_INDENT",
+          "value": -78
+        },
+        {
+          "name": "BODY_TEXT_FIRST_INDENT_2",
+          "value": -79
+        },
+        {
+          "name": "BODY_TEXT_INDENT",
+          "value": -68
+        },
+        {
+          "name": "BODY_TEXT_INDENT_2",
+          "value": -83
+        },
+        {
+          "name": "BODY_TEXT_INDENT_3",
+          "value": -84
+        },
+        {
+          "name": "BOOK_TITLE",
+          "value": -265
+        },
+        {
+          "name": "CAPTION",
+          "value": -35
+        },
+        {
+          "name": "CLOSING",
+          "value": -64
+        },
+        {
+          "name": "COMMENT_REFERENCE",
+          "value": -40
+        },
+        {
+          "name": "COMMENT_TEXT",
+          "value": -31
+        },
+        {
+          "name": "DATE",
+          "value": -77
+        },
+        {
+          "name": "DEFAULT_PARAGRAPH_FONT",
+          "value": -66
+        },
+        {
+          "name": "EMPHASIS",
+          "value": -89
+        },
+        {
+          "name": "ENDNOTE_REFERENCE",
+          "value": -43
+        },
+        {
+          "name": "ENDNOTE_TEXT",
+          "value": -44
+        },
+        {
+          "name": "ENVELOPE_ADDRESS",
+          "value": -37
+        },
+        {
+          "name": "ENVELOPE_RETURN",
+          "value": -38
+        },
+        {
+          "name": "FOOTER",
+          "value": -33
+        },
+        {
+          "name": "FOOTNOTE_REFERENCE",
+          "value": -39
+        },
+        {
+          "name": "FOOTNOTE_TEXT",
+          "value": -30
+        },
+        {
+          "name": "HEADER",
+          "value": -32
+        },
+        {
+          "name": "HEADING_1",
+          "value": -2
+        },
+        {
+          "name": "HEADING_2",
+          "value": -3
+        },
+        {
+          "name": "HEADING_3",
+          "value": -4
+        },
+        {
+          "name": "HEADING_4",
+          "value": -5
+        },
+        {
+          "name": "HEADING_5",
+          "value": -6
+        },
+        {
+          "name": "HEADING_6",
+          "value": -7
+        },
+        {
+          "name": "HEADING_7",
+          "value": -8
+        },
+        {
+          "name": "HEADING_8",
+          "value": -9
+        },
+        {
+          "name": "HEADING_9",
+          "value": -10
+        },
+        {
+          "name": "HTML_ACRONYM",
+          "value": -96
+        },
+        {
+          "name": "HTML_ADDRESS",
+          "value": -97
+        },
+        {
+          "name": "HTML_CITE",
+          "value": -98
+        },
+        {
+          "name": "HTML_CODE",
+          "value": -99
+        },
+        {
+          "name": "HTML_DFN",
+          "value": -100
+        },
+        {
+          "name": "HTML_KBD",
+          "value": -101
+        },
+        {
+          "name": "HTML_NORMAL",
+          "value": -95
+        },
+        {
+          "name": "HTML_PRE",
+          "value": -102
+        },
+        {
+          "name": "HTML_SAMP",
+          "value": -103
+        },
+        {
+          "name": "HTML_TT",
+          "value": -104
+        },
+        {
+          "name": "HTML_VAR",
+          "value": -105
+        },
+        {
+          "name": "HYPERLINK",
+          "value": -86
+        },
+        {
+          "name": "HYPERLINK_FOLLOWED",
+          "value": -87
+        },
+        {
+          "name": "INDEX_1",
+          "value": -11
+        },
+        {
+          "name": "INDEX_2",
+          "value": -12
+        },
+        {
+          "name": "INDEX_3",
+          "value": -13
+        },
+        {
+          "name": "INDEX_4",
+          "value": -14
+        },
+        {
+          "name": "INDEX_5",
+          "value": -15
+        },
+        {
+          "name": "INDEX_6",
+          "value": -16
+        },
+        {
+          "name": "INDEX_7",
+          "value": -17
+        },
+        {
+          "name": "INDEX_8",
+          "value": -18
+        },
+        {
+          "name": "INDEX_9",
+          "value": -19
+        },
+        {
+          "name": "INDEX_HEADING",
+          "value": -34
+        },
+        {
+          "name": "INTENSE_EMPHASIS",
+          "value": -262
+        },
+        {
+          "name": "INTENSE_QUOTE",
+          "value": -182
+        },
+        {
+          "name": "INTENSE_REFERENCE",
+          "value": -264
+        },
+        {
+          "name": "LINE_NUMBER",
+          "value": -41
+        },
+        {
+          "name": "LIST",
+          "value": -48
+        },
+        {
+          "name": "LIST_2",
+          "value": -51
+        },
+        {
+          "name": "LIST_3",
+          "value": -52
+        },
+        {
+          "name": "LIST_4",
+          "value": -53
+        },
+        {
+          "name": "LIST_5",
+          "value": -54
+        },
+        {
+          "name": "LIST_BULLET",
+          "value": -49
+        },
+        {
+          "name": "LIST_BULLET_2",
+          "value": -55
+        },
+        {
+          "name": "LIST_BULLET_3",
+          "value": -56
+        },
+        {
+          "name": "LIST_BULLET_4",
+          "value": -57
+        },
+        {
+          "name": "LIST_BULLET_5",
+          "value": -58
+        },
+        {
+          "name": "LIST_CONTINUE",
+          "value": -69
+        },
+        {
+          "name": "LIST_CONTINUE_2",
+          "value": -70
+        },
+        {
+          "name": "LIST_CONTINUE_3",
+          "value": -71
+        },
+        {
+          "name": "LIST_CONTINUE_4",
+          "value": -72
+        },
+        {
+          "name": "LIST_CONTINUE_5",
+          "value": -73
+        },
+        {
+          "name": "LIST_NUMBER",
+          "value": -50
+        },
+        {
+          "name": "LIST_NUMBER_2",
+          "value": -59
+        },
+        {
+          "name": "LIST_NUMBER_3",
+          "value": -60
+        },
+        {
+          "name": "LIST_NUMBER_4",
+          "value": -61
+        },
+        {
+          "name": "LIST_NUMBER_5",
+          "value": -62
+        },
+        {
+          "name": "LIST_PARAGRAPH",
+          "value": -180
+        },
+        {
+          "name": "MACRO_TEXT",
+          "value": -46
+        },
+        {
+          "name": "MESSAGE_HEADER",
+          "value": -74
+        },
+        {
+          "name": "NAV_PANE",
+          "value": -90
+        },
+        {
+          "name": "NORMAL",
+          "value": -1
+        },
+        {
+          "name": "NORMAL_INDENT",
+          "value": -29
+        },
+        {
+          "name": "NORMAL_OBJECT",
+          "value": -158
+        },
+        {
+          "name": "NORMAL_TABLE",
+          "value": -106
+        },
+        {
+          "name": "NOTE_HEADING",
+          "value": -80
+        },
+        {
+          "name": "PAGE_NUMBER",
+          "value": -42
+        },
+        {
+          "name": "PLAIN_TEXT",
+          "value": -91
+        },
+        {
+          "name": "QUOTE",
+          "value": -181
+        },
+        {
+          "name": "SALUTATION",
+          "value": -76
+        },
+        {
+          "name": "SIGNATURE",
+          "value": -65
+        },
+        {
+          "name": "STRONG",
+          "value": -88
+        },
+        {
+          "name": "SUBTITLE",
+          "value": -75
+        },
+        {
+          "name": "SUBTLE_EMPHASIS",
+          "value": -261
+        },
+        {
+          "name": "SUBTLE_REFERENCE",
+          "value": -263
+        },
+        {
+          "name": "TABLE_COLORFUL_GRID",
+          "value": -172
+        },
+        {
+          "name": "TABLE_COLORFUL_LIST",
+          "value": -171
+        },
+        {
+          "name": "TABLE_COLORFUL_SHADING",
+          "value": -170
+        },
+        {
+          "name": "TABLE_DARK_LIST",
+          "value": -169
+        },
+        {
+          "name": "TABLE_LIGHT_GRID",
+          "value": -161
+        },
+        {
+          "name": "TABLE_LIGHT_GRID_ACCENT_1",
+          "value": -175
+        },
+        {
+          "name": "TABLE_LIGHT_LIST",
+          "value": -160
+        },
+        {
+          "name": "TABLE_LIGHT_LIST_ACCENT_1",
+          "value": -174
+        },
+        {
+          "name": "TABLE_LIGHT_SHADING",
+          "value": -159
+        },
+        {
+          "name": "TABLE_LIGHT_SHADING_ACCENT_1",
+          "value": -173
+        },
+        {
+          "name": "TABLE_MEDIUM_GRID_1",
+          "value": -166
+        },
+        {
+          "name": "TABLE_MEDIUM_GRID_2",
+          "value": -167
+        },
+        {
+          "name": "TABLE_MEDIUM_GRID_3",
+          "value": -168
+        },
+        {
+          "name": "TABLE_MEDIUM_LIST_1",
+          "value": -164
+        },
+        {
+          "name": "TABLE_MEDIUM_LIST_1_ACCENT_1",
+          "value": -178
+        },
+        {
+          "name": "TABLE_MEDIUM_LIST_2",
+          "value": -165
+        },
+        {
+          "name": "TABLE_MEDIUM_SHADING_1",
+          "value": -162
+        },
+        {
+          "name": "TABLE_MEDIUM_SHADING_1_ACCENT_1",
+          "value": -176
+        },
+        {
+          "name": "TABLE_MEDIUM_SHADING_2",
+          "value": -163
+        },
+        {
+          "name": "TABLE_MEDIUM_SHADING_2_ACCENT_1",
+          "value": -177
+        },
+        {
+          "name": "TABLE_OF_AUTHORITIES",
+          "value": -45
+        },
+        {
+          "name": "TABLE_OF_FIGURES",
+          "value": -36
+        },
+        {
+          "name": "TITLE",
+          "value": -63
+        },
+        {
+          "name": "TOAHEADING",
+          "value": -47
+        },
+        {
+          "name": "TOC_1",
+          "value": -20
+        },
+        {
+          "name": "TOC_2",
+          "value": -21
+        },
+        {
+          "name": "TOC_3",
+          "value": -22
+        },
+        {
+          "name": "TOC_4",
+          "value": -23
+        },
+        {
+          "name": "TOC_5",
+          "value": -24
+        },
+        {
+          "name": "TOC_6",
+          "value": -25
+        },
+        {
+          "name": "TOC_7",
+          "value": -26
+        },
+        {
+          "name": "TOC_8",
+          "value": -27
+        },
+        {
+          "name": "TOC_9",
+          "value": -28
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.table.WD_CELL_VERTICAL_ALIGNMENT",
+      "documentation_file": "docs/api/enum/WdCellVerticalAlignment.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "TOP",
+          "value": 0
+        },
+        {
+          "name": "CENTER",
+          "value": 1
+        },
+        {
+          "name": "BOTTOM",
+          "value": 3
+        },
+        {
+          "name": "BOTH",
+          "value": 101
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.text.WD_COLOR_INDEX",
+      "documentation_file": "docs/api/enum/WdColorIndex.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "INHERITED",
+          "value": -1
+        },
+        {
+          "name": "AUTO",
+          "value": 0
+        },
+        {
+          "name": "BLACK",
+          "value": 1
+        },
+        {
+          "name": "BLUE",
+          "value": 2
+        },
+        {
+          "name": "BRIGHT_GREEN",
+          "value": 4
+        },
+        {
+          "name": "DARK_BLUE",
+          "value": 9
+        },
+        {
+          "name": "DARK_RED",
+          "value": 13
+        },
+        {
+          "name": "DARK_YELLOW",
+          "value": 14
+        },
+        {
+          "name": "GRAY_25",
+          "value": 16
+        },
+        {
+          "name": "GRAY_50",
+          "value": 15
+        },
+        {
+          "name": "GREEN",
+          "value": 11
+        },
+        {
+          "name": "PINK",
+          "value": 5
+        },
+        {
+          "name": "RED",
+          "value": 6
+        },
+        {
+          "name": "TEAL",
+          "value": 10
+        },
+        {
+          "name": "TURQUOISE",
+          "value": 3
+        },
+        {
+          "name": "VIOLET",
+          "value": 12
+        },
+        {
+          "name": "WHITE",
+          "value": 8
+        },
+        {
+          "name": "YELLOW",
+          "value": 7
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.text.WD_LINE_SPACING",
+      "documentation_file": "docs/api/enum/WdLineSpacing.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "SINGLE",
+          "value": 0
+        },
+        {
+          "name": "ONE_POINT_FIVE",
+          "value": 1
+        },
+        {
+          "name": "DOUBLE",
+          "value": 2
+        },
+        {
+          "name": "AT_LEAST",
+          "value": 3
+        },
+        {
+          "name": "EXACTLY",
+          "value": 4
+        },
+        {
+          "name": "MULTIPLE",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.section.WD_ORIENTATION",
+      "documentation_file": "docs/api/enum/WdOrientation.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "PORTRAIT",
+          "value": 0
+        },
+        {
+          "name": "LANDSCAPE",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.table.WD_TABLE_ALIGNMENT",
+      "documentation_file": "docs/api/enum/WdRowAlignment.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "LEFT",
+          "value": 0
+        },
+        {
+          "name": "CENTER",
+          "value": 1
+        },
+        {
+          "name": "RIGHT",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.table.WD_ROW_HEIGHT_RULE",
+      "documentation_file": "docs/api/enum/WdRowHeightRule.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "AUTO",
+          "value": 0
+        },
+        {
+          "name": "AT_LEAST",
+          "value": 1
+        },
+        {
+          "name": "EXACTLY",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.section.WD_SECTION_START",
+      "documentation_file": "docs/api/enum/WdSectionStart.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "CONTINUOUS",
+          "value": 0
+        },
+        {
+          "name": "NEW_COLUMN",
+          "value": 1
+        },
+        {
+          "name": "NEW_PAGE",
+          "value": 2
+        },
+        {
+          "name": "EVEN_PAGE",
+          "value": 3
+        },
+        {
+          "name": "ODD_PAGE",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.style.WD_STYLE_TYPE",
+      "documentation_file": "docs/api/enum/WdStyleType.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "CHARACTER",
+          "value": 2
+        },
+        {
+          "name": "LIST",
+          "value": 4
+        },
+        {
+          "name": "PARAGRAPH",
+          "value": 1
+        },
+        {
+          "name": "TABLE",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.text.WD_TAB_ALIGNMENT",
+      "documentation_file": "docs/api/enum/WdTabAlignment.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "LEFT",
+          "value": 0
+        },
+        {
+          "name": "CENTER",
+          "value": 1
+        },
+        {
+          "name": "RIGHT",
+          "value": 2
+        },
+        {
+          "name": "DECIMAL",
+          "value": 3
+        },
+        {
+          "name": "BAR",
+          "value": 4
+        },
+        {
+          "name": "LIST",
+          "value": 6
+        },
+        {
+          "name": "CLEAR",
+          "value": 101
+        },
+        {
+          "name": "END",
+          "value": 102
+        },
+        {
+          "name": "NUM",
+          "value": 103
+        },
+        {
+          "name": "START",
+          "value": 104
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.text.WD_TAB_LEADER",
+      "documentation_file": "docs/api/enum/WdTabLeader.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "SPACES",
+          "value": 0
+        },
+        {
+          "name": "DOTS",
+          "value": 1
+        },
+        {
+          "name": "DASHES",
+          "value": 2
+        },
+        {
+          "name": "LINES",
+          "value": 3
+        },
+        {
+          "name": "HEAVY",
+          "value": 4
+        },
+        {
+          "name": "MIDDLE_DOT",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.table.WD_TABLE_DIRECTION",
+      "documentation_file": "docs/api/enum/WdTableDirection.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "LTR",
+          "value": 0
+        },
+        {
+          "name": "RTL",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "source_id": "docx.enum.text.WD_UNDERLINE",
+      "documentation_file": "docs/api/enum/WdUnderline.rst",
+      "line": 1,
+      "discovery": "documented-enum",
+      "adaptation_status": "unmapped_not_implemented",
+      "python_kind": "EnumType",
+      "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)",
+      "enum_values": [
+        {
+          "name": "INHERITED",
+          "value": -1
+        },
+        {
+          "name": "NONE",
+          "value": 0
+        },
+        {
+          "name": "SINGLE",
+          "value": 1
+        },
+        {
+          "name": "WORDS",
+          "value": 2
+        },
+        {
+          "name": "DOUBLE",
+          "value": 3
+        },
+        {
+          "name": "DOTTED",
+          "value": 4
+        },
+        {
+          "name": "THICK",
+          "value": 6
+        },
+        {
+          "name": "DASH",
+          "value": 7
+        },
+        {
+          "name": "DOT_DASH",
+          "value": 9
+        },
+        {
+          "name": "DOT_DOT_DASH",
+          "value": 10
+        },
+        {
+          "name": "WAVY",
+          "value": 11
+        },
+        {
+          "name": "DOTTED_HEAVY",
+          "value": 20
+        },
+        {
+          "name": "DASH_HEAVY",
+          "value": 23
+        },
+        {
+          "name": "DOT_DASH_HEAVY",
+          "value": 25
+        },
+        {
+          "name": "DOT_DOT_DASH_HEAVY",
+          "value": 26
+        },
+        {
+          "name": "WAVY_HEAVY",
+          "value": 27
+        },
+        {
+          "name": "DASH_LONG",
+          "value": 39
+        },
+        {
+          "name": "WAVY_DOUBLE",
+          "value": 43
+        },
+        {
+          "name": "DASH_LONG_HEAVY",
+          "value": 55
+        }
+      ]
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStops.__delitem__",
+      "discovery": "returned-interface/protocol-review",
+      "adaptation_status": "unmapped_not_implemented"
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStops.__getitem__",
+      "discovery": "returned-interface/protocol-review",
+      "adaptation_status": "unmapped_not_implemented"
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStops.__iter__",
+      "discovery": "returned-interface/protocol-review",
+      "adaptation_status": "unmapped_not_implemented"
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStops.__len__",
+      "discovery": "returned-interface/protocol-review",
+      "adaptation_status": "unmapped_not_implemented"
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStops.clear_all",
+      "discovery": "returned-interface/protocol-review",
+      "adaptation_status": "unmapped_not_implemented"
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStops.element",
+      "discovery": "returned-interface/protocol-review",
+      "adaptation_status": "unmapped_not_implemented",
+      "readable": true,
+      "writable": false
+    },
+    {
+      "source_id": "docx.text.tabstops.TabStops.part",
+      "discovery": "returned-interface/protocol-review",
+      "adaptation_status": "unmapped_not_implemented",
+      "readable": true,
+      "writable": false
+    }
+  ],
+  "documentation_files": [
+    {
+      "path": "docs/api/comments.rst",
+      "sha256": "1b5a363c4dafc5a2729d3ad347dc921f569c21dd35aea529a32994917cf30e83"
+    },
+    {
+      "path": "docs/api/dml.rst",
+      "sha256": "2aa6c07e2e43f96ec6e52c8e53133d37a42469cf36e06ec71684d569b11df4b3"
+    },
+    {
+      "path": "docs/api/document.rst",
+      "sha256": "4ffcdebea57ec1998e14897838ab18f94e88086dfa53abe77fbacb6d76265992"
+    },
+    {
+      "path": "docs/api/enum/MsoColorType.rst",
+      "sha256": "dff022c43b826d28177153b8174c6968c0609ea4e17b53bb5d0f384b86ac3de4"
+    },
+    {
+      "path": "docs/api/enum/MsoThemeColorIndex.rst",
+      "sha256": "33fa19de3e55901dbfb3b0a35cf841ba41c5c953122ca072957253929dc0edd3"
+    },
+    {
+      "path": "docs/api/enum/WdAlignParagraph.rst",
+      "sha256": "a9c98d092ce5507f59e4414e3eb0187db3c7ed27db6cf03cc5e9150554c87fc1"
+    },
+    {
+      "path": "docs/api/enum/WdBuiltinStyle.rst",
+      "sha256": "4a60e019514afd6fed64fb48cc75bf78f55a28b4b7a4a9b3bc95272320827339"
+    },
+    {
+      "path": "docs/api/enum/WdCellVerticalAlignment.rst",
+      "sha256": "80296586429a53ca7f9beb9dcde9eabb81dd1c524ae4824ac500c62a48877458"
+    },
+    {
+      "path": "docs/api/enum/WdColorIndex.rst",
+      "sha256": "831e889c4828aa4c34c8dd80b8656e2672d13603d5d67178c8bb08e1f56ff35a"
+    },
+    {
+      "path": "docs/api/enum/WdLineSpacing.rst",
+      "sha256": "6cd95dce6887b8e453684eb886e5970f041865483933eb2ed568bab87cfb3fe5"
+    },
+    {
+      "path": "docs/api/enum/WdOrientation.rst",
+      "sha256": "20415604f5e635127dc06ef1608e06bce76c79ccd300159a57c259ed7f855808"
+    },
+    {
+      "path": "docs/api/enum/WdRowAlignment.rst",
+      "sha256": "d6f0335ea8fc5c898a17d2818002ba6d5a72c24883d4ff301d51badb5ba8308c"
+    },
+    {
+      "path": "docs/api/enum/WdRowHeightRule.rst",
+      "sha256": "33ce9b345434492a63efea6aba84e1ecfd3adba3ac12781fcf8dcb8e4b8c079c"
+    },
+    {
+      "path": "docs/api/enum/WdSectionStart.rst",
+      "sha256": "6a811885780e04d6cc123b1c52d5911030ce3512f21cb66f95a1764ed12d0fe0"
+    },
+    {
+      "path": "docs/api/enum/WdStyleType.rst",
+      "sha256": "807de00652c5a786ea7a7c338cb8d7f4be65b5076407c0370af1a447a5c3c371"
+    },
+    {
+      "path": "docs/api/enum/WdTabAlignment.rst",
+      "sha256": "c223fb1a995830bba290faa60fc03aa8a8ce4b9c16a5508c283effc073b5ffdb"
+    },
+    {
+      "path": "docs/api/enum/WdTabLeader.rst",
+      "sha256": "0d85eaa944fb74388ed2f95f3776a3c63f087b2c40ad0f06367c35436a7d2c00"
+    },
+    {
+      "path": "docs/api/enum/WdTableDirection.rst",
+      "sha256": "87fd5b10f0dfa1d561233c0a6a75fc642ad05a719e75adf303342862a92c03c5"
+    },
+    {
+      "path": "docs/api/enum/WdUnderline.rst",
+      "sha256": "ce347a01ad37d6b444cd9f6d4e09adee5823bff6d814ff1aa6058f5215738ed3"
+    },
+    {
+      "path": "docs/api/enum/index.rst",
+      "sha256": "629669ae22c68ca4c7e17628bfe49b5fd7e68571bc5cc6444f21bf905c0f20c2"
+    },
+    {
+      "path": "docs/api/section.rst",
+      "sha256": "07e7be448ac18b5b3ae6c3f5bb58b7baef1991607b5ab5d2736aadffcada6f62"
+    },
+    {
+      "path": "docs/api/settings.rst",
+      "sha256": "ce67130f83156025f1c6bc19db7de509546ae465c97ed2840f6820f72af45ec9"
+    },
+    {
+      "path": "docs/api/shape.rst",
+      "sha256": "909ac5753badbd5fe00dd4231761e1be38d07681f43c4d2f24317061b080b77f"
+    },
+    {
+      "path": "docs/api/shared.rst",
+      "sha256": "1a83f09850e7c357e5f1ee120879dc1cfba5551fb394056e1f82fd9dabb30509"
+    },
+    {
+      "path": "docs/api/style.rst",
+      "sha256": "a2e79d93f998a66c6953d9c0449f757c7fe86d7fdd1c3f33f2d60e5fd73b77a3"
+    },
+    {
+      "path": "docs/api/table.rst",
+      "sha256": "9dad47e5a2b87b99d93e960d3603aff920a09bba06ac3533f7c916811692161c"
+    },
+    {
+      "path": "docs/api/text.rst",
+      "sha256": "df42437e891c94b2d29b8d827b03f4df971ff7269e6485664a337f3886c87d0a"
+    },
+    {
+      "path": "docs/user/api-concepts.rst",
+      "sha256": "99c4f80f322069a0c4af4c59e661a2855cd74b75209dcfe1f81de2798cdb54db"
+    },
+    {
+      "path": "docs/user/comments.rst",
+      "sha256": "cbb5f8dd15e67d97a4b01743e1cca7c29a76a8e7f50c7897b8b993c8e0c93012"
+    },
+    {
+      "path": "docs/user/documents.rst",
+      "sha256": "7f613d28378dde15b4d69add59162dacbcc56eb03a6cd698b8ec69f314181a92"
+    },
+    {
+      "path": "docs/user/hdrftr.rst",
+      "sha256": "129a904e23376bb136e8e05140ee0cd02e6b3672883c4838103723e13ee09115"
+    },
+    {
+      "path": "docs/user/install.rst",
+      "sha256": "fb617c4a38dae95bca0dc7dcfac72c0f863ea1f4b39cad4605fecb123f61dac1"
+    },
+    {
+      "path": "docs/user/quickstart.rst",
+      "sha256": "6b1637398b70f1fc31780149245b5a6876afc674a217dd07a49286398c396fcc"
+    },
+    {
+      "path": "docs/user/sections.rst",
+      "sha256": "e07ff6080c237c0edeecd5f6b284d82177a8d7d0a5712b5b1d9e77571acb298e"
+    },
+    {
+      "path": "docs/user/shapes.rst",
+      "sha256": "0940b9a3035cc0b49b3e69df07ad38c7dfacaa9dc01bd4aab0cf3310e22dee92"
+    },
+    {
+      "path": "docs/user/styles-understanding.rst",
+      "sha256": "d74800325f86f83738f51f5358d584050ab2204143fc02114f9c504d612e7f25"
+    },
+    {
+      "path": "docs/user/styles-using.rst",
+      "sha256": "7874eb18a45e9fc1e137b1a554abae05e2a69b3e16e4a231d19e5471ef064914"
+    },
+    {
+      "path": "docs/user/tables.rst",
+      "sha256": "64278c6fb40af9e2f298fa22f4237873e5879fa8fc0aace835b524fcc404d3dc"
+    },
+    {
+      "path": "docs/user/text.rst",
+      "sha256": "b40577dff0871d33f2b6db2e74ab4c0a7966c287f0cf3c38afb15d08a48c2555"
+    }
+  ],
+  "user_guide_topics": [
+    {
+      "file": "docs/user/api-concepts.rst",
+      "headings": [
+        "API basics",
+        "Inline objects"
+      ]
+    },
+    {
+      "file": "docs/user/comments.rst",
+      "headings": [
+        "Working with Comments",
+        "Adding a Comment",
+        "Accessing and using the Comments collection",
+        "Adding rich content to a comment",
+        "Updating comment metadata"
+      ]
+    },
+    {
+      "file": "docs/user/documents.rst",
+      "headings": [
+        "Working with Documents",
+        "Opening a document",
+        "REALLY opening a document",
+        "Opening a 'file-like' document"
+      ]
+    },
+    {
+      "file": "docs/user/hdrftr.rst",
+      "headings": [
+        "Working with Headers and Footers",
+        "Accessing the header for a section",
+        "Adding a header (simple case)",
+        "Adding \"zoned\" header content",
+        "Removing a header",
+        "Understanding headers in a multi-section document",
+        "Adding a header definition (general case)",
+        "Inherited content is automatically located"
+      ]
+    },
+    {
+      "file": "docs/user/install.rst",
+      "headings": [
+        "Installing",
+        "Dependencies"
+      ]
+    },
+    {
+      "file": "docs/user/quickstart.rst",
+      "headings": [
+        "Quickstart",
+        "Opening a document",
+        "Adding a paragraph",
+        "Adding a heading",
+        "Adding a page break",
+        "Adding a table",
+        "Adding a picture",
+        "Image size",
+        "Applying a paragraph style",
+        "Applying bold and italic",
+        "Applying a character style"
+      ]
+    },
+    {
+      "file": "docs/user/sections.rst",
+      "headings": [
+        "Working with Sections",
+        "Accessing sections",
+        "Adding a new section",
+        "Section properties",
+        "Section start type",
+        "Page dimensions and orientation",
+        "Page margins"
+      ]
+    },
+    {
+      "file": "docs/user/shapes.rst",
+      "headings": [
+        "Understanding pictures and other shapes"
+      ]
+    },
+    {
+      "file": "docs/user/styles-understanding.rst",
+      "headings": [
+        "Understanding Styles",
+        "What is a style in Word?",
+        "Why doesn't the style I applied show up?",
+        "Glossary",
+        "Identifying a style",
+        "Built-in styles",
+        "Style Behavior",
+        "Latent styles",
+        "Style inheritance",
+        "Paragraph styles in default template",
+        "Character styles in default template",
+        "Table styles in default template"
+      ]
+    },
+    {
+      "file": "docs/user/styles-using.rst",
+      "headings": [
+        "Working with Styles",
+        "Access a style",
+        "Apply a style",
+        "Add or delete a style",
+        "Define character formatting",
+        "Define paragraph formatting",
+        "Use paragraph-specific style properties",
+        "Control how a style appears in the Word UI",
+        "Display a style in the style gallery",
+        "Remove a style from the style gallery",
+        "Working with Latent Styles",
+        "Access the latent styles in a document",
+        "Change latent style defaults",
+        "Add a latent style definition",
+        "Delete a latent style definition"
+      ]
+    },
+    {
+      "file": "docs/user/tables.rst",
+      "headings": [
+        "Working with Tables",
+        "Concept: Simple (uniform) tables",
+        "Complication 1: Merged Cells",
+        "Concept: The layout grid",
+        "Complication 2: Omitted Cells",
+        "Concept: `python-docx` approximates uniform tables by default",
+        "Complication 3: Tables are Recursive"
+      ]
+    },
+    {
+      "file": "docs/user/text.rst",
+      "headings": [
+        "Working with Text",
+        "Block-level vs. inline text objects",
+        "Paragraph properties",
+        "Horizontal alignment (justification)",
+        "Indentation",
+        "Tab stops",
+        "Paragraph spacing",
+        "Line spacing",
+        "Pagination properties",
+        "Apply character formatting",
+        "Font color"
+      ]
+    }
+  ],
+  "unresolved_symbols": [],
+  "review_notes": [
+    "Includes documented underscore-prefixed types; naming alone does not establish private status.",
+    "Protocol and inherited-member closure still requires explicit completion; these are candidate counts, not exhaustive certification."
+  ]
+}
